@@ -13,7 +13,8 @@ const TextFieldAngka = forwardRef(function TextFieldAngka(
   },
   ref
 ) {
-  const sizeClass = size === "lg" ? "form-control-lg" : size === "sm" ? "form-control-sm" : "";
+  const sizeClass =
+    size === "lg" ? "form-control-lg" : size === "sm" ? "form-control-sm" : "";
 
   return (
     <div className="mb-3">
@@ -21,13 +22,15 @@ const TextFieldAngka = forwardRef(function TextFieldAngka(
         <label htmlFor={id} className="form-label fw-bold">
           {label}
           {isRequired && <span className="text-danger"> *</span>}
-          {errorMsg && <span className="fw-normal text-danger"> {errorMsg}</span>}
+          {errorMsg && (
+            <span className="fw-normal text-danger"> {errorMsg}</span>
+          )}
         </label>
       )}
       <input
         id={id}
         name={id}
-        type="number"  // Tipe input khusus angka
+        type="number" // Tipe input khusus angka
         className={`form-control ${sizeClass}`}
         placeholder={placeHolder}
         ref={ref}

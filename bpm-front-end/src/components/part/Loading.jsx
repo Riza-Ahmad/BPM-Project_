@@ -1,8 +1,17 @@
-import {SyncLoader } from "react-spinners";
+import { SyncLoader } from "react-spinners";
 
 export default function Loading() {
   return (
-    <div style={{ textAlign: "-webkit-center" }} className="mt-5">
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center", 
+        backgroundColor: "white", 
+        minHeight: "95vh",
+        margin: 0,
+      }}
+    >
       <SyncLoader color="#0d6efd" loading={true} />
     </div>
   );

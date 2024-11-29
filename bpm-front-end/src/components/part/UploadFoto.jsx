@@ -1,22 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { TENTANGFILE_LINK } from "../util/Constants";
 
-const UploadFoto = ({ id, label = "", isRequired = false, errorMsg = "" }) => {
+const UploadFoto = ({ id, label = "", isRequired = false, errorMsg = "", onChange, hasExisting }) => {
   const [preview, setPreview] = useState(null);
+  
+  // useEffect(() => {
+  //   // Jika hasExisting ada, tampilkan gambar yang ada sebagai preview
+  //   if (hasExisting) {
+  //     setPreview(FILE_LINK + hasExisting);
+  //   }
+  // }, [hasExisting]);
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreview(reader.result);
+        setPreview(reader.result); // Set preview gambar baru
       };
       reader.readAsDataURL(file);
+
+      if (onChange) {
+        onChange(file);
+      }
     }
   };
 
   return (
     <div className="mb-3">
-      {/* Label Input File */}
       {label && (
         <label htmlFor={id} className="form-label fw-bold mt-3">
           {label}
@@ -25,7 +36,6 @@ const UploadFoto = ({ id, label = "", isRequired = false, errorMsg = "" }) => {
         </label>
       )}
 
-      {/* Preview Container */}
       <div
         className="form-control m-3 p-3"
         style={{
@@ -49,7 +59,6 @@ const UploadFoto = ({ id, label = "", isRequired = false, errorMsg = "" }) => {
         )}
       </div>
 
-      {/* File Input */}
       <input
         type="file"
         id={id}
@@ -60,8 +69,24 @@ const UploadFoto = ({ id, label = "", isRequired = false, errorMsg = "" }) => {
         style={{ cursor: "pointer" }}
       />
 
-      {/* Custom Styling */}
-      <style jsx>{`
+      {hasExisting && (
+        <sub>
+          <br />
+          Gambar saat ini:{" "}
+          <a
+            href={TENTANGFILE_LINK + hasExisting}
+            className="text-decoration-none"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            [Lihat Gambar]
+          </a>
+          <br />
+          Unggah ulang jika ingin mengganti gambar yang sudah ada
+        </sub>
+      )}
+
+      <style>{`
         .form-control:hover {
           box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }

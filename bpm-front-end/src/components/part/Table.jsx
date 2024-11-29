@@ -115,12 +115,15 @@ export default function Table({
 
   return (
     <div className="table-responsive">
-      <table className="table table-hover table-striped table-bordered" style={{ borderCollapse: 'collapse', minWidth: '1000px' }}>
+      <table
+        className="table table-hover table-striped table-bordered"
+        style={{ borderCollapse: "collapse", minWidth: "1000px" }}
+      >
         <thead>
           <tr>
             {arrHeader.map((header, index) => (
               <th
-                key={`header-${index}`}
+                key={header}
                 className="text-center align-middle"
                 style={{
                   backgroundColor: "#2654A1",
@@ -135,7 +138,11 @@ export default function Table({
               style={{
                 backgroundColor: "#2654A1",
                 color: "#fff",
+<<<<<<< HEAD
                 width: '250px',  // Reduce the width of the "Aksi" column
+=======
+                width: "250px",
+>>>>>>> ede461605a79387ea5e1e30b8c16ab87fc5e10bd
               }}
             >
               Aksi
@@ -146,13 +153,31 @@ export default function Table({
           {data.length > 0 ? (
             data.map((row, rowIndex) => (
               <tr key={`row-${rowIndex}`}>
+<<<<<<< HEAD
                 {arrHeader.map((header, colIndex) => (
                   <td key={`cell-${rowIndex}-${colIndex}`} className="align-middle text-start">
                     {row[headerToDataMap[header]]}  {/* Mengambil data berdasarkan peta */}
+=======
+                {arrHeader.map((column, colIndex) => (
+                  <td
+                    key={`cell-${row.Key}-${colIndex}`}
+                    className={`align-middle ${
+                      column === "No" ? "text-center" : "text-start"
+                    }`}
+                  >
+                    {row[headerToDataMap[column]]}
+>>>>>>> ede461605a79387ea5e1e30b8c16ab87fc5e10bd
                   </td>
                 ))}
-                <td className="text-center align-middle" style={{ width: '250px' }}>
-                  {actions.map((action) => generateActionButton(action, row.key))}
+                <td
+                  className="text-center align-middle"
+                  style={{ width: "250px" }}
+                >
+                  {actions.map((action, actionIndex) => (
+                    <React.Fragment key={`${action}-${row.Key || rowIndex}`}>
+                      {generateActionButton(action, row.Key)}
+                    </React.Fragment>
+                  ))}
                 </td>
               </tr>
             ))

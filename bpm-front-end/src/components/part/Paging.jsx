@@ -36,13 +36,7 @@ export default function Paging({
     } else {
       // Untuk halaman saat ini 1
       if (pageCurrent === 1) {
-        pageButtons.push(
-          <Button
-            key="page1"
-            label="1"
-            classType="primary"
-          />
-        );
+        pageButtons.push(<Button key="page1" label="1" classType="primary" />);
         pageButtons.push(
           <Button
             key="page2"
@@ -52,11 +46,7 @@ export default function Paging({
           />
         );
         pageButtons.push(
-          <Button
-            key="dots1"
-            label="..."
-            classType="light border disabled"
-          />
+          <Button key="dots1" label="..." classType="light border disabled" />
         );
       }
 
@@ -70,30 +60,16 @@ export default function Paging({
             onClick={() => navigation(1)}
           />
         );
+        pageButtons.push(<Button key="page2" label="2" classType="primary" />);
         pageButtons.push(
-          <Button
-            key="page2"
-            label="2"
-            classType="primary"
-          />
-        );
-        pageButtons.push(
-          <Button
-            key="dots1"
-            label="..."
-            classType="light border disabled"
-          />
+          <Button key="dots1" label="..." classType="light border disabled" />
         );
       }
 
       // Untuk halaman saat ini 3 atau lebih
       else {
         pageButtons.push(
-          <Button
-            key="dots1"
-            label="..."
-            classType="light border disabled"
-          />
+          <Button key="dots1" label="..." classType="light border disabled" />
         );
         pageButtons.push(
           <Button
@@ -141,7 +117,9 @@ export default function Paging({
       <Button
         key="next"
         label="Selanjutnya"
-        classType={pageCurrent < totalPage ? "light border" : "light border disabled"}
+        classType={
+          pageCurrent < totalPage ? "light border" : "light border disabled"
+        }
         onClick={() => pageCurrent < totalPage && navigation(pageCurrent + 1)}
       />
     );

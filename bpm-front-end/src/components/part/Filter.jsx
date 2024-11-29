@@ -9,6 +9,7 @@ export default function Filter({ children }) {
         title="Saring atau Urutkan Data"
         data-bs-toggle="dropdown"
         data-bs-auto-close="outside"
+        label="Filter"
       />
       <div className="dropdown-menu p-4" style={{ width: "350px" }}>
         {children}

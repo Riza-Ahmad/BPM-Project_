@@ -6,7 +6,7 @@ export default function Tentang(){
     return(
         <>
             <Routes>
-                <Route path="/kegiatan/rencana" element={<IndexRencanaKegiatan />} />
+                <Route path="/kegiatan/jadwal" element={<IndexRencanaKegiatan />} />
             </Routes>
         </>
     )

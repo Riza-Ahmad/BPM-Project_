@@ -1,6 +1,6 @@
 .latarGradasi {
     background: linear-gradient(to bottom, #2654A1, #2654A1, #4989C2, #42ABDC); /* Gradasi warna */
-    height: 93vh; /* Atur tinggi latar sesuai kebutuhan, contoh ini 40% tinggi layar */
+    height: 95vh; /* Atur tinggi latar sesuai kebutuhan, contoh ini 40% tinggi layar */
     width: 100%; /* 100% lebar layar */
     display: flex; /* Agar konten bisa diatur menggunakan flexbox */
     justify-content: center; /* Memposisikan konten horizontal di tengah */
@@ -24,26 +24,10 @@
     border-radius: 20px;
     display: inline-block; /* Ensures it only takes up as much space as needed */
     border-color: #5CC7AF;
+    width: 100%;
 }
 
 
-  .bangunan {
-    position: absolute;
-    bottom: 0; /* Agar bangunan berada di bagian bawah latar */
-    width: 100%; /* Sesuaikan lebar bangunan */
-    left: 0; /* Menempatkan gambar agak di tengah */
-    z-index: 1;
-  }
-  
-  .orang {
-    position: absolute;
-    bottom: -30px;;
-    left: 48%; /* Sesuaikan posisi horizontal */
-    transform: translateX(-50%); /* Agar orang tepat di tengah */
-    width: 33vw; /* Ukuran orang yang responsif */
-    z-index: 2;
-  }
-  
 
   .content {
     position: absolute;
@@ -54,4 +38,29 @@
     color: #fff; /* Warna teks agar kontras dengan latar belakang */
   }
   
+
   
+  /* SPMI */
+  .carousel-inner {
+    border-radius: 20px;
+  }
+  .carousel-control-left {
+    background-color: #2654A1;
+    border-radius: 30px;
+    height: 50px;
+    width: 50px;
+    transform: translateX(-200%);
+    opacity: 100%;
+  }
+  .carousel-control-right {
+    background-color: #2654A1;
+    border-radius: 30px;
+    height: 50px;
+    width: 50px;
+    transform: translateX(200%);
+    opacity: 100%;
+  }
+  .carousel-img {
+    height: 50vh;
+    object-fit: cover;
+  }

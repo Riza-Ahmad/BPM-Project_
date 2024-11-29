@@ -20,7 +20,6 @@ export default function Header() {
   };
 
   const handleMenuItemClick = () => {
-    // Tutup menu saat item menu diklik
     setMobileMenuOpen(false);
   };
 
@@ -30,22 +29,24 @@ export default function Header() {
     return () => window.removeEventListener("resize", checkIsMobile);
   }, []);
 
-  // Menutup menu saat routing berubah (di mobile)
   useEffect(() => {
     if (isMobile) {
-      setMobileMenuOpen(false); // Menutup menu saat rute berubah di mobile
+      setMobileMenuOpen(false);
     }
-  }, [location]); // Efek akan dijalankan setiap kali lokasi (rute) berubah
+  }, [location]);
 
   return (
     <header className="header">
-      <div className="d-flex justify-content-between align-items-center fixed-top p-1" style={{ backgroundColor: "#2654A1" }}>
+      <div
+        className="d-flex justify-content-between align-items-center fixed-top p-1"
+        style={{ backgroundColor: "#2654A1" }}
+      >
         <div className="d-flex align-items-center">
           <img
             src={brand}
             alt="Logo AstraTech"
             className="navbar-brand"
-            style={{ height: "60px", marginLeft: "30px" }}
+            style={{ height: "4rem", marginLeft: "2rem" }}
           />
         </div>
         <div className={`navmenu ${isMobile ? "d-none" : "d-flex"}`}>
@@ -66,15 +67,22 @@ export default function Header() {
             }}
           >
             <i
-              className={`fi ${isMobileMenuOpen ? "fi-br-cross-small" : "fi-br-menu-burger"}`}
-              style={{ color: "#FFFFFF", fontSize: "25px", margin: "10px 5px 10px", cursor: "pointer" }}
+              className={`fi ${
+                isMobileMenuOpen ? "fi-br-cross-small" : "fi-br-menu-burger"
+              }`}
+              style={{
+                color: "#FFFFFF",
+                fontSize: "25px",
+                margin: "10px 5px 10px",
+                cursor: "pointer",
+              }}
             ></i>
           </button>
         )}
       </div>
       {isMobile && isMobileMenuOpen && (
         <div className="mobile-menu">
-          <ul className="nav flex-column p-3" style={{ marginTop: "65px" }}>
+          <ul className="nav flex-column p-3" style={{ marginTop: "4rem" }}>
             <NavItem onClick={handleMenuItemClick} />
           </ul>
         </div>

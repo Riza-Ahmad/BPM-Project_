@@ -3,7 +3,7 @@ import { forwardRef } from "react";
 const DropDown = forwardRef(function DropDown(
   {
     arrData,
-    type = "pilih",
+    type = "",
     label = "",
     forInput,
     isRequired = false,
@@ -18,10 +18,10 @@ const DropDown = forwardRef(function DropDown(
 
   switch (type) {
     case "pilih":
-      placeholder = <option value="">{"-- Pilih " + label + " --"}</option>;
+      placeholder = <option value="" selected disabled>{"-- Pilih " + label + " --"}</option>;
       break;
     case "semua":
-      placeholder = <option value="">-- Semua --</option>;
+      placeholder = <option value="" selected disabled>-- Semua --</option>;
       break;
     default:
       break;

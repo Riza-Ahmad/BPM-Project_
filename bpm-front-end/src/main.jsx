@@ -7,6 +7,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./assets/css/Styles.css";
 import "./assets/css/Tampilan.css";
 import "./assets/js/Main.js";
+import "sweetalert2"
 
 import "@flaticon/flaticon-uicons/css/regular/rounded.css";
 import "@flaticon/flaticon-uicons/css/bold/rounded.css";
