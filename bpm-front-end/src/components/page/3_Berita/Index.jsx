@@ -28,13 +28,10 @@ export default function Index({ onChangePage }) {
   useEffect(() => {
     const fetchBerita = async () => {
       try {
-        const response = await fetch(
-          `${API_LINK}/api/MasterBerita/GetDataBerita`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-          }
-        );
+        const response = await fetch(`${API_LINK}/MasterBerita/GetDataBerita`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
 
         if (!response.ok) throw new Error("Gagal mengambil data");
 

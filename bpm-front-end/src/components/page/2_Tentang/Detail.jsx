@@ -27,7 +27,7 @@ export default function Detail({ onChangePage }) {
   useEffect(() => {
     if (location.state?.idData) {
       const editId = location.state.idData;
-      fetch(API_LINK + `/api/MasterTentang/GetDataTentangById`, {
+      fetch(API_LINK + `/MasterTentang/GetDataTentangById`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

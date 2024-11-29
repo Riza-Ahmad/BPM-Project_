@@ -26,15 +26,12 @@ export default function Read({ onChangePage }) {
   useEffect(() => {
     const fetchBerita = async () => {
       try {
-        const response = await fetch(
-          `${API_LINK}/api/MasterBerita/GetDataBerita`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const response = await fetch(`${API_LINK}/MasterBerita/GetDataBerita`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
         if (!response.ok) throw new Error("Gagal mengambil data");
 
@@ -126,16 +123,13 @@ export default function Read({ onChangePage }) {
 
     if (confirm) {
       try {
-        const response = await fetch(
-          `${API_LINK}/api/MasterBerita/DeleteBerita`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ ber_id: id }),
-          }
-        );
+        const response = await fetch(`${API_LINK}/MasterBerita/DeleteBerita`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ber_id: id, ber_modif_by: "author" }),
+        });
 
         if (!response.ok) throw new Error("Gagal menghapus berita");
 

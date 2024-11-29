@@ -48,7 +48,7 @@ export default function Edit({ onChangePage }) {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          `${API_LINK}/api/MasterBerita/GetDataBeritaById`,
+          `${API_LINK}/MasterBerita/GetDataBeritaById`,
           {
             method: "POST",
             headers: {
@@ -137,7 +137,7 @@ export default function Edit({ onChangePage }) {
         newFiles.forEach((file) => formDataUpload.append("files", file));
 
         const uploadResponse = await fetch(
-          `${API_LINK}/api/MasterBerita/UploadFiles`,
+          `${API_LINK}/MasterBerita/UploadFiles`,
           {
             method: "POST",
             body: formDataUpload,
@@ -155,7 +155,7 @@ export default function Edit({ onChangePage }) {
 
       const finalImagePaths = [...existingPaths, ...uploadedPaths];
 
-      const response = await fetch(`${API_LINK}/api/MasterBerita/EditBerita`, {
+      const response = await fetch(`${API_LINK}/MasterBerita/EditBerita`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

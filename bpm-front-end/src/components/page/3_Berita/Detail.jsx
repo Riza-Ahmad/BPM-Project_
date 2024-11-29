@@ -44,7 +44,7 @@ export default function Detail({ onChangePage }) {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          `${API_LINK}/api/MasterBerita/GetDataBeritaById`,
+          `${API_LINK}/MasterBerita/GetDataBeritaById`,
           {
             method: "POST",
             headers: {

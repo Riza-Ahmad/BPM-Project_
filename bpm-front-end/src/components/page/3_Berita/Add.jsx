@@ -67,7 +67,7 @@ export default function Add({ onChangePage }) {
       images.forEach((file) => formData.append("files", file));
 
       const uploadResponse = await fetch(
-        `${API_LINK}/api/MasterBerita/UploadFiles`,
+        `${API_LINK}/MasterBerita/UploadFiles`,
         {
           method: "POST",
           body: formData,
@@ -90,7 +90,7 @@ export default function Add({ onChangePage }) {
       };
 
       const createResponse = await fetch(
-        `${API_LINK}/api/MasterBerita/CreateBerita`,
+        `${API_LINK}/MasterBerita/CreateBerita`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

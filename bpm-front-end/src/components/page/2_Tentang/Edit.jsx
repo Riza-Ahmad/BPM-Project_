@@ -29,7 +29,7 @@ export default function Edit({ onChangePage }) {
     if (location.state?.idData) {
       const editId = location.state.idData;
       setLoading(true);
-      fetch(API_LINK + `/api/MasterTentang/GetDataTentangById`, {
+      fetch(API_LINK + `/MasterTentang/GetDataTentangById`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -110,7 +110,7 @@ export default function Edit({ onChangePage }) {
         formData.append("file", selectedFile);
 
         const uploadResponse = await fetch(
-          `${API_LINK}/api/MasterTentang/UploadFile`,
+          `${API_LINK}/MasterTentang/UploadFile`,
           {
             method: "POST",
             body: formData,
@@ -139,7 +139,7 @@ export default function Edit({ onChangePage }) {
       };
 
       const editResponse = await fetch(
-        `${API_LINK}/api/MasterTentang/EditTentang`,
+        `${API_LINK}/MasterTentang/EditTentang`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
