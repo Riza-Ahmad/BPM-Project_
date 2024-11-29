@@ -32,25 +32,27 @@ function App() {
         {/* Header Component */}
         <Header />
 
+<<<<<<<<< Temporary merge branch 1
         <main className="flex-grow-1">
           <Tentang />
           <Berita />
           <RencanaKegiatan />
+          <Survei />
+          <Peraturan />
+          <PeraturanEksternal />
+          <InstrumenAps />
+=========
+        <main className="flex-grow-1" >
+          <Tentang/>
+          <Berita/>
+          <RencanaKegiatan/>
+          <Survei/>
           <Pelaksanaan />
           <Penetapan />
           <Peningkatan />
           <Pengendalian />
           <Evaluasi />
-          <Peraturan />
-          <PeraturanEksternal />
-          <InstrumenAps />
-          <KriteriaSurvei/>
-          <SkalaSurvei></SkalaSurvei>
-        {/* <main className="flex-grow-1" >
-          <Tentang/>
-          <Berita/>
-          <RencanaKegiatan/>
-           */}
+>>>>>>>>> Temporary merge branch 2
         </main>
 
         {/* Footer Component */}
