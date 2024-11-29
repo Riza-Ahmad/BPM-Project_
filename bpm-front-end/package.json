@@ -20,17 +20,12 @@
     "react": "^18.3.1",
     "react-big-calendar": "^1.15.0",
     "react-dom": "^18.3.1",
-<<<<<<< HEAD
-    "react-router-dom": "^6.28.0",
-    "react-spinners": "^0.14.1"
-=======
     "react-icons": "^5.3.0",
     "react-responsive-carousel": "^3.2.23",
     "react-router-dom": "^6.27.0",
     "react-spinners": "^0.14.1",
     "sweetalert2": "^11.14.5",
     "tinymce": "^7.4.1"
->>>>>>> ede461605a79387ea5e1e30b8c16ab87fc5e10bd
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
