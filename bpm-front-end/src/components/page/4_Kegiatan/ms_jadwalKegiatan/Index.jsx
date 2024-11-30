@@ -80,15 +80,15 @@ export default function Index({ onChangePage }) {
 
   const eventStyles = {
     1: {
-      backgroundColor: "rgba(181, 202, 251, 0.3)", // Biru dengan transparansi
+      backgroundColor: "rgba(181, 202, 251, 0.3)",
       borderColor: "#4989C2",
     },
     3: {
-      backgroundColor: "rgba(193, 232, 191, 0.3)", // Hijau dengan transparansi
+      backgroundColor: "rgba(193, 232, 191, 0.3)",
       borderColor: "#08A500",
     },
     default: {
-      backgroundColor: "rgba(108, 117, 125, 0.1)", // Tetap seperti sebelumnya
+      backgroundColor: "rgba(108, 117, 125, 0.1)",
       borderColor: "#6c757d",
     },
   };

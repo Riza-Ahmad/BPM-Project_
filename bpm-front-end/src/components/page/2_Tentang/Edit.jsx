@@ -23,6 +23,7 @@ export default function Edit({ onChangePage }) {
   });
 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
@@ -164,6 +165,9 @@ export default function Edit({ onChangePage }) {
       setLoading(false);
     }
   };
+
+  if (loading) return <Loading />;
+  if (error) return <p>{error}</p>;
 
   return (
     <div className="d-flex flex-column min-vh-100">

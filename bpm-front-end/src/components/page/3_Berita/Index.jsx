@@ -47,7 +47,7 @@ export default function Index({ onChangePage }) {
               }),
               year: new Date(item.ber_tgl).getFullYear(), // Simpan tahun
               description: item.ber_isi,
-              author: item.ber_created_by,
+              author: item.ber_penulis,
               images: [],
             };
           }

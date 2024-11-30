@@ -1,6 +1,6 @@
 import { forwardRef, useImperativeHandle, useState, useRef } from "react";
 
-const TextField = forwardRef(function TextField(
+const InputField = forwardRef(function TextField(
   {
     id,
     label = "",
@@ -9,6 +9,7 @@ const TextField = forwardRef(function TextField(
     errorMsg = "",
     isRequired = false,
     isDisabled = false,
+    type = "text",
     maxChar,
     value,
     onChange,
@@ -64,7 +65,7 @@ const TextField = forwardRef(function TextField(
         ref={inputRef}
         id={id}
         name={id}
-        type="text"
+        type={type}
         className={`form-control ${sizeClass} ${error ? "is-invalid" : ""}`}
         placeholder={placeHolder}
         disabled={isDisabled}
@@ -90,4 +91,4 @@ const TextField = forwardRef(function TextField(
   );
 });
 
-export default TextField;
+export default InputField;
