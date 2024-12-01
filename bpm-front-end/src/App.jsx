@@ -15,6 +15,7 @@ import PeraturanEksternal from "./components/page/10_Peraturan/ms_peraturanEkste
 import InstrumenAps from "./components/page/10_Peraturan/ms_instrumenAps/Root";
 import KriteriaSurvei from "./components/page/9_Survei/Kriteria_Survei/Root";
 import SkalaSurvei from "./components/page/9_Survei/Skala_Penilaian/Root";
+import Template_Survei from "./components/page/9_Survei/Template_Survei/Root";
 // import './App.css';
 // import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 // import Header from './components/backbone/Header';
@@ -46,6 +47,7 @@ function App() {
           <InstrumenAps />
           <KriteriaSurvei />
           <SkalaSurvei></SkalaSurvei>
+          <Template_Survei />
           {/* <main className="flex-grow-1" >
           <Tentang/>
           <Berita/>

@@ -6,6 +6,7 @@ import Button from "../../../part/Button";
 import SearchField from "../../../part/SearchField";
 import Filter from "../../../part/Filter";
 import Modal from "../../../part/Modal";
+import TextField from "../../../part/TextField";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../../../util/useIsMobile";
 
@@ -76,7 +77,7 @@ export default function Template_Survei() {
   const currentData = templates.slice(indexOfFirstData, indexOfLastData);
 
   const title = "Template Survei";
-  const breadcrumbs = [{ label: "Template Survei" }];
+  const breadcrumbs = [{ label: "Survei/Template Survei" }];
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -97,13 +98,13 @@ export default function Template_Survei() {
               iconName="add"
               classType="primary"
               label="Tambah Baru"
-              onClick={() => addModalRef.current.open()}
+              onClick={() => navigate("/survei/template/add")}
             />
             <div className="row mt-5">
-              <div className="col-lg-10 col-md-6">
+              <div className="col-lg-11 col-md-6">
                 <SearchField />
               </div>
-              <div className="col-lg-2 col-md-6">
+              <div className="col-lg-1 col-md-5">
                 <Filter />
               </div>
             </div>
@@ -113,13 +114,7 @@ export default function Template_Survei() {
             style={{ margin: isMobile ? "1rem" : "3rem" }}
           >
             <Table
-              arrHeader={[
-                "No",
-                "Nama Template",
-                "Tanggal Final",
-                "Status",
-                "Aksi",
-              ]}
+              arrHeader={["No", "Nama Template", "Tanggal Final", "Status"]}
               headerToDataMap={{
                 No: "No",
                 "Nama Template": "nama",
