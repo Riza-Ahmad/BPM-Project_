@@ -4,6 +4,7 @@ import Footer from "./components/backbone/Footer";
 import Tentang from "./components/page/2_Tentang/Root";
 import Berita from "./components/page/3_Berita/Root";
 import JadwalKegiatan from "./components/page/4_Kegiatan/ms_jadwalKegiatan/Root";
+import DokumentasiKegiatan from "./components/page/4_Kegiatan/ms_dokumentasiKegiatan/Root";
 import Pelaksanaan from "./components/page/5_SPMI/siklus_spmi/pelaksanaan/Root";
 import Penetapan from "./components/page/5_SPMI/siklus_spmi/penetapan/Root";
 import Peningkatan from "./components/page/5_SPMI/siklus_spmi/peningkatan/Root";
@@ -37,6 +38,7 @@ function App() {
           <Tentang />
           <Berita />
           <JadwalKegiatan />
+          <DokumentasiKegiatan />
           <Pelaksanaan />
           <Penetapan />
           <Peningkatan />
