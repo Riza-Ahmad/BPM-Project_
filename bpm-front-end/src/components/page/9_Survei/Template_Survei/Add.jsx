@@ -1,24 +1,97 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../../../part/Button";
 import TextField from "../../../part/TextField";
 import Table from "../../../part/Table";
 import Dropdown from "../../../part/Dropdown";
-import Modal from "../../../part/Modal";
-import { useIsMobile } from "../../../util/useIsMobile";
 import PageTitleNav from "../../../part/PageTitleNav";
+import Swal from "sweetalert2";
+import { useIsMobile } from "../../../util/useIsMobile";
 
 function Add() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  // State untuk pertanyaan
   const [questions, setQuestions] = useState([
     { id: 1, header: "", question: "", scale: "Radio Button" },
     { id: 2, header: "", question: "", scale: "Text Area" },
-    { id: 3, header: "", question: "", scale: "Radio Button" },
-    { id: 4, header: "", question: "", scale: "Check Box" },
-    { id: 5, header: "", question: "", scale: "Radio Button" },
   ]);
 
+  // State untuk dropdown
+  const [kriteriaOptions, setKriteriaOptions] = useState([]);
+  const [skalaOptions, setSkalaOptions] = useState([]);
+  const [loadingKriteria, setLoadingKriteria] = useState(true);
+  const [loadingSkala, setLoadingSkala] = useState(true);
+
+  // Fetch data untuk Dropdown
+  useEffect(() => {
+    const fetchKriteria = async () => {
+      setLoadingKriteria(true);
+      try {
+        const response = await fetch(
+          `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ page: 1, pageSize: 100 }),
+          }
+        );
+        if (!response.ok) throw new Error("Gagal mengambil data kriteria");
+
+        const result = await response.json();
+        const options = result.map((item) => ({
+          value: item.ksr_id,
+          label: item.ksr_nama,
+        }));
+        setKriteriaOptions(options);
+      } catch (err) {
+        console.error("Fetch error:", err);
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Gagal mengambil data kriteria!",
+        });
+      } finally {
+        setLoadingKriteria(false);
+      }
+    };
+
+    const fetchSkala = async () => {
+      setLoadingSkala(true);
+      try {
+        const response = await fetch(
+          `${API_LINK}/MasterSkalaPenilaian/GetDataSkalaPenilaian`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+        if (!response.ok) throw new Error("Gagal mengambil data skala");
+
+        const result = await response.json();
+        const options = result.map((item) => ({
+          value: item.skala_id,
+          label: item.skala_nama,
+        }));
+        setSkalaOptions(options);
+      } catch (err) {
+        console.error("Fetch error:", err);
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Gagal mengambil data skala!",
+        });
+      } finally {
+        setLoadingSkala(false);
+      }
+    };
+
+    fetchKriteria();
+    fetchSkala();
+  }, []);
+
+  // Event Handlers
   const handleAddQuestion = () => {
     setQuestions([
       ...questions,
@@ -52,7 +125,7 @@ function Add() {
 
   const title = "Tambah Template Survei";
   const breadcrumbs = [
-    { label: "Survei/Template Survei/Tambah Template Survei" },
+    { label: "Survei / Template Survei / Tambah Template Survei" },
   ];
 
   return (
@@ -63,7 +136,7 @@ function Add() {
             className="mb-0"
             style={{
               display: "flex",
-              justifyContent: "space-between", // Align breadcrumbs and title
+              justifyContent: "space-between",
               alignItems: "center",
             }}
           >
@@ -75,20 +148,18 @@ function Add() {
           </div>
 
           <div
-            className="form-container" // Added container class for shadow
+            className="form-container"
             style={{
-              marginTop: "2rem", // Spacing between breadcrumb and form
-              padding: isMobile ? "1rem" : "2rem", // Padding for the form
-              borderRadius: "8px", // Rounded corners
-              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)", // Shadow effect
-              backgroundColor: "#fff", // White background
+              marginTop: "2rem",
+              padding: isMobile ? "1rem" : "2rem",
+              borderRadius: "8px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              backgroundColor: "#fff",
             }}
           >
             <div
               className="form-section"
-              style={{
-                marginBottom: isMobile ? "1rem" : "2rem",
-              }}
+              style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
             >
               <h3
                 style={{
@@ -104,40 +175,40 @@ function Add() {
                   label="Nama Template"
                   isRequired={true}
                   placeholder="Masukkan Nama Template"
-                  style={{
-                    marginBottom: isMobile ? "1rem" : "2rem",
-                  }}
+                  style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
                 />
-                <TextField
-                  label="Kriteria Survei"
-                  isRequired={true}
-                  placeholder="Masukkan Kriteria Survei"
-                  style={{
-                    marginBottom: isMobile ? "1rem" : "2rem",
-                  }}
-                />
-                <Dropdown
-                  label="Skala Penilaian"
-                  isRequired={true}
-                  options={[
-                    { label: "Radio Button", value: "Radio Button" },
-                    { label: "Text Box", value: "Text Box" },
-                    { label: "Check Box", value: "Check Box" },
-                    { label: "Text Area", value: "Text Area" },
-                  ]}
-                  selectedValue="Radio Button" // Set default value
-                  onChange={(value) => console.log(value)} // Handle change event
-                  required
-                  style={{ width: isMobile ? "100%" : "auto" }}
-                />
+                {loadingKriteria ? (
+                  <p>Loading Kriteria...</p>
+                ) : (
+                  <Dropdown
+                    label="Kriteria Survei"
+                    isRequired={true}
+                    placeholder="Pilih Kriteria Survei"
+                    options={kriteriaOptions}
+                    onChange={(value) =>
+                      console.log("Selected Kriteria:", value)
+                    }
+                    style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
+                  />
+                )}
+                {loadingSkala ? (
+                  <p>Loading Skala...</p>
+                ) : (
+                  <Dropdown
+                    label="Skala Penilaian"
+                    isRequired={true}
+                    placeholder="Pilih Skala Penilaian"
+                    options={skalaOptions}
+                    onChange={(value) => console.log("Selected Skala:", value)}
+                    style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
+                  />
+                )}
               </form>
             </div>
 
             <div
               className="question-section"
-              style={{
-                marginBottom: isMobile ? "1rem" : "2rem",
-              }}
+              style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
             >
               <h3 className="text-center">
                 Tambah Pertanyaan
@@ -149,9 +220,7 @@ function Add() {
                   classType="primary"
                   label="Tambah Pertanyaan Baru"
                   onClick={handleAddQuestion}
-                  style={{
-                    marginBottom: isMobile ? "1rem" : "2rem",
-                  }}
+                  style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
                 />
               </div>
 

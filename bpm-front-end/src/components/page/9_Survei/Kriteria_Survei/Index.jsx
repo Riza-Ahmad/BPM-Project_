@@ -48,7 +48,7 @@ export default function KriteriaSurvei({ onChangePage }) {
         setData(groupedKriteria);
       } catch (err) {
         console.error("Fetch error:", err);
-        Swal.fire({
+        Swal.fire({ 
           icon: "error",
           title: "Oops...",
           text: "Gagal mengambil data kriteria!",
@@ -153,14 +153,14 @@ export default function KriteriaSurvei({ onChangePage }) {
               onClick={() => handleOpenModal("add")}
             />
           </div>
-            <div className="row mt-5">
-              <div className="col-lg-11 col-md-6 ">
-                <SearchField></SearchField>
-              </div>
-              <div className="col-lg-1 col-md-6 ">
-                <Filter></Filter>
-              </div>
+          <div className="row mt-5">
+            <div className="col-lg-11 col-md-6 ">
+              <SearchField></SearchField>
             </div>
+            <div className="col-lg-1 col-md-6 ">
+              <Filter></Filter>
+            </div>
+          </div>
         </div>
 
         <div
