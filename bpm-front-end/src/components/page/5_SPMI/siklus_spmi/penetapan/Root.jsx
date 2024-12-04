@@ -37,20 +37,14 @@ export default function Penetapan() {
     <>
       <ScrollToTop />
       <Routes>
+        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
         <Route
-          path="/spmi/siklus/penetapan"
-          element={<Index onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/spmi/siklus/penetapan/editkonten"
+          path="/editkonten"
           element={<EditKonten onChangePage={handlePageChange} />}
         />
+        <Route path="/add" element={<Add onChangePage={handlePageChange} />} />
         <Route
-          path="/spmi/siklus/penetapan/add"
-          element={<Add onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/spmi/siklus/penetapan/edit"
+          path="/edit"
           element={<Edit onChangePage={handlePageChange} />}
         />
       </Routes>

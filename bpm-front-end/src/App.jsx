@@ -10,12 +10,14 @@ import Penetapan from "./components/page/5_SPMI/siklus_spmi/penetapan/Root";
 import Peningkatan from "./components/page/5_SPMI/siklus_spmi/peningkatan/Root";
 import Pengendalian from "./components/page/5_SPMI/siklus_spmi/pengendalian/Root";
 import Evaluasi from "./components/page/5_SPMI/siklus_spmi/evaluasi/Root";
-import "./App.css";
 import Peraturan from "./components/page/10_Peraturan/ms_kebijakanPeraturan/Root";
 import PeraturanEksternal from "./components/page/10_Peraturan/ms_peraturanEksternal/Root";
 import InstrumenAps from "./components/page/10_Peraturan/ms_instrumenAps/Root";
 import KriteriaSurvei from "./components/page/9_Survei/Kriteria_Survei/Root";
 import SkalaSurvei from "./components/page/9_Survei/Skala_Penilaian/Root";
+import ScrollToTop from "./components/part/ScrollToTop";
+import "./App.css";
+
 import Template_Survei from "./components/page/9_Survei/Template_Survei/Root";
 // import './App.css';
 // import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -27,13 +29,15 @@ import Template_Survei from "./components/page/9_Survei/Template_Survei/Root";
 // import KriteriaSurvei from './components/page/9_Survei/Kriteria_Survei/Root';
 function App() {
   return (
-    <Router>
-      {" "}
-      {/* Wrap the entire app in Router */}
+    <Router
+      future={{
+        v7_startTransition: true, // Mengaktifkan startTransition
+        v7_relativeSplatPath: true, // Mengaktifkan perubahan dalam resolusi rute relatif
+      }}
+    >
+      <ScrollToTop />
       <div className="d-flex flex-column min-vh-100">
-        {/* Header Component */}
         <Header />
-
         <main className="flex-grow-1">
           <Tentang />
           <Berita />
@@ -48,16 +52,8 @@ function App() {
           <PeraturanEksternal />
           <InstrumenAps />
           <KriteriaSurvei />
-          <SkalaSurvei></SkalaSurvei>
-          <Template_Survei />
-          {/* <main className="flex-grow-1" >
-          <Tentang/>
-          <Berita/>
-          <RencanaKegiatan/>
-           */}
+          <SkalaSurvei />
         </main>
-
-        {/* Footer Component */}
         <Footer />
       </div>
     </Router>

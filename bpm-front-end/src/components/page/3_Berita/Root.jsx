@@ -33,7 +33,7 @@ export default function Berita() {
         navigate("/berita/kelola/detail", withState);
         break;
       case "news":
-        navigate("/lihatBerita", withState);
+        navigate("/berita/lihatBerita", withState);
         break;
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
@@ -45,24 +45,21 @@ export default function Berita() {
     <>
       <ScrollToTop />
       <Routes>
+        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
         <Route
-          path="/berita"
-          element={<Index onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/berita/kelola"
+          path="/kelola"
           element={<Read onChangePage={handlePageChange} />}
         />
         <Route
-          path="/berita/kelola/tambah"
+          path="/kelola/tambah"
           element={<Add onChangePage={handlePageChange} />}
         />
         <Route
-          path="/berita/kelola/edit"
+          path="/kelola/edit"
           element={<Edit onChangePage={handlePageChange} />}
         />
         <Route
-          path="/berita/kelola/detail"
+          path="/kelola/detail"
           element={<Detail onChangePage={handlePageChange} />}
         />
         <Route

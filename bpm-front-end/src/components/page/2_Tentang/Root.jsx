@@ -1,9 +1,5 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  useNavigate,
-} from "react-router-dom";
+import React from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import Index from "./Index";
 import Read from "./Read";
 import Edit from "./Edit";
@@ -22,13 +18,12 @@ export default function Tentang() {
         navigate("/tentang/kelola");
         break;
       case "edit":
-        navigate("/tentang/kelola/edit", withState);
+        navigate("/tentang/kelola/edit", { state: withState });
         break;
       case "detail":
-        navigate("/tentang/kelola/detail", withState);
+        navigate("/tentang/kelola/detail", { state: withState });
         break;
       default:
-        console.warn(`Halaman "${page}" tidak dikenali.`);
         break;
     }
   };
@@ -37,22 +32,20 @@ export default function Tentang() {
     <>
       <ScrollToTop />
       <Routes>
+        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
         <Route
-          path="/tentang"
-          element={<Index onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/tentang/kelola"
+          path="/kelola"
           element={<Read onChangePage={handlePageChange} />}
         />
         <Route
-          path="/tentang/kelola/edit"
+          path="/kelola/edit"
           element={<Edit onChangePage={handlePageChange} />}
         />
         <Route
-          path="/tentang/kelola/detail"
+          path="/kelola/detail"
           element={<Detail onChangePage={handlePageChange} />}
         />
+        <Route path="*" element={<div>Halaman Tentang tidak ditemukan</div>} />
       </Routes>
     </>
   );

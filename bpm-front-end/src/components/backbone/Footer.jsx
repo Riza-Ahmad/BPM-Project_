@@ -24,7 +24,7 @@ function Footer() {
               dalam mewujudkan visi dan misi institusi, serta memenuhi kebutuhan
               <i> stakeholders</i>.
             </p>
-            <p class="pull-left mt-3 mb-0">
+            <p className="pull-left mt-3 mb-0">
               © 2024. Politeknik Astra / Badan Penjaminan Mutu
             </p>
           </div>

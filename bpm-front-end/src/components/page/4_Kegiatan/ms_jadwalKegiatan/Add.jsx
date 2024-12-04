@@ -1,10 +1,11 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import PageTitleNav from "../../../part/PageTitleNav";
 import TextField from "../../../part/InputField";
 import TextArea from "../../../part/TextArea";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
 import Loading from "../../../part/Loading";
+import DropDown from "../../../part/Dropdown";
 import { API_LINK } from "../../../util/Constants";
 import SweetAlert from "../../../util/SweetAlert";
 import { useIsMobile } from "../../../util/useIsMobile";
@@ -28,7 +29,43 @@ export default function Add({ onChangePage }) {
     startTime: "",
     endTime: "",
     place: "",
+    jenisKegiatan: "",
   });
+
+  const [jenisKegiatan, setJenisKegiatan] = useState([]);
+
+  // Fetch jenis kegiatan data on component mount
+  useEffect(() => {
+    const fetchJenisKegiatan = async () => {
+      try {
+        const response = await fetch(
+          `${API_LINK}/MasterKegiatan/GetDataJenisKegiatan`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({}),
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          const formattedData = data.map((item) => ({
+            Value: item.jkg_id, // ID untuk nilai dropdown
+            Text: item.jkg_nama, // Nama untuk teks dropdown
+          }));
+          setJenisKegiatan(formattedData); // Menyimpan data ke state
+        } else {
+          throw new Error("Gagal mengambil data jenis kegiatan");
+        }
+      } catch (error) {
+        setError(error.message); // Menangani error
+      }
+    };
+
+    fetchJenisKegiatan();
+  }, []);
 
   // Refs for validation
   const namaRef = useRef();
@@ -38,8 +75,10 @@ export default function Add({ onChangePage }) {
   const jamMulaiRef = useRef();
   const tglSelesaiRef = useRef();
   const jamSelesaiRef = useRef();
+  const jenisKegiatanRef = useRef();
 
   const handleSubmit = async () => {
+    console.log(formData.jenisKegiatan);
     if (!namaRef.current?.validate()) {
       namaRef.current?.focus();
       return;
@@ -66,6 +105,11 @@ export default function Add({ onChangePage }) {
     }
     if (!jamSelesaiRef.current?.validate()) {
       jamSelesaiRef.current?.focus();
+      return;
+    }
+
+    if (!jenisKegiatanRef.current?.value === "") {
+      jenisKegiatanRef.current?.focus();
       return;
     }
 
@@ -97,6 +141,7 @@ export default function Add({ onChangePage }) {
       keg_jam_selesai: formData.endTime,
       keg_tempat: formData.place,
       keg_created_by: "Admin",
+      jkg_id: formData.jenisKegiatan,
     };
 
     setLoading(true);
@@ -123,6 +168,7 @@ export default function Add({ onChangePage }) {
       }
     } catch (error) {
       SweetAlert("Gagal!", error.message, "error", "OK");
+      setLoading(false);
     }
   };
 
@@ -149,13 +195,25 @@ export default function Add({ onChangePage }) {
           >
             <HeaderForm label="Formulir Jadwal Kegiatan" />
             <div className="row">
+              <TextField
+                ref={namaRef}
+                label="Nama Kegiatan"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                isRequired={true}
+              />
               <div className="col-lg-6 col-md-6">
-                <TextField
-                  ref={namaRef}
-                  label="Nama Kegiatan"
-                  value={formData.name}
+                <DropDown
+                  ref={jenisKegiatanRef}
+                  arrData={jenisKegiatan}
+                  label="Jenis Kegiatan"
+                  type="pilih"
+                  forInput="jenisKegiatan"
+                  value={formData.jenisKegiatan}
                   onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
+                    setFormData({ ...formData, jenisKegiatan: e.target.value })
                   }
                   isRequired={true}
                 />

@@ -34,16 +34,13 @@ export default function PeraturanEksternal() {
     <>
       <ScrollToTop />
       <Routes>
+        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
         <Route
-          path="/peraturan/eksternal"
-          element={<Index onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/peraturan/eksternal/tambah"
+          path="/tambah"
           element={<Add onChangePage={handlePageChange} />}
         />
         <Route
-          path="/peraturan/eksternal/edit"
+          path="/edit"
           element={<Edit onChangePage={handlePageChange} />}
         />
       </Routes>

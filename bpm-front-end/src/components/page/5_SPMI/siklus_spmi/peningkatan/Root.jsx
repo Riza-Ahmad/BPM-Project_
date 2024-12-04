@@ -37,20 +37,14 @@ export default function Peningkatan() {
     <>
       <ScrollToTop />
       <Routes>
+        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
         <Route
-          path="/spmi/siklus/peningkatan"
-          element={<Index onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/spmi/siklus/peningkatan/editkonten"
+          path="/editkonten"
           element={<EditKonten onChangePage={handlePageChange} />}
         />
+        <Route path="/add" element={<Add onChangePage={handlePageChange} />} />
         <Route
-          path="/spmi/siklus/peningkatan/add"
-          element={<Add onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/spmi/siklus/peningkatan/edit"
+          path="/edit"
           element={<Edit onChangePage={handlePageChange} />}
         />
       </Routes>

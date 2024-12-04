@@ -7,8 +7,8 @@ export default function Button({
   title = "",
   type = "button",
   isDisabled = false,
-  width = "auto",  // Default width
-  boxShadow = "0px 4px 6px rgba(0, 0, 0, 0.1)",  // Example shadow
+  width = "auto", // Default width
+  boxShadow = "0px 4px 6px rgba(0, 0, 0, 0.1)", // Example shadow
   ...props
 }) {
   return (
@@ -23,7 +23,7 @@ export default function Button({
       {iconName && (
         <Icon name={iconName} cssClass={label === "" ? undefined : "pe-2"} />
       )}
-      <span style={{ fontWeight: '600' }}>{label}</span>
+      <span style={{ fontWeight: "600" }}>{label}</span>
     </button>
   );
 }

@@ -41,10 +41,7 @@ export default function JadwalKegiatan() {
     <>
       <ScrollToTop />
       <Routes>
-        <Route
-          path="/kegiatan/dokumentasi"
-          element={<Index onChangePage={handlePageChange} />}
-        />
+        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
       </Routes>
     </>
   );

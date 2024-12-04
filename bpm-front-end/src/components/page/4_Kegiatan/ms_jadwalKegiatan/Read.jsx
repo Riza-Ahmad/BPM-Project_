@@ -281,7 +281,6 @@ export default function Read({ onChangePage }) {
                     : "Terlaksana",
               }))}
               actions={(item) => {
-                console.log("Item:", item);
                 return item.Status === "Terlaksana"
                   ? ["Detail"]
                   : ["Detail", "Edit", "Delete"];
