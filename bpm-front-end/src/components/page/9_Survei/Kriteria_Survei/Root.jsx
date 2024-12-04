@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-route
 import Index from './Index';
 import ScrollToTop from '../../../part/ScrollToTop';
 
+import Tentang from '../../../page/2_Tentang/Index'
+
 export default function Kriteria_Survei(){
     const navigate = useNavigate();
 
@@ -10,6 +12,9 @@ export default function Kriteria_Survei(){
             case "index":
                 navigate("/survei/kriteria");
                 break;
+            case "tentang":
+            navigate("/tentang");
+            break;
             default:
                 console.warn(`Halaman "${page}" tidak dikenali.`);
                 break;
@@ -20,7 +25,8 @@ export default function Kriteria_Survei(){
         <>
             <ScrollToTop/>
             <Routes>
-                <Route path="/survei/kriteria" element={<Index onChangePage={handlePageChange}/>}/>
+                <Route path="/tentang" element={<Tentang onChangePage={handlePageChange}/>}/>
+                <Route path="/" element={<Index onChangePage={handlePageChange}/>}/>
                            
             </Routes>
         </>

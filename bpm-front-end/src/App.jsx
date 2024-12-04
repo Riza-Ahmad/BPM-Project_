@@ -16,9 +16,8 @@ import InstrumenAps from "./components/page/10_Peraturan/ms_instrumenAps/Root";
 import KriteriaSurvei from "./components/page/9_Survei/Kriteria_Survei/Root";
 import SkalaSurvei from "./components/page/9_Survei/Skala_Penilaian/Root";
 import ScrollToTop from "./components/part/ScrollToTop";
-import "./App.css";
-
 import Template_Survei from "./components/page/9_Survei/Template_Survei/Root";
+import "./App.css";
 // import './App.css';
 // import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 // import Header from './components/backbone/Header';
@@ -53,6 +52,7 @@ function App() {
           <InstrumenAps />
           <KriteriaSurvei />
           <SkalaSurvei />
+          <Template_Survei />
         </main>
         <Footer />
       </div>
