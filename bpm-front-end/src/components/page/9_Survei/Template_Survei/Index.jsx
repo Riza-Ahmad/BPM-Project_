@@ -16,7 +16,11 @@ export default function Template_Survei({ onChangePage }) {
   const isMobile = useIsMobile();
   const [pageCurrent, setPageCurrent] = useState(1);
   const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState(""); // State for search query
+  const [selectedYear, setSelectedYear] = useState(""); // State for selected year
+  const [selectedStatus, setSelectedStatus] = useState(""); // State for selected status
   const navigate = useNavigate();
 
   // State untuk modal
@@ -49,6 +53,7 @@ export default function Template_Survei({ onChangePage }) {
         }));
 
         setData(formattedTemplates);
+        setFilteredData(formattedTemplates); // Set initial filtered data
       } catch (err) {
         console.error("Fetch error:", err);
         Swal.fire({
@@ -64,9 +69,45 @@ export default function Template_Survei({ onChangePage }) {
     fetchTemplateSurvei();
   }, []);
 
+  // Handle search and filter
+  const handleSearchChange = (query) => {
+    setSearchQuery(query);
+  };
+
+  const handleFilterChange = (year, status) => {
+    setSelectedYear(year);
+    setSelectedStatus(status);
+  };
+
+  // Filter data based on search, year, and status
+  useEffect(() => {
+    let filtered = [...data];
+
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter((item) =>
+        item.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Apply year filter
+    if (selectedYear) {
+      filtered = filtered.filter((item) =>
+        item.finalDate.includes(selectedYear)
+      );
+    }
+
+    // Apply status filter
+    if (selectedStatus) {
+      filtered = filtered.filter((item) => item.status === selectedStatus);
+    }
+
+    setFilteredData(filtered);
+  }, [searchQuery, selectedYear, selectedStatus, data]);
+
   const indexOfLastData = pageCurrent * pageSize;
   const indexOfFirstData = indexOfLastData - pageSize;
-  const currentData = data.slice(indexOfFirstData, indexOfLastData);
+  const currentData = filteredData.slice(indexOfFirstData, indexOfLastData);
 
   const handlePageNavigation = (page) => {
     setPageCurrent(page);
@@ -82,92 +123,108 @@ export default function Template_Survei({ onChangePage }) {
 
   return (
     <div className="d-flex flex-column min-vh-100">
-      {/* Header Section */}
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
-        <PageTitleNav
-          title="Template Survei"
-          breadcrumbs={[{ label: "Survei / Template Survei" }]}
-          onClick={() => onChangePage("index")}
-        />
-        <div className={isMobile ? "p-2 m-2 mt-2 mb-2" : "p-3 m-5 mt-2 mb-4"}>
-          <div style={{ marginBottom: "16px" }}>
+        <div className="d-flex flex-column">
+          {/* Section for Page Title and Navigation */}
+          <div className={isMobile ? "m-0 p-0" : "m-3 mb-0"}>
+            <PageTitleNav
+              title="Template Survei"
+              breadcrumbs={[
+                { label: "Survei", href: "/survei" },
+                { label: "Template Survei" },
+              ]}
+              onClick={() => navigate("/survei")}
+            />
+          </div>
+
+          {/* Section for Add Button */}
+          <div
+            className={isMobile ? "p-2 m-2 mt-2 mb-0" : "p-3 m-5 mt-2 mb-0"}
+            style={{ marginLeft: "50px" }}
+          >
             <Button
               iconName="add"
               classType="primary"
-              label="Tambah Template"
+              label="Tambah Kriteria"
               onClick={() => navigate("/survei/template/add")}
             />
           </div>
+
+          {/* Section for Search and Filter */}
           <div className="row mt-5">
-            <div className="col-lg-11 col-md-6 ">
-              <SearchField></SearchField>
+            <div className="col-lg-10 col-md-6">
+              <SearchField onSearchChange={handleSearchChange} />
             </div>
-            <div className="col-lg-1 col-md-6 ">
-              <Filter></Filter>
+            <div className="col-lg-1 col-md-6">
+              <Filter
+                onChange={handleFilterChange}
+                selectedYear={selectedYear}
+                selectedStatus={selectedStatus}
+              />
             </div>
           </div>
-        </div>
 
-        {/* Table Section */}
-        <div
-          className={
-            isMobile
-              ? "table-container bg-white p-2 rounded"
-              : "table-container bg-white p-4 rounded"
-          }
-        >
-          <Table
-            arrHeader={["No", "Nama Template", "Tanggal Final", "Status"]}
-            headerToDataMap={{
-              No: "No",
-              "Nama Template": "name",
-              "Tanggal Final": "finalDate",
-              Status: "status",
-            }}
-            data={currentData.map((item, index) => ({
-              key: item.id,
-              No: indexOfFirstData + index + 1,
-              name: item.name,
-              finalDate: item.finalDate,
-              status: item.status,
-            }))}
-            actions={["Detail", "Edit", "Hapus"]}
-            onEdit={(id) => {
-              const selected = data.find((item) => item.id === id);
-              handleOpenModal("edit", selected);
-            }}
-            onDetail={(id) => {
-              const selected = data.find((item) => item.id === id);
-              handleOpenModal("detail", selected);
-            }}
-            onDelete={(id) => {
-              Swal.fire({
-                title: "Apakah anda yakin?",
-                text: "Data ini akan dihapus secara permanen!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Ya, hapus!",
-              }).then((result) => {
-                if (result.isConfirmed) {
-                  const newData = data.filter((item) => item.id !== id);
-                  setData(newData);
-                  Swal.fire(
-                    "Terhapus!",
-                    "Data template survei berhasil dihapus.",
-                    "success"
-                  );
-                }
-              });
-            }}
-          />
-          <Paging
-            pageSize={pageSize}
-            pageCurrent={pageCurrent}
-            totalData={data.length}
-            navigation={handlePageNavigation}
-          />
+          {/* Section for Table */}
+          <div
+            className={
+              isMobile
+                ? "table-container bg-white p-2 m-2 rounded"
+                : "table-container bg-white p-3 m-5 rounded"
+            }
+          >
+            <Table
+              arrHeader={["No", "Nama Template", "Tanggal Final", "Status"]}
+              headerToDataMap={{
+                No: "No",
+                "Nama Template": "name",
+                "Tanggal Final": "finalDate",
+                Status: "status",
+              }}
+              data={currentData.map((item, index) => ({
+                key: item.id,
+                No: indexOfFirstData + index + 1,
+                name: item.name,
+                finalDate: item.finalDate,
+                status: item.status,
+              }))}
+              actions={["Detail", "Edit", "Hapus"]}
+              onEdit={(id) => {
+                const selected = data.find((item) => item.id === id);
+                handleOpenModal("edit", selected);
+              }}
+              onDetail={(id) => {
+                const selected = data.find((item) => item.id === id);
+                handleOpenModal("detail", selected);
+              }}
+              onDelete={(id) => {
+                Swal.fire({
+                  title: "Apakah anda yakin?",
+                  text: "Data ini akan dihapus secara permanen!",
+                  icon: "warning",
+                  showCancelButton: true,
+                  confirmButtonColor: "#3085d6",
+                  cancelButtonColor: "#d33",
+                  confirmButtonText: "Ya, hapus!",
+                }).then((result) => {
+                  if (result.isConfirmed) {
+                    const newData = data.filter((item) => item.id !== id);
+                    setData(newData);
+                    Swal.fire(
+                      "Terhapus!",
+                      "Data template survei berhasil dihapus.",
+                      "success"
+                    );
+                  }
+                });
+              }}
+            />
+            <Paging
+              pageSize={pageSize}
+              pageCurrent={pageCurrent}
+              totalData={filteredData.length}
+              navigation={handlePageNavigation}
+            />
+          </div>
         </div>
       </main>
     </div>

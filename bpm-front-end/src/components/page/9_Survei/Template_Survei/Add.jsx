@@ -123,141 +123,145 @@ function Add() {
     navigate("/survei/template");
   };
 
-  const title = "Tambah Template Survei";
-  const breadcrumbs = [
-    { label: "Survei / Template Survei / Tambah Template Survei" },
-  ];
-
   return (
     <div className="d-flex flex-column min-vh-100">
-      <main className="flex-grow-1" style={{ marginTop: "80px" }}>
-        <div className="d-flex flex-column" style={{ padding: "0 3rem" }}>
-          <div
-            className="mb-0"
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
+      <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
+        <div className="d-flex flex-column">
+          {/* Header Section */}
+          <div className={isMobile ? "m-0 p-0" : "m-3 mb-0"}>
             <PageTitleNav
-              title={title}
-              breadcrumbs={breadcrumbs}
+              title="Template Survei"
+              breadcrumbs={[
+                { label: "Survei", href: "/survei" },
+                { label: "Template Survei", href: "/survei/template" },
+                { label: "Tambah Template Survei" },
+              ]}
               onClick={() => navigate("/survei/template")}
             />
-          </div>
 
-          <div
-            className="form-container"
-            style={{
-              marginTop: "2rem",
-              padding: isMobile ? "1rem" : "2rem",
-              borderRadius: "8px",
-              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-              backgroundColor: "#fff",
-            }}
-          >
+            {/* Form Section */}
             <div
-              className="form-section"
-              style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
+              className="form-container"
+              style={{
+                marginTop: "2rem",
+                padding: isMobile ? "1rem" : "2rem",
+                borderRadius: "8px",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                backgroundColor: "#fff",
+              }}
             >
-              <h3
-                style={{
-                  fontSize: isMobile ? "1.25rem" : "1.5rem",
-                  textAlign: "center",
-                }}
+              {/* Form Title */}
+              <div
+                className="form-section"
+                style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
               >
-                Formulir Template Survei
-                <hr />
-              </h3>
-              <form>
-                <TextField
-                  label="Nama Template"
-                  isRequired={true}
-                  placeholder="Masukkan Nama Template"
-                  style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
-                />
-                {loadingKriteria ? (
-                  <p>Loading Kriteria...</p>
-                ) : (
-                  <Dropdown
-                    label="Kriteria Survei"
-                    isRequired={true}
-                    placeholder="Pilih Kriteria Survei"
-                    options={kriteriaOptions}
-                    onChange={(value) =>
-                      console.log("Selected Kriteria:", value)
-                    }
+                <h3
+                  style={{
+                    fontSize: isMobile ? "1.25rem" : "1.5rem",
+                    textAlign: "center",
+                  }}
+                >
+                  Formulir Template Survei
+                  <hr />
+                </h3>
+                <form>
+                  <TextField
+                    label="Nama Template"
+                    isRequired
+                    placeholder="Masukkan Nama Template"
                     style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
                   />
-                )}
-                {loadingSkala ? (
-                  <p>Loading Skala...</p>
-                ) : (
-                  <Dropdown
-                    label="Skala Penilaian"
-                    isRequired={true}
-                    placeholder="Pilih Skala Penilaian"
-                    options={skalaOptions}
-                    onChange={(value) => console.log("Selected Skala:", value)}
-                    style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
-                  />
-                )}
-              </form>
-            </div>
+                  {loadingKriteria ? (
+                    <p>Loading Kriteria...</p>
+                  ) : (
+                    <Dropdown
+                      label="Kriteria Survei"
+                      isRequired
+                      placeholder="Pilih Kriteria Survei"
+                      options={kriteriaOptions}
+                      onChange={(value) =>
+                        console.log("Selected Kriteria:", value)
+                      }
+                      style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
+                    />
+                  )}
+                  {loadingSkala ? (
+                    <p>Loading Skala...</p>
+                  ) : (
+                    <Dropdown
+                      label="Skala Penilaian"
+                      isRequired
+                      placeholder="Pilih Skala Penilaian"
+                      options={skalaOptions}
+                      onChange={(value) =>
+                        console.log("Selected Skala:", value)
+                      }
+                      style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
+                    />
+                  )}
+                </form>
+              </div>
 
-            <div
-              className="question-section"
-              style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
-            >
-              <h3 className="text-center">
-                Tambah Pertanyaan
-                <hr />
-              </h3>
-              <div className="mb-3">
-                <Button
-                  iconName="add"
-                  classType="primary"
-                  label="Tambah Pertanyaan Baru"
-                  onClick={handleAddQuestion}
-                  style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
+              {/* Question Section */}
+              <div
+                className="question-section"
+                style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
+              >
+                <h3 className="text-center">
+                  Tambah Pertanyaan
+                  <hr />
+                </h3>
+                <div className="mb-3">
+                  <Button
+                    iconName="add"
+                    classType="primary"
+                    label="Tambah Pertanyaan Baru"
+                    onClick={handleAddQuestion}
+                    style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
+                  />
+                </div>
+
+                {/* Question Table */}
+                <Table
+                  arrHeader={["No", "Header", "Pertanyaan", "Skala"]}
+                  headerToDataMap={{
+                    No: "No",
+                    Header: "header",
+                    Pertanyaan: "question",
+                    Skala: "scale",
+                  }}
+                  data={questions.map((q, index) => ({
+                    key: q.id,
+                    No: index + 1,
+                    header: q.header,
+                    question: q.question,
+                    scale: q.scale,
+                  }))}
+                  actions={["Edit", "Delete"]}
+                  onDelete={(id) => handleDeleteQuestion(id)}
                 />
               </div>
 
-              <Table
-                arrHeader={["No", "Header", "Pertanyaan", "Skala"]}
-                headerToDataMap={{
-                  No: "No",
-                  Header: "header",
-                  Pertanyaan: "question",
-                  Skala: "scale",
+              {/* Action Buttons */}
+              <div
+                className="action-buttons"
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginTop: isMobile ? "1rem" : "2rem",
                 }}
-                data={questions.map((q, index) => ({
-                  key: q.id,
-                  No: index + 1,
-                  header: q.header,
-                  question: q.question,
-                  scale: q.scale,
-                }))}
-                actions={["Delete"]}
-                onDelete={(id) => handleDeleteQuestion(id)}
-              />
-            </div>
-
-            <div
-              className="action-buttons"
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginTop: isMobile ? "1rem" : "2rem",
-              }}
-            >
-              <Button classType="primary" label="Simpan" onClick={handleSave} />
-              <Button
-                classType="secondary"
-                label="Batal"
-                onClick={handleCancel}
-              />
+              >
+                <Button
+                  classType="primary"
+                  label="Simpan"
+                  onClick={handleSave}
+                />
+                <Button
+                  classType="secondary"
+                  label="Batal"
+                  onClick={handleCancel}
+                />
+              </div>
             </div>
           </div>
         </div>
