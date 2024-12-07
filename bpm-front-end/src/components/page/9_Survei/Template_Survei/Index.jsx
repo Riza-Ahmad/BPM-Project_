@@ -189,8 +189,7 @@ export default function Template_Survei({ onChangePage }) {
               }))}
               actions={["Detail", "Edit", "Hapus"]}
               onEdit={(id) => {
-                const selected = data.find((item) => item.id === id);
-                handleOpenModal("edit", selected);
+                navigate(`/survei/template/edit/${id}`);
               }}
               onDetail={(id) => {
                 const selected = data.find((item) => item.id === id);
@@ -218,6 +217,7 @@ export default function Template_Survei({ onChangePage }) {
                 });
               }}
             />
+
             <Paging
               pageSize={pageSize}
               pageCurrent={pageCurrent}

@@ -34,6 +34,10 @@ export default function Template_Survei() {
           path="/survei/template/add"
           element={<Add onChangePage={handlePageChange} />}
         />
+        <Route
+          path="/survei/template/edit"
+          element={<Add onChangePage={handlePageChange} />}
+        />
       </Routes>
     </>
   );
