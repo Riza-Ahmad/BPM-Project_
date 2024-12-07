@@ -241,7 +241,6 @@ function Add() {
                   onDelete={(id) => handleDeleteQuestion(id)}
                 />
               </div>
-
               {/* Action Buttons */}
               <div
                 className="action-buttons"
@@ -251,16 +250,22 @@ function Add() {
                   marginTop: isMobile ? "1rem" : "2rem",
                 }}
               >
-                <Button
-                  classType="primary"
-                  label="Simpan"
-                  onClick={handleSave}
-                />
-                <Button
-                  classType="secondary"
-                  label="Batal"
-                  onClick={handleCancel}
-                />
+                <div className="flex flex-grow-1 m-2">
+                  <Button
+                    width="100%"
+                    classType="primary"
+                    label="Simpan"
+                    onClick={handleSave}
+                  />
+                </div>
+                <div className="flex flex-grow-1 m-2">
+                  <Button
+                    width="100%"
+                    classType="secondary"
+                    label="Batal"
+                    onClick={handleCancel}
+                  />
+                </div>
               </div>
             </div>
           </div>
