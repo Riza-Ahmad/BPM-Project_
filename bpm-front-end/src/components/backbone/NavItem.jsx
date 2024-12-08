@@ -222,6 +222,14 @@ export default function NavItem() {
                       Akreditasi Program Studi
                     </Link>
                   </li>
+                  <li>
+                    <Link
+                      className="dropdown-item"
+                      to="/spme/status/institusi"
+                    >
+                      Akreditasi Institusi
+                    </Link>
+                  </li>
                 </ul>
               )}
             </li>

@@ -1,17 +1,12 @@
 import { useState, useRef } from "react";
 import Button from "../../../../part/Button";
-import HeaderText from "../../../../part/HeaderText";
 import Gedung from "../../../../../assets/element/gedung-astra-biru.png";
 import Mahasiswa from "../../../../../assets/element/mahasiswa.png";
 import SearchField from "../../../../part/SearchField";
-import CardBerita from "../../../../part/CardBerita";
 import Paging from "../../../../part/Paging";
-import PageTitleNav from "../../../../part/PageTitleNav";
 import gedung from "../../../../../assets/element/gedung-astra.png";
 import Table from "../../../../part/Table";
 import Modal from "../../../../part/Modal";
-import TextField from "../../../../part/TextField";
-import DropDown from "../../../../part/Dropdown";
 import pdf from "../../MI_PRG4_M4_P2_XXX.pdf";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -194,12 +189,12 @@ export default function Index({ onChangePage }) {
                 </nav>
               </div>
 
-              <div className="mt-3">
-                {textContent != "" ? (
-                  <p>{textContent}</p>
-                ) : (
-                  <p>Lorem Ipsum dolor sit amet...</p>
-                )}
+              <div className="mt-3 mb-5">
+                <p style={{ textAlign: "justify" }}>
+                  {textContent != ""
+                    ? textContent
+                    : "Lorem Ipsum dolor sit amet..."}
+                </p>
               </div>
 
               <div
@@ -246,10 +241,10 @@ export default function Index({ onChangePage }) {
                     No: indexOfFirstData + index + 1,
                     Dokumen: item.Dokumen,
                   }))}
-                  actions={["Detail", "Edit", "Print"]}
+                  actions={["Detail", "Edit", "Print", "Delete", "PrintHistory", "UpdateHistory"]}
                   onEdit={handleEdit}
                   onDetail={() => handleShowDetail()}
-                  onPrint={()=> console.log('printed')}
+                  onPrint={() => console.log("printed")}
                 />
 
                 <Paging

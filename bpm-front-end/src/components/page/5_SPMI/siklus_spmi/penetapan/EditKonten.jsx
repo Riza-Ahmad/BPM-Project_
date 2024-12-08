@@ -1,14 +1,9 @@
 import React, { useState } from "react";
 import PageTitleNav from "../../../../part/PageTitleNav";
-import TextField from "../../../../part/TextField";
 import TextArea from "../../../../part/TextArea";
-import DatePicker from "../../../../part/DatePicker";
 import UploadFoto from "../../../../part/UploadFotoMulti";
 import HeaderForm from "../../../../part/HeaderText";
 import Button from "../../../../part/Button";
-import DetailData from "../../../../part/DetailData";
-import { useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
 
 export default function EditKonten({ onChangePage }) {
   const title = "Edit Konten";

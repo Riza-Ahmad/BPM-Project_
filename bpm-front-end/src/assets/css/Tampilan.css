@@ -38,8 +38,6 @@
     color: #fff; /* Warna teks agar kontras dengan latar belakang */
   }
   
-
-  
   /* SPMI */
   .carousel-inner {
     border-radius: 20px;
@@ -52,6 +50,7 @@
     transform: translateX(-200%);
     opacity: 100%;
   }
+
   .carousel-control-right {
     background-color: #2654A1;
     border-radius: 30px;
@@ -60,7 +59,18 @@
     transform: translateX(200%);
     opacity: 100%;
   }
+
   .carousel-img {
     height: 50vh;
     object-fit: cover;
+  }
+
+  .doc-item {
+    /* font-size: 14px; */
+    text-align: left;
+  }
+  
+  .doc-item:hover {
+    background-color: #3867cc;
+    color: white;
   }
