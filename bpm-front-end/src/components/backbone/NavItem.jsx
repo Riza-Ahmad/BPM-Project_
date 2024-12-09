@@ -297,7 +297,7 @@ export default function NavItem() {
               </Link>
             </li>
             <li>
-              <Link className="dropdown-item" to="/survei">
+              <Link className="dropdown-item" to="/survei/survei">
                 Survei
               </Link>
             </li>
@@ -343,6 +343,7 @@ export default function NavItem() {
       <li className="nav-item ms-3">
         <button className="btn bg-white">Masuk</button>
       </li>
+           
     </>
   );
 }

@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import Index from './Index';
+import Add from './Add';
+import Detail from './Detail'
 import ScrollToTop from '../../../part/ScrollToTop';
 
 export default function Survei(){
@@ -10,6 +12,12 @@ export default function Survei(){
             case "index":
                 navigate("/survei");
                 break;
+            case "add":
+            navigate("/survei/survei/tambah");
+            break;
+            case "detail":
+            navigate("/survei/survei/detail");
+            break;
             default:
                 console.warn(`Halaman "${page}" tidak dikenali.`);
                 break;
@@ -21,7 +29,8 @@ export default function Survei(){
             <ScrollToTop/>
             <Routes>
                 <Route path="/survei" element={<Index onChangePage={handlePageChange}/>}/>
-                           
+                <Route path="/survei/tambah" element={<Add onChangePage={handlePageChange}/>}/>
+                <Route path="/survei/detail" element={<Detail onChangePage={handlePageChange}/>}/>
             </Routes>
         </>
     )
