@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import PageTitleNav from "../../../part/PageTitleNav";
-import TextField from "../../../part/InputField";
+import InputField from "../../../part/InputField";
 import TextArea from "../../../part/TextArea";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
@@ -195,7 +195,7 @@ export default function Add({ onChangePage }) {
           >
             <HeaderForm label="Formulir Jadwal Kegiatan" />
             <div className="row">
-              <TextField
+              <InputField
                 ref={namaRef}
                 label="Nama Kegiatan"
                 value={formData.name}
@@ -203,6 +203,7 @@ export default function Add({ onChangePage }) {
                   setFormData({ ...formData, name: e.target.value })
                 }
                 isRequired={true}
+                maxChar="100"
               />
               <div className="col-lg-6 col-md-6">
                 <DropDown
@@ -219,7 +220,7 @@ export default function Add({ onChangePage }) {
                 />
               </div>
               <div className="col-lg-6 col-md-6">
-                <TextField
+                <InputField
                   ref={tempatRef}
                   label="Tempat"
                   value={formData.place}
@@ -227,12 +228,13 @@ export default function Add({ onChangePage }) {
                     setFormData({ ...formData, place: e.target.value })
                   }
                   isRequired={true}
+                  maxChar="50"
                 />
               </div>
             </div>
             <div className="row">
               <div className="col-lg-6 col-md-6">
-                <TextField
+                <InputField
                   ref={tglMulaiRef}
                   label="Tanggal Mulai"
                   value={formData.startDate}
@@ -242,7 +244,7 @@ export default function Add({ onChangePage }) {
                   isRequired={true}
                   type="date"
                 />
-                <TextField
+                <InputField
                   ref={jamMulaiRef}
                   label="Waktu Mulai"
                   value={formData.startTime}
@@ -254,7 +256,7 @@ export default function Add({ onChangePage }) {
                 />
               </div>
               <div className="col-lg-6 col-md-6">
-                <TextField
+                <InputField
                   ref={tglSelesaiRef}
                   label="Tanggal Selesai"
                   value={formData.endDate}
@@ -264,7 +266,7 @@ export default function Add({ onChangePage }) {
                   isRequired={true}
                   type="date"
                 />
-                <TextField
+                <InputField
                   ref={jamSelesaiRef}
                   label="Waktu Selesai"
                   value={formData.endTime}

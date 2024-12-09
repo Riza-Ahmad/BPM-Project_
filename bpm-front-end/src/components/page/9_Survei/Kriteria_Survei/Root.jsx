@@ -4,8 +4,8 @@ import ScrollToTop from '../../../part/ScrollToTop';
 
 import Tentang from '../../../page/2_Tentang/Index'
 
-export default function Kriteria_Survei(){
-    const navigate = useNavigate();
+export default function Kriteria_Survei() {
+  const navigate = useNavigate();
 
     const handlePageChange = (page, withState = {}) => {
         switch (page) {

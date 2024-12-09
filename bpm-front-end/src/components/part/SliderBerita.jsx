@@ -28,7 +28,7 @@ const SliderBerita = ({ beritaItems }) => {
   };
 
   const handleCardClick = (item) => {
-    navigate("/lihatBerita", { state: item });
+    navigate("/berita/lihatBerita", { state: item });
   };
 
   const navButtonStyle = {
@@ -89,7 +89,7 @@ const SliderBerita = ({ beritaItems }) => {
               <CardBerita
                 title={item.title}
                 author={item.author}
-                date={item.date}
+                date={item.formattedDate}
                 description={
                   !isMobile ? truncateDescription(item.description) : ""
                 } // Truncated description

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import TabTahun from "./TabTahunKegiatan";
 import HeaderText from "../../../part/HeaderText";
+import Button from "../../../part/Button";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 
@@ -48,12 +49,13 @@ export default function Index({ onChangePage }) {
   const fetchEvents = async () => {
     try {
       const response = await fetch(
-        `${API_LINK}/MasterKegiatan/GetDataKegiatan`,
+        `${API_LINK}/MasterKegiatan/GetDataKegiatanByCategory`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
+          body: JSON.stringify({ keg_kategori: 3 }),
         }
       );
 
@@ -133,30 +135,45 @@ export default function Index({ onChangePage }) {
         />
       </div>
 
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          marginRight: "3rem",
+        }}
+      >
+        <Button
+          classType="btn btn-primary"
+          title="Kelola Dokumentasi Kegiatan"
+          label="Kelola Dokumentasi Kegiatan"
+          onClick={() => onChangePage("read")}
+        />
+      </div>
+
       <div className={isMobile ? "m-0" : "m-3"}>
         <div className={"row m-0 g-1"}>
           {/* g-1 to reduce the gap between columns */}
           {jenisKegiatan.map((jenis) => (
             <div
               key={jenis.Value}
-              className="col-auto mb-0 d-flex justify-content-center" // col-auto for auto width based on content
+              className="col-auto mb-0 d-flex justify-content-center"
             >
               <button
                 className={`btn ${
                   selectedJenisKegiatan === jenis.Value
                     ? "shadow"
                     : "btn-outline-white"
-                } rounded-top-2 rounded-bottom-0`} // Apply rounded-top to button
+                } rounded-top-2 rounded-bottom-0`}
                 style={{
                   backgroundColor:
                     selectedJenisKegiatan === jenis.Value ? "#2654A1" : "",
                   color:
                     selectedJenisKegiatan === jenis.Value ? "white" : "#AAA7A7",
                   fontSize: "16px",
-                  padding: "10px 15px", // Adjust padding to keep the button size fitting its text
+                  padding: "10px 15px",
                   fontWeight: "650",
-                  width: "auto", // Button width adjusts to content
-                  whiteSpace: "nowrap", // Prevent text wrapping
+                  width: "auto",
+                  whiteSpace: "nowrap",
                 }}
                 onClick={() => setSelectedJenisKegiatan(jenis.Value)}
               >
@@ -184,7 +201,7 @@ export default function Index({ onChangePage }) {
               />
             ))
           ) : (
-            <p>Belum ada kegiatan</p>
+            <p className="m-5">Belum ada kegiatan</p>
           )}
         </div>
       </div>

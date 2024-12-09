@@ -18,10 +18,10 @@ export default function Tentang() {
         navigate("/tentang/kelola");
         break;
       case "edit":
-        navigate("/tentang/kelola/edit", { state: withState });
+        navigate("/tentang/kelola/edit", withState);
         break;
       case "detail":
-        navigate("/tentang/kelola/detail", { state: withState });
+        navigate("/tentang/kelola/detail", withState);
         break;
       default:
         break;

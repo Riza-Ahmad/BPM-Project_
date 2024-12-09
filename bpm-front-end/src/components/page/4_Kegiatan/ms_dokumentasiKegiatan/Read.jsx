@@ -14,10 +14,10 @@ import "moment-timezone";
 
 export default function Read({ onChangePage }) {
   const isMobile = useIsMobile();
-  const title = "Kelola Jadwal Kegiatan";
+  const title = "Kelola Dokumentasi Kegiatan";
   const breadcrumbs = [
-    { label: "Jadwal Kegiatan", href: "/kegiatan/jadwal" },
-    { label: "Kelola Jadwal Kegiatan" },
+    { label: "Dokumentasi Kegiatan", href: "/kegiatan/jadwal" },
+    { label: "Kelola Dokumentasi Kegiatan" },
   ];
 
   const [events, setEvents] = useState([]);
@@ -36,12 +36,13 @@ export default function Read({ onChangePage }) {
     const fetchEvents = async () => {
       try {
         const response = await fetch(
-          API_LINK + "/MasterKegiatan/GetDataKegiatan",
+          `${API_LINK}/MasterKegiatan/GetDataKegiatanByCategory`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
+            body: JSON.stringify({ keg_kategori: 3 }),
           }
         );
 
@@ -183,10 +184,36 @@ export default function Read({ onChangePage }) {
           >
             <Button
               iconName="add"
-              classType="primary"
+              classType="primary dropdown-toggle px-4 border-start"
+              data-bs-toggle="dropdown"
+              data-bs-auto-close="outside"
               label="Tambah Data"
-              onClick={() => onChangePage("add")}
             />
+            <div className="dropdown-menu" style={{ width: "350px" }}>
+              {["Dari Jadwal Kegiatan", "Tambah Baru"].map((label, index) => (
+                <Button
+                  key={index}
+                  type="button"
+                  label={label}
+                  width="100%"
+                  boxShadow="0px 4px 6px rgba(0, 0, 0, 0)"
+                  onClick={() => onChangePage(index === 0 ? "addExist" : "add")}
+                  style={{
+                    color: "#2654A1",
+                    textAlign: "left",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = "#2654A1";
+                    e.target.style.color = "white";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = "white";
+                    e.target.style.color = "#2654A1";
+                  }}
+                />
+              ))}
+            </div>
           </div>
           <div
             className={
@@ -274,17 +301,13 @@ export default function Read({ onChangePage }) {
                 }),
                 Tempat: item.location,
                 Status:
-                  item.category === 1
+                  item.category === "1"
                     ? "Rencana"
-                    : item.category === 2
+                    : item.category === "2"
                     ? "Terlewat"
                     : "Terlaksana",
               }))}
-              actions={(item) => {
-                return item.Status === "Terlaksana"
-                  ? ["Detail"]
-                  : ["Detail", "Edit", "Delete"];
-              }}
+              actions={["Detail", "Edit", "Delete"]}
               onEdit={(item) =>
                 onChangePage("edit", { state: { idData: item.Key } })
               }

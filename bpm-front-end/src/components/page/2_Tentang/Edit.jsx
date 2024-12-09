@@ -80,7 +80,7 @@ export default function Edit({ onChangePage }) {
           label="Upload File"
           forInput="upload-file"
           formatFile=".pdf"
-          onChange={(e) => handleFileChange(e.target.files[0])}
+          onChange={(file) => handleFileChange(file)}
           hasExisting={TENTANGFILE_LINK + formData.Isi}
           isRequired="true"
         />
@@ -195,7 +195,6 @@ export default function Edit({ onChangePage }) {
             <HeaderForm label="Formulir Tentang" />
             <div className="row">
               <DetailData label="Kategori" isi={formData.Kategori} />
-              <DetailData label="Dibuat Oleh" isi={formData.Createby} />
             </div>
             {renderContent()}
             <div className="d-flex justify-content-between align-items-center">
