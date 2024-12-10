@@ -5,6 +5,8 @@ import {
   useNavigate,
 } from "react-router-dom";
 import Index from "./Index";
+import Add from "./Add";
+
 import ScrollToTop from "../../../part/ScrollToTop";
 
 export default function Skala_Survei() {
@@ -14,6 +16,9 @@ export default function Skala_Survei() {
     switch (page) {
       case "index":
         navigate("/survei/skala");
+        break;
+      case "add":
+        navigate("/survei/skala/add");
         break;
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
@@ -26,6 +31,7 @@ export default function Skala_Survei() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Index onChangePage={handlePageChange} />} />
+        <Route path="add" element={<Add onChangePage={handlePageChange} />} />
       </Routes>
     </>
   );
