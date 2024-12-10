@@ -10,8 +10,7 @@ import Add from "./Add";
 import ScrollToTop from "../../../part/ScrollToTop";
 import Edit from "./Edit";
 
-export default function Skala_Survei() {
-  const navigate = useNavigate();
+ 
 export default function Skala_Survei() {
   const navigate = useNavigate();
 
