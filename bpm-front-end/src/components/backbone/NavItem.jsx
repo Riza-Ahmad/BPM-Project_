@@ -54,12 +54,12 @@ export default function NavItem() {
           <ul className="dropdown-menu">
             <li>
               <Link className="dropdown-item" to="/kegiatan/jadwal">
-                Rencana Kegiatan BPM
+                Jadwal Kegiatan BPM
               </Link>
             </li>
             <li>
               <Link className="dropdown-item" to="/kegiatan/dokumentasi">
-                Kegiatan BPM
+                Dokumentasi Kegiatan BPM
               </Link>
             </li>
           </ul>

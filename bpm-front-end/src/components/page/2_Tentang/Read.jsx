@@ -18,7 +18,7 @@ export default function Read({ onChangePage }) {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          API_LINK + "/api/MasterTentang/GetDataTentang",
+          API_LINK + "/MasterTentang/GetDataTentang",
           {
             method: "POST",
             headers: {
@@ -94,10 +94,10 @@ export default function Read({ onChangePage }) {
               }))}
               actions={["Detail", "Edit"]}
               onEdit={(item) =>
-                onChangePage("edit", { state: { idData: item } })
+                onChangePage("edit", { state: { idData: item.Key } })
               }
               onDetail={(item) =>
-                onChangePage("detail", { state: { idData: item } })
+                onChangePage("detail", { state: { idData: item.Key } })
               }
             />
 

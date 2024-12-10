@@ -34,16 +34,13 @@ export default function Peraturan() {
     <>
       <ScrollToTop />
       <Routes>
+        <Route path="" element={<Index onChangePage={handlePageChange} />} />
         <Route
-          path="/peraturan/kebijakan"
-          element={<Index onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/peraturan/kebijakan/tambah"
+          path="/tambah"
           element={<Add onChangePage={handlePageChange} />}
         />
         <Route
-          path="/peraturan/kebijakan/edit"
+          path="/edit"
           element={<Edit onChangePage={handlePageChange} />}
         />
       </Routes>

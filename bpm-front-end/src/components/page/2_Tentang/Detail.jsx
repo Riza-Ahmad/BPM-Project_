@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { format } from "date-fns";
-import { id } from "date-fns/locale";
 import PageTitleNav from "../../part/PageTitleNav";
 import HeaderForm from "../../part/HeaderText";
 import DetailData from "../../part/DetailData";
@@ -24,10 +22,12 @@ export default function Detail({ onChangePage }) {
 
   const [loading, setLoading] = useState(true);
 
+  console.log(location.state.idData);
   useEffect(() => {
     if (location.state?.idData) {
       const editId = location.state.idData;
-      fetch(API_LINK + `/api/MasterTentang/GetDataTentangById`, {
+      console.log(editId);
+      fetch(API_LINK + `/MasterTentang/GetDataTentangById`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -41,18 +41,23 @@ export default function Detail({ onChangePage }) {
               Kategori: data[0].ten_category,
               Isi: data[0].ten_isi,
               Createby: data[0].ten_created_by,
-              CreateDate: format(
-                new Date(data[0].ten_created_date),
-                "EEEE, dd MMMM yyyy",
-                { locale: id }
+              CreateDate: new Date(data[0].ten_created_date).toLocaleDateString(
+                "id-ID",
+                {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                }
               ),
               Modifby: data[0].ten_modif_by ? data[0].ten_modif_by : "-",
               ModifDate: data[0].ten_modif_date
-                ? format(
-                    new Date(data[0].ten_modif_date),
-                    "EEEE, dd MMMM yyyy",
-                    { locale: id }
-                  )
+                ? new Date(data[0].ten_modif_date).toLocaleDateString("id-ID", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })
                 : "-",
             });
           } else {

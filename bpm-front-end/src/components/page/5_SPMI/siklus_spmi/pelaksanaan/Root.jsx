@@ -37,20 +37,14 @@ export default function Pelaksanaan() {
     <>
       <ScrollToTop />
       <Routes>
+        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
         <Route
-          path="/spmi/siklus/pelaksanaan"
-          element={<Index onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/spmi/siklus/pelaksanaan/editkonten"
+          path="/editkonten"
           element={<EditKonten onChangePage={handlePageChange} />}
         />
+        <Route path="/add" element={<Add onChangePage={handlePageChange} />} />
         <Route
-          path="/spmi/siklus/pelaksanaan/add"
-          element={<Add onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/spmi/siklus/pelaksanaan/edit"
+          path="/edit"
           element={<Edit onChangePage={handlePageChange} />}
         />
       </Routes>

@@ -163,11 +163,23 @@ export default function Table({
                   className="text-center align-middle"
                   style={{ width: "250px" }}
                 >
-                  {actions.map((action, actionIndex) => (
-                    <React.Fragment key={`${action}-${row.Key || rowIndex}`}>
-                      {generateActionButton(action, row.Key)}
-                    </React.Fragment>
-                  ))}
+                  {typeof actions === "function"
+                    ? actions(row).map((action, actionIndex) => (
+                        <React.Fragment
+                          key={`${action}-${row.Key || rowIndex}`}
+                        >
+                          {generateActionButton(action, row)}
+                        </React.Fragment>
+                      ))
+                    : Array.isArray(actions) && actions.length > 0
+                    ? actions.map((action, actionIndex) => (
+                        <React.Fragment
+                          key={`${action}-${row.Key || rowIndex}`}
+                        >
+                          {generateActionButton(action, row)}
+                        </React.Fragment>
+                      ))
+                    : null}
                 </td>
               </tr>
             ))

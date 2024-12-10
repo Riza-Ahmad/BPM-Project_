@@ -9,31 +9,30 @@ import Read from "./Read";
 import Add from "./Add";
 import Edit from "./Edit";
 import Detail from "./Detail";
-import LihatBerita from "./LihatBerita";
-import ScrollToTop from "../../part/ScrollToTop";
+import ScrollToTop from "../../../part/ScrollToTop";
 
-export default function Berita() {
+export default function JadwalKegiatan() {
   const navigate = useNavigate();
 
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
       case "index":
-        navigate("/berita");
+        navigate("/kegiatan/jadwal");
         break;
       case "read":
-        navigate("/berita/kelola");
+        navigate("/kegiatan/jadwal/kelola");
         break;
       case "add":
-        navigate("/berita/kelola/tambah");
+        navigate("/kegiatan/jadwal/kelola/tambah");
         break;
       case "edit":
-        navigate("/berita/kelola/edit", withState);
+        navigate("/kegiatan/jadwal/kelola/edit", withState);
         break;
       case "detail":
-        navigate("/berita/kelola/detail", withState);
+        navigate("/kegiatan/jadwal/kelola/detail", withState);
         break;
       case "news":
-        navigate("/berita/lihatBerita", withState);
+        navigate("/lihatBerita", withState);
         break;
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
@@ -61,10 +60,6 @@ export default function Berita() {
         <Route
           path="/kelola/detail"
           element={<Detail onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/lihatBerita"
-          element={<LihatBerita onChangePage={handlePageChange} />}
         />
       </Routes>
     </>

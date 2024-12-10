@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import PageTitleNav from "../../part/PageTitleNav";
-import TextField from "../../part/TextField";
+import InputField from "../../part/InputField";
 import TextArea from "../../part/TextArea";
-import DatePicker from "../../part/DatePicker";
 import UploadFoto from "../../part/UploadFotoMulti";
 import HeaderForm from "../../part/HeaderText";
 import Button from "../../part/Button";
 import SweetAlert from "../../util/SweetAlert";
+import Loading from "../../part/Loading";
 import { API_LINK } from "../../util/Constants";
 import { format } from "date-fns";
 import { useIsMobile } from "../../util/useIsMobile";
@@ -48,7 +48,7 @@ export default function Edit({ onChangePage }) {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          `${API_LINK}/api/MasterBerita/GetDataBeritaById`,
+          `${API_LINK}/MasterBerita/GetDataBeritaById`,
           {
             method: "POST",
             headers: {
@@ -71,7 +71,7 @@ export default function Edit({ onChangePage }) {
             title: berita.ber_judul,
             date: format(new Date(berita.ber_tgl), "yyyy-MM-dd"),
             description: berita.ber_isi,
-            author: berita.ber_created_by,
+            author: berita.ber_penulis,
             images: images,
           });
           setTempImages(images);
@@ -99,13 +99,15 @@ export default function Edit({ onChangePage }) {
     const isTanggalValid = tanggalRef.current?.validate();
     const isIsiValid = isiRef.current?.validate();
     const isFotoValid = fotoRef.current?.validate();
-    console.log(
-      isJudulValid,
-      isPenulisValid,
-      isTanggalValid,
-      isIsiValid,
-      isFotoValid
-    );
+
+    if (!isJudulValid) {
+      judulRef.current?.focus();
+      return;
+    }
+    if (!isPenulisValid) {
+      penulisRef.current?.focus();
+      return;
+    }
 
     if (!isTanggalValid) {
       tanggalRef.current?.focus();
@@ -124,10 +126,6 @@ export default function Edit({ onChangePage }) {
     setError(null);
 
     try {
-      if (!formData.title || !formData.date || !formData.description) {
-        throw new Error("Semua kolom wajib diisi.");
-      }
-
       const existingPaths = tempImages.filter((img) => typeof img === "string");
       const newFiles = tempImages.filter((img) => img instanceof File);
 
@@ -137,7 +135,7 @@ export default function Edit({ onChangePage }) {
         newFiles.forEach((file) => formDataUpload.append("files", file));
 
         const uploadResponse = await fetch(
-          `${API_LINK}/api/MasterBerita/UploadFiles`,
+          `${API_LINK}/MasterBerita/UploadFiles`,
           {
             method: "POST",
             body: formDataUpload,
@@ -155,7 +153,7 @@ export default function Edit({ onChangePage }) {
 
       const finalImagePaths = [...existingPaths, ...uploadedPaths];
 
-      const response = await fetch(`${API_LINK}/api/MasterBerita/EditBerita`, {
+      const response = await fetch(`${API_LINK}/MasterBerita/EditBerita`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -167,6 +165,7 @@ export default function Edit({ onChangePage }) {
           description: formData.description,
           modif_by: formData.author,
           images: finalImagePaths,
+          ber_penulis: formData.author,
         }),
       });
 
@@ -187,6 +186,9 @@ export default function Edit({ onChangePage }) {
       setLoading(false);
     }
   };
+
+  if (loading) return <Loading />;
+  if (error) return <p>{error}</p>;
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -209,11 +211,9 @@ export default function Edit({ onChangePage }) {
             }
           >
             <HeaderForm label="Formulir Berita" />
-            {loading && <p>Loading...</p>}
-            {error && <p className="text-danger">{error}</p>}
             <div className="row">
               <div className="col-lg-6 col-md-6">
-                <TextField
+                <InputField
                   ref={judulRef}
                   label="Judul Berita"
                   value={formData.title}
@@ -221,8 +221,9 @@ export default function Edit({ onChangePage }) {
                     setFormData({ ...formData, title: e.target.value })
                   }
                   isRequired={true}
+                  maxChar="100"
                 />
-                <TextField
+                <InputField
                   ref={penulisRef}
                   label="Penulis"
                   value={formData.author}
@@ -230,14 +231,16 @@ export default function Edit({ onChangePage }) {
                     setFormData({ ...formData, author: e.target.value })
                   }
                   isRequired={true}
+                  maxChar="50"
                 />
               </div>
               <div className="col-lg-6 col-md-6">
-                <DatePicker
+                <InputField
                   ref={tanggalRef}
                   label="Tanggal Berita"
                   value={formData.date}
                   onChange={(date) => setFormData({ ...formData, date: date })}
+                  type="date"
                 />
               </div>
             </div>

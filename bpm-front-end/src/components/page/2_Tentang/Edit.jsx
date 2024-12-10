@@ -23,13 +23,14 @@ export default function Edit({ onChangePage }) {
   });
 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     if (location.state?.idData) {
       const editId = location.state.idData;
       setLoading(true);
-      fetch(API_LINK + `/api/MasterTentang/GetDataTentangById`, {
+      fetch(API_LINK + `/MasterTentang/GetDataTentangById`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -79,7 +80,7 @@ export default function Edit({ onChangePage }) {
           label="Upload File"
           forInput="upload-file"
           formatFile=".pdf"
-          onChange={(e) => handleFileChange(e.target.files[0])}
+          onChange={(file) => handleFileChange(file)}
           hasExisting={TENTANGFILE_LINK + formData.Isi}
           isRequired="true"
         />
@@ -110,7 +111,7 @@ export default function Edit({ onChangePage }) {
         formData.append("file", selectedFile);
 
         const uploadResponse = await fetch(
-          `${API_LINK}/api/MasterTentang/UploadFile`,
+          `${API_LINK}/MasterTentang/UploadFile`,
           {
             method: "POST",
             body: formData,
@@ -139,7 +140,7 @@ export default function Edit({ onChangePage }) {
       };
 
       const editResponse = await fetch(
-        `${API_LINK}/api/MasterTentang/EditTentang`,
+        `${API_LINK}/MasterTentang/EditTentang`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -164,6 +165,9 @@ export default function Edit({ onChangePage }) {
       setLoading(false);
     }
   };
+
+  if (loading) return <Loading />;
+  if (error) return <p>{error}</p>;
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -191,7 +195,6 @@ export default function Edit({ onChangePage }) {
             <HeaderForm label="Formulir Tentang" />
             <div className="row">
               <DetailData label="Kategori" isi={formData.Kategori} />
-              <DetailData label="Dibuat Oleh" isi={formData.Createby} />
             </div>
             {renderContent()}
             <div className="d-flex justify-content-between align-items-center">

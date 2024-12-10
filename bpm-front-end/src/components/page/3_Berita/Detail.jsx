@@ -44,7 +44,7 @@ export default function Detail({ onChangePage }) {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          `${API_LINK}/api/MasterBerita/GetDataBeritaById`,
+          `${API_LINK}/MasterBerita/GetDataBeritaById`,
           {
             method: "POST",
             headers: {
@@ -69,18 +69,25 @@ export default function Detail({ onChangePage }) {
               locale: id,
             }),
             description: berita.ber_isi,
-            author: berita.ber_created_by,
+            author: berita.ber_penulis,
             images: images,
             Createby: berita.ber_created_by,
-            CreateDate: format(
-              new Date(berita.ber_created_date),
-              "EEEE, dd MMMM yyyy",
-              { locale: id }
+            CreateDate: new Date(berita.ber_created_date).toLocaleDateString(
+              "id-ID",
+              {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              }
             ),
             Modifby: berita.ber_modif_by ? berita.ber_modif_by : "-",
             ModifDate: berita.ber_modif_date
-              ? format(new Date(berita.ber_modif_date), "EEEE, dd MMMM yyyy", {
-                  locale: id,
+              ? new Date(berita.ber_modif_date).toLocaleDateString("id-ID", {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
                 })
               : "-",
           });

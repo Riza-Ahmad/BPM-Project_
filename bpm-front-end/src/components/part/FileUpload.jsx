@@ -10,13 +10,14 @@ const FileUpload = forwardRef(function FileUpload(
     errorMessage,
     hasExisting,
     maxSizeFile = 10 * 1024 * 1024, // Default 10 MB
+    onChange, // Fungsi onChange diterima sebagai prop
     ...props
   },
   ref
 ) {
   const [fileError, setFileError] = useState(""); // Untuk menyimpan pesan error ukuran file
 
-  // Fungsi untuk menangani perubahan file h
+  // Fungsi untuk menangani perubahan file
   const handleFileChange = (event) => {
     const file = event.target.files[0];
 
@@ -32,6 +33,11 @@ const FileUpload = forwardRef(function FileUpload(
         event.target.value = null;
       } else {
         setFileError(""); // Reset error jika ukuran file valid
+
+        // Jika onChange diteruskan sebagai prop, panggil dan kirim file ke parent
+        if (onChange) {
+          onChange(file); // Mengirim file ke komponen parent
+        }
       }
     }
   };
@@ -59,10 +65,9 @@ const FileUpload = forwardRef(function FileUpload(
               accept={formatFile}
               className="form-control"
               ref={ref}
-              onChange={handleFileChange}
+              onChange={handleFileChange} // Panggil handleFileChange di sini
               {...props}
             />
-            {/* Menampilkan pesan error jika ukuran file lebih besar */}
             {fileError && (
               <span className="fw-normal text-danger">
                 <br />
@@ -107,8 +112,8 @@ const FileUpload = forwardRef(function FileUpload(
           </>
         )}
       </div>
-    </>);
-  }
-);
+    </>
+  );
+});
 
 export default FileUpload;

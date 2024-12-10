@@ -26,15 +26,12 @@ export default function Read({ onChangePage }) {
   useEffect(() => {
     const fetchBerita = async () => {
       try {
-        const response = await fetch(
-          `${API_LINK}/api/MasterBerita/GetDataBerita`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const response = await fetch(`${API_LINK}/MasterBerita/GetDataBerita`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
         if (!response.ok) throw new Error("Gagal mengambil data");
 
@@ -49,7 +46,7 @@ export default function Read({ onChangePage }) {
                 locale: id,
               }),
               description: item.ber_isi,
-              author: item.ber_created_by,
+              author: item.ber_penulis,
               images: [],
               year: new Date(item.ber_tgl).getFullYear(), // Tambahkan properti tahun
             };
@@ -126,16 +123,13 @@ export default function Read({ onChangePage }) {
 
     if (confirm) {
       try {
-        const response = await fetch(
-          `${API_LINK}/api/MasterBerita/DeleteBerita`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ ber_id: id }),
-          }
-        );
+        const response = await fetch(`${API_LINK}/MasterBerita/DeleteBerita`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ber_id: id, ber_modif_by: "author" }),
+        });
 
         if (!response.ok) throw new Error("Gagal menghapus berita");
 
@@ -249,12 +243,12 @@ export default function Read({ onChangePage }) {
               }))}
               actions={["Detail", "Edit", "Delete"]}
               onEdit={(item) => {
-                onChangePage("edit", { state: { idData: item } });
+                onChangePage("edit", { state: { idData: item.Key } });
               }}
               onDetail={(item) => {
-                onChangePage("detail", { state: { idData: item } });
+                onChangePage("detail", { state: { idData: item.Key } });
               }}
-              onDelete={(item) => handleDelete(item)}
+              onDelete={(item) => handleDelete(item.Key)}
             />
             <Paging
               pageSize={pageSize}

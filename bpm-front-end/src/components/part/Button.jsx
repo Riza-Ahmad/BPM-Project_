@@ -7,10 +7,17 @@ export default function Button({
   title = "",
   type = "button",
   isDisabled = false,
-  width = "auto",  // Default width
-  boxShadow = "0px 4px 6px rgba(0, 0, 0, 0.1)",  // Example shadow
+  width = "auto",
+  boxShadow = "0px 4px 6px rgba(0, 0, 0, 0.1)", // Example shadow
+  style = {},
   ...props
 }) {
+  const combinedStyle = {
+    width,
+    boxShadow,
+    ...style,
+  };
+
   return (
     <button
       type={type}
@@ -18,12 +25,12 @@ export default function Button({
       {...props}
       title={title}
       disabled={isDisabled}
-      style={{ width: width, boxShadow }}
+      style={combinedStyle}
     >
       {iconName && (
         <Icon name={iconName} cssClass={label === "" ? undefined : "pe-2"} />
       )}
-      <span style={{ fontWeight: '600' }}>{label}</span>
+      <span style={{ fontWeight: "600" }}>{label}</span>
     </button>
   );
 }
