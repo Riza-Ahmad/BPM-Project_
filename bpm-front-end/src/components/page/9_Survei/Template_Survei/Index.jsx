@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
@@ -11,32 +11,28 @@ import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { useNavigate } from "react-router-dom";
 
-export default function Template_Survei({ onChangePage }) {
+export default function Template_Survei() {
   const [pageSize] = useState(10);
   const isMobile = useIsMobile();
   const [pageCurrent, setPageCurrent] = useState(1);
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState(""); // State for search query
-  const [selectedYear, setSelectedYear] = useState(""); // State for selected year
-  const [selectedStatus, setSelectedStatus] = useState(""); // State for selected status
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
   const navigate = useNavigate();
 
-  // State untuk modal
-  const [selectedData, setSelectedData] = useState(null);
-  const [modalType, setModalType] = useState(""); // "add", "edit", "detail"
-  const modalRef = useRef();
-
   useEffect(() => {
+    // Fetch templates from the backend
     const fetchTemplateSurvei = async () => {
+      setLoading(true);
       try {
         const response = await fetch(
-          `${API_LINK}/MasterTemplateSurvei/GetDataTemplateSurvei`,
+          `${API_LINK}/TemplateSurvei/GetTemplateSurvei`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ page: 1, pageSize: 100 }),
           }
         );
 
@@ -44,18 +40,19 @@ export default function Template_Survei({ onChangePage }) {
           throw new Error("Gagal mengambil data template survei");
 
         const result = await response.json();
+        //const templates = JSON.parse(result);
 
         const formattedTemplates = result.map((item) => ({
-          id: item.template_id,
-          name: item.template_name,
-          finalDate: item.template_final_date || "-",
-          status: item.template_status || "Draft",
+          id: item.tsu_id || "default_id",
+          name: item.tsu_nama || "default_name",
+          finalDate: item.tsu_modif_date || "-",
+          status: item.tsu_status || "Draft",
         }));
 
         setData(formattedTemplates);
-        setFilteredData(formattedTemplates); // Set initial filtered data
-      } catch (err) {
-        console.error("Fetch error:", err);
+        setFilteredData(formattedTemplates);
+      } catch (error) {
+        console.error("Fetch error:", error);
         Swal.fire({
           icon: "error",
           title: "Oops...",
@@ -69,35 +66,29 @@ export default function Template_Survei({ onChangePage }) {
     fetchTemplateSurvei();
   }, []);
 
-  // Handle search and filter
-  const handleSearchChange = (query) => {
-    setSearchQuery(query);
-  };
-
+  // Handle search and filters
+  const handleSearchChange = (query) => setSearchQuery(query);
   const handleFilterChange = (year, status) => {
     setSelectedYear(year);
     setSelectedStatus(status);
   };
 
-  // Filter data based on search, year, and status
+  // Filter data
   useEffect(() => {
     let filtered = [...data];
 
-    // Apply search filter
     if (searchQuery) {
       filtered = filtered.filter((item) =>
         item.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    // Apply year filter
     if (selectedYear) {
       filtered = filtered.filter((item) =>
         item.finalDate.includes(selectedYear)
       );
     }
 
-    // Apply status filter
     if (selectedStatus) {
       filtered = filtered.filter((item) => item.status === selectedStatus);
     }
@@ -109,14 +100,46 @@ export default function Template_Survei({ onChangePage }) {
   const indexOfFirstData = indexOfLastData - pageSize;
   const currentData = filteredData.slice(indexOfFirstData, indexOfLastData);
 
-  const handlePageNavigation = (page) => {
-    setPageCurrent(page);
-  };
+  const handlePageNavigation = (page) => setPageCurrent(page);
 
-  const handleOpenModal = (type, data = null) => {
-    setModalType(type);
-    setSelectedData(data);
-    modalRef.current.open();
+  // Update template status
+  const handleUpdateStatus = async (id) => {
+    try {
+      const response = await fetch(
+        `${API_LINK}/TemplateSurvei/UpdateTemplateSurveiStatus`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tsu_id: id,
+            tsu_status: "Final", // Set new status
+          }),
+        }
+      );
+
+      if (!response.ok)
+        throw new Error("Gagal memperbarui status template survei");
+
+      const updatedData = data.map((item) =>
+        item.id === id ? { ...item, status: "Final" } : item
+      );
+
+      setData(updatedData);
+      setFilteredData(updatedData);
+
+      Swal.fire(
+        "Berhasil!",
+        "Status template survei berhasil diperbarui.",
+        "success"
+      );
+    } catch (error) {
+      console.error("Update error:", error);
+      Swal.fire(
+        "Gagal!",
+        "Tidak dapat memperbarui status template survei.",
+        "error"
+      );
+    }
   };
 
   if (loading) return <Loading />;
@@ -125,7 +148,6 @@ export default function Template_Survei({ onChangePage }) {
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          {/* Section for Page Title and Navigation */}
           <div className={isMobile ? "m-0 p-0" : "m-3 mb-0"}>
             <PageTitleNav
               title="Template Survei"
@@ -137,34 +159,28 @@ export default function Template_Survei({ onChangePage }) {
             />
           </div>
 
-          {/* Section for Add Button */}
-          <div
-            className={isMobile ? "p-2 m-2 mt-2 mb-0" : "p-3 m-5 mt-2 mb-0"}
-            style={{ marginLeft: "50px" }}
-          >
+          <div className={isMobile ? "p-2 m-2 mt-2 mb-0" : "p-3 m-5 mt-2 mb-0"}>
             <Button
               iconName="add"
               classType="primary"
               label="Tambah Kriteria"
               onClick={() => navigate("/survei/template/add")}
             />
+
+            <div className="row mt-5">
+              <div className="col-lg-10 col-md-6">
+                <SearchField onSearchChange={handleSearchChange} />
+              </div>
+              <div className="col-lg-2 col-md-6">
+                <Filter
+                  onChange={handleFilterChange}
+                  selectedYear={selectedYear}
+                  selectedStatus={selectedStatus}
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Section for Search and Filter */}
-          <div className="row mt-5">
-            <div className="col-lg-10 col-md-6">
-              <SearchField onSearchChange={handleSearchChange} />
-            </div>
-            <div className="col-lg-1 col-md-6">
-              <Filter
-                onChange={handleFilterChange}
-                selectedYear={selectedYear}
-                selectedStatus={selectedStatus}
-              />
-            </div>
-          </div>
-
-          {/* Section for Table */}
           <div
             className={
               isMobile
@@ -187,35 +203,12 @@ export default function Template_Survei({ onChangePage }) {
                 finalDate: item.finalDate,
                 status: item.status,
               }))}
-              actions={["Detail", "Edit", "Hapus"]}
-              onEdit={(id) => {
-                navigate(`/survei/template/edit/${id}`);
-              }}
-              onDetail={(id) => {
-                const selected = data.find((item) => item.id === id);
-                handleOpenModal("detail", selected);
-              }}
+              actions={["Detail", "Edit", "Hapus", "Final"]}
+              onEdit={(id) => navigate(`/survei/template/edit/${id}`)}
               onDelete={(id) => {
-                Swal.fire({
-                  title: "Apakah anda yakin?",
-                  text: "Data ini akan dihapus secara permanen!",
-                  icon: "warning",
-                  showCancelButton: true,
-                  confirmButtonColor: "#3085d6",
-                  cancelButtonColor: "#d33",
-                  confirmButtonText: "Ya, hapus!",
-                }).then((result) => {
-                  if (result.isConfirmed) {
-                    const newData = data.filter((item) => item.id !== id);
-                    setData(newData);
-                    Swal.fire(
-                      "Terhapus!",
-                      "Data template survei berhasil dihapus.",
-                      "success"
-                    );
-                  }
-                });
+                // Implement delete logic here
               }}
+              onFinal={(id) => handleUpdateStatus(id)}
             />
 
             <Paging

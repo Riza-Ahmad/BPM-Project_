@@ -16,26 +16,11 @@ export default function Index() {
   const [pageCurrent, setPageCurrent] = useState(1);
   const [selectedSkala, setSelectedSkala] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [Loading, setLoading] = useState("");
 
   const [filterScale, setFilterScale] = useState(""); // "" untuk semua skala
 
-  const [Skala, setSkala] = useState([
-    { id: 1, Nama: "Radio Button", Skala: 2, Deskripsi: "Cukup, Baik" },
-    { id: 2, Nama: "Text Area", Skala: 1, Deskripsi: "1" },
-    {
-      id: 3,
-      Nama: "Radio Button",
-      Skala: 3,
-      Deskripsi: "Cukup, Baik, Sangat Baik",
-    },
-    { id: 4, Nama: "Check Box", Skala: 1, Deskripsi: "MI" },
-    {
-      id: 5,
-      Nama: "Radio Button",
-      Skala: 4,
-      Deskripsi: "Kurang Baik, Cukup, Baik, Sangat Baik",
-    },
-  ]);
+  const [Skala, setSkala] = useState([]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -44,17 +29,14 @@ export default function Index() {
     descriptions: [],
   });
 
-  const addModalRef = useRef();
-  const updateModalRef = useRef();
   const detailModalRef = useRef();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
   const handlePageNavigation = (page) => setPageCurrent(page);
   const filteredSkala = Skala.filter((item) => {
-    const matchesQuery = item.Nama.toLowerCase().includes(
-      searchQuery.toLowerCase()
-    );
+    const matchesQuery =
+      item.Nama && item.Nama.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesScale = filterScale
       ? item.Skala === Number(filterScale)
       : true;
@@ -73,42 +55,6 @@ export default function Index() {
     setFormData({ name: "", type: "", scale: 1, descriptions: [] });
   };
 
-  const handleUpdateSkala = () => {
-    if (!selectedSkala || !formData.type.trim() || !formData.name.trim()) {
-      alert("Mohon isi semua data sebelum menyimpan.");
-      return;
-    }
-
-    setSkala((prev) =>
-      prev.map((item) =>
-        item.id === selectedSkala.id
-          ? {
-              ...item,
-              Nama: formData.type,
-              Skala: formData.scale || 1,
-              Deskripsi: (formData.descriptions || []).join(", "),
-            }
-          : item
-      )
-    );
-
-    resetFormData();
-    closeModal(updateModalRef);
-    setSelectedSkala(null);
-  };
-
-  // Fungsi pencarian tombol search
-  const handleSearch = () => {
-    const filtered = Skala.filter((item) =>
-      item.Nama.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    if (filtered.length === 0) {
-      alert("Tidak ditemukan hasil untuk kata kunci tersebut.");
-      return;
-    }
-  };
-
   const handleSelectSkala = (skala) => {
     navigate(`/survei/skala/edit/`); // Navigasi ke halaman Edit dengan ID skala
   };
@@ -125,26 +71,25 @@ export default function Index() {
     const fetchSkala = async () => {
       try {
         const response = await fetch(
-          `${API_LINK}/SkalaPenilaian/GetDataSkalaPenilaianById`,
+          `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ page: 1, pageSize: 100 }),
           }
         );
 
         if (!response.ok) throw new Error("Gagal mengambil data skala.");
 
         const result = await response.json();
-
-        // Proses data skala jika diperlukan
         const formattedSkala = result.map((item) => ({
-          id: item.skala_id,
-          name: item.skala_nama,
-          type: item.skala_tipe,
+          id: item.skp_id || "default_id",
+          name: item.skp_skala || "default_name",
+          type: item.skp_tipe || "default_type",
+          descriptions: item.skp_deskripsi || "default_type",
         }));
+        console.log(formattedSkala);
 
-        setSkalaData(formattedSkala);
+        setSkala(formattedSkala);
       } catch (err) {
         console.error("Fetch error:", err);
         alert("Gagal mengambil data skala.");
@@ -208,12 +153,12 @@ export default function Index() {
                 Skala: "Skala",
                 "Deskripsi Nilai (Terendah - Tertinggi)": "Deskripsi",
               }}
-              data={currentData.map((item, index) => ({
+              data={Skala.map((item, index) => ({
                 key: item.id,
                 No: (pageCurrent - 1) * pageSize + index + 1,
-                Nama: item.Nama,
-                Skala: item.Skala,
-                Deskripsi: item.Deskripsi,
+                Skala: item.name,
+                Nama: item.type,
+                Deskripsi: item.descriptions,
               }))}
               actions={["Detail", "Edit"]}
               onDetail={(id) =>
