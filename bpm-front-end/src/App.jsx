@@ -4,7 +4,6 @@ import Footer from "./components/backbone/Footer";
 import Tentang from "./components/page/2_Tentang/Root";
 import Berita from "./components/page/3_Berita/Root";
 import RencanaKegiatan from "./components/page/4_Kegiatan/Root";
-import Survei from "./components/page/9_Survei/Root";
 import Pelaksanaan from "./components/page/5_SPMI/siklus_spmi/pelaksanaan/Root";
 import Penetapan from "./components/page/5_SPMI/siklus_spmi/penetapan/Root";
 import Peningkatan from "./components/page/5_SPMI/siklus_spmi/peningkatan/Root";
@@ -16,6 +15,7 @@ import PeraturanEksternal from "./components/page/10_Peraturan/ms_peraturanEkste
 import InstrumenAps from "./components/page/10_Peraturan/ms_instrumenAps/Root";
 import KriteriaSurvei from "./components/page/9_Survei/Kriteria_Survei/Root"
 import SkalaSurvei from "./components/page/9_Survei/Skala_Penilaian/Root"
+import Pertanyaan_Survei from "./components/page/9_Survei/Pertanyaan_Survei/Root";
 // import './App.css';
 // import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 // import Header from './components/backbone/Header'; 
@@ -37,7 +37,6 @@ function App() {
           <Tentang />
           <Berita />
           <RencanaKegiatan />
-          <Survei />
           <Pelaksanaan />
           <Penetapan />
           <Peningkatan />
@@ -48,6 +47,7 @@ function App() {
           <InstrumenAps />
           <KriteriaSurvei/>
           <SkalaSurvei></SkalaSurvei>
+          <Pertanyaan_Survei></Pertanyaan_Survei>
         {/* <main className="flex-grow-1" >
           <Tentang/>
           <Berita/>
