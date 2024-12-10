@@ -44,24 +44,21 @@ export default function JadwalKegiatan() {
     <>
       <ScrollToTop />
       <Routes>
+        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
         <Route
-          path="/kegiatan/jadwal"
-          element={<Index onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/kegiatan/jadwal/kelola"
+          path="/kelola"
           element={<Read onChangePage={handlePageChange} />}
         />
         <Route
-          path="/kegiatan/jadwal/kelola/tambah"
+          path="/kelola/tambah"
           element={<Add onChangePage={handlePageChange} />}
         />
         <Route
-          path="/kegiatan/jadwal/kelola/edit"
+          path="/kelola/edit"
           element={<Edit onChangePage={handlePageChange} />}
         />
         <Route
-          path="/kegiatan/jadwal/kelola/detail"
+          path="/kelola/detail"
           element={<Detail onChangePage={handlePageChange} />}
         />
       </Routes>

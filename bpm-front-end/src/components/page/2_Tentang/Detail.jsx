@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { format } from "date-fns";
-import { id } from "date-fns/locale";
 import PageTitleNav from "../../part/PageTitleNav";
 import HeaderForm from "../../part/HeaderText";
 import DetailData from "../../part/DetailData";
@@ -24,9 +22,11 @@ export default function Detail({ onChangePage }) {
 
   const [loading, setLoading] = useState(true);
 
+  console.log(location.state.idData);
   useEffect(() => {
     if (location.state?.idData) {
       const editId = location.state.idData;
+      console.log(editId);
       fetch(API_LINK + `/MasterTentang/GetDataTentangById`, {
         method: "POST",
         headers: {

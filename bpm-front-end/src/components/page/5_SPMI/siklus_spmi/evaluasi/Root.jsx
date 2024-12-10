@@ -37,20 +37,14 @@ export default function Evaluasi() {
     <>
       <ScrollToTop />
       <Routes>
+        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
         <Route
-          path="/spmi/siklus/evaluasi"
-          element={<Index onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/spmi/siklus/evaluasi/editkonten"
+          path="/editkonten"
           element={<EditKonten onChangePage={handlePageChange} />}
         />
+        <Route path="/add" element={<Add onChangePage={handlePageChange} />} />
         <Route
-          path="/spmi/siklus/evaluasi/add"
-          element={<Add onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/spmi/siklus/evaluasi/edit"
+          path="/edit"
           element={<Edit onChangePage={handlePageChange} />}
         />
       </Routes>

@@ -33,6 +33,7 @@ export default function Detail({ onChangePage }) {
     Modifby: "",
     ModifDate: "",
     status: "",
+    jenisKegiatan: "",
   });
 
   useEffect(() => {
@@ -115,6 +116,7 @@ export default function Detail({ onChangePage }) {
                 : data[0].keg_category === "2"
                 ? "Terlewat"
                 : "Terlaksana",
+            jenisKegiatan: data[0].jkg_nama,
           });
         }
       } catch (error) {
@@ -153,12 +155,16 @@ export default function Detail({ onChangePage }) {
             <div className="row">
               <div className="col-lg-6 col-md-6">
                 <DetailData label="Nama Kegiatan" isi={formData.name} />
+                <DetailData
+                  label="Jenis Kegiatan"
+                  isi={formData.jenisKegiatan}
+                />
                 <DetailData label="Tanggal Mulai" isi={formData.startDate} />
                 <DetailData label="Waktu Mulai" isi={formData.startTime} />
-                <DetailData label="Status" isi={formData.status} />
               </div>
               <div className="col-lg-6 col-md-6">
                 <DetailData label="Tempat" isi={formData.place} />
+                <DetailData label="Status" isi={formData.status} />
                 <DetailData label="Tanggal Selesai" isi={formData.endDate} />
                 <DetailData label="Waktu Selesai" isi={formData.endTime} />
               </div>

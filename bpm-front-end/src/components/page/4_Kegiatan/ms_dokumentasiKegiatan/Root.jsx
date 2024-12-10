@@ -5,6 +5,8 @@ import {
   useNavigate,
 } from "react-router-dom";
 import Index from "./Index";
+import Read from "./Read";
+import AddExisting from "./AddExisting";
 
 import ScrollToTop from "../../../part/ScrollToTop";
 
@@ -17,10 +19,13 @@ export default function JadwalKegiatan() {
         navigate("/kegiatan/dokumentasi");
         break;
       case "read":
-        navigate("/kegiatan/jadwal/kelola");
+        navigate("/kegiatan/dokumentasi/kelola");
+        break;
+      case "addExist":
+        navigate("/kegiatan/dokumentasi/kelola/tambah");
         break;
       case "add":
-        navigate("/kegiatan/jadwal/kelola/tambah");
+        navigate("/kegiatan/jadwal/kelola/tambahBaru");
         break;
       case "edit":
         navigate("/kegiatan/jadwal/kelola/edit", withState);
@@ -41,9 +46,14 @@ export default function JadwalKegiatan() {
     <>
       <ScrollToTop />
       <Routes>
+        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
         <Route
-          path="/kegiatan/dokumentasi"
-          element={<Index onChangePage={handlePageChange} />}
+          path="/kelola"
+          element={<Read onChangePage={handlePageChange} />}
+        />
+        <Route
+          path="/kelola/tambah"
+          element={<AddExisting onChangePage={handlePageChange} />}
         />
       </Routes>
     </>

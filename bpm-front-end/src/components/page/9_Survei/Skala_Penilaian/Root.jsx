@@ -12,6 +12,8 @@ import Edit from "./Edit";
 
 export default function Skala_Survei() {
   const navigate = useNavigate();
+export default function Skala_Survei() {
+  const navigate = useNavigate();
 
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
@@ -50,3 +52,4 @@ export default function Skala_Survei() {
     </>
   );
 }
+

@@ -158,25 +158,27 @@ export default function Add({ onChangePage }) {
                   <InputField
                     ref={judulRef}
                     label="Judul Berita"
-                    value={formData.judul} // Mengikat value dengan formData
-                    onChange={handleChange} // Menangani perubahan input
+                    value={formData.judul}
+                    onChange={handleChange}
                     isRequired={true}
                     name="judul"
+                    maxChar="100"
                   />
                   <InputField
                     ref={penulisRef}
                     label="Penulis"
-                    value={formData.penulis} // Mengikat value dengan formData
-                    onChange={handleChange} // Menangani perubahan input
+                    value={formData.penulis}
+                    onChange={handleChange}
                     isRequired={true}
                     name="penulis"
+                    maxChar="50"
                   />
                 </div>
                 <div className="col-lg-6 col-md-6">
                   <InputField
                     ref={tanggalRef}
                     label="Tanggal Berita"
-                    value={formData.tanggal} // Mengikat value dengan formData
+                    value={formData.tanggal}
                     onChange={handleChange}
                     isRequired={true}
                     name="tanggal"

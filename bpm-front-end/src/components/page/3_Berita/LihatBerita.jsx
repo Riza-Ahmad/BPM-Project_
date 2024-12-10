@@ -23,31 +23,30 @@ const LihatBerita = ({ onChangePage }) => {
       try {
         const response = await fetch(`${API_LINK}/MasterBerita/GetDataBerita`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
         });
 
         if (!response.ok) throw new Error("Gagal mengambil data");
 
         const result = await response.json();
-
-        const truncateText = (text, maxLength) => {
-          return text.length > maxLength
-            ? `${text.substring(0, maxLength)}...`
-            : text;
-        };
+        console.log(result);
 
         const groupedBerita = result.reduce((acc, item) => {
           if (!acc[item.ber_id]) {
             acc[item.ber_id] = {
               id: item.ber_id,
               title: item.ber_judul,
-              date: format(new Date(item.ber_tgl), "EEEE, dd MMMM yyyy", {
-                locale: id,
-              }),
+              date: new Date(item.ber_tgl), // Simpan sebagai objek Date
+              formattedDate: format(
+                new Date(item.ber_tgl),
+                "EEEE, dd MMMM yyyy",
+                {
+                  locale: id,
+                }
+              ),
+              year: new Date(item.ber_tgl).getFullYear(),
               description: item.ber_isi,
-              author: item.ber_created_by,
+              author: item.ber_penulis,
               images: [],
             };
           }
@@ -57,7 +56,12 @@ const LihatBerita = ({ onChangePage }) => {
           return acc;
         }, {});
 
-        setBeritaData(Object.values(groupedBerita));
+        const sortedBerita = Object.values(groupedBerita).sort(
+          (a, b) => b.date - a.date // Urutkan berdasarkan tanggal terbaru
+        );
+
+        setBeritaData(sortedBerita);
+        console.log(sortedBerita);
       } catch (err) {
         console.error("Fetch error:", err);
         setError("Gagal mengambil data");
@@ -72,7 +76,7 @@ const LihatBerita = ({ onChangePage }) => {
   const {
     title = "Judul Tidak Tersedia",
     author = "Penulis Tidak Diketahui",
-    date = "Tanggal Tidak Tersedia",
+    formattedDate = "Tanggal Tidak Tersedia",
     description = "Deskripsi Tidak Tersedia",
     images = [],
   } = location.state || {};
@@ -179,7 +183,7 @@ const LihatBerita = ({ onChangePage }) => {
               marginBottom="10px"
             />
             <p className="text-white">
-              Oleh {author} Tanggal {date}
+              Oleh {author} Tanggal {formattedDate || "Tanggal Tidak Tersedia"}
             </p>
           </div>
         </div>

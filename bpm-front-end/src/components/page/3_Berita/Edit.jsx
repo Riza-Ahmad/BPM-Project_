@@ -221,6 +221,7 @@ export default function Edit({ onChangePage }) {
                     setFormData({ ...formData, title: e.target.value })
                   }
                   isRequired={true}
+                  maxChar="100"
                 />
                 <InputField
                   ref={penulisRef}
@@ -230,6 +231,7 @@ export default function Edit({ onChangePage }) {
                     setFormData({ ...formData, author: e.target.value })
                   }
                   isRequired={true}
+                  maxChar="50"
                 />
               </div>
               <div className="col-lg-6 col-md-6">
