@@ -1,19 +1,28 @@
-import { useState, useEffect } from "react";
-import { TENTANGFILE_LINK } from "../util/Constants";
+import { useState, useEffect, useRef } from "react";
+import SweetAlert from "../util/SweetAlert";
 
-const UploadFoto = ({ id, label = "", isRequired = false, errorMsg = "", onChange, hasExisting }) => {
+const UploadFoto = ({
+  id,
+  label = "",
+  isRequired = false,
+  errorMsg = "",
+  onChange,
+  hasExisting,
+}) => {
   const [preview, setPreview] = useState(null);
-  
-  // useEffect(() => {
-  //   // Jika hasExisting ada, tampilkan gambar yang ada sebagai preview
-  //   if (hasExisting) {
-  //     setPreview(FILE_LINK + hasExisting);
-  //   }
-  // }, [hasExisting]);
+  const inputRef = useRef(); // Tambahkan ref untuk input file
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
+
     if (file) {
+      // Validasi apakah file adalah gambar
+      if (!file.type.startsWith("image/")) {
+        SweetAlert("Gagal!", "File harus berupa gambar", "error", "OK");
+        inputRef.current.value = ""; // Kosongkan input field jika file tidak valid
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result); // Set preview gambar baru
@@ -23,16 +32,24 @@ const UploadFoto = ({ id, label = "", isRequired = false, errorMsg = "", onChang
       if (onChange) {
         onChange(file);
       }
+    } else {
+      // Kosongkan preview jika tidak ada file yang dipilih
+      setPreview(null);
     }
+
+    // Kosongkan nilai input setelah proses selesai
+    inputRef.current.value = "";
   };
 
   return (
     <div className="mb-3">
       {label && (
-        <label htmlFor={id} className="form-label fw-bold mt-3">
+        <label htmlFor={id} className="form-label fw-bold">
           {label}
           {isRequired && <span className="text-danger"> *</span>}
-          {errorMsg && <span className="fw-normal text-danger"> {errorMsg}</span>}
+          {errorMsg && (
+            <span className="fw-normal text-danger"> {errorMsg}</span>
+          )}
         </label>
       )}
 
@@ -52,7 +69,11 @@ const UploadFoto = ({ id, label = "", isRequired = false, errorMsg = "", onChang
             src={preview}
             alt="Preview"
             className="img-thumbnail"
-            style={{ maxWidth: "100%", maxHeight: "150px", borderRadius: "8px" }}
+            style={{
+              maxWidth: "100%",
+              maxHeight: "150px",
+              borderRadius: "8px",
+            }}
           />
         ) : (
           <span className="text-muted">No Image Selected</span>
@@ -66,6 +87,7 @@ const UploadFoto = ({ id, label = "", isRequired = false, errorMsg = "", onChang
         className="form-control mt-2"
         accept="image/*"
         onChange={handleFileChange}
+        ref={inputRef} // Hubungkan ref ke input
         style={{ cursor: "pointer" }}
       />
 
@@ -74,7 +96,7 @@ const UploadFoto = ({ id, label = "", isRequired = false, errorMsg = "", onChang
           <br />
           Gambar saat ini:{" "}
           <a
-            href={TENTANGFILE_LINK + hasExisting}
+            href={hasExisting}
             className="text-decoration-none"
             target="_blank"
             rel="noopener noreferrer"

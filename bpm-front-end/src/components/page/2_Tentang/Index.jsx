@@ -129,9 +129,8 @@ export default function Index({ onChangePage }) {
       <div
         className="shadow bg-white rounded"
         style={{
-          padding: isMobile ? "2rem" : "5rem", // Padding lebih kecil di mobile
-          margin: isMobile ? "2rem" : "8rem", // Margin lebih kecil di mobile
-          marginTop: "3rem",
+          padding: isMobile ? "1rem" : "5rem", // Padding lebih kecil di mobile
+          margin: isMobile ? "1rem" : "8rem", // Margin lebih kecil di mobile
         }}
       >
         <HeaderText
@@ -192,10 +191,48 @@ export default function Index({ onChangePage }) {
             <img
               src={OrangKerja}
               alt="Logo"
-              style={{ width: "100%", height: "auto", marginBottom: "25px" }}
+              style={{
+                width: "100%",
+                height: "auto",
+                marginBottom: "25px",
+              }}
             />
           </div>
         </div>
+        <HeaderText
+          label="Pernyataan dan Kebijakan Mutu"
+          warna="#2654A1"
+          alignText="left"
+          fontWeight="700"
+          marginBottom="20px"
+        />
+        {["Pernyataan Mutu", "Kebijakan Mutu"].map((title, index) => (
+          <div className="shadow bg-white rounded-4 mb-4" key={index}>
+            <div
+              className="rounded-4 ps-3"
+              style={{ backgroundColor: "#2654A1", padding: "0.1rem" }}
+            >
+              <HeaderText
+                label={title}
+                warna="white"
+                ukuran="1.5rem"
+                alignText="left"
+                fontWeight="600"
+                marginBottom="20px"
+              />
+            </div>
+            <div className="rounded-4 p-3">
+              {data[index + 8] && (
+                <Text
+                  isi={data[index + 8].ten_isi}
+                  alignText="justify"
+                  ukuran="16px"
+                  warna="grey"
+                />
+              )}
+            </div>
+          </div>
+        ))}
       </div>
 
       <div
@@ -206,56 +243,39 @@ export default function Index({ onChangePage }) {
         }}
       >
         <div className="row">
-          <div
-            className="col-lg-6 col-md-6"
-            style={{ padding: isMobile ? "1rem" : "2rem" }}
-          >
-            <div
-              className="card"
-              style={{ padding: isMobile ? "2rem" : "3rem" }}
-            >
-              <HeaderText
-                label="Sasaran Badan Penjamin Mutu"
-                warna="white"
-                alignText="center"
-                ukuran="25px"
-                fontWeight="700"
-              />
-              {data[1] && (
-                <Text
-                  isi={data[2].ten_isi}
-                  alignText="justify"
-                  ukuran="16px"
-                  warna="white"
-                />
-              )}
-            </div>
-          </div>
-          <div
-            className="col-lg-6 col-md-6"
-            style={{ padding: isMobile ? "1rem" : "2rem" }}
-          >
-            <div
-              className="card"
-              style={{ padding: isMobile ? "2rem" : "3rem" }}
-            >
-              <HeaderText
-                label="Strategi Badan Penjamin Mutu"
-                warna="white"
-                alignText="center"
-                ukuran="25px"
-                fontWeight="700"
-              />
-              {data[1] && (
-                <Text
-                  isi={data[3].ten_isi}
-                  alignText="justify"
-                  ukuran="16px"
-                  warna="white"
-                />
-              )}
-            </div>
-          </div>
+          {["Sasaran Badan Penjamin Mutu", "Strategi Badan Penjamin Mutu"].map(
+            (title, index) => (
+              <div
+                className="col-lg-6 col-md-6 mb-3"
+                style={{ padding: isMobile ? "0rem" : "2rem" }}
+                key={index}
+              >
+                <div
+                  className="card"
+                  style={{
+                    paddingLeft: isMobile ? "0rem" : "3rem",
+                    padding: isMobile ? "1rem" : "3rem",
+                  }}
+                >
+                  <HeaderText
+                    label={title}
+                    warna="white"
+                    alignText="center"
+                    ukuran="25px"
+                    fontWeight="700"
+                  />
+                  {data[1] && (
+                    <Text
+                      isi={data[index + 2].ten_isi}
+                      alignText="justify"
+                      ukuran="16px"
+                      warna="white"
+                    />
+                  )}
+                </div>
+              </div>
+            )
+          )}
         </div>
       </div>
 
@@ -286,27 +306,24 @@ export default function Index({ onChangePage }) {
             margin="10px"
           />
 
-          <HeaderText
-            label="Visi"
-            warna="white"
-            alignText="center"
-            ukuran="35px"
-            fontWeight="700"
-          />
-          {data[3] && (
-            <Text isi={data[4].ten_isi} alignText="center" ukuran="18px" />
-          )}
-
-          <HeaderText
-            label="Misi"
-            warna="white"
-            alignText="center"
-            ukuran="35px"
-            fontWeight="700"
-          />
-          {data[4] && (
-            <Text isi={data[5].ten_isi} alignText="center" ukuran="18px" />
-          )}
+          {["Visi", "Misi"].map((title, index) => (
+            <div key={index}>
+              <HeaderText
+                label={title}
+                warna="white"
+                alignText="center"
+                ukuran="35px"
+                fontWeight="700"
+              />
+              {data[index + 3] && (
+                <Text
+                  isi={data[index + 4].ten_isi}
+                  alignText="center"
+                  ukuran="1rem"
+                />
+              )}
+            </div>
+          ))}
 
           <img
             src={Gedung}

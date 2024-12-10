@@ -266,6 +266,7 @@ export default function Edit({ onChangePage }) {
                   setFormData({ ...formData, name: e.target.value })
                 }
                 isRequired={true}
+                maxChar="100"
               />
               <div className="col-lg-6 col-md-6">
                 <DropDown
@@ -290,6 +291,7 @@ export default function Edit({ onChangePage }) {
                     setFormData({ ...formData, place: e.target.value })
                   }
                   isRequired={true}
+                  maxChar="50"
                 />
               </div>
             </div>

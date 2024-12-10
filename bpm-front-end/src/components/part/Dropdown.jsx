@@ -45,19 +45,20 @@ const DropDown = forwardRef(function DropDown(
   switch (type) {
     case "pilih":
       placeholder = (
-        <option value="" selected disabled>
+        <option value="" disabled>
           {"-- Pilih " + label + " --"}
         </option>
       );
       break;
     case "semua":
       placeholder = (
-        <option value="" selected disabled>
+        <option value="" disabled>
           -- Semua --
         </option>
       );
       break;
     default:
+      placeholder = null;
       break;
   }
 

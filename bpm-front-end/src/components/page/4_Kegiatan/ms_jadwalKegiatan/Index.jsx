@@ -8,6 +8,7 @@ import Text from "../../../part/Text";
 import { API_LINK } from "../../../util/Constants";
 import Loading from "../../../part/Loading";
 import "moment-timezone";
+import { useIsMobile } from "../../../util/useIsMobile";
 const localizer = momentLocalizer(moment);
 
 export default function Index({ onChangePage }) {
@@ -15,6 +16,7 @@ export default function Index({ onChangePage }) {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const isMobile = useIsMobile();
 
   const fetchEvents = async () => {
     try {
@@ -109,7 +111,7 @@ export default function Index({ onChangePage }) {
       borderRadius: "8px",
       boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
       borderLeft: `5px solid ${borderColor}`,
-      minWidth: "400px",
+      minWidth: isMobile ? "100%" : "20rem",
     };
   };
 
@@ -213,7 +215,7 @@ export default function Index({ onChangePage }) {
         className="row"
         style={{
           display: "flex",
-          margin: "1.5rem",
+          margin: isMobile ? "0rem" : "1.5rem",
           gap: "1rem",
           padding: "0 20px",
         }}
