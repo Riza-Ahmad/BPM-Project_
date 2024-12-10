@@ -105,7 +105,7 @@ export default function Table({
             name="users"
             cssClass="btn px-1 py-0 text-warning"
             title="Edit Responden"
-            onResponden={() => onResponden(id)}
+            onClick={() => onResponden(id)}
           />
         );
       default:
@@ -138,7 +138,7 @@ export default function Table({
               style={{
                 backgroundColor: "#2654A1",
                 color: "#fff",
-                width: "250px",
+                width: '250px',  // Reduce the width of the "Aksi" column
               }}
             >
               Aksi
@@ -149,14 +149,9 @@ export default function Table({
           {data.length > 0 ? (
             data.map((row, rowIndex) => (
               <tr key={`row-${rowIndex}`}>
-                {arrHeader.map((column, colIndex) => (
-                  <td
-                    key={`cell-${row.Key}-${colIndex}`}
-                    className={`align-middle ${
-                      column === "No" ? "text-center" : "text-start"
-                    }`}
-                  >
-                    {row[headerToDataMap[column]]}
+                {arrHeader.map((header, colIndex) => (
+                  <td key={`cell-${rowIndex}-${colIndex}`} className="align-middle text-start">
+                    {row[headerToDataMap[header]]}  {/* Mengambil data berdasarkan peta */}
                   </td>
                 ))}
                 <td
