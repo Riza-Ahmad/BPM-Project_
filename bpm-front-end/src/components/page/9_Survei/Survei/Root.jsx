@@ -28,9 +28,9 @@ export default function Survei(){
         <>
             <ScrollToTop/>
             <Routes>
-                <Route path="/survei" element={<Index onChangePage={handlePageChange}/>}/>
-                <Route path="/survei/tambah" element={<Add onChangePage={handlePageChange}/>}/>
-                <Route path="/survei/detail" element={<Detail onChangePage={handlePageChange}/>}/>
+                <Route path="/" element={<Index onChangePage={handlePageChange}/>}/>
+                <Route path="/tambah" element={<Add onChangePage={handlePageChange}/>}/>
+                <Route path="/detail" element={<Detail onChangePage={handlePageChange}/>}/>
             </Routes>
         </>
     )

@@ -20,8 +20,7 @@ export default function Daftar_Survei(){
         <>
             <ScrollToTop/>
             <Routes>
-                <Route path="/survei/daftar" element={<Index onChangePage={handlePageChange}/>}/>
-                           
+                <Route path="/" element={<Index onChangePage={handlePageChange}/>}/>
             </Routes>
         </>
     )

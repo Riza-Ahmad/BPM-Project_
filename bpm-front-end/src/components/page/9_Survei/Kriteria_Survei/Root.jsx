@@ -27,7 +27,6 @@ export default function Kriteria_Survei() {
             <Routes>
                 <Route path="/tentang" element={<Tentang onChangePage={handlePageChange}/>}/>
                 <Route path="/" element={<Index onChangePage={handlePageChange}/>}/>
-                           
             </Routes>
         </>
     )
