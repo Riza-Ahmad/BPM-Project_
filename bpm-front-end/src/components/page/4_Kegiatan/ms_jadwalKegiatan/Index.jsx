@@ -9,6 +9,7 @@ import { API_LINK } from "../../../util/Constants";
 import Loading from "../../../part/Loading";
 import "moment-timezone";
 import { useIsMobile } from "../../../util/useIsMobile";
+import { useFetch } from "../../../util/useFetch";
 const localizer = momentLocalizer(moment);
 
 export default function Index({ onChangePage }) {
@@ -20,21 +21,15 @@ export default function Index({ onChangePage }) {
 
   const fetchEvents = async () => {
     try {
-      const response = await fetch(
-        API_LINK + "/MasterKegiatan/GetDataKegiatan",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+      const data = await useFetch(
+        `${API_LINK}/MasterKegiatan/GetDataKegiatan`,
+        JSON.stringify({}),
+        "POST"
       );
 
-      if (!response.ok) {
-        throw new Error("Gagal mengambil data kegiatan");
+      if (!data || !Array.isArray(data)) {
+        throw new Error("Invalid data format or no data returned");
       }
-
-      const data = await response.json();
 
       const formattedEvents = data.map((item) => {
         const startDate = moment(item.keg_tgl_mulai).format("YYYY-MM-DD");

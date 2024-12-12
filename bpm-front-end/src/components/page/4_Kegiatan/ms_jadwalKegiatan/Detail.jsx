@@ -8,6 +8,7 @@ import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 import moment from "moment";
 import "moment-timezone";
+import { useFetch } from "../../../util/useFetch";
 
 export default function Detail({ onChangePage }) {
   const title = "Detail Jadwal Kegiatan";
@@ -44,22 +45,10 @@ export default function Detail({ onChangePage }) {
 
     const fetchData = async () => {
       try {
-        const response = await fetch(
-          `${API_LINK}/MasterKegiatan/GetDataKegiatanById`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ keg_id: editId }),
-          }
+        const data = await useFetch(
+          API_LINK + `/MasterKegiatan/GetDataKegiatanById`,
+          { ber_id: editId }
         );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
         if (data) {
           setFormData({
             name: data[0].keg_nama,

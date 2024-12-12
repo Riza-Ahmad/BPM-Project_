@@ -2,6 +2,7 @@ import React from "react";
 import { useIsMobile } from "../util/useIsMobile";
 import Button from "./Button";
 import HeaderText from "./HeaderText";
+import { decodeHtml } from "../util/DecodeHtml";
 
 const CardBerita = ({
   title,
@@ -121,7 +122,7 @@ const CardBerita = ({
             <p
               className="card-text"
               style={textStyle}
-              dangerouslySetInnerHTML={{ __html: description }}
+              dangerouslySetInnerHTML={{ __html: decodeHtml(description) }}
             ></p>
           </div>
 

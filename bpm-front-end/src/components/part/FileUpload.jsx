@@ -1,4 +1,4 @@
-import { forwardRef, useState } from "react";
+import { forwardRef, useState, useImperativeHandle } from "react";
 
 const FileUpload = forwardRef(function FileUpload(
   {

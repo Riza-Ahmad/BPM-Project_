@@ -14,33 +14,45 @@ import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 import InputField from "../../../part/InputField";
 import FileUpload from "../../../part/FileUpload";
+import { uploadFile } from "../../../util/UploadFile";
 
 export default function AddExisting({ onChangePage }) {
-  const title = "Tambah Jadwal Kegiatan";
+  const title = "Tambah Dokumentasi Kegiatan";
   const breadcrumbs = [
-    { label: "Jadwal Kegiatan", href: "/kegiatan/jadwal" },
-    { label: "Kelola Jadwal Kegiatan", href: "/kegiatan/jadwal/kelola" },
-    { label: "Tambah Jadwal Kegiatan" },
+    { label: "Dokumentasi Kegiatan", href: "/kegiatan/dokumentasi" },
+    {
+      label: "Kelola Dokumentasi Kegiatan",
+      href: "/kegiatan/dokumentasi/kelola",
+    },
+    { label: "Tambah Dokumentasi Kegiatan" },
   ];
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFoto, setSelectedFoto] = useState(null);
 
   const [formData, setFormData] = useState({
     id: "",
     name: "",
-    description: "",
-    startDate: "",
-    endDate: "",
-    startTime: "",
-    endTime: "",
-    place: "",
-    jenisKegiatan: "",
+    description: "-",
+    startDate: "-",
+    endDate: "-",
+    startTime: "-",
+    endTime: "-",
+    place: "-",
+    jenisKegiatan: "-",
     fotoSampul: "",
     linkFolder: "",
     fileNotulen: "",
     statusFileNotulen: 0,
+  });
+
+  const [tempForm, settempForm] = useState({
+    startDate: "-",
+    endDate: "-",
+    startTime: "-",
+    endTime: "-",
   });
 
   const [existingKegiatan, setExistingKegiatan] = useState([]);
@@ -48,6 +60,7 @@ export default function AddExisting({ onChangePage }) {
   const namaRef = useRef();
   const folderLinkRef = useRef();
   const fotoSampulRef = useRef();
+  const fileNotulenRef = useRef();
   const statusFileNotulenRef = useRef();
 
   // Fetch kegiatan data
@@ -68,8 +81,8 @@ export default function AddExisting({ onChangePage }) {
         if (response.ok) {
           const data = await response.json();
           const formattedData = data.map((item) => ({
-            Value: item.keg_id, // ID untuk dropdown
-            Text: item.keg_nama, // Nama untuk ditampilkan di dropdown
+            Value: item.keg_id,
+            Text: item.keg_nama,
             keg_deskripsi: item.keg_deskripsi,
             keg_tgl_mulai: item.keg_tgl_mulai,
             keg_tgl_selesai: item.keg_tgl_selesai,
@@ -102,28 +115,86 @@ export default function AddExisting({ onChangePage }) {
     if (selectedData) {
       setFormData({
         id: selectedData.Value,
+        jenisKegiatan: selectedData.jkg_id,
         name: selectedData.Text,
         description: selectedData.keg_deskripsi,
+        startDate: selectedData.keg_tgl_mulai,
+        startTime: selectedData.keg_jam_mulai,
+        endDate: selectedData.keg_tgl_selesai,
+        endTime: selectedData.keg_jam_selesai,
+        place: selectedData.keg_tempat,
+        statusFileNotulen: 0,
+      });
+
+      settempForm({
+        jenisKegiatan: selectedData.jkg_nama,
         startDate: moment(selectedData.keg_tgl_mulai).format(
           "dddd, DD MMMM YYYY"
-        ), // Format tanggal
+        ),
         endDate: moment(selectedData.keg_tgl_selesai).format(
           "dddd, DD MMMM YYYY"
         ),
         startTime: moment(selectedData.keg_jam_mulai, "HH:mm:ss").format(
           "HH:mm [WIB]"
-        ), // Format waktu
+        ),
         endTime: moment(selectedData.keg_jam_selesai, "HH:mm:ss").format(
           "HH:mm [WIB]"
         ),
-        place: selectedData.keg_tempat,
-        jenisKegiatan: selectedData.jkg_nama,
       });
     }
   };
 
   const handleFileChange = (file) => {
-    setSelectedFile(file); // Store file in state
+    setSelectedFile(file);
+  };
+
+  const handleFotoChange = (file) => {
+    setSelectedFoto(file);
+  };
+
+  const handleSubmit = async () => {
+    if (!namaRef.current?.validate()) {
+      namaRef.current?.focus();
+      return;
+    }
+
+    if (!folderLinkRef.current?.validate()) {
+      folderLinkRef.current?.focus();
+      return;
+    }
+
+    if (fileNotulenRef.current?.value === "") {
+      fileNotulenRef.current?.focus();
+      return;
+    }
+
+    if (selectedFile) {
+      const folderName = "Kegiatan";
+      const filePrefix = "NOTULEN";
+
+      const uploadResult = await uploadFile(
+        selectedFile,
+        folderName,
+        filePrefix
+      );
+
+      setFormData({ ...formData, fileNotulen: uploadResult });
+    }
+
+    if (selectedFoto) {
+      const folderName = "Kegiatan";
+      const filePrefix = "FOTO";
+
+      const uploadResult = await uploadFile(
+        selectedFoto,
+        folderName,
+        filePrefix
+      );
+
+      setFormData({ ...formData, fotoSampul: uploadResult });
+    }
+
+    console.log(formData);
   };
 
   if (loading) return <Loading />;
@@ -163,15 +234,15 @@ export default function AddExisting({ onChangePage }) {
               <div className="col-lg-6 col-md-6">
                 <DetailData
                   label="Jenis Kegiatan"
-                  isi={formData.jenisKegiatan}
+                  isi={tempForm.jenisKegiatan}
                 />
-                <DetailData label="Tanggal Mulai" isi={formData.startDate} />
-                <DetailData label="Waktu Mulai" isi={formData.startTime} />
+                <DetailData label="Tanggal Mulai" isi={tempForm.startDate} />
+                <DetailData label="Waktu Mulai" isi={tempForm.startTime} />
               </div>
               <div className="col-lg-6 col-md-6">
                 <DetailData label="Tempat" isi={formData.place} />
-                <DetailData label="Tanggal Selesai" isi={formData.endDate} />
-                <DetailData label="Waktu Selesai" isi={formData.endTime} />
+                <DetailData label="Tanggal Selesai" isi={tempForm.endDate} />
+                <DetailData label="Waktu Selesai" isi={tempForm.endTime} />
               </div>
             </div>
             <DetailData label="Deskripsi Singkat" isi={formData.description} />
@@ -190,6 +261,7 @@ export default function AddExisting({ onChangePage }) {
                   isRequired={true}
                 />
                 <FileUpload
+                  ref={fileNotulenRef}
                   label="File Notulensi"
                   forInput="upload-file"
                   formatFile=".pdf"
@@ -218,7 +290,7 @@ export default function AddExisting({ onChangePage }) {
                 <UploadFoto
                   id="upload-foto"
                   label="Foto Sampul"
-                  onChange={(file) => handleFileChange(file)}
+                  onChange={(file) => handleFotoChange(file)}
                   isRequired="true"
                 />
               </div>
@@ -230,7 +302,9 @@ export default function AddExisting({ onChangePage }) {
                   type="button"
                   label="Simpan"
                   width="100%"
-                  onClick={() => {}}
+                  onClick={() => {
+                    handleSubmit();
+                  }}
                 />
               </div>
               <div className="flex-grow-1 m-2">

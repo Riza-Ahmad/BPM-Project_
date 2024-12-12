@@ -9,6 +9,7 @@ import DropDown from "../../../part/Dropdown";
 import { API_LINK } from "../../../util/Constants";
 import SweetAlert from "../../../util/SweetAlert";
 import { useIsMobile } from "../../../util/useIsMobile";
+import { useFetch } from "../../../util/useFetch";
 
 export default function Add({ onChangePage }) {
   const title = "Tambah Jadwal Kegiatan";
@@ -25,42 +26,31 @@ export default function Add({ onChangePage }) {
     name: "",
     description: "",
     startDate: "",
-    endDate: "",
     startTime: "",
+    endDate: "",
     endTime: "",
     place: "",
     jenisKegiatan: "",
+    createdBy: "Admin",
   });
 
   const [jenisKegiatan, setJenisKegiatan] = useState([]);
 
-  // Fetch jenis kegiatan data on component mount
   useEffect(() => {
     const fetchJenisKegiatan = async () => {
       try {
-        const response = await fetch(
+        const data = await useFetch(
           `${API_LINK}/MasterKegiatan/GetDataJenisKegiatan`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({}),
-          }
+          JSON.stringify({}),
+          "POST"
         );
-
-        if (response.ok) {
-          const data = await response.json();
-          const formattedData = data.map((item) => ({
-            Value: item.jkg_id, // ID untuk nilai dropdown
-            Text: item.jkg_nama, // Nama untuk teks dropdown
-          }));
-          setJenisKegiatan(formattedData); // Menyimpan data ke state
-        } else {
-          throw new Error("Gagal mengambil data jenis kegiatan");
-        }
+        const formattedData = data.map((item) => ({
+          Value: item.jkg_id,
+          Text: item.jkg_nama,
+        }));
+        setJenisKegiatan(formattedData);
       } catch (error) {
-        setError(error.message); // Menangani error
+        setError(error.message);
       }
     };
 
@@ -78,7 +68,7 @@ export default function Add({ onChangePage }) {
   const jenisKegiatanRef = useRef();
 
   const handleSubmit = async () => {
-    console.log(formData.jenisKegiatan);
+    console.log(jenisKegiatanRef.current.value);
     if (!namaRef.current?.validate()) {
       namaRef.current?.focus();
       return;
@@ -108,10 +98,12 @@ export default function Add({ onChangePage }) {
       return;
     }
 
-    if (!jenisKegiatanRef.current?.value === "") {
+    if (!jenisKegiatanRef.current?.validate()) {
       jenisKegiatanRef.current?.focus();
       return;
     }
+
+    console.log(formData);
 
     // Combine date and time values into Date objects
     const startDate = new Date(
@@ -131,41 +123,24 @@ export default function Add({ onChangePage }) {
       );
       return;
     }
-
-    const kegiatanData = {
-      keg_nama: formData.name,
-      keg_deskripsi: formData.description,
-      keg_tgl_mulai: formData.startDate,
-      keg_jam_mulai: formData.startTime,
-      keg_tgl_selesai: formData.endDate,
-      keg_jam_selesai: formData.endTime,
-      keg_tempat: formData.place,
-      keg_created_by: "Admin",
-      jkg_id: formData.jenisKegiatan,
-    };
-
     setLoading(true);
-    console.log(kegiatanData);
     try {
-      const response = await fetch(
+      const response = await useFetch(
         `${API_LINK}/MasterKegiatan/CreateJadwalKegiatan`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(kegiatanData),
-        }
+        formData,
+        "POST"
       );
 
-      if (response.ok) {
-        SweetAlert(
-          "Berhasil!",
-          "Jadwal kegiatan berhasil dibuat.",
-          "success",
-          "OK"
-        ).then(() => onChangePage("read"));
-      } else {
-        throw new Error("Gagal membuat jadwal kegiatan");
+      if (response === "ERROR") {
+        throw new Error("Gagal memperbarui data");
       }
+
+      SweetAlert(
+        "Berhasil!",
+        "Jadwal kegiatan berhasil dibuat.",
+        "success",
+        "OK"
+      ).then(() => onChangePage("read"));
     } catch (error) {
       SweetAlert("Gagal!", error.message, "error", "OK");
       setLoading(false);

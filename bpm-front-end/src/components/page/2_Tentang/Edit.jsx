@@ -11,6 +11,9 @@ import FileUpload from "../../part/FileUpload";
 import UploadFoto from "../../part/UploadFoto";
 import SweetAlert from "../../util/SweetAlert";
 import { useIsMobile } from "../../util/useIsMobile";
+import { decodeHtml } from "../../util/DecodeHtml";
+import { useFetch } from "../../util/useFetch";
+import { uploadFile } from "../../util/UploadFile";
 
 export default function Edit({ onChangePage }) {
   const location = useLocation();
@@ -19,7 +22,6 @@ export default function Edit({ onChangePage }) {
   const [formData, setFormData] = useState({
     Kategori: "",
     Isi: "",
-    Createby: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -30,23 +32,22 @@ export default function Edit({ onChangePage }) {
     if (location.state?.idData) {
       const editId = location.state.idData;
       setLoading(true);
-      fetch(API_LINK + `/MasterTentang/GetDataTentangById`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ten_id: editId }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data && data.length > 0) {
-            setFormData({
-              Kategori: data[0].ten_category,
-              Isi: data[0].ten_isi,
-              Createby: data[0].ten_created_by,
-            });
-          }
-        })
+
+      const fetchData = async () => {
+        const data = await useFetch(
+          API_LINK + `/MasterTentang/GetDataTentangById`,
+          { ten_id: editId }
+        );
+
+        if (data && data.length > 0) {
+          setFormData({
+            Kategori: data[0].ten_category,
+            Isi: decodeHtml(data[0].ten_isi),
+          });
+        }
+      };
+
+      fetchData()
         .catch((error) => console.error("Error fetching data:", error))
         .finally(() => setLoading(false));
     }
@@ -99,56 +100,41 @@ export default function Edit({ onChangePage }) {
   };
 
   const handleSubmit = async () => {
-    const currentTimestamp = new Date().toISOString();
     setLoading(true);
 
     try {
       let ten_isi = formData.Isi;
-
-      // Upload file jika ada file yang dipilih
       if (selectedFile) {
         const formData = new FormData();
-        formData.append("file", selectedFile);
+        formData.append("files", selectedFile);
 
-        const uploadResponse = await fetch(
-          `${API_LINK}/MasterTentang/UploadFile`,
-          {
-            method: "POST",
-            body: formData,
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
-            },
-          }
+        const folderName = "Tentang";
+        const filePrefix = "FILE";
+
+        const uploadResult = await uploadFile(
+          selectedFile,
+          folderName,
+          filePrefix
         );
 
-        if (!uploadResponse.ok) {
-          throw new Error("Gagal mengunggah file");
-        }
-
-        const uploadResult = await uploadResponse.json();
-        ten_isi = uploadResult.hasil || ten_isi; // Gunakan nama file yang diunggah
+        ten_isi = uploadResult[0] || ten_isi;
       }
 
-      // Kirim data edit ke server
       const editData = {
         ten_id: location.state.idData,
         ten_category: formData.Kategori,
         ten_isi,
-        ten_status: 1,
         ten_modif_by: "User",
-        ten_modif_date: currentTimestamp,
       };
 
-      const editResponse = await fetch(
+      console.log(editData);
+      const editResponse = await useFetch(
         `${API_LINK}/MasterTentang/EditTentang`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(editData),
-        }
+        editData,
+        "POST"
       );
 
-      if (!editResponse.ok) {
+      if (editResponse === "ERROR") {
         throw new Error("Gagal memperbarui data");
       }
 
