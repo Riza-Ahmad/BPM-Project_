@@ -1,4 +1,5 @@
 import React from "react";
+import { decodeHtml } from "../util/DecodeHtml";
 
 const Text = ({
   isi,
@@ -7,6 +8,8 @@ const Text = ({
   warna = "white",
   style = {},
 }) => {
+  const decodedIsi = decodeHtml(isi);
+
   return (
     <p
       style={{
@@ -16,7 +19,7 @@ const Text = ({
         textAlign: alignText,
         ...style,
       }}
-      dangerouslySetInnerHTML={{ __html: isi }}
+      dangerouslySetInnerHTML={{ __html: decodedIsi }}
     ></p>
   );
 };

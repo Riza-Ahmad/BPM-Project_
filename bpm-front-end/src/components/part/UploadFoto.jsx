@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useImperativeHandle, useRef } from "react";
 import SweetAlert from "../util/SweetAlert";
 
 const UploadFoto = ({
@@ -8,6 +8,7 @@ const UploadFoto = ({
   errorMsg = "",
   onChange,
   hasExisting,
+  maxSizeFile = 5 * 1024 * 1024,
 }) => {
   const [preview, setPreview] = useState(null);
   const inputRef = useRef(); // Tambahkan ref untuk input file
@@ -19,6 +20,19 @@ const UploadFoto = ({
       // Validasi apakah file adalah gambar
       if (!file.type.startsWith("image/")) {
         SweetAlert("Gagal!", "File harus berupa gambar", "error", "OK");
+        inputRef.current.value = ""; // Kosongkan input field jika file tidak valid
+        return;
+      }
+
+      if (file.size > maxSizeFile) {
+        SweetAlert(
+          "Gagal!",
+          `Ukuran berkas tidak boleh lebih dari ${
+            maxSizeFile / (1024 * 1024)
+          } MB`,
+          "error",
+          "OK"
+        );
         inputRef.current.value = ""; // Kosongkan input field jika file tidak valid
         return;
       }

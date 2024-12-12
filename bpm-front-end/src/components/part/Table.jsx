@@ -16,8 +16,31 @@ export default function Table({
   onSurveyor = () => {},
   onResponden = () => {},
 }) {
-  function generateActionButton(actionType, id) {
+  function generateActionButton(actionType, id, status = "Aktif") {
     switch (actionType) {
+      case "Toggle": {
+        if (status === "Aktif") {
+          return (
+            <Icon
+              name="toggle-on"
+              type="Bold"
+              cssClass="btn px-1 py-0 text-primary"
+              title="Nonaktifkan"
+              onClick={() => onToggle(id)}
+            />
+          );
+        } else if (status === "Tidak Aktif") {
+          return (
+            <Icon
+              name="toggle-off"
+              type="Bold"
+              cssClass="btn px-1 py-0 text-secondary"
+              title="Aktifkan"
+              onClick={() => onToggle(id)}
+            />
+          );
+        }
+      }
       case "Delete":
         return (
           <Icon

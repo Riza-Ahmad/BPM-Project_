@@ -5,6 +5,7 @@ import PageTitleNav from "../../part/PageTitleNav";
 import Loading from "../../part/Loading";
 import { API_LINK } from "../../util/Constants";
 import { useIsMobile } from "../../util/useIsMobile";
+import { useFetch } from "../../util/useFetch";
 
 export default function Read({ onChangePage }) {
   const [pageSize] = useState(10);
@@ -17,25 +18,11 @@ export default function Read({ onChangePage }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(
-          API_LINK + "/MasterTentang/GetDataTentang",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              page: pageCurrent,
-              pageSize: pageSize,
-            }),
-          }
+        const result = await useFetch(
+          `${API_LINK}/MasterTentang/GetDataTentang`,
+          JSON.stringify({}),
+          "POST"
         );
-
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-
-        const result = await response.json();
         setData(result);
         setLoading(false);
       } catch (err) {
