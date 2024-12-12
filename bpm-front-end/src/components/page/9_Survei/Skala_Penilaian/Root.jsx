@@ -6,11 +6,11 @@ import {
 } from "react-router-dom";
 import Index from "./Index";
 import Add from "./Add";
+import Detail from "./Detail";
 
 import ScrollToTop from "../../../part/ScrollToTop";
 import Edit from "./Edit";
 
- 
 export default function Skala_Survei() {
   const navigate = useNavigate();
 
@@ -23,8 +23,12 @@ export default function Skala_Survei() {
         navigate("/survei/skala/add");
         break;
       case "edit":
-        navigate("/survei/skala/edit");
+        navigate("/survei/skala/edit", withState);
         break;
+      case "detail":
+        navigate("/survei/skala/detail", withState);
+        break;
+
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
         break;
@@ -35,20 +39,14 @@ export default function Skala_Survei() {
     <>
       <ScrollToTop />
       <Routes>
+        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
+        <Route path="add" element={<Add onChangePage={handlePageChange} />} />
+        <Route path="edit" element={<Edit onChangePage={handlePageChange} />} />
         <Route
-          path="/survei/skala"
-          element={<Index onChangePage={handlePageChange} />}
+          path="detail"
+          element={<Detail onChangePage={handlePageChange} />}
         />
-      </Routes>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/survei/skala/add" element={<Add />} />
-      </Routes>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/survei/skala/edit/:id" element={<Edit />} />
       </Routes>
     </>
   );
 }
-

@@ -4,14 +4,12 @@ import Paging from "../../../part/Paging";
 import PageTitleNav from "../../../part/PageTitleNav";
 import Button from "../../../part/Button";
 import { API_LINK } from "../../../util/Constants";
-import TextField from "../../../part/TextField";
-import Modal from "../../../part/Modal";
 import Filter from "../../../part/Filter";
 import SearchField from "../../../part/SearchField";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../../../util/useIsMobile";
 
-export default function Index() {
+export default function Index({ onChangePage }) {
   const [pageSize] = useState(10);
   const [pageCurrent, setPageCurrent] = useState(1);
   const [selectedSkala, setSelectedSkala] = useState(null);
@@ -32,8 +30,15 @@ export default function Index() {
   const detailModalRef = useRef();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const indexOfLastData = pageCurrent * pageSize;
+  const indexOfFirstData = indexOfLastData - pageSize;
+  const currentData = Skala.slice(indexOfFirstData, indexOfLastData);
 
-  const handlePageNavigation = (page) => setPageCurrent(page);
+  const handlePageNavigation = (page) => {
+    if (page > 0 && page <= totalPages) {
+      setPageCurrent(page);
+    }
+  };
   const filteredSkala = Skala.filter((item) => {
     const matchesQuery =
       item.Nama && item.Nama.toLowerCase().includes(searchQuery.toLowerCase());
@@ -43,16 +48,7 @@ export default function Index() {
     return matchesQuery && matchesScale;
   });
 
-  const currentData = filteredSkala.slice(
-    (pageCurrent - 1) * pageSize,
-    pageCurrent * pageSize
-  );
-
   const openModal = (ref) => ref?.current?.open();
-
-  const handleSelectSkala = (id) => {
-    navigate(`/survei/skala/edit/${2}`); // Mengirimkan ID skala ke URL
-  };
 
   const handleDetailSkala = (skala) => {
     setSelectedSkala(skala);
@@ -157,7 +153,7 @@ export default function Index() {
                 Skala: "Skala",
                 "Deskripsi Nilai (Terendah - Tertinggi)": "Deskripsi",
               }}
-              data={Skala.map((item, index) => ({
+              data={currentData.map((item, index) => ({
                 key: item.id,
                 No: (pageCurrent - 1) * pageSize + index + 1,
                 Skala: item.name,
@@ -169,7 +165,7 @@ export default function Index() {
                 handleDetailSkala(Skala.find((item) => item.id === id))
               }
               onEdit={
-                (id) => handleSelectSkala(id) // Kirimkan ID saja
+                (item) => onChangePage("edit", { state: { idData: item.key } }) // Kirimkan ID saja
               }
             />
 
@@ -184,28 +180,7 @@ export default function Index() {
         </div>
       </main>
 
-      {/* DETAIL MODAL */}
-      <Modal
-        ref={detailModalRef}
-        title="Detail Skala Penilaian"
-        size="medium"
-        Button1={
-          <Button
-            label="Tutup"
-            onClick={() => detailModalRef.current.close()}
-          />
-        }
-      >
-        <p>
-          <strong>Tipe Skala:</strong> {selectedSkala?.Nama}
-        </p>
-        <p>
-          <strong>Skala:</strong> {selectedSkala?.Skala}
-        </p>
-        <p>
-          <strong>Deskripsi:</strong> {selectedSkala?.Deskripsi}
-        </p>
-      </Modal>
+      
     </div>
   );
 }

@@ -4,48 +4,44 @@ import SweetAlert from "../../../util/SweetAlert";
 import { API_LINK } from "../../../util/Constants";
 import { useParams } from "react-router-dom";
 
-export default function Edit() {
+export default function Edit({ onChangePage }) {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
-  const [formData, setFormData] = useState({
-    Nama: "",
-    Skala: 1,
-    Deskripsi: "",
-    type: "",
-    descriptions: [],
-    selectedValue: null,
-  });
+  const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(true); // Menambahkan state untuk loading
 
   const fetchSkala = async () => {
-    try {
-      const response = await fetch(
-        `${API_LINK}/SkalaPenilaian/GetDataSkalaPenilaianById`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            skp_id: id,
-          }),
-        }
-      );
-      console.log("API response:", response);
-      if (!response.ok) throw new Error("Gagal mengambil data skala.");
-      const result = await response.json();
-      console.log("Result:", result); // Periksa struktur data
-      setFormData(result); // Pastikan ini sesuai dengan data yang diterima
-    } catch (err) {
-      console.error("Error fetching data:", err);
-      alert("Gagal mengambil data skala.");
+    if (location.state?.idData) {
+      const editId = location.state?.idData;
+      try {
+        const response = await fetch(
+          `${API_LINK}/SkalaPenilaian/GetDataSkalaPenilaianById`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              skp_id: editId,
+            }),
+          }
+        );
+        if (!response.ok) throw new Error("Gagal mengambil data skala.");
+        const result = await response.json();
+        setFormData(result[0]); // Pastikan ini sesuai dengan data yang diterima
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        alert("Gagal mengambil data skala.");
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      console.log("Tidak ada id");
     }
   };
 
   useEffect(() => {
     fetchSkala();
-  });
-
-  
+  }, []);
 
   // Jika sedang loading, tampilkan indikator loading atau jangan render form
   if (loading) {
@@ -99,14 +95,12 @@ export default function Edit() {
   };
 
   const handleSubmit = () => {
-    if (!validateForm()) return;
-
     const editId = location.state?.idData;
     const payload = {
       skp_id: editId, // Mengambil ID dari state
-      skp_skala: formData.Skala,
-      skp_deskripsi: formData.Deskripsi.trim(),
-      skp_tipe: formData.type,
+      skp_skala: formData.skp_skala,
+      skp_deskripsi: formData.skp_deskripsi.trim(),
+      skp_tipe: formData.skp_tipe,
       skp_status: 1, // Contoh: Status aktif, sesuaikan jika berbeda
       skp_modif_by: "Admin", // Ganti dengan nilai sebenarnya (misalnya dari session user)
       skp_modif_date: new Date().toISOString(), // Backend akan override ke waktu sekarang
@@ -146,7 +140,7 @@ export default function Edit() {
   return (
     <div style={{ padding: "20px", maxWidth: "800px", margin: "auto" }}>
       <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
-        Edit Skala Penilaian
+        Tambah Skala Penilaian
       </h2>
 
       {/* Dropdown untuk memilih tipe */}
@@ -156,7 +150,7 @@ export default function Edit() {
         </label>
         <select
           className="form-select"
-          value={formData.type}
+          value={formData.skp_tipe}
           onChange={handleTypeChange}
         >
           <option value="">Pilih tipe skala...</option>
@@ -167,10 +161,11 @@ export default function Edit() {
         </select>
       </div>
 
-      {/* Form dinamis berdasarkan tipe */}
-      {formData.type === "Radio Button" && (
-        <div>
-          <div className="mb-3">
+      {/* Kondisional untuk tipe */}
+      {formData.skp_tipe === "Radio Button" && (
+        <div style={{ marginTop: "20px" }}>
+          {/* Input untuk skala */}
+          <div style={{ marginBottom: "20px" }}>
             <label>
               <strong>Skala *</strong>
             </label>
@@ -178,44 +173,36 @@ export default function Edit() {
               type="number"
               min="1"
               max="10"
-              value={formData.Skala || 1}
+              value={formData.skp_skala || 4}
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  Skala: Number(e.target.value),
-                  descriptions: [],
+                  skp_skala: Number(e.target.value),
                 })
               }
-              className="form-control"
+              style={{
+                display: "block",
+                width: "80px",
+                padding: "5px",
+                marginTop: "5px",
+                border: "1px solid #ccc",
+                borderRadius: "5px",
+              }}
             />
           </div>
-          <div className="mb-3">
+
+          {/* Preview */}
+          <div style={{ marginBottom: "20px" }}>
             <label>
-              <strong>Deskripsi Nilai *</strong>
-            </label>
-            {Array.from({ length: formData.Skala || 1 }, (_, i) => (
-              <input
-                key={i}
-                type="text"
-                placeholder={`Deskripsi nilai ${i + 1}`}
-                value={formData.descriptions[i] || ""}
-                onChange={(e) => {
-                  const descriptions = [...formData.descriptions];
-                  descriptions[i] = e.target.value;
-                  setFormData({ ...formData, descriptions });
-                }}
-                className="form-control mb-2"
-              />
-            ))}
-          </div>
-          <div className="mb-3">
-            <label>
-              <strong>Preview:</strong>
+              <strong>Preview</strong>
             </label>
             <div style={{ marginTop: "10px" }}>
-              {Array.from({ length: formData.Skala || 1 }, (_, i) => (
+              {Array.from(
+                { length: formData.skp_skala || 4 },
+                (_, i) => i + 1
+              ).map((value) => (
                 <label
-                  key={i}
+                  key={value}
                   style={{
                     marginRight: "15px",
                     display: "inline-flex",
@@ -225,36 +212,283 @@ export default function Edit() {
                   <input
                     type="radio"
                     name="preview"
-                    value={i + 1}
-                    checked={formData.selectedValue === i + 1}
-                    onChange={() => handlePreviewChange(i + 1)}
+                    value={value}
+                    checked={formData.skp_name === String(value)}
+                    onChange={(e) =>
+                      setFormData({ ...formData, skp_name: e.target.value })
+                    }
                     style={{ marginRight: "5px" }}
                   />
-                  {i + 1}
+                  {value}
                 </label>
               ))}
             </div>
           </div>
+
+          {/* Input deskripsi nilai */}
+          <div>
+            <label>
+              <strong>Deskripsi Nilai *</strong>
+            </label>
+            {Array.from({ length: formData.scale || 4 }, (_, i) => (
+              <div key={i} style={{ marginBottom: "10px" }}>
+                <input
+                  type="text"
+                  placeholder={`Deskripsi untuk nilai ${i + 1}`}
+                  value={formData.descriptions?.[i] || ""}
+                  onChange={(e) => {
+                    const newDescriptions = [...(formData.descriptions || [])];
+                    newDescriptions[i] = e.target.value;
+                    setFormData({ ...formData, descriptions: newDescriptions });
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "5px",
+                    border: "1px solid #ccc",
+                    borderRadius: "5px",
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Tampilkan deskripsi berdasarkan pilihan */}
+          <p
+            style={{
+              marginTop: "10px",
+              color: "#555",
+              fontStyle: "italic",
+            }}
+          >
+            {formData.name
+              ? formData.descriptions?.[Number(formData.name) - 1] ||
+                "Deskripsi belum diisi."
+              : "Pilih skala untuk melihat deskripsi."}
+          </p>
         </div>
       )}
 
-      {/* Form untuk tipe lainnya */}
-      {/* Tambahkan kondisi untuk tipe lain sesuai kebutuhan */}
+      {formData.type === "TextBox" && (
+        <div style={{ marginTop: "20px" }}>
+          <label>
+            <strong>Input TextBox:</strong>
+          </label>
+          <textarea
+            rows="1"
+            cols="50"
+            className="form-control"
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            value={formData.name || ""}
+            style={{
+              width: "100%",
+              padding: "5px",
+              border: "1px solid #ccc",
+              borderRadius: "5px",
+            }}
+          />
+          <div style={{ marginTop: "20px" }}>
+            <label>
+              <strong>Deskripsi:</strong>
+            </label>
+            <input
+              type="text"
+              placeholder="Deskripsi untuk TextBox"
+              value={formData.descriptions[0] || ""}
+              onChange={(e) => {
+                const newDescriptions = [...(formData.descriptions || [])];
+                newDescriptions[0] = e.target.value;
+                setFormData({ ...formData, descriptions: newDescriptions });
+              }}
+              style={{
+                width: "100%",
+                padding: "5px",
+                border: "1px solid #ccc",
+                borderRadius: "5px",
+                marginTop: "10px",
+              }}
+            />
+          </div>
+        </div>
+      )}
 
-      <div className="mt-4 d-flex justify-content-between">
-        <button
-          className="btn btn-secondary"
-          onClick={handleCancel}
-          style={{ paddingLeft: "20px", paddingRight: "20px" }}
-        >
-          Batal
-        </button>
+      {formData.type === "TextArea" && (
+        <div style={{ marginTop: "20px" }}>
+          <label>
+            <strong>Input TextArea:</strong>
+          </label>
+          <textarea
+            rows="4"
+            cols="50"
+            className="form-control"
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            value={formData.name}
+            style={{
+              width: "100%",
+              padding: "5px",
+              border: "1px solid #ccc",
+              borderRadius: "5px",
+            }}
+          />
+          <div style={{ marginTop: "20px" }}>
+            <label>
+              <strong>Deskripsi:</strong>
+            </label>
+            <input
+              type="text"
+              placeholder="Deskripsi untuk TextArea"
+              value={formData.descriptions[0] || ""}
+              onChange={(e) => {
+                const newDescriptions = [...(formData.descriptions || [])];
+                newDescriptions[0] = e.target.value;
+                setFormData({ ...formData, descriptions: newDescriptions });
+              }}
+              style={{
+                width: "100%",
+                padding: "5px",
+                border: "1px solid #ccc",
+                borderRadius: "5px",
+                marginTop: "10px",
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {formData.type === "CheckBox" && (
+        <div style={{ marginTop: "20px" }}>
+          {/* Input untuk skala */}
+          <div style={{ marginBottom: "20px" }}>
+            <label>
+              <strong>Skala *</strong>
+            </label>
+            <input
+              type="number"
+              min="1"
+              max="10"
+              value={formData.scale || 4}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  scale: Number(e.target.value),
+                  checkedValues: [],
+                })
+              }
+              style={{
+                display: "block",
+                width: "80px",
+                padding: "5px",
+                marginTop: "5px",
+                border: "1px solid #ccc",
+                borderRadius: "5px",
+              }}
+            />
+          </div>
+
+          {/* Preview */}
+          <div style={{ marginBottom: "20px" }}>
+            <label>
+              <strong>Preview</strong>
+            </label>
+            <div style={{ marginTop: "10px" }}>
+              {Array.from({ length: formData.scale || 4 }, (_, i) => i + 1).map(
+                (value) => (
+                  <label
+                    key={value}
+                    style={{
+                      marginRight: "15px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      value={value}
+                      checked={formData.checkedValues?.includes(value)}
+                      onChange={(e) => {
+                        const checkedValues = formData.checkedValues || [];
+                        if (e.target.checked) {
+                          setFormData({
+                            ...formData,
+                            checkedValues: [...checkedValues, value],
+                          });
+                        } else {
+                          setFormData({
+                            ...formData,
+                            checkedValues: checkedValues.filter(
+                              (v) => v !== value
+                            ),
+                          });
+                        }
+                      }}
+                      style={{ marginRight: "5px" }}
+                    />
+                    {value}
+                  </label>
+                )
+              )}
+            </div>
+          </div>
+
+          {/* Input deskripsi nilai */}
+          <div>
+            <label>
+              <strong>Deskripsi Nilai *</strong>
+            </label>
+            {Array.from({ length: formData.scale || 4 }, (_, i) => (
+              <div key={i} style={{ marginBottom: "10px" }}>
+                <input
+                  type="text"
+                  placeholder={`Deskripsi untuk nilai ${i + 1}`}
+                  value={formData.descriptions?.[i] || ""}
+                  onChange={(e) => {
+                    const newDescriptions = [...(formData.descriptions || [])];
+                    newDescriptions[i] = e.target.value;
+                    setFormData({ ...formData, descriptions: newDescriptions });
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "5px",
+                    border: "1px solid #ccc",
+                    borderRadius: "5px",
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Tampilkan deskripsi berdasarkan pilihan */}
+          <p
+            style={{
+              marginTop: "10px",
+              color: "#555",
+              fontStyle: "italic",
+            }}
+          >
+            {formData.checkedValues?.length > 0
+              ? `Nilai dipilih: ${formData.checkedValues.join(", ")}`
+              : "Tidak ada nilai yang dipilih."}
+          </p>
+          <ul>
+            {formData.checkedValues?.map((value) => (
+              <li key={value}>
+                {value}:{" "}
+                {formData.descriptions?.[value - 1] || "Deskripsi belum diisi."}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {/* Tombol aksi */}
+      <div style={{ marginTop: "20px", textAlign: "right" }}>
         <button
           className="btn btn-primary"
           onClick={handleSubmit}
-          style={{ paddingLeft: "20px", paddingRight: "20px" }}
+          style={{ marginRight: "10px" }}
         >
           Simpan
+        </button>
+        <button className="btn btn-secondary" onClick={handleCancel}>
+          Batal
         </button>
       </div>
     </div>

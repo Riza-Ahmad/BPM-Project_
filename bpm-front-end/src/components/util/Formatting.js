@@ -17,7 +17,7 @@ export const separator = (input) => {
   return parsedInput.toLocaleString("id-ID", options);
 };
 
-export const clearSeparator = (input) => {
+export const clearSeparator = (input) => {https://chatgpt.com/c/675842f4-9920-8010-948d-b9b245ca7b92
   if (input) {
     let parsedInput = parseFloat(input.toString().replace(/\./g, ""));
     return parsedInput;
