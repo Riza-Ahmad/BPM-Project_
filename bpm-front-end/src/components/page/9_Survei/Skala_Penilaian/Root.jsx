@@ -8,6 +8,7 @@ import Index from "./Index";
 import Add from "./Add";
 
 import ScrollToTop from "../../../part/ScrollToTop";
+import Edit from "./Edit";
 
 export default function Skala_Survei() {
   const navigate = useNavigate();
@@ -19,6 +20,9 @@ export default function Skala_Survei() {
         break;
       case "add":
         navigate("/survei/skala/add");
+        break;
+      case "edit":
+        navigate("/survei/skala/edit", withState);
         break;
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
@@ -32,6 +36,7 @@ export default function Skala_Survei() {
       <Routes>
         <Route path="/" element={<Index onChangePage={handlePageChange} />} />
         <Route path="add" element={<Add onChangePage={handlePageChange} />} />
+        <Route path="edit" element={<Edit onChangePage={handlePageChange} />} />
       </Routes>
     </>
   );

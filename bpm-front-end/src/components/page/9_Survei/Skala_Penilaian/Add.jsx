@@ -21,53 +21,41 @@ export default function Add({ onChangePage }) {
     });
   };
 
-  const handleSave = () => {
-    if (!formData.name.trim() || !formData.descriptions.length) {
-      alert("Mohon lengkapi data sebelum menyimpan.");
-      return;
+  const handleSave = async () => {
+    try {
+      const response = await fetch(
+        `${API_LINK}/SkalaPenilaian/CreateSkalaPenilaian`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            skp_skala: formData.scale,
+            skp_deskripsi: formData.descriptions.join(", "), // Gabungkan deskripsi jika perlu
+            skp_tipe: formData.type,
+            skp_created_by: "Admin", // Ganti dengan nilai yang sesuai
+          }),
+        }
+      );
+
+      if (response.ok) {
+        alert("Skala berhasil ditambahkan!");
+        navigate("/survei/skala");
+      } else {
+        const errorData = await response.json();
+        alert(
+          `Gagal menyimpan data: ${
+            errorData.message || "Error tidak diketahui."
+          }`
+        );
+      }
+    } catch (error) {
+      alert(`Terjadi kesalahan: ${error.message}`);
     }
-    alert("Skala berhasil ditambahkan!");
-    navigate("/survei/skala");
   };
 
   const handleCancel = () => {
     navigate("/survei/skala");
   };
-
-  useEffect(() => {
-    const fetchSkala = async () => {
-      try {
-        const response = await fetch(
-          `${API_LINK}/Survei/CreateSkalaPenilaian`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ page: 1, pageSize: 100 }),
-          }
-        );
-
-        if (!response.ok) throw new Error("Gagal mengambil data skala.");
-
-        const result = await response.json();
-
-        // Proses data skala jika diperlukan
-        const formattedSkala = result.map((item) => ({
-          id: item.skala_id,
-          name: item.skala_nama,
-          type: item.skala_tipe,
-        }));
-
-        setSkalaData(formattedSkala);
-      } catch (err) {
-        console.error("Fetch error:", err);
-        alert("Gagal mengambil data skala.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSkala();
-  }, []);
 
   return (
     <div style={{ padding: "20px", maxWidth: "800px", margin: "auto" }}>
@@ -210,7 +198,7 @@ export default function Add({ onChangePage }) {
             cols="50"
             className="form-control"
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            value={formData.name}
+            value={formData.name || ""}
             style={{
               width: "100%",
               padding: "5px",
@@ -218,6 +206,28 @@ export default function Add({ onChangePage }) {
               borderRadius: "5px",
             }}
           />
+          <div style={{ marginTop: "20px" }}>
+            <label>
+              <strong>Deskripsi:</strong>
+            </label>
+            <input
+              type="text"
+              placeholder="Deskripsi untuk TextBox"
+              value={formData.descriptions[0] || ""}
+              onChange={(e) => {
+                const newDescriptions = [...(formData.descriptions || [])];
+                newDescriptions[0] = e.target.value;
+                setFormData({ ...formData, descriptions: newDescriptions });
+              }}
+              style={{
+                width: "100%",
+                padding: "5px",
+                border: "1px solid #ccc",
+                borderRadius: "5px",
+                marginTop: "10px",
+              }}
+            />
+          </div>
         </div>
       )}
 
@@ -239,8 +249,31 @@ export default function Add({ onChangePage }) {
               borderRadius: "5px",
             }}
           />
+          <div style={{ marginTop: "20px" }}>
+            <label>
+              <strong>Deskripsi:</strong>
+            </label>
+            <input
+              type="text"
+              placeholder="Deskripsi untuk TextArea"
+              value={formData.descriptions[0] || ""}
+              onChange={(e) => {
+                const newDescriptions = [...(formData.descriptions || [])];
+                newDescriptions[0] = e.target.value;
+                setFormData({ ...formData, descriptions: newDescriptions });
+              }}
+              style={{
+                width: "100%",
+                padding: "5px",
+                border: "1px solid #ccc",
+                borderRadius: "5px",
+                marginTop: "10px",
+              }}
+            />
+          </div>
         </div>
       )}
+
       {formData.type === "CheckBox" && (
         <div style={{ marginTop: "20px" }}>
           {/* Input untuk skala */}
