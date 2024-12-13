@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { useIsMobile } from "../../util/useIsMobile";
 import { useNavigate } from "react-router-dom";
+import { useFetch } from "../../util/useFetch";
 
 export default function Index({ onChangePage }) {
   const [beritaData, setBeritaData] = useState([]);
@@ -26,18 +27,14 @@ export default function Index({ onChangePage }) {
   const navigate = useNavigate();
   const pageSize = 6;
 
-  // Fetch berita data
   useEffect(() => {
     const fetchBerita = async () => {
       try {
-        const response = await fetch(`${API_LINK}/MasterBerita/GetDataBerita`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        });
-
-        if (!response.ok) throw new Error("Gagal mengambil data");
-
-        const result = await response.json();
+        const result = await useFetch(
+          `${API_LINK}/MasterBerita/GetDataBerita`,
+          JSON.stringify({}),
+          "POST"
+        );
 
         const groupedBerita = result.reduce((acc, item) => {
           if (!acc[item.ber_id]) {
@@ -78,18 +75,15 @@ export default function Index({ onChangePage }) {
     };
 
     fetchBerita();
-  }, []);
+  }, [searchKeyword, selectedYear]);
 
-  // Handle search and year filtering
   useEffect(() => {
     let data = beritaData;
 
-    // Filter berdasarkan tahun
     if (selectedYear) {
       data = data.filter((item) => item.year === parseInt(selectedYear));
     }
 
-    // Filter berdasarkan kata kunci
     if (searchKeyword) {
       const lowerKeyword = searchKeyword.toLowerCase();
       data = data.filter(
@@ -102,7 +96,6 @@ export default function Index({ onChangePage }) {
     setFilteredData(data);
   }, [searchKeyword, selectedYear, beritaData]);
 
-  // Highlight search keyword in text
   const highlightText = (text, keyword) => {
     if (!keyword) return text;
     const regex = new RegExp(`(${keyword})`, "gi");
@@ -112,14 +105,12 @@ export default function Index({ onChangePage }) {
     );
   };
 
-  // Truncate and highlight text
   const truncateAndHighlight = (text, keyword, maxLength) => {
     const truncated =
       text.length <= maxLength ? text : text.slice(0, maxLength) + "...";
     return highlightText(truncated, keyword);
   };
 
-  // Get snippet of text with search keyword
   const getSnippet = (text, keyword, maxLength) => {
     if (!keyword) return text.slice(0, maxLength) + "...";
 
@@ -221,7 +212,7 @@ export default function Index({ onChangePage }) {
           className="d-flex flex-wrap mt-4"
           style={{
             gap: "20px",
-            flexWrap: "wrap", // Pastikan konten membungkus jika ruang sempit
+            flexWrap: "wrap",
           }}
         >
           {/* Konten utama (3 bagian dari total ruang) */}
