@@ -11,6 +11,8 @@ import { useIsMobile } from "../../../util/useIsMobile";
 import SweetAlert from "../../../util/SweetAlert";
 import moment from "moment";
 import "moment-timezone";
+import { useFetch } from "../../../util/useFetch";
+import DropDown from "../../../part/Dropdown";
 
 export default function Read({ onChangePage }) {
   const isMobile = useIsMobile();
@@ -21,7 +23,6 @@ export default function Read({ onChangePage }) {
   ];
 
   const [events, setEvents] = useState([]);
-  const [status, setStatus] = useState("");
   const [filteredData, setFilteredData] = useState([]);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
@@ -29,25 +30,23 @@ export default function Read({ onChangePage }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [status, setStatus] = useState([
+    { Value: "", Text: "Semua" },
+    { Value: 1, Text: "Rencana" },
+    { Value: 2, Text: "Terlewat" },
+    { Value: 3, Text: "Terlaksana" },
+  ]);
 
   const pageSize = 10;
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await fetch(
-          API_LINK + "/MasterKegiatan/GetDataKegiatan",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
+        const data = await useFetch(
+          `${API_LINK}/MasterKegiatan/GetDataKegiatan`,
+          JSON.stringify({}),
+          "POST"
         );
-
-        if (!response.ok) throw new Error("Gagal mengambil data kegiatan");
-
-        const data = await response.json();
 
         const formattedEvents = data.map((item) => {
           const startDate = moment(item.keg_tgl_mulai).format("YYYY-MM-DD");
@@ -94,7 +93,9 @@ export default function Read({ onChangePage }) {
     }
 
     if (selectedStatus) {
-      tempData = tempData.filter((item) => item.category === selectedStatus);
+      tempData = tempData.filter(
+        (item) => item.category === parseInt(selectedStatus)
+      );
     }
 
     setFilteredData(tempData);
@@ -103,14 +104,6 @@ export default function Read({ onChangePage }) {
   const indexOfLastData = pageCurrent * pageSize;
   const indexOfFirstData = indexOfLastData - pageSize;
   const currentData = filteredData.slice(indexOfFirstData, indexOfLastData);
-
-  const eventStatus = () => {
-    if (item.category === "Terlaksana") {
-      return ["Detail"];
-    } else {
-      return ["Detail", "Edit", "Delete"];
-    }
-  };
 
   const handlePageNavigation = (page) => {
     setPageCurrent(page);
@@ -148,8 +141,7 @@ export default function Read({ onChangePage }) {
 
         if (!response.ok) throw new Error("Gagal menghapus kegiatan");
 
-        const result = await response.text();
-        SweetAlert("Berhasil", result, "success");
+        SweetAlert("Berhasil", "Data Berhasil Dihapus", "success");
 
         setEvents((prevData) => prevData.filter((item) => item.id !== id));
       } catch (err) {
@@ -221,19 +213,12 @@ export default function Read({ onChangePage }) {
                       />
                     </div>
                     <div className="mb-3">
-                      <label htmlFor="statusPicker" className="mb-1">
-                        Berdasarkan Status
-                      </label>
-                      <select
-                        className="form-control"
+                      <DropDown
+                        arrData={status}
+                        label="Berdasarkan Status"
                         value={selectedStatus}
                         onChange={(e) => setSelectedStatus(e.target.value)}
-                      >
-                        <option value="">Semua</option>
-                        <option value="1">Rencana</option>
-                        <option value="2">Terlewat</option>
-                        <option value="3">Terlaksana</option>
-                      </select>
+                      />
                     </div>
 
                     <Button

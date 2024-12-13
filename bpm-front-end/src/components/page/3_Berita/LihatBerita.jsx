@@ -9,6 +9,7 @@ import Loading from "../../part/Loading";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { useIsMobile } from "../../util/useIsMobile";
+import { useFetch } from "../../util/useFetch";
 
 const LihatBerita = ({ onChangePage }) => {
   const location = useLocation();
@@ -21,22 +22,18 @@ const LihatBerita = ({ onChangePage }) => {
   useEffect(() => {
     const fetchBerita = async () => {
       try {
-        const response = await fetch(`${API_LINK}/MasterBerita/GetDataBerita`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        });
-
-        if (!response.ok) throw new Error("Gagal mengambil data");
-
-        const result = await response.json();
-        console.log(result);
+        const result = await useFetch(
+          `${API_LINK}/MasterBerita/GetDataBerita`,
+          JSON.stringify({}),
+          "POST"
+        );
 
         const groupedBerita = result.reduce((acc, item) => {
           if (!acc[item.ber_id]) {
             acc[item.ber_id] = {
               id: item.ber_id,
               title: item.ber_judul,
-              date: new Date(item.ber_tgl), // Simpan sebagai objek Date
+              date: new Date(item.ber_tgl),
               formattedDate: format(
                 new Date(item.ber_tgl),
                 "EEEE, dd MMMM yyyy",
@@ -57,7 +54,7 @@ const LihatBerita = ({ onChangePage }) => {
         }, {});
 
         const sortedBerita = Object.values(groupedBerita).sort(
-          (a, b) => b.date - a.date // Urutkan berdasarkan tanggal terbaru
+          (a, b) => b.date - a.date
         );
 
         setBeritaData(sortedBerita);

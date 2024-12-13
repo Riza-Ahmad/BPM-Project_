@@ -25,7 +25,7 @@ const DropDown = forwardRef(function DropDown(
       setError(false);
     },
     validate() {
-      if (isRequired && (!value || value.trim())) {
+      if (isRequired && value === "") {
         setError(true);
         return false;
       }

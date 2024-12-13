@@ -8,6 +8,7 @@ import Button from "../../part/Button";
 import { API_LINK } from "../../util/Constants";
 import SweetAlert from "../../util/SweetAlert";
 import { useIsMobile } from "../../util/useIsMobile";
+import { useFetch } from "../../util/useFetch";
 
 export default function Add({ onChangePage }) {
   const title = "Tambah Berita";
@@ -27,8 +28,6 @@ export default function Add({ onChangePage }) {
   });
 
   const [images, setImages] = useState([]);
-
-  // Refs untuk validasi
   const judulRef = useRef();
   const penulisRef = useRef();
   const tanggalRef = useRef();
@@ -80,8 +79,13 @@ export default function Add({ onChangePage }) {
       const formData = new FormData();
       images.forEach((file) => formData.append("files", file));
 
+      const folderName = "Berita";
+      const filePrefix = "FOTO";
+
       const uploadResponse = await fetch(
-        `${API_LINK}/MasterBerita/UploadFiles`,
+        `${API_LINK}/Upload/UploadFiles?folderName=${encodeURIComponent(
+          folderName
+        )}&filePrefix=${encodeURIComponent(filePrefix)}`,
         {
           method: "POST",
           body: formData,
@@ -93,30 +97,23 @@ export default function Add({ onChangePage }) {
       }
 
       const uploadedFileNames = await uploadResponse.json();
-
       const beritaData = {
         ber_judul: judulRef.current.value,
         ber_tgl: tanggalRef.current.value,
         ber_isi: isiBerita,
-        ber_status: 1,
-        ber_created_by: penulisRef.current.value,
         ber_penulis: penulisRef.current.value,
         fotoList: uploadedFileNames,
+        ber_created_by: penulisRef.current.value,
       };
 
-      console.log(beritaData);
-
-      const createResponse = await fetch(
+      const createResponse = await useFetch(
         `${API_LINK}/MasterBerita/CreateBerita`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(beritaData),
-        }
+        beritaData,
+        "POST"
       );
 
-      if (!createResponse.ok) {
-        throw new Error("Gagal menambahkan berita");
+      if (createResponse === "ERROR") {
+        throw new Error("Gagal memperbarui data");
       }
 
       SweetAlert(

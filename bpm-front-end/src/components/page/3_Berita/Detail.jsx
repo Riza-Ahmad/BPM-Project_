@@ -8,6 +8,7 @@ import DetailData from "../../part/DetailData";
 import { API_LINK, BERITAFOTO_LINK } from "../../util/Constants";
 import Loading from "../../part/Loading";
 import { useIsMobile } from "../../util/useIsMobile";
+import { useFetch } from "../../util/useFetch";
 
 export default function Detail({ onChangePage }) {
   const isMobile = useIsMobile();
@@ -43,25 +44,16 @@ export default function Detail({ onChangePage }) {
 
     const fetchData = async () => {
       try {
-        const response = await fetch(
-          `${API_LINK}/MasterBerita/GetDataBeritaById`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ ber_id: editId }),
-          }
+        const data = await useFetch(
+          API_LINK + `/MasterBerita/GetDataBeritaById`,
+          { ber_id: editId }
         );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
         if (data?.berita?.length > 0) {
-          const berita = data.berita[0];
-          const images = data.foto?.map((foto) => foto.foto_path) || [];
+          const berita = JSON.parse(data.berita)[0];
+          const foto = JSON.parse(data.foto);
+
+          // Extract the image paths from foto
+          const images = foto.map((fotoItem) => fotoItem.foto_path);
 
           setFormData({
             title: berita.ber_judul,
@@ -143,7 +135,7 @@ export default function Detail({ onChangePage }) {
             <DetailData label="Isi Berita" isi={formData.description} />
             <div className="row">
               <label htmlFor={id} className="form-label fw-bold">
-                Foto Struktur
+                Foto
               </label>
               {formData.images.length > 0 ? (
                 formData.images.map((image, index) => (

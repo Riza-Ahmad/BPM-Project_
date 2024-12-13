@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { useIsMobile } from "../../util/useIsMobile";
 import SweetAlert from "../../util/SweetAlert";
+import { useFetch } from "../../util/useFetch";
 
 export default function Read({ onChangePage }) {
   const [pageSize] = useState(10);
@@ -26,16 +27,11 @@ export default function Read({ onChangePage }) {
   useEffect(() => {
     const fetchBerita = async () => {
       try {
-        const response = await fetch(`${API_LINK}/MasterBerita/GetDataBerita`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) throw new Error("Gagal mengambil data");
-
-        const result = await response.json();
+        const result = await useFetch(
+          `${API_LINK}/MasterBerita/GetDataBerita`,
+          JSON.stringify({}),
+          "POST"
+        );
 
         const groupedBerita = result.reduce((acc, item) => {
           if (!acc[item.ber_id]) {
@@ -48,7 +44,7 @@ export default function Read({ onChangePage }) {
               description: item.ber_isi,
               author: item.ber_penulis,
               images: [],
-              year: new Date(item.ber_tgl).getFullYear(), // Tambahkan properti tahun
+              year: new Date(item.ber_tgl).getFullYear(),
             };
           }
           if (item.dbr_foto) {
@@ -60,7 +56,7 @@ export default function Read({ onChangePage }) {
 
         const beritaArray = Object.values(groupedBerita);
         setData(beritaArray);
-        setFilteredData(beritaArray); // Awalnya tanpa filter
+        setFilteredData(beritaArray);
       } catch (err) {
         console.error("Fetch error:", err);
         setError("Gagal mengambil data");
@@ -70,9 +66,8 @@ export default function Read({ onChangePage }) {
     };
 
     fetchBerita();
-  }, []);
+  }, [searchKeyword, selectedYear]);
 
-  // Filter data berdasarkan kata kunci dan tahun
   useEffect(() => {
     let tempData = data;
 

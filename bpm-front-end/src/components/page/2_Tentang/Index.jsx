@@ -11,6 +11,7 @@ import Text from "../../part/Text";
 import HeaderText from "../../part/HeaderText";
 import Button from "../../part/Button";
 import Icon from "../../part/Icon";
+import { useFetch } from "../../util/useFetch";
 import { API_LINK, TENTANGFILE_LINK } from "../../util/Constants";
 import Loading from "../../part/Loading";
 import { useIsMobile } from "../../util/useIsMobile";
@@ -24,20 +25,11 @@ export default function Index({ onChangePage }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(
-          API_LINK + "/MasterTentang/GetDataTentang",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({}),
-          }
+        const result = await useFetch(
+          `${API_LINK}/MasterTentang/GetDataTentang`,
+          JSON.stringify({}),
+          "POST"
         );
-
-        if (!response.ok) throw new Error("Network response was not ok");
-
-        const result = await response.json();
         setData(result);
       } catch (err) {
         console.error("Fetch error:", err);
