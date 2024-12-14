@@ -294,12 +294,12 @@ export default function Template_Survei() {
                   (dataItem) => dataItem.id === id
                 );
 
-                // Jika status Final, hanya tampilkan Detail dan Edit
+                // Tampilkan hanya Detail dan Edit jika status adalah Final
                 if (item && item.status === 1) {
                   return ["Detail", "Edit"];
                 }
 
-                // Jika status Draft, tampilkan Detail, Edit, Delete, dan Final
+                // Jika status bukan Final, tampilkan semua aksi
                 return ["Detail", "Edit", "Delete", "Final"];
               }}
               onEdit={(id) => navigate(`/survei/template/edit/${id}`)}

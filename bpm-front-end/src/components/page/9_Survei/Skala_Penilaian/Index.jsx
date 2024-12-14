@@ -16,18 +16,9 @@ export default function Index() {
   const [pageCurrent, setPageCurrent] = useState(1);
   const [selectedSkala, setSelectedSkala] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [Loading, setLoading] = useState("");
-
-  const [filterScale, setFilterScale] = useState(""); // "" untuk semua skala
+  const [loading, setLoading] = useState(false);
 
   const [Skala, setSkala] = useState([]);
-
-  const [formData, setFormData] = useState({
-    name: "",
-    type: "",
-    scale: 1,
-    descriptions: [],
-  });
 
   const detailModalRef = useRef();
   const navigate = useNavigate();
@@ -36,11 +27,9 @@ export default function Index() {
   const handlePageNavigation = (page) => setPageCurrent(page);
   const filteredSkala = Skala.filter((item) => {
     const matchesQuery =
-      item.Nama && item.Nama.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesScale = filterScale
-      ? item.Skala === Number(filterScale)
-      : true;
-    return matchesQuery && matchesScale;
+      item.skp_tipe &&
+      item.skp_tipe.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesQuery;
   });
 
   const currentData = filteredSkala.slice(
@@ -51,12 +40,8 @@ export default function Index() {
   const openModal = (ref) => ref?.current?.open();
   const closeModal = (ref) => ref?.current?.close();
 
-  const resetFormData = () => {
-    setFormData({ name: "", type: "", scale: 1, descriptions: [] });
-  };
-
   const handleSelectSkala = (skala) => {
-    navigate(`/survei/skala/edit/`); // Navigasi ke halaman Edit dengan ID skala
+    navigate(`/survei/skala/edit/${skala.skp_id}`); // Navigasi ke halaman Edit dengan ID skala
   };
 
   const handleDetailSkala = (skala) => {
@@ -69,27 +54,21 @@ export default function Index() {
 
   useEffect(() => {
     const fetchSkala = async () => {
+      setLoading(true);
       try {
         const response = await fetch(
           `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({}), // Jika diperlukan parameter, tambahkan di sini
           }
         );
 
         if (!response.ok) throw new Error("Gagal mengambil data skala.");
 
         const result = await response.json();
-        const formattedSkala = result.map((item) => ({
-          id: item.skp_id || "default_id",
-          name: item.skp_skala || "default_name",
-          type: item.skp_tipe || "default_type",
-          descriptions: item.skp_deskripsi || "default_type",
-        }));
-        console.log(formattedSkala);
-
-        setSkala(formattedSkala);
+        setSkala(result);
       } catch (err) {
         console.error("Fetch error:", err);
         alert("Gagal mengambil data skala.");
@@ -131,9 +110,6 @@ export default function Index() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <div className="col-lg-2 col-md-6">
-                <Filter />
-              </div>
             </div>
           </div>
           <div
@@ -141,35 +117,29 @@ export default function Index() {
             style={{ margin: isMobile ? "1rem" : "3rem" }}
           >
             <Table
-              arrHeader={[
-                "No",
-                "Tipe Skala",
-                "Skala",
-                "Deskripsi Nilai (Terendah - Tertinggi)",
-              ]}
+              arrHeader={["No", "Tipe Skala", "Skala", "Deskripsi"]}
               headerToDataMap={{
                 No: "No",
-                "Tipe Skala": "Nama",
-                Skala: "Skala",
-                "Deskripsi Nilai (Terendah - Tertinggi)": "Deskripsi",
+                "Tipe Skala": "skp_tipe",
+                Skala: "skp_skala",
+                Deskripsi: "skp_deskripsi",
               }}
               data={Skala.map((item, index) => ({
-                key: item.id,
+                key: item.skp_id,
                 No: (pageCurrent - 1) * pageSize + index + 1,
-                Skala: item.name,
-                Nama: item.type,
-                Deskripsi: item.descriptions,
+                skp_tipe: item.skp_tipe,
+                skp_skala: item.skp_skala,
+                skp_deskripsi: item.skp_deskripsi,
               }))}
               actions={["Detail", "Edit"]}
               onDetail={(id) =>
-                handleDetailSkala(Skala.find((item) => item.id === id))
+                handleDetailSkala(Skala.find((item) => item.skp_id === id))
               }
               onEdit={(id) =>
-                handleSelectSkala(Skala.find((item) => item.id === id))
+                handleSelectSkala(Skala.find((item) => item.skp_id === id))
               }
             />
 
-            <div className="row mt-5"></div>
             <Paging
               pageSize={pageSize}
               pageCurrent={pageCurrent}
@@ -193,13 +163,13 @@ export default function Index() {
         }
       >
         <p>
-          <strong>Tipe Skala:</strong> {selectedSkala?.Nama}
+          <strong>Tipe Skala:</strong> {selectedSkala?.skp_tipe}
         </p>
         <p>
-          <strong>Skala:</strong> {selectedSkala?.Skala}
+          <strong>Skala:</strong> {selectedSkala?.skp_skala}
         </p>
         <p>
-          <strong>Deskripsi:</strong> {selectedSkala?.Deskripsi}
+          <strong>Deskripsi:</strong> {selectedSkala?.skp_deskripsi}
         </p>
       </Modal>
     </div>

@@ -61,9 +61,9 @@ function Add() {
       setLoadingSkala(true);
       try {
         const response = await fetch(
-          `${API_LINK}/MasterSkalaPenilaian/GetDataSkalaPenilaian`,
+          `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
           {
-            method: "GET",
+            method: "POST",
             headers: { "Content-Type": "application/json" },
           }
         );
