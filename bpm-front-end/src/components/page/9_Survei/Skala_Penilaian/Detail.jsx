@@ -11,10 +11,13 @@ export default function Detail() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        });
+        const response = await fetch(
+          `${API_LINK}SkalaPenilaian/GetSkalaPenilaian`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
 
         if (response.ok) {
           const result = await response.json();

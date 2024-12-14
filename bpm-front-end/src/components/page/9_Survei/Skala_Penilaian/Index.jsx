@@ -4,51 +4,45 @@ import Paging from "../../../part/Paging";
 import PageTitleNav from "../../../part/PageTitleNav";
 import Button from "../../../part/Button";
 import { API_LINK } from "../../../util/Constants";
+import TextField from "../../../part/TextField";
+import Modal from "../../../part/Modal";
 import Filter from "../../../part/Filter";
 import SearchField from "../../../part/SearchField";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../../../util/useIsMobile";
 
-export default function Index({ onChangePage }) {
+export default function Index() {
   const [pageSize] = useState(10);
   const [pageCurrent, setPageCurrent] = useState(1);
   const [selectedSkala, setSelectedSkala] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [Loading, setLoading] = useState("");
-
-  const [filterScale, setFilterScale] = useState(""); // "" untuk semua skala
+  const [loading, setLoading] = useState(false);
 
   const [Skala, setSkala] = useState([]);
-
-  const [formData, setFormData] = useState({
-    name: "",
-    type: "",
-    scale: 1,
-    descriptions: [],
-  });
 
   const detailModalRef = useRef();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const indexOfLastData = pageCurrent * pageSize;
-  const indexOfFirstData = indexOfLastData - pageSize;
-  const currentData = Skala.slice(indexOfFirstData, indexOfLastData);
 
-  const handlePageNavigation = (page) => {
-    if (page > 0 && page <= totalPages) {
-      setPageCurrent(page);
-    }
-  };
+  const handlePageNavigation = (page) => setPageCurrent(page);
   const filteredSkala = Skala.filter((item) => {
     const matchesQuery =
-      item.Nama && item.Nama.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesScale = filterScale
-      ? item.Skala === Number(filterScale)
-      : true;
-    return matchesQuery && matchesScale;
+      item.skp_tipe &&
+      item.skp_tipe.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesQuery;
   });
 
+  const currentData = filteredSkala.slice(
+    (pageCurrent - 1) * pageSize,
+    pageCurrent * pageSize
+  );
+
   const openModal = (ref) => ref?.current?.open();
+  const closeModal = (ref) => ref?.current?.close();
+
+  const handleSelectSkala = (skala) => {
+    navigate(`/survei/skala/edit/${skala.skp_id}`); // Navigasi ke halaman Edit dengan ID skala
+  };
 
   const handleDetailSkala = (skala) => {
     setSelectedSkala(skala);
@@ -60,27 +54,21 @@ export default function Index({ onChangePage }) {
 
   useEffect(() => {
     const fetchSkala = async () => {
+      setLoading(true);
       try {
         const response = await fetch(
           `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({}), // Jika diperlukan parameter, tambahkan di sini
           }
         );
 
         if (!response.ok) throw new Error("Gagal mengambil data skala.");
 
         const result = await response.json();
-        const formattedSkala = result.map((item) => ({
-          id: item.skp_id || "default_id",
-          name: item.skp_skala || "default_name",
-          type: item.skp_tipe || "default_type",
-          descriptions: item.skp_deskripsi || "default_type",
-        }));
-        console.log(formattedSkala);
-
-        setSkala(formattedSkala);
+        setSkala(result);
       } catch (err) {
         console.error("Fetch error:", err);
         alert("Gagal mengambil data skala.");
@@ -117,22 +105,10 @@ export default function Index({ onChangePage }) {
             <div className="row mt-5">
               <div className="col-lg-10 col-md-6">
                 <SearchField
-                  placeholder="Cari Skala Penilaian..."
+                  placeholder="Cari Tipe Skala..."
                   value={searchQuery}
-                  onChange={(e) => {
-                    const query = e.target.value.toLowerCase();
-                    setSearchQuery(query);
-
-                    // Perbarui data filter secara dinamis berdasarkan skala
-                    const filteredData = Skala.filter(
-                      (item) => item.type.toLowerCase().includes(query) // Filter berdasarkan skala
-                    );
-                    setFilterScale(filteredData); // Update hasil filter
-                  }}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
-              </div>
-              <div className="col-lg-2 col-md-6">
-                <Filter />
               </div>
             </div>
           </div>
@@ -141,35 +117,29 @@ export default function Index({ onChangePage }) {
             style={{ margin: isMobile ? "1rem" : "3rem" }}
           >
             <Table
-              arrHeader={[
-                "No",
-                "Tipe Skala",
-                "Skala",
-                "Deskripsi Nilai (Terendah - Tertinggi)",
-              ]}
+              arrHeader={["No", "Tipe Skala", "Skala", "Deskripsi"]}
               headerToDataMap={{
                 No: "No",
-                "Tipe Skala": "Nama",
-                Skala: "Skala",
-                "Deskripsi Nilai (Terendah - Tertinggi)": "Deskripsi",
+                "Tipe Skala": "skp_tipe",
+                Skala: "skp_skala",
+                Deskripsi: "skp_deskripsi",
               }}
-              data={currentData.map((item, index) => ({
-                key: item.id,
+              data={Skala.map((item, index) => ({
+                key: item.skp_id,
                 No: (pageCurrent - 1) * pageSize + index + 1,
-                Skala: item.name,
-                Nama: item.type,
-                Deskripsi: item.descriptions,
+                skp_tipe: item.skp_tipe,
+                skp_skala: item.skp_skala,
+                skp_deskripsi: item.skp_deskripsi,
               }))}
               actions={["Detail", "Edit"]}
               onDetail={(id) =>
-                handleDetailSkala(Skala.find((item) => item.id === id))
+                handleDetailSkala(Skala.find((item) => item.skp_id === id))
               }
-              onEdit={
-                (item) => onChangePage("edit", { state: { idData: item.key } }) // Kirimkan ID saja
+              onEdit={(id) =>
+                handleSelectSkala(Skala.find((item) => item.skp_id === id))
               }
             />
 
-            <div className="row mt-5"></div>
             <Paging
               pageSize={pageSize}
               pageCurrent={pageCurrent}
@@ -180,7 +150,28 @@ export default function Index({ onChangePage }) {
         </div>
       </main>
 
-      
+      {/* DETAIL MODAL */}
+      <Modal
+        ref={detailModalRef}
+        title="Detail Skala Penilaian"
+        size="medium"
+        Button1={
+          <Button
+            label="Tutup"
+            onClick={() => detailModalRef.current.close()}
+          />
+        }
+      >
+        <p>
+          <strong>Tipe Skala:</strong> {selectedSkala?.skp_tipe}
+        </p>
+        <p>
+          <strong>Skala:</strong> {selectedSkala?.skp_skala}
+        </p>
+        <p>
+          <strong>Deskripsi:</strong> {selectedSkala?.skp_deskripsi}
+        </p>
+      </Modal>
     </div>
   );
 }
