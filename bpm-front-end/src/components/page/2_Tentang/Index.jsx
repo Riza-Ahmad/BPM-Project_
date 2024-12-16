@@ -46,7 +46,7 @@ export default function Index({ onChangePage }) {
   if (error) return <p>{error}</p>;
 
   const handleDownloadClick = () => {
-    const url = `${TENTANGFILE_LINK}${data[7].ten_isi}`;
+    const url = `${TENTANGFILE_LINK}${data[7].isiTentang}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
@@ -113,7 +113,7 @@ export default function Index({ onChangePage }) {
           />
 
           {data[0] && (
-            <Text isi={data[0].ten_isi} alignText="center" ukuran="18px" />
+            <Text isi={data[0].isiTentang} alignText="center" ukuran="18px" />
           )}
         </div>
       </div>
@@ -143,7 +143,7 @@ export default function Index({ onChangePage }) {
           <div className="col-lg-8 col-md-6">
             {data[1] && (
               <Text
-                isi={data[1].ten_isi}
+                isi={data[1].isiTentang}
                 alignText="justify"
                 ukuran="16px"
                 warna="grey"
@@ -216,7 +216,7 @@ export default function Index({ onChangePage }) {
             <div className="rounded-4 p-3">
               {data[index + 8] && (
                 <Text
-                  isi={data[index + 8].ten_isi}
+                  isi={data[index + 8].isiTentang}
                   alignText="justify"
                   ukuran="16px"
                   warna="grey"
@@ -258,7 +258,7 @@ export default function Index({ onChangePage }) {
                   />
                   {data[1] && (
                     <Text
-                      isi={data[index + 2].ten_isi}
+                      isi={data[index + 2].isiTentang}
                       alignText="justify"
                       ukuran="16px"
                       warna="white"
@@ -280,7 +280,7 @@ export default function Index({ onChangePage }) {
           marginBottom="50px"
         />
         <img
-          src={`${TENTANGFILE_LINK}${data[6].ten_isi}`}
+          src={`${TENTANGFILE_LINK}${data[6].isiTentang}`}
           alt="Logo"
           style={{ width: "100%", height: "auto", marginBottom: "25px" }}
         />
@@ -309,7 +309,7 @@ export default function Index({ onChangePage }) {
               />
               {data[index + 3] && (
                 <Text
-                  isi={data[index + 4].ten_isi}
+                  isi={data[index + 4].isiTentang}
                   alignText="center"
                   ukuran="1rem"
                 />

@@ -6,6 +6,9 @@ import {
 } from "react-router-dom";
 import Index from "./Index";
 import Read from "./Read";
+import Add from "./Add";
+import Edit from "./Edit";
+import Detail from "./Detail";
 import AddExisting from "./AddExisting";
 
 import ScrollToTop from "../../../part/ScrollToTop";
@@ -16,7 +19,7 @@ export default function JadwalKegiatan() {
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
       case "index":
-        navigate("/kegiatan/dokumentasi");
+        navigate("/kegiatan/dokumentasi", withState);
         break;
       case "read":
         navigate("/kegiatan/dokumentasi/kelola");
@@ -25,13 +28,13 @@ export default function JadwalKegiatan() {
         navigate("/kegiatan/dokumentasi/kelola/tambah");
         break;
       case "add":
-        navigate("/kegiatan/jadwal/kelola/tambahBaru");
+        navigate("/kegiatan/dokumentasi/kelola/tambahBaru");
         break;
       case "edit":
-        navigate("/kegiatan/jadwal/kelola/edit", withState);
+        navigate("/kegiatan/dokumentasi/kelola/edit", withState);
         break;
       case "detail":
-        navigate("/kegiatan/jadwal/kelola/detail", withState);
+        navigate("/kegiatan/dokumentasi/kelola/detail", withState);
         break;
       case "news":
         navigate("/lihatBerita", withState);
@@ -54,6 +57,18 @@ export default function JadwalKegiatan() {
         <Route
           path="/kelola/tambah"
           element={<AddExisting onChangePage={handlePageChange} />}
+        />
+        <Route
+          path="/kelola/tambahBaru"
+          element={<Add onChangePage={handlePageChange} />}
+        />
+        <Route
+          path="/kelola/edit"
+          element={<Edit onChangePage={handlePageChange} />}
+        />
+        <Route
+          path="/kelola/detail"
+          element={<Detail onChangePage={handlePageChange} />}
         />
       </Routes>
     </>

@@ -4,18 +4,21 @@ import PageTitleNav from "../../../part/PageTitleNav";
 import DetailData from "../../../part/DetailData";
 import HeaderForm from "../../../part/HeaderText";
 import Loading from "../../../part/Loading";
-import { API_LINK } from "../../../util/Constants";
+import { API_LINK, KEGIATANFILE_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 import moment from "moment";
 import "moment-timezone";
 import { useFetch } from "../../../util/useFetch";
 
 export default function Detail({ onChangePage }) {
-  const title = "Detail Jadwal Kegiatan";
+  const title = "Detail Dokumentasi Kegiatan";
   const breadcrumbs = [
-    { label: "Jadwal Kegiatan", href: "/kegiatan/jadwal" },
-    { label: "Kelola Jadwal Kegiatan", href: "/kegiatan/jadwal/kelola" },
-    { label: "Detail Jadwal Kegiatan" },
+    { label: "Dokumentasi Kegiatan", href: "/kegiatan/dokumentasi" },
+    {
+      label: "Kelola Dokumentasi Kegiatan",
+      href: "/kegiatan/dokumentasi/kelola",
+    },
+    { label: "Detail Dokumentasi Kegiatan" },
   ];
   const isMobile = useIsMobile();
   const location = useLocation();
@@ -52,7 +55,7 @@ export default function Detail({ onChangePage }) {
         if (data) {
           setFormData({
             name: data[0].namaKegiatan,
-            description: data[0].deskripsiKegiatan,
+            description: data[0].deksripsiKegiatan,
             startDate: new Date(data[0].tglMulaiKegiatan).toLocaleDateString(
               "id-ID",
               {
@@ -80,6 +83,10 @@ export default function Detail({ onChangePage }) {
               .format("HH:mm [WIB]"),
 
             place: data[0].tempatKegiatan,
+            statusFileNotulen: data[0].statusFileNotulenKegiatan,
+            linkFolder: data[0].linkFolderKegiatan,
+            fileNotulen: data[0].fileNotulenKegiatan,
+            fotoSampul: data[0].fotoSampulKegiatan,
             Createby: data[0].dibuatOleh,
             CreateDate: new Date(data[0].dibuatTgl).toLocaleDateString(
               "id-ID",
@@ -140,7 +147,7 @@ export default function Detail({ onChangePage }) {
                 : "shadow p-5 m-5 mt-0 bg-white rounded"
             }
           >
-            <HeaderForm label="Formulir Jadwal Kegiatan" />
+            <HeaderForm label="Formulir Dokumentasi Kegiatan" />
             <div className="row">
               <div className="col-lg-6 col-md-6">
                 <DetailData label="Nama Kegiatan" isi={formData.name} />
@@ -159,6 +166,51 @@ export default function Detail({ onChangePage }) {
               </div>
             </div>
             <DetailData label="Deskripsi Singkat" isi={formData.description} />
+            <div className="row">
+              <div className="col-lg-6 col-md-6">
+                <div className="mb-3">
+                  <label className="form-label fw-bold">
+                    Link Folder Dokumentasi
+                  </label>{" "}
+                  <br></br>
+                  <a
+                    href={`${formData.linkFolder}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Link Selengkapnya
+                  </a>
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label fw-bold">File Notulensi</label>{" "}
+                  <br></br>
+                  <a
+                    href={`${KEGIATANFILE_LINK}${formData.fileNotulen}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Lihat Pratinjau
+                  </a>
+                </div>
+
+                <DetailData
+                  label="Sifat File Notulensi"
+                  isi={formData.statusFileNotulen === 0 ? "Privat" : "Publik"}
+                />
+              </div>
+              <div className="col-lg-6 col-md-6">
+                <div>
+                  <label className="form-label fw-bold">Foto Sampul</label>
+                  <img
+                    src={`${KEGIATANFILE_LINK}${formData.fotoSampul}`}
+                    alt="Uploaded"
+                    className="img-fluid mb-3"
+                    style={{ maxHeight: "80%" }}
+                  />
+                </div>
+              </div>
+            </div>
             <div className="row">
               <div className="col-lg-6 col-md-6">
                 <DetailData label="Dibuat Oleh" isi={formData.Createby} />

@@ -3,7 +3,6 @@ import Icon from "./Icon";
 
 export default function Table({
   arrHeader,
-  headerToDataMap,
   data,
   actions = [],
   onDelete = () => {},
@@ -175,12 +174,12 @@ export default function Table({
               <tr key={`row-${rowIndex}`}>
                 {arrHeader.map((column, colIndex) => (
                   <td
-                    key={`cell-${row.Key}-${colIndex}`}
+                    key={`cell-${rowIndex}-${colIndex}`}
                     className={`align-middle ${
                       column === "No" ? "text-center" : "text-start"
                     }`}
                   >
-                    {row[headerToDataMap[column]]}
+                    {row[column] || ""}
                   </td>
                 ))}
                 <td

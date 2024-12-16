@@ -31,9 +31,6 @@ export default function JadwalKegiatan() {
       case "detail":
         navigate("/kegiatan/jadwal/kelola/detail", withState);
         break;
-      case "news":
-        navigate("/lihatBerita", withState);
-        break;
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
         break;

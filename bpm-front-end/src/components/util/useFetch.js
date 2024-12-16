@@ -1,11 +1,12 @@
 export const useFetch = async (url, param = {}, method = "POST") => {
   let response;
+  let activeUser = "User Sementara";
 
   try {
     if (method === "POST") {
       const paramToSend = {
         ...param,
-        // Di sini Anda bisa menambahkan parameter lain yang dibutuhkan
+        activeUser: activeUser,
       };
 
       response = await fetch(url, {
