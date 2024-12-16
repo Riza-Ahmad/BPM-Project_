@@ -276,12 +276,6 @@ export default function Template_Survei() {
           >
             <Table
               arrHeader={["No", "Nama Template", "Tanggal Final", "Status"]}
-              headerToDataMap={{
-                No: "No",
-                "Nama Template": "name",
-                "Tanggal Final": "finalDate",
-                Status: "status",
-              }}
               data={currentData.map((item, index) => ({
                 id: item.id, // Tambahkan ID agar bisa digunakan di actions
                 No: indexOfFirstData + index + 1,

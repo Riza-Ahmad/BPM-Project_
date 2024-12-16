@@ -222,7 +222,7 @@ function Add() {
                 onClick={handleCancel}
               />
             </div>
-          </form>
+          </form> 
         </div>
       </main>
     </div>
