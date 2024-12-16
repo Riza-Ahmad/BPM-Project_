@@ -20,7 +20,7 @@ export default function Index() {
   const [Detail, setDetail] = useState([]);
   const [filterType, setFilterType] = useState("");
 
-  const detailModalRef = useRef();
+  // const detailModalRef = useRef();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -53,10 +53,10 @@ export default function Index() {
     navigate(`/survei/skala/edit/${skala.skp_id}`);
   };
 
-  const handleDetailSkala = (id) => {
-    fetchSkalaById(id);
-    openModal(detailModalRef);
-  };
+  // const handleDetailSkala = (id) => {
+  //   fetchSkalaById(id);
+  //   openModal(detailModalRef);
+  // };
 
   const title = "Skala Penilaian";
   const breadcrumbs = [{ label: "Skala Penilaian" }];
@@ -235,23 +235,15 @@ export default function Index() {
           >
             <Table
               arrHeader={["No", "Tipe Skala", "Skala", "Deskripsi", "Status"]}
-              headerToDataMap={{
-                No: "No",
-                "Tipe Skala": "skp_tipe",
-                Skala: "skp_skala",
-                Deskripsi: "skp_deskripsi",
-                Status: "skp_status",
-              }}
               data={currentData.map((item, index) => ({
                 key: item.skp_id,
                 No: (pageCurrent - 1) * pageSize + index + 1,
-                skp_tipe: item.skp_tipe,
-                skp_skala: item.skp_skala,
-                skp_deskripsi: item.skp_deskripsi,
-                skp_status: item.skp_status === "1" ? "Tidak Aktif" : " Aktif",
-
+                "Tipe Skala": item.skp_tipe,
+                Skala: item.skp_skala,
+                Deskripsi: item.skp_deskripsi,
+                Status: item.skp_status === "1" ? "Tidak Aktif" : " Aktif",
               }))}
-              actions={["Detail","Toggle","Edit"]}
+              actions={["Detail", "Toggle", "Edit"]}
               onDetail={(item) => {
                 handleDetailSkala(item.key);
               }}
