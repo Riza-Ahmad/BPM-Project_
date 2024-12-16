@@ -23,44 +23,37 @@ export default function Index({onChangePage}) {
     const [Data, setData] = useState(null);
 
 
-    const fetchData = async () => {
-        
-        try {
-          const response = await fetch(
-            API_LINK + "/MasterPertanyaan/GetDataPertanyaan",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({}),
-            }
-          );
-    
-          if (!response.ok) throw new Error("Network response was not ok");
-    
-          const result = await response.json();
-          console.log(result);
-          setData(result);
-        } catch (err) {
-          console.error("Fetch error:", err);
-          setError("Gagal mengambil data");
-        } finally {
-          setLoading(false);
-        }
-      };
-    
-        useEffect(() => {
-            fetchData();
-        
-        }, []);
+    useEffect(() => {
+        const fetchData = async () => {
+          try {
+            const result = await fetchWithParams(
+              `${API_LINK}/MasterPertanyaan/GetDataPertanyaan`,
+              {} // Parameter kosong jika tidak diperlukan
+            );
+      
+            console.log(result); // Debugging jika diperlukan
+            setData(result);
+          } catch (err) {
+            console.error("Fetch error:", err);
+            Swal.fire({
+              icon: "error",
+              title: "Oops...",
+              text: "Gagal mengambil data pertanyaan!",
+            });
+          } finally {
+            setLoading(false);
+          }
+        };
+      
+        fetchData();
+    }, []);
 
     const addModalRef = useRef();
     const updateModalRef = useRef();
     const detailModalRef = useRef();
     const navigate = useNavigate();
     const isMobile = useIsMobile();
-
+    const [questions, setQuestions] = useState([]); 
     const [questionText, setQuestionText] = useState('');
     const [isHeader, setIsHeader] = useState(false);
     const [generalQuestion, setGeneralQuestion] = useState('Ya');
@@ -81,7 +74,7 @@ export default function Index({onChangePage}) {
         setRespondent('');
         setIsHeader(false);
         setGeneralQuestion('Ya');
-        addModalRef.current.close();
+        addModalRef.current.close();5
     };
 
     const handleUpdateQuestion = () => {
@@ -148,12 +141,12 @@ export default function Index({onChangePage}) {
 
     const indexOfLastData = pageCurrent * pageSize;
     const indexOfFirstData = indexOfLastData - pageSize;
-    const filteredQuestions = Data.filter((question) =>
-        question.text.toLowerCase().includes(filterValue.toLowerCase())
-    );
+    // const filteredQuestions = Data.filter((question) =>
+    //     question.text.toLowerCase().includes(filterValue.toLowerCase())
+    // );
     
     // Mengambil data yang sudah difilter berdasarkan halaman saat ini
-    const currentData = filteredQuestions.slice(indexOfFirstData, indexOfLastData);
+    //const currentData = Data.slice(indexOfFirstData, indexOfLastData);
         
 
     const handlePageNavigation = (page) => {
