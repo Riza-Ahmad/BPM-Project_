@@ -11,7 +11,7 @@ export default function Add({ onChangePage }) {
         { label: "Daftar Pertanyaan", href: "/survei/pertanyaan" },
         { 
             label: "Tambah Pertanyaan", 
-            href: "/survei/pertanyaan/tambah"
+            href: "/survei/pertanyaan/add"
         },
     ];
 
@@ -60,7 +60,7 @@ export default function Add({ onChangePage }) {
                                 </div>
                             </div>
 
-                            <div className="row">
+                            {/* <div className="row">
                                 <Dropdown
                                     label="Pertanyaan Umum"
                                     isRequired={true}
@@ -70,8 +70,39 @@ export default function Add({ onChangePage }) {
                                     ]}
                                     onChange={(e) => handlePertanyaanUmumChange(e.target.value)}
                                 />
-                            </div>
+                            </div> */}
 
+                            <div className="row">
+                            <label style={{ fontWeight: "bold" }}>
+                                Pertanyaan Umum <span style={{ color: "red" }}>*</span>
+                            </label>
+                                <div className="custom-radio-dropdown">
+                                    <div className="radio-item">
+                                        <input
+                                            type="radio"    
+                                            id="tidak"
+                                            name="pertanyaanUmum"
+                                            value="Tidak"
+                                            required
+                                            onChange={(e) => handlePertanyaanUmumChange(e.target.value)}
+                                        />
+                                        <label htmlFor="tidak">Tidak</label>
+                                    </div>
+                                    <div className="radio-item">
+                                        <input
+                                            type="radio"
+                                            id="ya"
+                                            name="pertanyaanUmum"
+                                            value="Ya"
+                                            required
+                                            onChange={(e) => handlePertanyaanUmumChange(e.target.value)}
+                                        />
+                                        <label htmlFor="ya">Ya</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <br/>
+                            
                             <div className="row">
                             <div className="col-lg-12 col-md-6">
                                 <TextField label="Pertanyaan" isRequired={true} />
@@ -88,6 +119,20 @@ export default function Add({ onChangePage }) {
                                 disabled={isPertanyaanUmumYes}
                                 />
                             </div>  
+
+                            <div className="col-lg-12 col-md-6">
+                                <Dropdown
+                                label="Skala Penilaian"
+                                isRequired={true}
+                                arrData={[
+                                    { Text: " Radio Button (Cukup, Kurang, Baik, Sangat Baik)", Value: "001" },
+                                    { Text: " Text Area", Value: "002" },
+                                ]}
+                                disabled={isPertanyaanUmumYes}
+                                />
+                            </div>  
+
+                            
 
                             <div className="col-lg-12 col-md-6">
                                 <Dropdown

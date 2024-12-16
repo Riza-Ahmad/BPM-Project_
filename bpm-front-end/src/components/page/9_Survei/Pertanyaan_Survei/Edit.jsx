@@ -66,7 +66,7 @@ export default function Edit({ onChangePage, questionData }) {
 
                     <div className="shadow p-5 m-5 mt-0 bg-white rounded">
                         <HeaderForm label="Formulir Edit Pertanyaan" />
-
+{/* 
                         <div className="row">
                         <Dropdown
                             label="Pertanyaan Umum"
@@ -78,7 +78,38 @@ export default function Edit({ onChangePage, questionData }) {
                             value={formData.pertanyaanUmum}
                             onChange={(e) => handlePertanyaanUmumChange(e.target.value)}
                         />
-                        </div>
+                        </div> */}
+
+                        <div className="row">
+                            <label style={{ fontWeight: "bold" }}>
+                                Pertanyaan Umum <span style={{ color: "red" }}>*</span>
+                            </label>
+                                <div className="custom-radio-dropdown">
+                                    <div className="radio-item">
+                                        <input
+                                            type="radio"    
+                                            id="tidak"
+                                            name="pertanyaanUmum"
+                                            value="Tidak"
+                                            required
+                                            onChange={(e) => handlePertanyaanUmumChange(e.target.value)}
+                                        />
+                                        <label htmlFor="tidak">Tidak</label>
+                                    </div>
+                                    <div className="radio-item">
+                                        <input
+                                            type="radio"
+                                            id="ya"
+                                            name="pertanyaanUmum"
+                                            value="Ya"
+                                            required
+                                            onChange={(e) => handlePertanyaanUmumChange(e.target.value)}
+                                        />
+                                        <label htmlFor="ya">Ya</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <br/>
 
                         <div className="row">
                         <div className="col-lg-12 col-md-6">
@@ -99,6 +130,22 @@ export default function Edit({ onChangePage, questionData }) {
                             arrData={[
                                 { Text: "Kepuasan Dosen", Value: "Kepuasan Dosen" },
                                 { Text: "Kepuasan Tenaga Pendidik", Value: "Kepuasan Tenaga Pendidik" },
+                            ]}
+                            value={formData.kriteriaSurvei}
+                            disabled={isPertanyaanUmumYes}
+                            onChange={(e) =>
+                                handleInputChange("kriteriaSurvei", e.target.value)
+                            }
+                            />
+                        </div>
+
+                        <div className="col-lg-12 col-md-6">
+                            <Dropdown
+                            label="Skala Penilaian"
+                            isRequired={true}
+                            arrData={[
+                                { Text: " Radio Button (Cukup, Kurang, Baik, Sangat Baik)", Value: "001" },
+                                { Text: " Text Area", Value: "002" },
                             ]}
                             value={formData.kriteriaSurvei}
                             disabled={isPertanyaanUmumYes}

@@ -4,6 +4,7 @@ import PageTitleNav from "../../../part/PageTitleNav";
 import HeaderForm from "../../../part/HeaderText";
 import DetailData from "../../../part/DetailData";
 import Button from "../../../part/Button";
+import Header from "../../../backbone/Header";
 
 export default function Detail({ onChangePage }) {
   const location = useLocation();
@@ -28,32 +29,64 @@ export default function Detail({ onChangePage }) {
             />
           </div>
 
+         
+
           {/* Detail Content */}
-          <div className="shadow p-5 m-5 mt-0 bg-white rounded">
-            <HeaderForm 
-            label="Detail Pertanyaan" 
-            isi={questionData.pertanyaan || "Tidak"}
-            />
+           <div className="shadow p-5 m-5 mt-2 bg-white rounded">
+                 <HeaderForm 
+                   label="Detail Pertanyaan" 
+                   isi={questionData.pertanyaan || "Tidak"}
+                 />
+                 <br/>
+            <div className="row">
+              {/* Kolom Kiri */}
+              <div className="col-md-6">
 
-            {/* Pertanyaan Umum */}
-            <DetailData 
-            label="Pertanyaan Umum" 
-            isi={questionData.pertanyaanUmum || "Tidak"} />
+                {/* Pertanyaan Umum */}
+                <DetailData 
+                  label="Pertanyaan Umum" 
+                  isi={questionData.pertanyaanUmum || "Tidak"} 
+                  fon
+                />
 
-            {/* Pertanyaan */}
-            <DetailData 
-            label="Pertanyaan" 
-            isi={questionData.pertanyaan || "Presentase kehadiran tenanga pendidik"} />
+                {/* Pertanyaan */}
+                <DetailData 
+                  label="Pertanyaan" 
+                  isi={questionData.pertanyaan || "Presentase kehadiran tenaga pendidik"} 
+                />
+                  {/* Kriteria Survei */}
+                  <DetailData 
+                  label="Kriteria Survei"
+                  isi={questionData.kriteriaSurvei || "Kepuasan Dosen"} 
+                />
 
-            {/* Kriteria Survei */}
-            <DetailData 
-            label="Kriteria Survei"
-            isi={questionData.kriteriaSurvei || "Kepuasan Dosen"} />
+                  {/* Skala Penilaian */}
+                  <DetailData 
+                  label="Skala Penilaian"
+                  isi={questionData.kriteriaSurvei || "001"} 
+                />
+              </div>
+              
+              {/* Kolom Kanan */}
+              <div className="col-md-6">
+            
+                {/* Responden */}
+                <DetailData 
+                  label="Responden" 
+                  isi={questionData.responden || "Dosen"} 
+                />                
+                {/* Label Baru */}
+                <DetailData 
+                  label="Header" 
+                  isi={questionData.tidak || "Tidak "} 
+                />
 
-            {/* Responden */}
-            <DetailData 
-            label="Responden" 
-            isi={questionData.responden || "Dosen"} />
+                <DetailData 
+                  label="Status " 
+                  isi={questionData.statusAktif || "Tidak Aktif"} 
+                />
+              </div>
+            </div>
 
             {/* Button Kembali */}
             <div className="d-flex justify-content-end mt-4">

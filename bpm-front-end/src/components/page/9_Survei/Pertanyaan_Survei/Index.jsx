@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
 import PageTitleNav from "../../../part/PageTitleNav";
@@ -10,6 +10,7 @@ import SearchField from "../../../part/SearchField";
 import SweetAlert from "../../../util/SweetAlert";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../../../util/useIsMobile";
+import { API_LINK } from "../../../util/Constants";
 
 export default function Index({onChangePage}) {
     const [filterValue, setFilterValue] = useState("");
@@ -19,21 +20,40 @@ export default function Index({onChangePage}) {
     const [formData, setFormData] = useState({ questionText: '' });
     const importModalRef = useRef();
     const [file, setFile] = useState(null);
-    const [questions, setQuestions] = useState([
-        
-        { id: 1, text: 'Apa itu React?' },
-        { id: 2, text: 'Bagaimana cara menggunakan useState?' },
-        { id: 3, text: 'Apa perbedaan antara useEffect dan useLayoutEffect?' },
-        { id: 4, text: 'Apa kelebihan React dibandingkan dengan framework lain?' },
-        { id: 5, text: 'Bagaimana cara membuat komponen fungsional di React?' },
-        { id: 6, text: 'Apa itu React Hook dan bagaimana cara kerjanya?' },
-        { id: 7, text: 'Bagaimana cara menggunakan React Context untuk manajemen state?' },
-        { id: 8, text: 'Apa perbedaan antara props dan state di React?' },
-        { id: 9, text: 'Bagaimana cara menangani event di React?' },
-        { id: 10, text: 'Apa yang dimaksud dengan lifting state up di React?' },
-        { id: 11, text: 'Apa yang dimaksud dengan lifting state up di React?' },
+    const [Data, setData] = useState(null);
 
-    ]);
+
+    const fetchData = async () => {
+        
+        try {
+          const response = await fetch(
+            API_LINK + "/MasterPertanyaan/GetDataPertanyaan",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({}),
+            }
+          );
+    
+          if (!response.ok) throw new Error("Network response was not ok");
+    
+          const result = await response.json();
+          console.log(result);
+          setData(result);
+        } catch (err) {
+          console.error("Fetch error:", err);
+          setError("Gagal mengambil data");
+        } finally {
+          setLoading(false);
+        }
+      };
+    
+        useEffect(() => {
+            fetchData();
+        
+        }, []);
 
     const addModalRef = useRef();
     const updateModalRef = useRef();
@@ -81,7 +101,7 @@ export default function Index({onChangePage}) {
 
     // const handleSelectQuestion = (question) => {
     //     setSelectedQuestion(question);
-    //     setFormData({
+    //     setFormData({s
     //         questionText: question.text,
     //     });
     //     setGeneralQuestion(question.generalQuestion || 'Ya');
@@ -128,7 +148,7 @@ export default function Index({onChangePage}) {
 
     const indexOfLastData = pageCurrent * pageSize;
     const indexOfFirstData = indexOfLastData - pageSize;
-    const filteredQuestions = questions.filter((question) =>
+    const filteredQuestions = Data.filter((question) =>
         question.text.toLowerCase().includes(filterValue.toLowerCase())
     );
     
@@ -184,11 +204,7 @@ export default function Index({onChangePage}) {
                 SweetAlert("Batal", "Penghapusan dibatalkan.", "info");
             }
         });
-
-
-        const handleFilterChange = (e) => {
-            setFilterValue(e.target.value);
-          };  
+        ``
     };
 
 
@@ -254,54 +270,82 @@ export default function Index({onChangePage}) {
             </main>
 
             {/* Import Modal */}
-                <Modal
-                    ref={importModalRef}
-                    title="Import Pertanyaan"
-                    size="medium"
-                    Button1={
-                        <Button
-                            classType="primary"
-                            label="Import"
-                            onClick={() => {
-                                if (file) {
-                                    handleImportQuestions();
-                                }
-                            }}
-                        />
-                    }
-                    Button2={
-                        <Button
-                            classType="secondary"
-                            label="Batal"
-                            onClick={() => {
-                                setFile(null); // Reset file input
-                                importModalRef.current.close();
-                            }}
-                        />
-                    }
+            <Modal
+                ref={importModalRef}
+                title="Import Pertanyaan"
+                size="medium"
+                Button1={
+                    <Button
+                    classType="primary"
+                    label="Simpan"
+                    type="submit"
+                    style={{
+                        width: "200px",
+                        height: "40px",
+                        fontSize: "15px",
+                        margin: "10px 0", // Jarak antar tombol
+                    }}
+                    onClick={() => {
+                        if (file) {
+                        handleImportQuestions();
+                        }
+                    }}
+                    />
+                }
+                Button2={
+                    <Button
+                    classType="danger"
+                    label="Batal"
+                    style={{
+                        width: "200px",
+                        height: "40px",
+                        fontSize: "15px",
+                        margin: "10px 0", // Jarak antar tombol
+                    }}
+                    onClick={() => {
+                        setFile(null);
+                        importModalRef.current.close();
+                    }}
+                    />
+                }
                 >
-                  <div className="form-group">
-                    <label> Silahkan unduh format template pertanyaan terlebih dahulu,
-                        <br/>Klik disini
-                        <br/>
-                        <br/>
-
-                    </label>
-                    <br/>
+                <div
+                    className="form-group"
+                    style={{
+                    display: "flex",
+                    flexDirection: "column", // Atur elemen form secara vertikal
+                    // alignItems: "center", // Tengah horizontal
+                    // textAlign: "center", // Tengah teks dalam label
+                    gap: "10px", // Jarak antar elemen
+                    width: "100%", // Elemen form memenuhi modal
+                    }}
+                >
                     <label>
-                    <strong>Berkas Pertanyaan <span style={{ color: "red" }}>*</span></strong>
+                    Silahkan unduh format template pertanyaan terlebih dahulu, <br />
+                    <a href="#" style={{ color: "blue", textDecoration: "underline" }}>
+                        Klik disini
+                    </a>
+                    </label>
+                    <label>
+                    <strong>
+                        Berkas Pertanyaan <span style={{ color: "red" }}>*</span>
+                    </strong>
                     </label>
                     <input
-                        type="file"
-                        onChange={handleFileChange}
-                        
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                        name="import-file"
-                        className="form-control"
+                    type="file"
+                    onChange={handleFileChange}
+                    style={{
+                        width: "100%",
+                        padding: "10px",
+                        border: "2px solid ",
+                        borderRadius: "10px",
+                        marginTop: "5px",
+                    }}
+                    name="import-file"
+                    className="form-control"
                     />
                 </div>
-             </Modal>
-                
+            </Modal>
 
             {/* ADD MODAL */}
             <Modal
