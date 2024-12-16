@@ -48,8 +48,8 @@ export default function Template_Survei() {
 
         // Map data ke dalam format yang sesuai dengan kebutuhan frontend.
         const formattedTemplates = templates.map((item) => ({
-          id: item.tsu_id || "default_id",
-          name: item.tsu_nama || "default_name",
+          id: item.tsu_id,
+          name: item.tsu_nama,
           finalDate: item.tsu_modif_date
             ? new Date(item.tsu_modif_date).toLocaleDateString()
             : "-",
@@ -199,19 +199,19 @@ export default function Template_Survei() {
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ tsu_id: id }),
+              body: JSON.stringify({ tsu_id: id }), // Hanya kirim ID
             }
           );
 
           if (!response.ok) throw new Error("Gagal menghapus template survei");
 
-          const updatedData = data.filter((item) => item.id !== id);
+          const updatedData = data.filter((item) => item.id !== id); // Hapus di state
           setData(updatedData);
           setFilteredData(updatedData);
 
           Swal.fire(
             "Berhasil!",
-            "Template survei berhasil dihapus.",
+            "Template survei berhasil dihapus dari database.",
             "success"
           );
         } catch (error) {
@@ -276,35 +276,25 @@ export default function Template_Survei() {
           >
             <Table
               arrHeader={["No", "Nama Template", "Tanggal Final", "Status"]}
-              headerToDataMap={{
-                No: "No",
-                "Nama Template": "name",
-                "Tanggal Final": "finalDate",
-                Status: "status",
-              }}
               data={currentData.map((item, index) => ({
-                key: item.id,
+                id: item.id, // Tambahkan ID agar bisa digunakan di actions
                 No: indexOfFirstData + index + 1,
                 name: item.name,
                 finalDate: item.finalDate,
-                status: item.status === 0 ? "Draft" : "Final", // Konversi status integer menjadi string
+                status: item.status === 0 ? "Draft" : "Final", // Hanya untuk tampilan
               }))}
-              actions={(id) => {
-                const item = filteredData.find(
-                  (dataItem) => dataItem.id === id
-                );
+              actions={(row) => {
+                console.log("Row diterima di actions:", row); // Debugging row
 
-                // Tampilkan hanya Detail dan Edit jika status adalah Final
-                if (item && item.status === 1) {
-                  return ["Detail", "Edit"];
-                }
-
-                // Jika status bukan Final, tampilkan semua aksi
-                return ["Detail", "Edit", "Delete", "Final"];
+                // Cek kondisi status dan kembalikan aksi yang sesuai
+                return row.status === "Draft"
+                  ? ["Detail", "Edit", "Delete", "Final"]
+                  : ["Detail", "Toggle"];
               }}
-              onEdit={(id) => navigate(`/survei/template/edit/${id}`)}
-              onDelete={(id) => handleDelete(id)}
-              onFinal={(id) => handleUpdateStatus(id)}
+              onEdit={(id) => navigate(`/survei/template/edit/${id}`)} // Fungsi Edit
+              onDetail={(id) => navigate(`/survei/template/detail/${id}`)} // Fungsi Detail
+              onDelete={(id) => handleDelete(id)} // Fungsi Delete
+              onFinal={(id) => handleUpdateStatus(id)} // Fungsi Final
             />
 
             <Paging

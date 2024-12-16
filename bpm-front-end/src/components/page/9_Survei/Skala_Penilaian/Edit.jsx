@@ -1,52 +1,48 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import SweetAlert from "../../../util/SweetAlert";
-import { API_LINK } from "../../../util/Constants";
-import { useParams } from "react-router-dom";
 
-export default function Edit({ onChangePage }) {
+export default function Edit() {
   const navigate = useNavigate();
-  const { id } = useParams();
   const location = useLocation();
-  const [formData, setFormData] = useState({});
-  const [loading, setLoading] = useState(true); // Menambahkan state untuk loading
-
-  const fetchSkala = async () => {
-    if (location.state?.idData) {
-      const editId = location.state?.idData;
-      try {
-        const response = await fetch(
-          `${API_LINK}/SkalaPenilaian/GetDataSkalaPenilaianById`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              skp_id: editId,
-            }),
-          }
-        );
-        if (!response.ok) throw new Error("Gagal mengambil data skala.");
-        const result = await response.json();
-        setFormData(result[0]); // Pastikan ini sesuai dengan data yang diterima
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        alert("Gagal mengambil data skala.");
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      console.log("Tidak ada id");
-    }
-  };
+  const [formData, setFormData] = useState({
+    Nama: "",
+    Skala: 1,
+    Deskripsi: "",
+    type: "",
+    descriptions: [],
+    selectedValue: null, // Menyimpan nilai yang dipilih di preview
+  });
 
   useEffect(() => {
-    fetchSkala();
-  }, []);
+    if (location.state?.idData) {
+      const editId = location.state.idData;
 
-  // Jika sedang loading, tampilkan indikator loading atau jangan render form
-  if (loading) {
-    return <div>Loading...</div>; // Anda bisa mengganti dengan spinner atau indikator lain
-  }
+      // Fetch data skala berdasarkan ID
+      fetch(`/api/skala/${editId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Gagal mengambil data skala.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          setFormData({
+            Nama: data.Nama || "",
+            Skala: data.Skala || 1,
+            Deskripsi: data.Deskripsi || "",
+            type: data.type || "Radio Button",
+            descriptions: data.descriptions || [],
+            selectedValue: data.selectedValue || null,
+          });
+        })
+        .catch((error) =>
+          SweetAlert("Error", error.message, "error", "OK").then(() =>
+            navigate("/survei/skala")
+          )
+        );
+    }
+  }, [location.state?.idData, navigate]);
 
   const handleTypeChange = (e) => {
     setFormData({ ...formData, type: e.target.value, descriptions: [] });
@@ -95,23 +91,15 @@ export default function Edit({ onChangePage }) {
   };
 
   const handleSubmit = () => {
-    const editId = location.state?.idData;
-    const payload = {
-      skp_id: editId, // Mengambil ID dari state
-      skp_skala: formData.skp_skala,
-      skp_deskripsi: formData.skp_deskripsi.trim(),
-      skp_tipe: formData.skp_tipe,
-      skp_status: 1, // Contoh: Status aktif, sesuaikan jika berbeda
-      skp_modif_by: "Admin", // Ganti dengan nilai sebenarnya (misalnya dari session user)
-      skp_modif_date: new Date().toISOString(), // Backend akan override ke waktu sekarang
-    };
+    if (!validateForm()) return;
 
-    fetch(`/api/skala/update`, {
-      method: "POST",
+    const editId = location.state?.idData;
+    fetch(`/api/skala/${editId}`, {
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(formData),
     })
       .then((response) => {
         if (!response.ok) {
@@ -140,7 +128,7 @@ export default function Edit({ onChangePage }) {
   return (
     <div style={{ padding: "20px", maxWidth: "800px", margin: "auto" }}>
       <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
-        Tambah Skala Penilaian
+        Edit Skala Penilaian
       </h2>
 
       {/* Dropdown untuk memilih tipe */}
@@ -150,7 +138,7 @@ export default function Edit({ onChangePage }) {
         </label>
         <select
           className="form-select"
-          value={formData.skp_tipe}
+          value={formData.type}
           onChange={handleTypeChange}
         >
           <option value="">Pilih tipe skala...</option>
@@ -161,11 +149,11 @@ export default function Edit({ onChangePage }) {
         </select>
       </div>
 
-      {/* Kondisional untuk tipe */}
-      {formData.skp_tipe === "Radio Button" && (
-        <div style={{ marginTop: "20px" }}>
-          {/* Input untuk skala */}
-          <div style={{ marginBottom: "20px" }}>
+      {/* Implementasi form tergantung tipe */}
+      {formData.type === "Radio Button" && (
+        <div>
+          {/* Input skala */}
+          <div className="mb-3">
             <label>
               <strong>Skala *</strong>
             </label>
@@ -173,36 +161,48 @@ export default function Edit({ onChangePage }) {
               type="number"
               min="1"
               max="10"
-              value={formData.skp_skala || 4}
+              value={formData.Skala || 1}
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  skp_skala: Number(e.target.value),
+                  Skala: Number(e.target.value),
+                  descriptions: [],
                 })
               }
-              style={{
-                display: "block",
-                width: "80px",
-                padding: "5px",
-                marginTop: "5px",
-                border: "1px solid #ccc",
-                borderRadius: "5px",
-              }}
+              className="form-control"
             />
           </div>
 
-          {/* Preview */}
-          <div style={{ marginBottom: "20px" }}>
+          {/* Input deskripsi nilai */}
+          <div className="mb-3">
             <label>
-              <strong>Preview</strong>
+              <strong>Deskripsi Nilai *</strong>
+            </label>
+            {Array.from({ length: formData.Skala || 1 }, (_, i) => (
+              <input
+                key={i}
+                type="text"
+                placeholder={`Deskripsi nilai ${i + 1}`}
+                value={formData.descriptions[i] || ""}
+                onChange={(e) => {
+                  const descriptions = [...formData.descriptions];
+                  descriptions[i] = e.target.value;
+                  setFormData({ ...formData, descriptions });
+                }}
+                className="form-control mb-2"
+              />
+            ))}
+          </div>
+
+          {/* Preview nilai */}
+          <div className="mb-3">
+            <label>
+              <strong>Preview:</strong>
             </label>
             <div style={{ marginTop: "10px" }}>
-              {Array.from(
-                { length: formData.skp_skala || 4 },
-                (_, i) => i + 1
-              ).map((value) => (
+              {Array.from({ length: formData.Skala || 1 }, (_, i) => (
                 <label
-                  key={value}
+                  key={i}
                   style={{
                     marginRight: "15px",
                     display: "inline-flex",
@@ -212,272 +212,19 @@ export default function Edit({ onChangePage }) {
                   <input
                     type="radio"
                     name="preview"
-                    value={value}
-                    checked={formData.skp_name === String(value)}
-                    onChange={(e) =>
-                      setFormData({ ...formData, skp_name: e.target.value })
-                    }
+                    value={i + 1}
+                    checked={formData.selectedValue === i + 1}
+                    onChange={() => handlePreviewChange(i + 1)}
                     style={{ marginRight: "5px" }}
                   />
-                  {value}
+                  {i + 1}
                 </label>
               ))}
             </div>
           </div>
-
-          {/* Input deskripsi nilai */}
-          <div>
-            <label>
-              <strong>Deskripsi Nilai *</strong>
-            </label>
-            {Array.from({ length: formData.scale || 4 }, (_, i) => (
-              <div key={i} style={{ marginBottom: "10px" }}>
-                <input
-                  type="text"
-                  placeholder={`Deskripsi untuk nilai ${i + 1}`}
-                  value={formData.descriptions?.[i] || ""}
-                  onChange={(e) => {
-                    const newDescriptions = [...(formData.descriptions || [])];
-                    newDescriptions[i] = e.target.value;
-                    setFormData({ ...formData, descriptions: newDescriptions });
-                  }}
-                  style={{
-                    width: "100%",
-                    padding: "5px",
-                    border: "1px solid #ccc",
-                    borderRadius: "5px",
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Tampilkan deskripsi berdasarkan pilihan */}
-          <p
-            style={{
-              marginTop: "10px",
-              color: "#555",
-              fontStyle: "italic",
-            }}
-          >
-            {formData.name
-              ? formData.descriptions?.[Number(formData.name) - 1] ||
-                "Deskripsi belum diisi."
-              : "Pilih skala untuk melihat deskripsi."}
-          </p>
         </div>
       )}
 
-      {formData.type === "TextBox" && (
-        <div style={{ marginTop: "20px" }}>
-          <label>
-            <strong>Input TextBox:</strong>
-          </label>
-          <textarea
-            rows="1"
-            cols="50"
-            className="form-control"
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            value={formData.name || ""}
-            style={{
-              width: "100%",
-              padding: "5px",
-              border: "1px solid #ccc",
-              borderRadius: "5px",
-            }}
-          />
-          <div style={{ marginTop: "20px" }}>
-            <label>
-              <strong>Deskripsi:</strong>
-            </label>
-            <input
-              type="text"
-              placeholder="Deskripsi untuk TextBox"
-              value={formData.descriptions[0] || ""}
-              onChange={(e) => {
-                const newDescriptions = [...(formData.descriptions || [])];
-                newDescriptions[0] = e.target.value;
-                setFormData({ ...formData, descriptions: newDescriptions });
-              }}
-              style={{
-                width: "100%",
-                padding: "5px",
-                border: "1px solid #ccc",
-                borderRadius: "5px",
-                marginTop: "10px",
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {formData.type === "TextArea" && (
-        <div style={{ marginTop: "20px" }}>
-          <label>
-            <strong>Input TextArea:</strong>
-          </label>
-          <textarea
-            rows="4"
-            cols="50"
-            className="form-control"
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            value={formData.name}
-            style={{
-              width: "100%",
-              padding: "5px",
-              border: "1px solid #ccc",
-              borderRadius: "5px",
-            }}
-          />
-          <div style={{ marginTop: "20px" }}>
-            <label>
-              <strong>Deskripsi:</strong>
-            </label>
-            <input
-              type="text"
-              placeholder="Deskripsi untuk TextArea"
-              value={formData.descriptions[0] || ""}
-              onChange={(e) => {
-                const newDescriptions = [...(formData.descriptions || [])];
-                newDescriptions[0] = e.target.value;
-                setFormData({ ...formData, descriptions: newDescriptions });
-              }}
-              style={{
-                width: "100%",
-                padding: "5px",
-                border: "1px solid #ccc",
-                borderRadius: "5px",
-                marginTop: "10px",
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {formData.type === "CheckBox" && (
-        <div style={{ marginTop: "20px" }}>
-          {/* Input untuk skala */}
-          <div style={{ marginBottom: "20px" }}>
-            <label>
-              <strong>Skala *</strong>
-            </label>
-            <input
-              type="number"
-              min="1"
-              max="10"
-              value={formData.scale || 4}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  scale: Number(e.target.value),
-                  checkedValues: [],
-                })
-              }
-              style={{
-                display: "block",
-                width: "80px",
-                padding: "5px",
-                marginTop: "5px",
-                border: "1px solid #ccc",
-                borderRadius: "5px",
-              }}
-            />
-          </div>
-
-          {/* Preview */}
-          <div style={{ marginBottom: "20px" }}>
-            <label>
-              <strong>Preview</strong>
-            </label>
-            <div style={{ marginTop: "10px" }}>
-              {Array.from({ length: formData.scale || 4 }, (_, i) => i + 1).map(
-                (value) => (
-                  <label
-                    key={value}
-                    style={{
-                      marginRight: "15px",
-                      display: "inline-flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      value={value}
-                      checked={formData.checkedValues?.includes(value)}
-                      onChange={(e) => {
-                        const checkedValues = formData.checkedValues || [];
-                        if (e.target.checked) {
-                          setFormData({
-                            ...formData,
-                            checkedValues: [...checkedValues, value],
-                          });
-                        } else {
-                          setFormData({
-                            ...formData,
-                            checkedValues: checkedValues.filter(
-                              (v) => v !== value
-                            ),
-                          });
-                        }
-                      }}
-                      style={{ marginRight: "5px" }}
-                    />
-                    {value}
-                  </label>
-                )
-              )}
-            </div>
-          </div>
-
-          {/* Input deskripsi nilai */}
-          <div>
-            <label>
-              <strong>Deskripsi Nilai *</strong>
-            </label>
-            {Array.from({ length: formData.scale || 4 }, (_, i) => (
-              <div key={i} style={{ marginBottom: "10px" }}>
-                <input
-                  type="text"
-                  placeholder={`Deskripsi untuk nilai ${i + 1}`}
-                  value={formData.descriptions?.[i] || ""}
-                  onChange={(e) => {
-                    const newDescriptions = [...(formData.descriptions || [])];
-                    newDescriptions[i] = e.target.value;
-                    setFormData({ ...formData, descriptions: newDescriptions });
-                  }}
-                  style={{
-                    width: "100%",
-                    padding: "5px",
-                    border: "1px solid #ccc",
-                    borderRadius: "5px",
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Tampilkan deskripsi berdasarkan pilihan */}
-          <p
-            style={{
-              marginTop: "10px",
-              color: "#555",
-              fontStyle: "italic",
-            }}
-          >
-            {formData.checkedValues?.length > 0
-              ? `Nilai dipilih: ${formData.checkedValues.join(", ")}`
-              : "Tidak ada nilai yang dipilih."}
-          </p>
-          <ul>
-            {formData.checkedValues?.map((value) => (
-              <li key={value}>
-                {value}:{" "}
-                {formData.descriptions?.[value - 1] || "Deskripsi belum diisi."}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
       {/* Tombol aksi */}
       <div style={{ marginTop: "20px", textAlign: "right" }}>
         <button

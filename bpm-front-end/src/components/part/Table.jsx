@@ -171,10 +171,10 @@ export default function Table({
         <tbody>
           {data.length > 0 ? (
             data.map((row, rowIndex) => (
-              <tr key={`row-${rowIndex}`}>
+              <tr key={row-${rowIndex}}>
                 {arrHeader.map((column, colIndex) => (
                   <td
-                    key={`cell-${rowIndex}-${colIndex}`}
+                    key={cell-${rowIndex}-${colIndex}}
                     className={`align-middle ${
                       column === "No" ? "text-center" : "text-start"
                     }`}
@@ -189,7 +189,7 @@ export default function Table({
                   {typeof actions === "function"
                     ? actions(row).map((action, actionIndex) => (
                         <React.Fragment
-                          key={`${action}-${row.Key || rowIndex}`}
+                          key={${action}-${row.Key || rowIndex}}
                         >
                           {generateActionButton(action, row)}
                         </React.Fragment>
@@ -197,7 +197,7 @@ export default function Table({
                     : Array.isArray(actions) && actions.length > 0
                     ? actions.map((action, actionIndex) => (
                         <React.Fragment
-                          key={`${action}-${row.Key || rowIndex}`}
+                          key={${action}-${row.Key || rowIndex}}
                         >
                           {generateActionButton(action, row)}
                         </React.Fragment>

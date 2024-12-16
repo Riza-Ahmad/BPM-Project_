@@ -15,6 +15,7 @@ import PeraturanEksternal from "./components/page/10_Peraturan/ms_peraturanEkste
 import InstrumenAps from "./components/page/10_Peraturan/ms_instrumenAps/Root";
 import KriteriaSurvei from "./components/page/9_Survei/Kriteria_Survei/Root";
 import SkalaSurvei from "./components/page/9_Survei/Skala_Penilaian/Root";
+import TemplateSurvei from "./components/page/9_Survei/Template_Survei/Root";
 import ScrollToTop from "./components/part/ScrollToTop";
 import Template_Survei from "./components/page/9_Survei/Template_Survei/Index";
 import "./App.css";
@@ -61,7 +62,7 @@ function App() {
             <Route path="/peraturan/aps/*" element={<InstrumenAps />} />
             <Route path="/survei/kriteria/*" element={<KriteriaSurvei />} />
             <Route path="/survei/skala/*" element={<SkalaSurvei />} />
-            <Route path="/survei/template/*" element={<Template_Survei />} />
+            <Route path="/survei/template/*" element={<TemplateSurvei />} />
 
             {/* Halaman 404 */}
             <Route path="*" element={<div>Halaman tidak ditemukan</div>} />
