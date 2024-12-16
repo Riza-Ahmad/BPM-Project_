@@ -3,7 +3,6 @@ import Icon from "./Icon";
 
 export default function Table({
   arrHeader,
-  headerToDataMap,
   data,
   actions = [],
   onDelete = () => {},
@@ -16,8 +15,31 @@ export default function Table({
   onSurveyor = () => {},
   onResponden = () => {},
 }) {
-  function generateActionButton(actionType, id) {
+  function generateActionButton(actionType, id, status = "Aktif") {
     switch (actionType) {
+      case "Toggle": {
+        if (status === "Aktif") {
+          return (
+            <Icon
+              name="toggle-on"
+              type="Bold"
+              cssClass="btn px-1 py-0 text-primary"
+              title="Nonaktifkan"
+              onClick={() => onToggle(id)}
+            />
+          );
+        } else if (status === "Tidak Aktif") {
+          return (
+            <Icon
+              name="toggle-off"
+              type="Bold"
+              cssClass="btn px-1 py-0 text-secondary"
+              title="Aktifkan"
+              onClick={() => onToggle(id)}
+            />
+          );
+        }
+      }
       case "Delete":
         return (
           <Icon
@@ -151,12 +173,12 @@ export default function Table({
               <tr key={`row-${rowIndex}`}>
                 {arrHeader.map((column, colIndex) => (
                   <td
-                    key={`cell-${row.Key}-${colIndex}`}
+                    key={`cell-${rowIndex}-${colIndex}`}
                     className={`align-middle ${
                       column === "No" ? "text-center" : "text-start"
                     }`}
                   >
-                    {row[headerToDataMap[column]]}
+                    {row[column] || ""}
                   </td>
                 ))}
                 <td

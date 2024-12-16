@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import PageTitleNav from "../../part/PageTitleNav";
 import InputField from "../../part/InputField";
 import TextArea from "../../part/TextArea";
@@ -8,6 +8,8 @@ import Button from "../../part/Button";
 import { API_LINK } from "../../util/Constants";
 import SweetAlert from "../../util/SweetAlert";
 import { useIsMobile } from "../../util/useIsMobile";
+import { useFetch } from "../../util/useFetch";
+import { useLocation } from "react-router-dom";
 
 export default function Add({ onChangePage }) {
   const title = "Tambah Berita";
@@ -17,31 +19,22 @@ export default function Add({ onChangePage }) {
     { label: "Tambah Berita" },
   ];
   const isMobile = useIsMobile();
-  const [isiBerita, setIsiBerita] = useState("");
+  const location = useLocation();
 
   const [formData, setFormData] = useState({
-    judul: "",
+    judul: location.state?.judul ? location.state.judul : "",
     penulis: "",
     tanggal: "",
-    isi: "",
+    isi: location.state?.deskripsi ? location.state.deskripsi : "",
+    fotoList: [],
   });
 
   const [images, setImages] = useState([]);
-
-  // Refs untuk validasi
   const judulRef = useRef();
   const penulisRef = useRef();
   const tanggalRef = useRef();
   const isiRef = useRef();
   const fotoRef = useRef();
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
 
   const handleUploadChange = (updatedFiles) => {
     setImages(updatedFiles);
@@ -77,14 +70,19 @@ export default function Add({ onChangePage }) {
 
     try {
       // Upload foto
-      const formData = new FormData();
-      images.forEach((file) => formData.append("files", file));
+      const formDataUpload = new FormData();
+      images.forEach((file) => formDataUpload.append("files", file));
+
+      const folderName = "Berita";
+      const filePrefix = "FOTO";
 
       const uploadResponse = await fetch(
-        `${API_LINK}/MasterBerita/UploadFiles`,
+        `${API_LINK}/Upload/UploadFiles?folderName=${encodeURIComponent(
+          folderName
+        )}&filePrefix=${encodeURIComponent(filePrefix)}`,
         {
           method: "POST",
-          body: formData,
+          body: formDataUpload,
         }
       );
 
@@ -93,30 +91,22 @@ export default function Add({ onChangePage }) {
       }
 
       const uploadedFileNames = await uploadResponse.json();
-
       const beritaData = {
-        ber_judul: judulRef.current.value,
-        ber_tgl: tanggalRef.current.value,
-        ber_isi: isiBerita,
-        ber_status: 1,
-        ber_created_by: penulisRef.current.value,
-        ber_penulis: penulisRef.current.value,
+        judul: formData.judul,
+        tgl: formData.tanggal,
+        isi: formData.isi,
+        penulis: formData.penulis,
         fotoList: uploadedFileNames,
       };
 
-      console.log(beritaData);
-
-      const createResponse = await fetch(
+      const createResponse = await useFetch(
         `${API_LINK}/MasterBerita/CreateBerita`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(beritaData),
-        }
+        beritaData,
+        "POST"
       );
 
-      if (!createResponse.ok) {
-        throw new Error("Gagal menambahkan berita");
+      if (createResponse === "ERROR") {
+        throw new Error("Gagal memperbarui data");
       }
 
       SweetAlert(
@@ -129,10 +119,6 @@ export default function Add({ onChangePage }) {
       console.error("Error:", error.message);
       SweetAlert("Gagal!", error.message, "error", "OK");
     }
-  };
-
-  const handleIsiChange = (e) => {
-    setIsiBerita(e.target.value);
   };
 
   return (
@@ -159,7 +145,9 @@ export default function Add({ onChangePage }) {
                     ref={judulRef}
                     label="Judul Berita"
                     value={formData.judul}
-                    onChange={handleChange}
+                    onChange={(e) =>
+                      setFormData({ ...formData, judul: e.target.value })
+                    }
                     isRequired={true}
                     name="judul"
                     maxChar="100"
@@ -168,7 +156,9 @@ export default function Add({ onChangePage }) {
                     ref={penulisRef}
                     label="Penulis"
                     value={formData.penulis}
-                    onChange={handleChange}
+                    onChange={(e) =>
+                      setFormData({ ...formData, penulis: e.target.value })
+                    }
                     isRequired={true}
                     name="penulis"
                     maxChar="50"
@@ -179,7 +169,9 @@ export default function Add({ onChangePage }) {
                     ref={tanggalRef}
                     label="Tanggal Berita"
                     value={formData.tanggal}
-                    onChange={handleChange}
+                    onChange={(e) =>
+                      setFormData({ ...formData, tanggal: e.target.value })
+                    }
                     isRequired={true}
                     name="tanggal"
                     type="date"
@@ -189,8 +181,10 @@ export default function Add({ onChangePage }) {
               <TextArea
                 ref={isiRef}
                 label="Isi Berita"
-                value={isiBerita}
-                onChange={handleIsiChange}
+                value={formData.isi}
+                onChange={(e) =>
+                  setFormData({ ...formData, isi: e.target.value })
+                }
                 isRequired={true}
               />
               <UploadFoto

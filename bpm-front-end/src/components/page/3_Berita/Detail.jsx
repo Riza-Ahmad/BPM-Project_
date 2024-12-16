@@ -8,6 +8,7 @@ import DetailData from "../../part/DetailData";
 import { API_LINK, BERITAFOTO_LINK } from "../../util/Constants";
 import Loading from "../../part/Loading";
 import { useIsMobile } from "../../util/useIsMobile";
+import { useFetch } from "../../util/useFetch";
 
 export default function Detail({ onChangePage }) {
   const isMobile = useIsMobile();
@@ -19,10 +20,10 @@ export default function Detail({ onChangePage }) {
     description: "",
     author: "",
     images: [],
-    Createby: "",
-    CreateDate: "",
-    Modifby: "",
-    ModifDate: "",
+    dibuatOleh: "",
+    dibuatTgl: "",
+    dimodifOleh: "",
+    dimodifTgl: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -43,47 +44,33 @@ export default function Detail({ onChangePage }) {
 
     const fetchData = async () => {
       try {
-        const response = await fetch(
-          `${API_LINK}/MasterBerita/GetDataBeritaById`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ ber_id: editId }),
-          }
+        const data = await useFetch(
+          API_LINK + `/MasterBerita/GetDataBeritaById`,
+          { id: editId }
         );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
         if (data?.berita?.length > 0) {
-          const berita = data.berita[0];
-          const images = data.foto?.map((foto) => foto.foto_path) || [];
+          const berita = JSON.parse(data.berita)[0];
+          const foto = JSON.parse(data.foto);
+          const images = foto.map((fotoItem) => fotoItem.foto_path);
 
           setFormData({
-            title: berita.ber_judul,
-            date: format(new Date(berita.ber_tgl), "EEEE, dd MMMM yyyy", {
+            title: berita.judulBerita,
+            date: format(new Date(berita.tglBerita), "EEEE, dd MMMM yyyy", {
               locale: id,
             }),
-            description: berita.ber_isi,
-            author: berita.ber_penulis,
+            description: berita.isiBerita,
+            author: berita.penulisBerita,
             images: images,
-            Createby: berita.ber_created_by,
-            CreateDate: new Date(berita.ber_created_date).toLocaleDateString(
-              "id-ID",
-              {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              }
-            ),
-            Modifby: berita.ber_modif_by ? berita.ber_modif_by : "-",
-            ModifDate: berita.ber_modif_date
-              ? new Date(berita.ber_modif_date).toLocaleDateString("id-ID", {
+            dibuatOleh: berita.dibuatOleh,
+            dibuatTgl: new Date(berita.dibuatTgl).toLocaleDateString("id-ID", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            }),
+            dimodifOleh: berita.dimodifOleh ? berita.dimodifOleh : "-",
+            dimodifTgl: berita.dimodifTgl
+              ? new Date(berita.dimodifTgl).toLocaleDateString("id-ID", {
                   weekday: "long",
                   day: "numeric",
                   month: "long",
@@ -143,7 +130,7 @@ export default function Detail({ onChangePage }) {
             <DetailData label="Isi Berita" isi={formData.description} />
             <div className="row">
               <label htmlFor={id} className="form-label fw-bold">
-                Foto Struktur
+                Foto
               </label>
               {formData.images.length > 0 ? (
                 formData.images.map((image, index) => (
@@ -162,14 +149,17 @@ export default function Detail({ onChangePage }) {
             </div>
             <div className="row">
               <div className="col-lg-6 col-md-6">
-                <DetailData label="Dibuat Oleh" isi={formData.Createby} />
-                <DetailData label="Dibuat Tanggal" isi={formData.CreateDate} />
+                <DetailData label="Dibuat Oleh" isi={formData.dibuatOleh} />
+                <DetailData label="Dibuat Tanggal" isi={formData.dibuatTgl} />
               </div>
               <div className="col-lg-6 col-md-6">
-                <DetailData label="Dimodifikasi Oleh" isi={formData.Modifby} />
+                <DetailData
+                  label="Dimodifikasi Oleh"
+                  isi={formData.dimodifOleh}
+                />
                 <DetailData
                   label="Dimodifikasi Tanggal"
-                  isi={formData.ModifDate}
+                  isi={formData.dimodifTgl}
                 />
               </div>
             </div>

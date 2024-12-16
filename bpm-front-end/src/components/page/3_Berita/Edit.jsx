@@ -11,6 +11,8 @@ import Loading from "../../part/Loading";
 import { API_LINK } from "../../util/Constants";
 import { format } from "date-fns";
 import { useIsMobile } from "../../util/useIsMobile";
+import { decodeHtml } from "../../util/DecodeHtml";
+import { useFetch } from "../../util/useFetch";
 
 export default function Edit({ onChangePage }) {
   const isMobile = useIsMobile();
@@ -20,7 +22,7 @@ export default function Edit({ onChangePage }) {
     date: "",
     description: "",
     author: "",
-    images: [],
+    fotoList: [],
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -47,31 +49,22 @@ export default function Edit({ onChangePage }) {
 
     const fetchData = async () => {
       try {
-        const response = await fetch(
-          `${API_LINK}/MasterBerita/GetDataBeritaById`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ ber_id: editId }),
-          }
+        const data = await useFetch(
+          API_LINK + `/MasterBerita/GetDataBeritaById`,
+          { id: editId }
         );
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
         if (data?.berita?.length > 0) {
-          const berita = data.berita[0];
-          const images = data.foto?.map((foto) => foto.foto_path) || [];
+          const berita = JSON.parse(data.berita)[0];
+          const foto = JSON.parse(data.foto);
+
+          const images = foto.map((fotoItem) => fotoItem.foto_path);
 
           setFormData({
-            title: berita.ber_judul,
-            date: format(new Date(berita.ber_tgl), "yyyy-MM-dd"),
-            description: berita.ber_isi,
-            author: berita.ber_penulis,
+            title: berita.judulBerita,
+            date: format(new Date(berita.tglBerita), "yyyy-MM-dd"),
+            description: decodeHtml(berita.isiBerita),
+            author: berita.penulisBerita,
             images: images,
           });
           setTempImages(images);
@@ -133,9 +126,13 @@ export default function Edit({ onChangePage }) {
       if (newFiles.length > 0) {
         const formDataUpload = new FormData();
         newFiles.forEach((file) => formDataUpload.append("files", file));
+        const folderName = "Berita";
+        const filePrefix = "FOTO";
 
         const uploadResponse = await fetch(
-          `${API_LINK}/MasterBerita/UploadFiles`,
+          `${API_LINK}/Upload/UploadFiles?folderName=${encodeURIComponent(
+            folderName
+          )}&filePrefix=${encodeURIComponent(filePrefix)}`,
           {
             method: "POST",
             body: formDataUpload,
@@ -153,29 +150,28 @@ export default function Edit({ onChangePage }) {
 
       const finalImagePaths = [...existingPaths, ...uploadedPaths];
 
-      const response = await fetch(`${API_LINK}/MasterBerita/EditBerita`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ber_id: location.state?.idData,
-          title: formData.title,
-          date: formData.date,
-          description: formData.description,
-          modif_by: formData.author,
-          images: finalImagePaths,
-          ber_penulis: formData.author,
-        }),
-      });
+      const editData = {
+        id: location.state?.idData,
+        title: formData.title,
+        date: formData.date,
+        description: formData.description,
+        penulis: formData.author,
+        fotoList: finalImagePaths,
+      };
 
-      if (!response.ok) {
-        throw new Error(`Gagal mengubah berita: ${response.statusText}`);
+      const editResponse = await useFetch(
+        `${API_LINK}/MasterBerita/EditBerita`,
+        editData,
+        "POST"
+      );
+
+      if (editResponse === "ERROR") {
+        throw new Error("Gagal memperbarui data");
       }
 
       SweetAlert(
         "Berhasil!",
-        "Data berhasil ditambahkan.",
+        "Data berhasil diperbarui.",
         "success",
         "OK"
       ).then(() => onChangePage("read"));

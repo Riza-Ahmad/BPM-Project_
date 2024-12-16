@@ -12,6 +12,8 @@ import SweetAlert from "../../../util/SweetAlert";
 import { useIsMobile } from "../../../util/useIsMobile";
 import moment from "moment";
 import "moment-timezone";
+import { useFetch } from "../../../util/useFetch";
+import { decodeHtml } from "../../../util/DecodeHtml";
 
 export default function Edit({ onChangePage }) {
   const title = "Edit Jadwal Kegiatan";
@@ -25,53 +27,40 @@ export default function Edit({ onChangePage }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
+    id: location.state?.idData,
     name: "",
     description: "",
     startDate: "",
-    endDate: "",
     startTime: "",
+    endDate: "",
     endTime: "",
     place: "",
     jenisKegiatan: "",
   });
 
-  const [deskripsi, setDeskripsi] = useState("");
   const [jenisKegiatan, setJenisKegiatan] = useState([]);
 
-  // Fetch jenis kegiatan data on component mount
   useEffect(() => {
     const fetchJenisKegiatan = async () => {
       try {
-        const response = await fetch(
+        const data = await useFetch(
           `${API_LINK}/MasterKegiatan/GetDataJenisKegiatan`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({}),
-          }
+          JSON.stringify({}),
+          "POST"
         );
-
-        if (response.ok) {
-          const data = await response.json();
-          const formattedData = data.map((item) => ({
-            Value: item.jkg_id, // ID untuk nilai dropdown
-            Text: item.jkg_nama, // Nama untuk teks dropdown
-          }));
-          setJenisKegiatan(formattedData); // Menyimpan data ke state
-        } else {
-          throw new Error("Gagal mengambil data jenis kegiatan");
-        }
+        const formattedData = data.map((item) => ({
+          Value: item.idJenisKegiatan,
+          Text: item.namaJenisKegiatan,
+        }));
+        setJenisKegiatan(formattedData);
       } catch (error) {
-        setError(error.message); // Menangani error
+        setError(error.message);
       }
     };
 
     fetchJenisKegiatan();
   }, []);
 
-  // Refs for validation
   const namaRef = useRef();
   const deskripsiRef = useRef();
   const tempatRef = useRef();
@@ -89,37 +78,27 @@ export default function Edit({ onChangePage }) {
 
     const fetchData = async () => {
       try {
-        const response = await fetch(
-          `${API_LINK}/MasterKegiatan/GetDataKegiatanById`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ keg_id: editId }),
-          }
+        const data = await useFetch(
+          API_LINK + `/MasterKegiatan/GetDataKegiatanById`,
+          { id: editId }
         );
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
         if (data) {
           setFormData({
-            name: data[0].keg_nama,
-            description: data[0].keg_deskripsi,
-            startDate: moment(data[0].keg_tgl_mulai).format("YYYY-MM-DD"),
-            endDate: moment(data[0].keg_tgl_selesai).format("YYYY-MM-DD"),
-            startTime: moment(data[0].keg_jam_mulai, "HH:mm:ss").format(
+            id: location.state.idData,
+            name: decodeHtml(data[0].namaKegiatan),
+            description: decodeHtml(data[0].deskripsiKegiatan),
+            startDate: moment(data[0].tglMulaiKegiatan).format("YYYY-MM-DD"),
+            startTime: moment(data[0].jamMulaiKegiatan, "HH:mm:ss").format(
               "HH:mm"
             ),
-            endTime: moment(data[0].keg_jam_selesai, "HH:mm:ss").format(
+            endDate: moment(data[0].tglSelesaiKegiatan).format("YYYY-MM-DD"),
+            endTime: moment(data[0].jamSelesaiKegiatan, "HH:mm:ss").format(
               "HH:mm"
             ),
 
-            place: data[0].keg_tempat,
-            jenisKegiatan: data[0].jkg_id,
+            place: data[0].tempatKegiatan,
+            jenisKegiatan: data[0].idJenisKegiatan,
           });
         }
       } catch (error) {
@@ -134,7 +113,6 @@ export default function Edit({ onChangePage }) {
   }, [location.state?.idData]);
 
   const handleSubmit = async () => {
-    console.log(jenisKegiatanRef.current.value);
     if (!namaRef.current?.validate()) {
       namaRef.current?.focus();
       return;
@@ -169,7 +147,6 @@ export default function Edit({ onChangePage }) {
       return;
     }
 
-    // Combine date and time values into Date objects
     const startDate = new Date(
       `${tglMulaiRef.current.value} ${jamMulaiRef.current.value}`
     );
@@ -177,7 +154,6 @@ export default function Edit({ onChangePage }) {
       `${tglSelesaiRef.current.value} ${jamSelesaiRef.current.value}`
     );
 
-    // Validate that start date is less than end date
     if (startDate >= endDate) {
       SweetAlert(
         "Gagal!",
@@ -188,46 +164,24 @@ export default function Edit({ onChangePage }) {
       return;
     }
 
-    const kegiatanData = {
-      keg_id: location.state?.idData,
-      keg_nama: formData.name,
-      keg_deskripsi: formData.description,
-      keg_tgl_mulai: formData.startDate,
-      keg_jam_mulai: formData.startTime,
-      keg_tgl_selesai: formData.endDate,
-      keg_jam_selesai: formData.endTime,
-      keg_tempat: formData.place,
-      keg_modif_by: "CurrentUser",
-      jkg_id: formData.jenisKegiatan,
-    };
-
-    console.log(kegiatanData);
-
     setLoading(true);
     try {
-      const response = await fetch(
+      const response = await useFetch(
         `${API_LINK}/MasterKegiatan/EditJadwalKegiatan`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(kegiatanData),
-        }
+        formData,
+        "POST"
       );
 
-      console.log(JSON.stringify(kegiatanData));
-
-      if (response.ok) {
-        SweetAlert(
-          "Berhasil!",
-          "Jadwal kegiatan berhasil dibuat.",
-          "success",
-          "OK"
-        ).then(() => onChangePage("read"));
-      } else {
-        throw new Error("Gagal membuat jadwal kegiatan");
+      if (response === "ERROR") {
+        throw new Error("Gagal memperbarui data");
       }
+
+      SweetAlert(
+        "Berhasil!",
+        "Jadwal kegiatan berhasil dibuat.",
+        "success",
+        "OK"
+      ).then(() => onChangePage("read"));
     } catch (error) {
       SweetAlert("Gagal!", error.message, "error", "OK");
     } finally {
@@ -345,7 +299,9 @@ export default function Edit({ onChangePage }) {
               ref={deskripsiRef}
               label="Deskripsi Singkat"
               initialValue={formData.description}
-              onChange={(e) => setDeskripsi(e.target.value)}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               isRequired={true}
             />
 

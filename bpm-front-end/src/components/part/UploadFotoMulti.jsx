@@ -16,6 +16,8 @@ const UploadFotoMulti = forwardRef(function UploadFotoMulti(
     errorMsg = "Field ini wajib diisi.",
     onChange,
     initialImages = [],
+    link = BERITAFOTO_LINK,
+    maxSizeFile = 5 * 1024 * 1024,
   },
   ref
 ) {
@@ -32,7 +34,7 @@ const UploadFotoMulti = forwardRef(function UploadFotoMulti(
       const mappedImages = initialImages.map((img) => ({
         type: "path",
         value: img,
-        preview: BERITAFOTO_LINK + img,
+        preview: link + img,
       }));
 
       setPreviews(mappedImages);

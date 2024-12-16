@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import moment from "moment";
-import "moment/locale/id"; // Memastikan menggunakan lokal Indonesia
+import "moment/locale/id";
 import CardKegiatan from "../../../part/CardKegiatan.jsx";
 import HeaderText from "../../../part/HeaderText.jsx";
 import { useIsMobile } from "../../../util/useIsMobile.js";
@@ -17,23 +17,33 @@ const formatDate = (startDate, endDate) => {
     year: "numeric",
   };
 
-  // Format tanggal awal
   const startFormatted = new Date(startDate).toLocaleDateString(
     "id-ID",
     options
   );
 
-  // Jika tanggal awal dan akhir sama, tampilkan hanya tanggal awal
   if (startDate === endDate) return startFormatted;
 
-  // Jika berbeda, tampilkan rentang tanggal
   const endFormatted = new Date(endDate).toLocaleDateString("id-ID", options);
   return `${startFormatted} - ${endFormatted}`;
 };
 
-const TabTahunKegiatan = ({ year, kegiatanList }) => {
+const TabTahunKegiatan = ({ year, kegiatanList, selectedId }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const isMobile = useIsMobile();
+
+  // Use effect to scroll the selected card into view when selected
+  useEffect(() => {
+    if (selectedId) {
+      const selectedElement = document.getElementById(`kegiatan-${selectedId}`);
+      if (selectedElement) {
+        selectedElement.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
+    }
+  }, [selectedId]);
 
   return (
     <div className="border rounded-5 shadow-sm mb-3 mt-3">
@@ -70,8 +80,12 @@ const TabTahunKegiatan = ({ year, kegiatanList }) => {
             <div className="col-md-6">
               {kegiatanList
                 .slice(0, Math.ceil(kegiatanList.length / 2))
-                .map((kegiatan, index) => (
-                  <div key={index} className="mb-2">
+                .map((kegiatan) => (
+                  <div
+                    key={kegiatan.id}
+                    id={`kegiatan-${kegiatan.id}`} // Ensure each card has a unique ID for scrolling
+                    className="mb-2"
+                  >
                     <CardKegiatan
                       title={kegiatan.title}
                       date={formatDate(kegiatan.startDate, kegiatan.endDate)}
@@ -90,8 +104,12 @@ const TabTahunKegiatan = ({ year, kegiatanList }) => {
             <div className="col-md-6">
               {kegiatanList
                 .slice(Math.ceil(kegiatanList.length / 2))
-                .map((kegiatan, index) => (
-                  <div key={index} className="mb-2">
+                .map((kegiatan) => (
+                  <div
+                    key={kegiatan.id}
+                    id={`kegiatan-${kegiatan.id}`} // Ensure each card has a unique ID for scrolling
+                    className="mb-2"
+                  >
                     <CardKegiatan
                       title={kegiatan.title}
                       date={formatDate(kegiatan.startDate, kegiatan.endDate)}

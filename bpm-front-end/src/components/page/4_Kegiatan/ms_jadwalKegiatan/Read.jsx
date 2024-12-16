@@ -11,6 +11,9 @@ import { useIsMobile } from "../../../util/useIsMobile";
 import SweetAlert from "../../../util/SweetAlert";
 import moment from "moment";
 import "moment-timezone";
+import { useFetch } from "../../../util/useFetch";
+import { decodeHtml } from "../../../util/DecodeHtml";
+import DropDown from "../../../part/Dropdown";
 
 export default function Read({ onChangePage }) {
   const isMobile = useIsMobile();
@@ -21,47 +24,73 @@ export default function Read({ onChangePage }) {
   ];
 
   const [events, setEvents] = useState([]);
-  const [status, setStatus] = useState("");
   const [filteredData, setFilteredData] = useState([]);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
+  const [selectedJenis, setSelectedJenis] = useState("");
   const [pageCurrent, setPageCurrent] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [status, setStatus] = useState([
+    { Value: "", Text: "Semua" },
+    { Value: 1, Text: "Rencana" },
+    { Value: 2, Text: "Terlewat" },
+    { Value: 3, Text: "Terlaksana" },
+  ]);
 
   const pageSize = 10;
+
+  const [jenisKegiatan, setJenisKegiatan] = useState([]);
+
+  useEffect(() => {
+    const fetchJenisKegiatan = async () => {
+      try {
+        const data = await useFetch(
+          `${API_LINK}/MasterKegiatan/GetDataJenisKegiatan`,
+          JSON.stringify({}),
+          "POST"
+        );
+        const formattedData = [
+          { Value: "", Text: "Semua" }, // Opsi default
+          ...data.map((item) => ({
+            Value: item.idJenisKegiatan,
+            Text: item.namaJenisKegiatan,
+          })),
+        ];
+
+        setJenisKegiatan(formattedData);
+      } catch (error) {
+        setError(error.message);
+      }
+    };
+
+    fetchJenisKegiatan();
+  }, []);
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await fetch(
-          API_LINK + "/MasterKegiatan/GetDataKegiatan",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
+        const data = await useFetch(
+          `${API_LINK}/MasterKegiatan/GetDataKegiatan`,
+          JSON.stringify({}),
+          "POST"
         );
 
-        if (!response.ok) throw new Error("Gagal mengambil data kegiatan");
-
-        const data = await response.json();
-
         const formattedEvents = data.map((item) => {
-          const startDate = moment(item.keg_tgl_mulai).format("YYYY-MM-DD");
-          const endDate = moment(item.keg_tgl_selesai).format("YYYY-MM-DD");
-
+          const startDate = moment(item.tglMulaiKegiatan).format("YYYY-MM-DD");
+          const endDate = moment(item.tglSelesaiKegiatan).format("YYYY-MM-DD");
           return {
-            id: item.keg_id,
-            title: item.keg_nama,
-            description: item.keg_deskripsi,
-            category: item.keg_kategori,
-            start: moment(`${startDate}T${item.keg_jam_mulai}`).toDate(),
-            end: moment(`${endDate}T${item.keg_jam_selesai}`).toDate(),
-            location: item.keg_tempat,
-            year: new Date(item.keg_tgl_mulai).getFullYear(),
+            id: item.idKegiatan,
+            title: decodeHtml(item.namaKegiatan),
+            description: item.deskripsiKegiatan,
+            category: item.kategoriKegiatan,
+            start: moment(`${startDate}T${item.jamMulaiKegiatan}`).toDate(),
+            end: moment(`${endDate}T${item.jamSelesaiKegiatan}`).toDate(),
+            location: item.tempatKegiatan,
+            year: new Date(item.tglMulaiKegiatan).getFullYear(),
+            idJenisKegiatan: item.idJenisKegiatan,
+            jenisKegiatan: item.namaJenisKegiatan,
           };
         });
 
@@ -94,23 +123,23 @@ export default function Read({ onChangePage }) {
     }
 
     if (selectedStatus) {
-      tempData = tempData.filter((item) => item.category === selectedStatus);
+      tempData = tempData.filter(
+        (item) => item.category === parseInt(selectedStatus)
+      );
+    }
+
+    if (selectedJenis) {
+      tempData = tempData.filter(
+        (item) => item.idJenisKegiatan === parseInt(selectedJenis)
+      );
     }
 
     setFilteredData(tempData);
-  }, [searchKeyword, selectedYear, selectedStatus, events]);
+  }, [searchKeyword, selectedJenis, selectedYear, selectedStatus, events]);
 
   const indexOfLastData = pageCurrent * pageSize;
   const indexOfFirstData = indexOfLastData - pageSize;
   const currentData = filteredData.slice(indexOfFirstData, indexOfLastData);
-
-  const eventStatus = () => {
-    if (item.category === "Terlaksana") {
-      return ["Detail"];
-    } else {
-      return ["Detail", "Edit", "Delete"];
-    }
-  };
 
   const handlePageNavigation = (page) => {
     setPageCurrent(page);
@@ -120,6 +149,7 @@ export default function Read({ onChangePage }) {
     setSearchKeyword("");
     setSelectedYear("");
     setSelectedStatus("");
+    setSelectedJenis("");
   };
 
   const handleDelete = async (id) => {
@@ -135,21 +165,15 @@ export default function Read({ onChangePage }) {
 
     if (confirm) {
       try {
-        const response = await fetch(
+        const response = await useFetch(
           `${API_LINK}/MasterKegiatan/DeleteKegiatan`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ keg_id: id, keg_modif_by: "author" }),
-          }
+          { idKeg: id },
+          "POST"
         );
 
-        if (!response.ok) throw new Error("Gagal menghapus kegiatan");
+        if (response === "ERROR") throw new Error("Gagal menghapus kegiatan");
 
-        const result = await response.text();
-        SweetAlert("Berhasil", result, "success");
+        SweetAlert("Berhasil", "Data Berhasil Dihapus", "success");
 
         setEvents((prevData) => prevData.filter((item) => item.id !== id));
       } catch (err) {
@@ -207,7 +231,7 @@ export default function Read({ onChangePage }) {
                 <div className="m-0">
                   <Filter>
                     <div className="mb-3">
-                      <label htmlFor="yearPicker" className="mb-1">
+                      <label htmlFor="yearPicker" className="mb-1 fw-bold">
                         Berdasarkan Tahun
                       </label>
                       <input
@@ -221,19 +245,21 @@ export default function Read({ onChangePage }) {
                       />
                     </div>
                     <div className="mb-3">
-                      <label htmlFor="statusPicker" className="mb-1">
-                        Berdasarkan Status
-                      </label>
-                      <select
-                        className="form-control"
+                      <DropDown
+                        arrData={status}
+                        label="Berdasarkan Status"
                         value={selectedStatus}
                         onChange={(e) => setSelectedStatus(e.target.value)}
-                      >
-                        <option value="">Semua</option>
-                        <option value="1">Rencana</option>
-                        <option value="2">Terlewat</option>
-                        <option value="3">Terlaksana</option>
-                      </select>
+                      />
+                    </div>
+
+                    <div className="mb-3">
+                      <DropDown
+                        arrData={jenisKegiatan}
+                        label="Berdasarkan Jenis Kegiatan"
+                        value={selectedJenis}
+                        onChange={(e) => setSelectedJenis(e.target.value)}
+                      />
                     </div>
 
                     <Button
@@ -252,26 +278,24 @@ export default function Read({ onChangePage }) {
                 "No",
                 "Nama Kegiatan",
                 "Tanggal Mulai",
+                "Jenis Kegiatan",
                 "Tempat",
                 "Status",
               ]}
-              headerToDataMap={{
-                No: "No",
-                "Nama Kegiatan": "NamaKegiatan",
-                "Tanggal Mulai": "TanggalMulai",
-                Tempat: "Tempat",
-                Status: "Status",
-              }}
               data={currentData.map((item, index) => ({
                 Key: item.id,
                 No: indexOfFirstData + index + 1,
-                NamaKegiatan: item.title,
-                TanggalMulai: new Date(item.start).toLocaleDateString("id-ID", {
-                  weekday: "long",
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                }),
+                "Nama Kegiatan": item.title,
+                "Tanggal Mulai": new Date(item.start).toLocaleDateString(
+                  "id-ID",
+                  {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  }
+                ),
+                "Jenis Kegiatan": item.jenisKegiatan,
                 Tempat: item.location,
                 Status:
                   item.category === 1

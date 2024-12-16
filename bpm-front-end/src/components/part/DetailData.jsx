@@ -1,4 +1,6 @@
+import { decodeHtml } from "../util/DecodeHtml";
 export default function DetailData({ label, isi, id }) {
+  const decodedIsi = decodeHtml(isi);
   return (
     <>
       <label htmlFor={id} className="form-label fw-bold">
@@ -7,7 +9,7 @@ export default function DetailData({ label, isi, id }) {
       <p
         id={id}
         className="text-secondary mb-4"
-        dangerouslySetInnerHTML={{ __html: isi }}
+        dangerouslySetInnerHTML={{ __html: decodedIsi }}
       />
     </>
   );
