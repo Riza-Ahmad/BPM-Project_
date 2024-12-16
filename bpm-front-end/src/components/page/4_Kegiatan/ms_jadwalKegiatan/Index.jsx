@@ -10,6 +10,7 @@ import Loading from "../../../part/Loading";
 import "moment-timezone";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { useFetch } from "../../../util/useFetch";
+import { useNavigate } from "react-router-dom";
 const localizer = momentLocalizer(moment);
 
 export default function Index({ onChangePage }) {
@@ -18,6 +19,7 @@ export default function Index({ onChangePage }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   const fetchEvents = async () => {
     try {
@@ -32,17 +34,17 @@ export default function Index({ onChangePage }) {
       }
 
       const formattedEvents = data.map((item) => {
-        const startDate = moment(item.keg_tgl_mulai).format("YYYY-MM-DD");
-        const endDate = moment(item.keg_tgl_selesai).format("YYYY-MM-DD");
+        const startDate = moment(item.tglMulaiKegiatan).format("YYYY-MM-DD");
+        const endDate = moment(item.tglSelesaiKegiatan).format("YYYY-MM-DD");
 
         return {
-          id: item.keg_id,
-          title: item.keg_nama,
-          description: item.keg_deskripsi,
-          category: item.keg_kategori,
-          start: moment(`${startDate}T${item.keg_jam_mulai}`).toDate(),
-          end: moment(`${endDate}T${item.keg_jam_selesai}`).toDate(),
-          location: item.keg_tempat,
+          id: item.idKegiatan,
+          title: item.namaKegiatan,
+          description: item.deskripsiKegiatan,
+          category: item.kategoriKegiatan,
+          start: moment(`${startDate}T${item.jamMulaiKegiatan}`).toDate(),
+          end: moment(`${endDate}T${item.jamSelesaiKegiatan}`).toDate(),
+          location: item.tempatKegiatan,
         };
       });
       setEvents(formattedEvents);
@@ -432,6 +434,37 @@ export default function Index({ onChangePage }) {
                   alignText="justify"
                   style={descriptionStyle}
                 ></Text>
+
+                {selectedEvent.category === 3 && (
+                  <Button
+                    classType="btn btn-primary"
+                    title="Lihat Dokumentasi"
+                    label="Lihat Dokumentasi"
+                    onClick={() =>
+                      navigate("/kegiatan/dokumentasi", {
+                        state: {
+                          idData: selectedEvent.id,
+                        },
+                      })
+                    }
+                  />
+                )}
+
+                {selectedEvent.category === 3 && (
+                  <Button
+                    classType="btn btn-success ms-3"
+                    title="Tambah Berita"
+                    label="Tambah Berita"
+                    onClick={() =>
+                      navigate("/berita/kelola/tambah", {
+                        state: {
+                          judul: selectedEvent.title,
+                          deskripsi: selectedEvent.description,
+                        },
+                      })
+                    }
+                  />
+                )}
               </div>
             </div>
           ) : (

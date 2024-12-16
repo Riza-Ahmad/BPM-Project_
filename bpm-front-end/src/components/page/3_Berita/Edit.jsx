@@ -51,7 +51,7 @@ export default function Edit({ onChangePage }) {
       try {
         const data = await useFetch(
           API_LINK + `/MasterBerita/GetDataBeritaById`,
-          { ber_id: editId }
+          { id: editId }
         );
 
         if (data?.berita?.length > 0) {
@@ -61,10 +61,10 @@ export default function Edit({ onChangePage }) {
           const images = foto.map((fotoItem) => fotoItem.foto_path);
 
           setFormData({
-            title: berita.ber_judul,
-            date: format(new Date(berita.ber_tgl), "yyyy-MM-dd"),
-            description: decodeHtml(berita.ber_isi),
-            author: berita.ber_penulis,
+            title: berita.judulBerita,
+            date: format(new Date(berita.tglBerita), "yyyy-MM-dd"),
+            description: decodeHtml(berita.isiBerita),
+            author: berita.penulisBerita,
             images: images,
           });
           setTempImages(images);
@@ -151,13 +151,12 @@ export default function Edit({ onChangePage }) {
       const finalImagePaths = [...existingPaths, ...uploadedPaths];
 
       const editData = {
-        ber_id: location.state?.idData,
+        id: location.state?.idData,
         title: formData.title,
         date: formData.date,
         description: formData.description,
-        ber_penulis: formData.author,
+        penulis: formData.author,
         fotoList: finalImagePaths,
-        modif_by: formData.author,
       };
 
       const editResponse = await useFetch(

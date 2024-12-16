@@ -3,7 +3,6 @@ import Icon from "./Icon";
 
 export default function Table({
   arrHeader,
-  headerToDataMap,
   data,
   actions = [],
   onDelete = () => {},
@@ -172,6 +171,14 @@ export default function Table({
           {data.length > 0 ? (
             data.map((row, rowIndex) => (
               <tr key={`row-${rowIndex}`}>
+                {arrHeader.map((column, colIndex) => (
+                  <td
+                    key={`cell-${rowIndex}-${colIndex}`}
+                    className={`align-middle ${
+                      column === "No" ? "text-center" : "text-start"
+                    }`}
+                  >
+                    {row[column] || ""}
                 {arrHeader.map((header, colIndex) => (
                   <td key={`cell-${rowIndex}-${colIndex}`} className="align-middle text-start">
                     {row[headerToDataMap[header]]}  {/* Mengambil data berdasarkan peta */}

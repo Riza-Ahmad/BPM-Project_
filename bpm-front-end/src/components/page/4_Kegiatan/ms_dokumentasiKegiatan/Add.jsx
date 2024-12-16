@@ -6,23 +6,33 @@ import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
 import Loading from "../../../part/Loading";
 import DropDown from "../../../part/Dropdown";
+import FileUpload from "../../../part/FileUpload";
+import RadioButton from "../../../part/RadioButton";
+import UploadFoto from "../../../part/UploadFoto";
+import { uploadFile } from "../../../util/UploadFile";
 import { API_LINK } from "../../../util/Constants";
 import SweetAlert from "../../../util/SweetAlert";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { useFetch } from "../../../util/useFetch";
 
 export default function Add({ onChangePage }) {
-  const title = "Tambah Jadwal Kegiatan";
+  const title = "Tambah Dokumentasi Kegiatan";
   const breadcrumbs = [
-    { label: "Jadwal Kegiatan", href: "/kegiatan/jadwal" },
-    { label: "Kelola Jadwal Kegiatan", href: "/kegiatan/jadwal/kelola" },
-    { label: "Tambah Jadwal Kegiatan" },
+    { label: "Dokumentasi Kegiatan", href: "/kegiatan/dokumentasi" },
+    {
+      label: "Kelola Dokumentasi Kegiatan",
+      href: "/kegiatan/dokumentasi/kelola",
+    },
+    { label: "Tambah Dokumentasi Kegiatan" },
   ];
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFoto, setSelectedFoto] = useState(null);
 
   const [formData, setFormData] = useState({
+    jenisKegiatan: "",
     name: "",
     description: "",
     startDate: "",
@@ -30,7 +40,8 @@ export default function Add({ onChangePage }) {
     endDate: "",
     endTime: "",
     place: "",
-    jenisKegiatan: "",
+    linkFolder: "",
+    statusFileNotulen: 0,
   });
 
   const [jenisKegiatan, setJenisKegiatan] = useState([]);
@@ -56,6 +67,14 @@ export default function Add({ onChangePage }) {
     fetchJenisKegiatan();
   }, []);
 
+  const handleFileChange = (file) => {
+    setSelectedFile(file);
+  };
+
+  const handleFotoChange = (file) => {
+    setSelectedFoto(file);
+  };
+
   // Refs for validation
   const namaRef = useRef();
   const deskripsiRef = useRef();
@@ -65,9 +84,17 @@ export default function Add({ onChangePage }) {
   const tglSelesaiRef = useRef();
   const jamSelesaiRef = useRef();
   const jenisKegiatanRef = useRef();
+  const folderLinkRef = useRef();
+  const fotoSampulRef = useRef();
+  const fileNotulenRef = useRef();
+  const statusFileNotulenRef = useRef();
 
   const handleSubmit = async () => {
-    console.log(jenisKegiatanRef.current.value);
+    if (!formData.name) {
+      SweetAlert("Error", "Nama kegiatan is required", "error", "OK");
+      return;
+    }
+
     if (!namaRef.current?.validate()) {
       namaRef.current?.focus();
       return;
@@ -102,9 +129,18 @@ export default function Add({ onChangePage }) {
       return;
     }
 
+    if (!folderLinkRef.current?.validate()) {
+      folderLinkRef.current?.focus();
+      return;
+    }
+
+    if (fileNotulenRef.current?.value === "") {
+      fileNotulenRef.current?.focus();
+      return;
+    }
+
     console.log(formData);
 
-    // Combine date and time values into Date objects
     const startDate = new Date(
       `${tglMulaiRef.current.value} ${jamMulaiRef.current.value}`
     );
@@ -112,7 +148,6 @@ export default function Add({ onChangePage }) {
       `${tglSelesaiRef.current.value} ${jamSelesaiRef.current.value}`
     );
 
-    // Validate that start date is less than end date
     if (startDate >= endDate) {
       SweetAlert(
         "Gagal!",
@@ -122,28 +157,64 @@ export default function Add({ onChangePage }) {
       );
       return;
     }
-    setLoading(true);
-    try {
-      const response = await useFetch(
-        `${API_LINK}/MasterKegiatan/CreateJadwalKegiatan`,
-        formData,
-        "POST"
+    let uploadedFileNotulen = null;
+    let uploadedFotoSampul = null;
+
+    if (selectedFile) {
+      const folderName = "Kegiatan";
+      const filePrefix = "NOTULEN";
+      uploadedFileNotulen = await uploadFile(
+        selectedFile,
+        folderName,
+        filePrefix
       );
-
-      if (response === "ERROR") {
-        throw new Error("Gagal memperbarui data");
-      }
-
-      SweetAlert(
-        "Berhasil!",
-        "Jadwal kegiatan berhasil dibuat.",
-        "success",
-        "OK"
-      ).then(() => onChangePage("read"));
-    } catch (error) {
-      SweetAlert("Gagal!", error.message, "error", "OK");
-      setLoading(false);
     }
+
+    if (selectedFoto) {
+      const folderName = "Kegiatan";
+      const filePrefix = "FOTO";
+      uploadedFotoSampul = await uploadFile(
+        selectedFoto,
+        folderName,
+        filePrefix
+      );
+    }
+
+    setFormData((prevData) => {
+      const newFormData = {
+        ...prevData,
+        fileNotulen: uploadedFileNotulen[0],
+        fotoSampul: uploadedFotoSampul[0],
+      };
+
+      console.log(newFormData);
+
+      setLoading(true);
+      useFetch(
+        `${API_LINK}/MasterKegiatan/CreateDokumentasiKegiatan`,
+        newFormData,
+        "POST"
+      )
+        .then((response) => {
+          if (response === "ERROR") {
+            throw new Error("Gagal memperbarui data");
+          }
+          SweetAlert(
+            "Berhasil!",
+            "Dokumentasi kegiatan berhasil dibuat.",
+            "success",
+            "OK"
+          ).then(() => onChangePage("read"));
+        })
+        .catch((error) => {
+          SweetAlert("Gagal!", error.message, "error", "OK");
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+
+      return newFormData;
+    });
   };
 
   if (loading) return <Loading />;
@@ -167,12 +238,12 @@ export default function Add({ onChangePage }) {
                 : "shadow p-5 m-5 mt-0 bg-white rounded"
             }
           >
-            <HeaderForm label="Formulir Jadwal Kegiatan" />
+            <HeaderForm label="Formulir Dokumentasi Kegiatan" />
             <div className="row">
               <InputField
                 ref={namaRef}
                 label="Nama Kegiatan"
-                value={formData.name}
+                value={formData.name || ""}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
@@ -261,6 +332,56 @@ export default function Add({ onChangePage }) {
               }
               isRequired={true}
             />
+
+            <div className="row">
+              <div className="col-lg-6 col-md-6">
+                <InputField
+                  ref={folderLinkRef}
+                  label="Link Folder Dokumentasi"
+                  value={formData.linkFolder || ""} // Fallback ke string kosong
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      linkFolder: e.target.value,
+                    }))
+                  }
+                  isRequired={true}
+                />
+                <FileUpload
+                  ref={fileNotulenRef}
+                  label="File Notulensi"
+                  forInput="upload-file"
+                  formatFile=".pdf"
+                  onChange={(file) => handleFileChange(file)}
+                  isRequired="true"
+                />
+                <RadioButton
+                  ref={statusFileNotulenRef}
+                  label="Sifat File Notulensi"
+                  name="options"
+                  arrData={[
+                    { Value: 0, Text: "Privat" },
+                    { Value: 1, Text: "Publik" },
+                  ]}
+                  value={Number(formData.statusFileNotulen) || 0} // Fallback ke string kosong
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      statusFileNotulen: e.target.value,
+                    }))
+                  }
+                  isRequired={true}
+                />
+              </div>
+              <div className="col-lg-6 col-md-6">
+                <UploadFoto
+                  id="upload-foto"
+                  label="Foto Sampul"
+                  onChange={(file) => handleFotoChange(file)}
+                  isRequired="true"
+                />
+              </div>
+            </div>
 
             <div className="d-flex justify-content-between align-items-center">
               <div className="flex-grow-1 m-2">

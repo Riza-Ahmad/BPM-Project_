@@ -29,26 +29,26 @@ const LihatBerita = ({ onChangePage }) => {
         );
 
         const groupedBerita = result.reduce((acc, item) => {
-          if (!acc[item.ber_id]) {
-            acc[item.ber_id] = {
-              id: item.ber_id,
-              title: item.ber_judul,
-              date: new Date(item.ber_tgl),
+          if (!acc[item.idBerita]) {
+            acc[item.idBerita] = {
+              id: item.idBerita,
+              title: item.judulBerita,
+              date: new Date(item.tglBerita),
               formattedDate: format(
-                new Date(item.ber_tgl),
+                new Date(item.tglBerita),
                 "EEEE, dd MMMM yyyy",
                 {
                   locale: id,
                 }
               ),
-              year: new Date(item.ber_tgl).getFullYear(),
-              description: item.ber_isi,
-              author: item.ber_penulis,
+              year: new Date(item.tglBerita).getFullYear(),
+              description: item.isiBerita,
+              author: item.penulisBerita,
               images: [],
             };
           }
-          if (item.dbr_foto) {
-            acc[item.ber_id].images.push(item.dbr_foto);
+          if (item.fotoBerita) {
+            acc[item.idBerita].images.push(item.fotoBerita);
           }
           return acc;
         }, {});
@@ -58,7 +58,6 @@ const LihatBerita = ({ onChangePage }) => {
         );
 
         setBeritaData(sortedBerita);
-        console.log(sortedBerita);
       } catch (err) {
         console.error("Fetch error:", err);
         setError("Gagal mengambil data");

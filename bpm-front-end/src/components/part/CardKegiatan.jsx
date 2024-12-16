@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Text from "./Text";
 import HeaderText from "./HeaderText";
-import { BERITAFOTO_LINK } from "../util/Constants";
+import { KEGIATANFILE_LINK } from "../util/Constants";
 import { useIsMobile } from "../util/useIsMobile";
 
 const CardKegiatan = ({ title, date, time, location, image, galleryLink }) => {
@@ -50,7 +50,7 @@ const CardKegiatan = ({ title, date, time, location, image, galleryLink }) => {
             style={{ height: "100%" }}
           >
             <img
-              src={BERITAFOTO_LINK + image}
+              src={KEGIATANFILE_LINK + image}
               alt="Kegiatan"
               className="img-fluid rounded mb-3"
               style={{
