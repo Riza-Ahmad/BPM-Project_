@@ -8,6 +8,7 @@ import Modal from "../../../part/Modal";
 import Filter from "../../../part/Filter";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../../../util/useIsMobile";
+import Swal from "sweetalert2";
 
 export default function Index() {
   const [pageSize] = useState(10);
@@ -113,6 +114,54 @@ export default function Index() {
     fetchSkala();
   }, []);
 
+  const handleDelete = async (id) => {
+    // Menyiapkan parameter sesuai stored procedure
+    const parameters = {
+      p1: id, // ID Skala yang akan dihapus
+      p2: "Admin", // User yang melakukan modifikasi
+    };
+
+    // Menampilkan konfirmasi menggunakan SweetAlert
+    const confirm = await Swal.fire({
+      title: "Konfirmasi",
+      text: "Apakah Anda yakin ingin menghapus Skala Penilaian ini?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Hapus",
+      cancelButtonText: "Batal",
+    });
+
+    // Jika user menekan tombol konfirmasi
+    if (confirm.isConfirmed) {
+      try {
+        const response = await fetch(
+          `${API_LINK}/SkalaPenilaian/DeleteSkalaPenilaian`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(parameters),
+          }
+        );
+
+        if (!response.ok) throw new Error("Gagal menghapus Skala Penilaian.");
+
+        Swal.fire("Berhasil", "Skala Penilaian berhasil dihapus.", "success");
+
+        // Memperbarui data setelah penghapusan
+        fetchSkala();
+      } catch (err) {
+        console.error("Error:", err);
+        Swal.fire(
+          "Gagal",
+          "Terjadi kesalahan saat menghapus Skala Penilaian.",
+          "error"
+        );
+      }
+    }
+  };
+
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1" style={{ marginTop: "80px" }}>
@@ -185,12 +234,13 @@ export default function Index() {
             style={{ margin: isMobile ? "1rem" : "3rem" }}
           >
             <Table
-              arrHeader={["No", "Tipe Skala", "Skala", "Deskripsi"]}
+              arrHeader={["No", "Tipe Skala", "Skala", "Deskripsi", "Status"]}
               headerToDataMap={{
                 No: "No",
                 "Tipe Skala": "skp_tipe",
                 Skala: "skp_skala",
                 Deskripsi: "skp_deskripsi",
+                Status: "skp_status",
               }}
               data={currentData.map((item, index) => ({
                 key: item.skp_id,
@@ -198,10 +248,15 @@ export default function Index() {
                 skp_tipe: item.skp_tipe,
                 skp_skala: item.skp_skala,
                 skp_deskripsi: item.skp_deskripsi,
+                skp_status: item.skp_status === "1" ? "Tidak Aktif" : " Aktif",
+
               }))}
-              actions={["Detail", "Edit"]}
+              actions={["Detail","Toggle","Edit"]}
               onDetail={(item) => {
                 handleDetailSkala(item.key);
+              }}
+              onToggle={(item) => {
+                handleDelete(item.key);
               }}
               onEdit={(id) =>
                 handleSelectSkala(
