@@ -73,6 +73,21 @@ const UploadFotoMulti = forwardRef(function UploadFotoMulti(
       return; // Batalkan proses jika ada file yang tidak valid
     }
 
+    // Validasi ukuran file
+    const oversizedFiles = selectedFiles.filter(
+      (file) => file.size > maxSizeFile
+    );
+    if (oversizedFiles.length > 0) {
+      SweetAlert(
+        "Gagal!",
+        `Ukuran file tidak boleh lebih dari ${maxSizeFile / (1024 * 1024)} MB.`,
+        "error",
+        "OK"
+      );
+      inputRef.current.value = ""; // Kosongkan input field
+      return; // Batalkan proses jika ada file yang ukurannya melebihi batas
+    }
+
     // File valid diproses
     const validFiles = selectedFiles.filter((file) =>
       file.type.startsWith("image/")

@@ -1,28 +1,42 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import PageTitleNav from "../../../part/PageTitleNav";
 import InputField from "../../../part/InputField";
 import TextArea from "../../../part/TextArea";
+import DropDown from "../../../part/Dropdown";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
 import Loading from "../../../part/Loading";
-import DropDown from "../../../part/Dropdown";
-import { API_LINK } from "../../../util/Constants";
+import { API_LINK, KEGIATANFILE_LINK } from "../../../util/Constants";
 import SweetAlert from "../../../util/SweetAlert";
 import { useIsMobile } from "../../../util/useIsMobile";
+import moment from "moment";
+import "moment-timezone";
 import { useFetch } from "../../../util/useFetch";
+import { decodeHtml } from "../../../util/DecodeHtml";
+import FileUpload from "../../../part/FileUpload";
+import RadioButton from "../../../part/RadioButton";
+import UploadFoto from "../../../part/UploadFoto";
+import { uploadFile } from "../../../util/UploadFile";
 
-export default function Add({ onChangePage }) {
-  const title = "Tambah Jadwal Kegiatan";
+export default function Edit({ onChangePage }) {
+  const title = "Edit Dokumentasi Kegiatan";
   const breadcrumbs = [
-    { label: "Jadwal Kegiatan", href: "/kegiatan/jadwal" },
-    { label: "Kelola Jadwal Kegiatan", href: "/kegiatan/jadwal/kelola" },
-    { label: "Tambah Jadwal Kegiatan" },
+    { label: "Dokumentasi Kegiatan", href: "/kegiatan/dokumentasi" },
+    {
+      label: "Kelola Dokumentasi Kegiatan",
+      href: "/kegiatan/dokumentasi/kelola",
+    },
+    { label: "Edit Dokumentasi Kegiatan" },
   ];
   const isMobile = useIsMobile();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFoto, setSelectedFoto] = useState(null);
   const [formData, setFormData] = useState({
+    id: location.state?.idData,
     name: "",
     description: "",
     startDate: "",
@@ -31,6 +45,7 @@ export default function Add({ onChangePage }) {
     endTime: "",
     place: "",
     jenisKegiatan: "",
+    linkFolder: "",
   });
 
   const [jenisKegiatan, setJenisKegiatan] = useState([]);
@@ -65,9 +80,66 @@ export default function Add({ onChangePage }) {
   const tglSelesaiRef = useRef();
   const jamSelesaiRef = useRef();
   const jenisKegiatanRef = useRef();
+  const folderLinkRef = useRef();
+  const fotoSampulRef = useRef();
+  const fileNotulenRef = useRef();
+  const statusFileNotulenRef = useRef();
+
+  useEffect(() => {
+    if (!location.state?.idData) return;
+
+    const editId = location.state.idData;
+    setLoading(true);
+
+    const fetchData = async () => {
+      try {
+        const data = await useFetch(
+          API_LINK + `/MasterKegiatan/GetDataKegiatanById`,
+          { id: editId }
+        );
+
+        if (data) {
+          setFormData({
+            id: location.state.idData,
+            jenisKegiatan: data[0].idJenisKegiatan,
+            name: decodeHtml(data[0].namaKegiatan),
+            description: decodeHtml(data[0].deskripsiKegiatan),
+            startDate: moment(data[0].tglMulaiKegiatan).format("YYYY-MM-DD"),
+            startTime: moment(data[0].jamMulaiKegiatan, "HH:mm:ss").format(
+              "HH:mm"
+            ),
+            endDate: moment(data[0].tglSelesaiKegiatan).format("YYYY-MM-DD"),
+            endTime: moment(data[0].jamSelesaiKegiatan, "HH:mm:ss").format(
+              "HH:mm"
+            ),
+
+            place: data[0].tempatKegiatan,
+            statusFileNotulen: data[0].statusFileNotulenKegiatan,
+            linkFolder: data[0].linkFolderKegiatan,
+            fileNotulen: data[0].fileNotulenKegiatan,
+            fotoSampul: data[0].fotoSampulKegiatan,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setError("Failed to fetch data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [location.state?.idData]);
+
+  const handleFileChange = (file) => {
+    setSelectedFile(file);
+  };
+
+  const handleFotoChange = (file) => {
+    setSelectedFoto(file);
+  };
 
   const handleSubmit = async () => {
-    console.log(jenisKegiatanRef.current.value);
     if (!namaRef.current?.validate()) {
       namaRef.current?.focus();
       return;
@@ -97,12 +169,15 @@ export default function Add({ onChangePage }) {
       return;
     }
 
-    if (!jenisKegiatanRef.current?.validate()) {
+    if (!jenisKegiatanRef.current?.value) {
       jenisKegiatanRef.current?.focus();
       return;
     }
 
-    console.log(formData);
+    if (!folderLinkRef.current?.validate()) {
+      folderLinkRef.current?.focus();
+      return;
+    }
 
     // Combine date and time values into Date objects
     const startDate = new Date(
@@ -122,11 +197,45 @@ export default function Add({ onChangePage }) {
       );
       return;
     }
+
+    let updatedFileNotulen = formData.fileNotulen;
+    let updatedFotoSampul = formData.fotoSampul;
+
+    if (selectedFile) {
+      const folderName = "Kegiatan";
+      const filePrefix = "NOTULEN";
+      const uploadedFile = await uploadFile(
+        selectedFile,
+        folderName,
+        filePrefix
+      );
+      updatedFileNotulen = uploadedFile[0]; // Hasil upload digunakan langsung
+    }
+
+    if (selectedFoto) {
+      const folderName = "Kegiatan";
+      const filePrefix = "FOTO";
+      const uploadedFoto = await uploadFile(
+        selectedFoto,
+        folderName,
+        filePrefix
+      );
+      updatedFotoSampul = uploadedFoto[0]; // Hasil upload digunakan langsung
+    }
+
+    const updatedFormData = {
+      ...formData,
+      fileNotulen: updatedFileNotulen,
+      fotoSampul: updatedFotoSampul,
+    };
+
+    console.log(updatedFormData);
+
     setLoading(true);
     try {
       const response = await useFetch(
-        `${API_LINK}/MasterKegiatan/CreateJadwalKegiatan`,
-        formData,
+        `${API_LINK}/MasterKegiatan/EditDokumentasiKegiatan`,
+        updatedFormData,
         "POST"
       );
 
@@ -142,6 +251,7 @@ export default function Add({ onChangePage }) {
       ).then(() => onChangePage("read"));
     } catch (error) {
       SweetAlert("Gagal!", error.message, "error", "OK");
+    } finally {
       setLoading(false);
     }
   };
@@ -167,7 +277,7 @@ export default function Add({ onChangePage }) {
                 : "shadow p-5 m-5 mt-0 bg-white rounded"
             }
           >
-            <HeaderForm label="Formulir Jadwal Kegiatan" />
+            <HeaderForm label="Formulir Dokumentasi Kegiatan" />
             <div className="row">
               <InputField
                 ref={namaRef}
@@ -255,12 +365,64 @@ export default function Add({ onChangePage }) {
             <TextArea
               ref={deskripsiRef}
               label="Deskripsi Singkat"
-              value={formData.description}
+              initialValue={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
               isRequired={true}
             />
+
+            <div className="row">
+              <div className="col-lg-6 col-md-6">
+                <InputField
+                  ref={folderLinkRef}
+                  label="Link Folder Dokumentasi"
+                  value={formData.linkFolder || ""} // Fallback ke string kosong
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      linkFolder: e.target.value,
+                    }))
+                  }
+                  isRequired={true}
+                />
+                <FileUpload
+                  ref={fileNotulenRef}
+                  label="File Notulensi"
+                  forInput="upload-file"
+                  formatFile=".pdf"
+                  onChange={(file) => handleFileChange(file)}
+                  hasExisting={KEGIATANFILE_LINK + formData.fileNotulen}
+                  isRequired="true"
+                />
+                <RadioButton
+                  ref={statusFileNotulenRef}
+                  label="Sifat File Notulensi"
+                  name="options"
+                  arrData={[
+                    { Value: 0, Text: "Privat" },
+                    { Value: 1, Text: "Publik" },
+                  ]}
+                  value={Number(formData.statusFileNotulen) || 0} // Fallback ke string kosong
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      statusFileNotulen: e.target.value,
+                    }))
+                  }
+                  isRequired={true}
+                />
+              </div>
+              <div className="col-lg-6 col-md-6">
+                <UploadFoto
+                  id="upload-foto"
+                  label="Foto Sampul"
+                  onChange={(file) => handleFotoChange(file)}
+                  hasExisting={KEGIATANFILE_LINK + formData.fotoSampul}
+                  isRequired="true"
+                />
+              </div>
+            </div>
 
             <div className="d-flex justify-content-between align-items-center">
               <div className="flex-grow-1 m-2">

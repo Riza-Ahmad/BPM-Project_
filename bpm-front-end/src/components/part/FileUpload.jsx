@@ -1,4 +1,4 @@
-import { forwardRef, useState, useImperativeHandle } from "react";
+import { forwardRef, useRef, useState, useImperativeHandle } from "react";
 
 const FileUpload = forwardRef(function FileUpload(
   {
@@ -10,37 +10,65 @@ const FileUpload = forwardRef(function FileUpload(
     errorMessage,
     hasExisting,
     maxSizeFile = 10 * 1024 * 1024, // Default 10 MB
-    onChange, // Fungsi onChange diterima sebagai prop
+    onChange,
     ...props
   },
   ref
 ) {
-  const [fileError, setFileError] = useState(""); // Untuk menyimpan pesan error ukuran file
+  const [fileError, setFileError] = useState("");
+  const [file, setFile] = useState(null);
+  const inputRef = useRef();
 
-  // Fungsi untuk menangani perubahan file
   const handleFileChange = (event) => {
-    const file = event.target.files[0];
+    const selectedFile = event.target.files[0];
 
-    if (file) {
-      // Validasi ukuran file
-      if (file.size > maxSizeFile) {
+    if (selectedFile) {
+      if (selectedFile.size > maxSizeFile) {
         setFileError(
           `Ukuran berkas tidak boleh lebih dari ${
             maxSizeFile / (1024 * 1024)
           } MB`
         );
-        // Mengosongkan file input agar file yang lebih besar tidak tetap dipilih
+        setFile(null);
         event.target.value = null;
       } else {
-        setFileError(""); // Reset error jika ukuran file valid
+        setFileError("");
+        setFile(selectedFile);
 
-        // Jika onChange diteruskan sebagai prop, panggil dan kirim file ke parent
         if (onChange) {
-          onChange(file); // Mengirim file ke komponen parent
+          onChange(selectedFile);
         }
       }
+    } else {
+      setFile(null);
     }
   };
+
+  useImperativeHandle(ref, () => ({
+    validate() {
+      if (isRequired && !file) {
+        setFileError("Field ini wajib diisi.");
+        return false;
+      }
+      if (file && file.size > maxSizeFile) {
+        setFileError(
+          `Ukuran berkas tidak boleh lebih dari ${
+            maxSizeFile / (1024 * 1024)
+          } MB`
+        );
+        return false;
+      }
+      setFileError("");
+      return true;
+    },
+    reset() {
+      setFile(null);
+      setFileError("");
+    },
+    focus() {
+      inputRef.current?.focus();
+    },
+  }));
 
   return (
     <>
@@ -59,19 +87,19 @@ const FileUpload = forwardRef(function FileUpload(
         {!isDisabled ? (
           <>
             <input
+              ref={inputRef}
               type="file"
               id={forInput}
               name={forInput}
               accept={formatFile}
-              className="form-control"
-              ref={ref}
-              onChange={handleFileChange} // Panggil handleFileChange di sini
+              className={`form-control mt-2 ${fileError ? "is-invalid" : ""}`}
+              onChange={handleFileChange}
               {...props}
             />
             {fileError && (
-              <span className="fw-normal text-danger">
-                <br />
+              <span className="text-danger small">
                 {fileError}
+                <br />
               </span>
             )}
             <sub>

@@ -70,14 +70,10 @@ export default function Read({ onChangePage }) {
           >
             <Table
               arrHeader={["No", "Kategori"]}
-              headerToDataMap={{
-                No: "No",
-                Kategori: "ten_category",
-              }}
               data={currentData.map((item, index) => ({
-                Key: item.ten_id,
+                Key: item.idTentang,
                 No: indexOfFirstData + index + 1,
-                ten_category: item.ten_category,
+                Kategori: item.kategoriTentang,
               }))}
               actions={["Detail", "Edit"]}
               onEdit={(item) =>

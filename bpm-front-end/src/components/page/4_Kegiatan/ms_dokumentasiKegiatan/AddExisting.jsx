@@ -15,6 +15,10 @@ import { useIsMobile } from "../../../util/useIsMobile";
 import InputField from "../../../part/InputField";
 import FileUpload from "../../../part/FileUpload";
 import { uploadFile } from "../../../util/UploadFile";
+import SweetAlert from "../../../util/SweetAlert";
+import { useFetch } from "../../../util/useFetch";
+import { useLocation } from "react-router-dom";
+import { decodeHtml } from "../../../util/DecodeHtml";
 
 export default function AddExisting({ onChangePage }) {
   const title = "Tambah Dokumentasi Kegiatan";
@@ -34,28 +38,29 @@ export default function AddExisting({ onChangePage }) {
 
   const [formData, setFormData] = useState({
     id: "",
-    name: "",
-    description: "-",
-    startDate: "-",
-    endDate: "-",
-    startTime: "-",
-    endTime: "-",
-    place: "-",
-    jenisKegiatan: "-",
-    fotoSampul: "",
-    linkFolder: "",
-    fileNotulen: "",
     statusFileNotulen: 0,
   });
 
   const [tempForm, settempForm] = useState({
+    description: "-",
+    place: "-",
     startDate: "-",
     endDate: "-",
     startTime: "-",
     endTime: "-",
+    jenisKegiatan: "-",
   });
 
   const [existingKegiatan, setExistingKegiatan] = useState([]);
+  const location = useLocation();
+
+  useEffect(() => {
+    const idData = location.state?.idData;
+
+    if (idData && existingKegiatan.length > 0) {
+      handleDropdownChange({ target: { value: idData } });
+    }
+  }, [location.state?.idData, existingKegiatan]); // Tambahkan existingKegiatan sebagai dependency
 
   const namaRef = useRef();
   const folderLinkRef = useRef();
@@ -63,40 +68,28 @@ export default function AddExisting({ onChangePage }) {
   const fileNotulenRef = useRef();
   const statusFileNotulenRef = useRef();
 
-  // Fetch kegiatan data
   useEffect(() => {
     const fetchExistingKegiatan = async () => {
       try {
-        const response = await fetch(
+        const data = await useFetch(
           `${API_LINK}/MasterKegiatan/GetDataKegiatanByCategory`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ keg_kategori: 2 }),
-          }
+          { kategori: 2 },
+          "POST"
         );
-
-        if (response.ok) {
-          const data = await response.json();
-          const formattedData = data.map((item) => ({
-            Value: item.keg_id,
-            Text: item.keg_nama,
-            keg_deskripsi: item.keg_deskripsi,
-            keg_tgl_mulai: item.keg_tgl_mulai,
-            keg_tgl_selesai: item.keg_tgl_selesai,
-            keg_jam_mulai: item.keg_jam_mulai,
-            keg_jam_selesai: item.keg_jam_selesai,
-            keg_tempat: item.keg_tempat,
-            jkg_nama: item.jkg_nama,
-            jgk_id: item.jkg_id,
-          }));
-          setExistingKegiatan(formattedData);
-          setLoading(false);
-        } else {
-          throw new Error("Gagal mengambil data kegiatan");
-        }
+        const formattedData = data.map((item) => ({
+          Value: item.idKegiatan,
+          Text: decodeHtml(item.namaKegiatan),
+          deskripsiJenisKegiatan: decodeHtml(item.deskripsiKegiatan),
+          tglMulaiKegiatan: item.tglMulaiKegiatan,
+          tglSelesaiKegiatan: item.tglSelesaiKegiatan,
+          jamMulaiKegiatan: item.jamMulaiKegiatan,
+          jamselesaiKegiatan: item.jamSelesaiKegiatan,
+          tempatKegiatan: item.tempatKegiatan,
+          namaJenisKegiatan: item.namaJenisKegiatan,
+          idJenisKegiatan: item.idJenisKegiatan,
+        }));
+        setExistingKegiatan(formattedData);
+        setLoading(false);
       } catch (error) {
         setError(error.message);
         setLoading(false);
@@ -115,29 +108,35 @@ export default function AddExisting({ onChangePage }) {
     if (selectedData) {
       setFormData({
         id: selectedData.Value,
-        jenisKegiatan: selectedData.jkg_id,
+        jenisKegiatan: selectedData.idJenisKegiatan,
         name: selectedData.Text,
-        description: selectedData.keg_deskripsi,
-        startDate: selectedData.keg_tgl_mulai,
-        startTime: selectedData.keg_jam_mulai,
-        endDate: selectedData.keg_tgl_selesai,
-        endTime: selectedData.keg_jam_selesai,
-        place: selectedData.keg_tempat,
+        description: selectedData.deskripsiJenisKegiatan,
+        startDate: moment(selectedData.tglMulaiKegiatan).format("YYYY-MM-DD"), // Format tanggal
+        startTime: moment(selectedData.jamMulaiKegiatan, "HH:mm:ss").format(
+          "HH:mm"
+        ), // Format waktu
+        endDate: moment(selectedData.tglSelesaiKegiatan).format("YYYY-MM-DD"), // Format tanggal
+        endTime: moment(selectedData.jamselesaiKegiatan, "HH:mm:ss").format(
+          "HH:mm"
+        ), // Format waktu
+        place: selectedData.tempatKegiatan,
         statusFileNotulen: 0,
       });
 
       settempForm({
-        jenisKegiatan: selectedData.jkg_nama,
-        startDate: moment(selectedData.keg_tgl_mulai).format(
+        description: selectedData.deskripsiJenisKegiatan,
+        jenisKegiatan: selectedData.namaJenisKegiatan,
+        place: selectedData.tempatKegiatan,
+        startDate: moment(selectedData.tglMulaiKegiatan).format(
           "dddd, DD MMMM YYYY"
         ),
-        endDate: moment(selectedData.keg_tgl_selesai).format(
+        endDate: moment(selectedData.tglSelesaiKegiatan).format(
           "dddd, DD MMMM YYYY"
         ),
-        startTime: moment(selectedData.keg_jam_mulai, "HH:mm:ss").format(
+        startTime: moment(selectedData.jamMulaiKegiatan, "HH:mm:ss").format(
           "HH:mm [WIB]"
         ),
-        endTime: moment(selectedData.keg_jam_selesai, "HH:mm:ss").format(
+        endTime: moment(selectedData.jamselesaiKegiatan, "HH:mm:ss").format(
           "HH:mm [WIB]"
         ),
       });
@@ -163,38 +162,73 @@ export default function AddExisting({ onChangePage }) {
       return;
     }
 
-    if (fileNotulenRef.current?.value === "") {
+    if (!fotoSampulRef.current?.validate()) {
+      fotoSampulRef.current?.focus();
+
+      return;
+    }
+
+    if (!fileNotulenRef.current?.validate()) {
       fileNotulenRef.current?.focus();
       return;
     }
 
+    let uploadedFileNotulen = formData.fileNotulen;
+    let uploadedFotoSampul = formData.fotoSampul;
+
     if (selectedFile) {
       const folderName = "Kegiatan";
       const filePrefix = "NOTULEN";
-
-      const uploadResult = await uploadFile(
+      uploadedFileNotulen = await uploadFile(
         selectedFile,
         folderName,
         filePrefix
       );
-
-      setFormData({ ...formData, fileNotulen: uploadResult });
     }
 
     if (selectedFoto) {
       const folderName = "Kegiatan";
       const filePrefix = "FOTO";
-
-      const uploadResult = await uploadFile(
+      uploadedFotoSampul = await uploadFile(
         selectedFoto,
         folderName,
         filePrefix
       );
-
-      setFormData({ ...formData, fotoSampul: uploadResult });
     }
 
-    console.log(formData);
+    setFormData((prevData) => {
+      const newFormData = {
+        ...prevData,
+        fileNotulen: uploadedFileNotulen[0],
+        fotoSampul: uploadedFotoSampul[0],
+      };
+
+      setLoading(true);
+      useFetch(
+        `${API_LINK}/MasterKegiatan/EditDokumentasiKegiatan`,
+        newFormData,
+        "POST"
+      )
+        .then((response) => {
+          if (response === "ERROR") {
+            throw new Error("Gagal memperbarui data");
+          }
+          SweetAlert(
+            "Berhasil!",
+            "Dokumentasi kegiatan berhasil dibuat.",
+            "success",
+            "OK"
+          ).then(() => onChangePage("read"));
+        })
+        .catch((error) => {
+          SweetAlert("Gagal!", error.message, "error", "OK");
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+
+      return newFormData;
+    });
   };
 
   if (loading) return <Loading />;
@@ -240,18 +274,18 @@ export default function AddExisting({ onChangePage }) {
                 <DetailData label="Waktu Mulai" isi={tempForm.startTime} />
               </div>
               <div className="col-lg-6 col-md-6">
-                <DetailData label="Tempat" isi={formData.place} />
+                <DetailData label="Tempat" isi={tempForm.place} />
                 <DetailData label="Tanggal Selesai" isi={tempForm.endDate} />
                 <DetailData label="Waktu Selesai" isi={tempForm.endTime} />
               </div>
             </div>
-            <DetailData label="Deskripsi Singkat" isi={formData.description} />
+            <DetailData label="Deskripsi Singkat" isi={tempForm.description} />
             <div className="row">
               <div className="col-lg-6 col-md-6">
                 <InputField
                   ref={folderLinkRef}
                   label="Link Folder Dokumentasi"
-                  value={formData.linkFolder || ""} // Fallback ke string kosong
+                  value={formData.linkFolder || ""}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
@@ -276,7 +310,7 @@ export default function AddExisting({ onChangePage }) {
                     { Value: 0, Text: "Privat" },
                     { Value: 1, Text: "Publik" },
                   ]}
-                  value={Number(formData.statusFileNotulen) || 0} // Fallback ke string kosong
+                  value={Number(formData.statusFileNotulen) || 0}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
@@ -288,6 +322,7 @@ export default function AddExisting({ onChangePage }) {
               </div>
               <div className="col-lg-6 col-md-6">
                 <UploadFoto
+                  ref={fotoSampulRef}
                   id="upload-foto"
                   label="Foto Sampul"
                   onChange={(file) => handleFotoChange(file)}

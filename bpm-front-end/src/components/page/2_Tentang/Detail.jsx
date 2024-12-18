@@ -15,45 +15,40 @@ export default function Detail({ onChangePage }) {
   const [formData, setFormData] = useState({
     Kategori: "",
     Isi: "",
-    Createby: "",
-    CreateDate: "",
-    Modifby: "",
-    ModifDate: "",
+    dibuatOleh: "",
+    dibuatTgl: "",
+    dimodifOleh: "",
+    dimodifTgl: "",
   });
 
   const [loading, setLoading] = useState(true);
 
-  console.log(location.state.idData);
   useEffect(() => {
     const fetchData = async () => {
       if (location.state?.idData) {
         const editId = location.state.idData;
-        console.log(editId);
 
         const data = await useFetch(
           API_LINK + `/MasterTentang/GetDataTentangById`,
           {
-            ten_id: editId,
+            id: editId,
           }
         );
 
         if (data && data[0]) {
           setFormData({
-            Kategori: data[0].ten_category,
-            Isi: data[0].ten_isi,
-            Createby: data[0].ten_created_by,
-            CreateDate: new Date(data[0].ten_created_date).toLocaleDateString(
-              "id-ID",
-              {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              }
-            ),
-            Modifby: data[0].ten_modif_by ? data[0].ten_modif_by : "-",
-            ModifDate: data[0].ten_modif_date
-              ? new Date(data[0].ten_modif_date).toLocaleDateString("id-ID", {
+            Kategori: data[0].kategoriTentang,
+            Isi: data[0].isiTentang,
+            dibuatOleh: data[0].dibuatOleh,
+            dibuatTgl: new Date(data[0].dibuatTgl).toLocaleDateString("id-ID", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            }),
+            dimodifOleh: data[0].dimodifOleh ? data[0].dimodifOleh : "-",
+            dimodifTgl: data[0].dimodifTgl
+              ? new Date(data[0].dimodifTgl).toLocaleDateString("id-ID", {
                   weekday: "long",
                   day: "numeric",
                   month: "long",
@@ -142,14 +137,17 @@ export default function Detail({ onChangePage }) {
 
             <div className="row">
               <div className="col-lg-6 col-md-6">
-                <DetailData label="Dibuat Oleh" isi={formData.Createby} />
-                <DetailData label="Dibuat Tanggal" isi={formData.CreateDate} />
+                <DetailData label="Dibuat Oleh" isi={formData.dibuatOleh} />
+                <DetailData label="Dibuat Tanggal" isi={formData.dibuatTgl} />
               </div>
               <div className="col-lg-6 col-md-6">
-                <DetailData label="Dimodifikasi Oleh" isi={formData.Modifby} />
+                <DetailData
+                  label="Dimodifikasi Oleh"
+                  isi={formData.dimodifOleh}
+                />
                 <DetailData
                   label="Dimodifikasi Tanggal"
-                  isi={formData.ModifDate}
+                  isi={formData.dimodifTgl}
                 />
               </div>
             </div>

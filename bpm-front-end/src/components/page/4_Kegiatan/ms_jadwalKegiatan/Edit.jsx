@@ -13,6 +13,7 @@ import { useIsMobile } from "../../../util/useIsMobile";
 import moment from "moment";
 import "moment-timezone";
 import { useFetch } from "../../../util/useFetch";
+import { decodeHtml } from "../../../util/DecodeHtml";
 
 export default function Edit({ onChangePage }) {
   const title = "Edit Jadwal Kegiatan";
@@ -35,10 +36,8 @@ export default function Edit({ onChangePage }) {
     endTime: "",
     place: "",
     jenisKegiatan: "",
-    modifBy: "User",
   });
 
-  const [deskripsi, setDeskripsi] = useState("");
   const [jenisKegiatan, setJenisKegiatan] = useState([]);
 
   useEffect(() => {
@@ -50,19 +49,18 @@ export default function Edit({ onChangePage }) {
           "POST"
         );
         const formattedData = data.map((item) => ({
-          Value: item.jkg_id, // ID untuk nilai dropdown
-          Text: item.jkg_nama, // Nama untuk teks dropdown
+          Value: item.idJenisKegiatan,
+          Text: item.namaJenisKegiatan,
         }));
-        setJenisKegiatan(formattedData); // Menyimpan data ke state
+        setJenisKegiatan(formattedData);
       } catch (error) {
-        setError(error.message); // Menangani error
+        setError(error.message);
       }
     };
 
     fetchJenisKegiatan();
   }, []);
 
-  // Refs for validation
   const namaRef = useRef();
   const deskripsiRef = useRef();
   const tempatRef = useRef();
@@ -82,29 +80,27 @@ export default function Edit({ onChangePage }) {
       try {
         const data = await useFetch(
           API_LINK + `/MasterKegiatan/GetDataKegiatanById`,
-          { ber_id: editId }
+          { id: editId }
         );
 
         if (data) {
           setFormData({
             id: location.state.idData,
-            name: data[0].keg_nama,
-            description: data[0].keg_deskripsi,
-            startDate: moment(data[0].keg_tgl_mulai).format("YYYY-MM-DD"),
-            startTime: moment(data[0].keg_jam_mulai, "HH:mm:ss").format(
+            name: decodeHtml(data[0].namaKegiatan),
+            description: decodeHtml(data[0].deskripsiKegiatan),
+            startDate: moment(data[0].tglMulaiKegiatan).format("YYYY-MM-DD"),
+            startTime: moment(data[0].jamMulaiKegiatan, "HH:mm:ss").format(
               "HH:mm"
             ),
-            endDate: moment(data[0].keg_tgl_selesai).format("YYYY-MM-DD"),
-            endTime: moment(data[0].keg_jam_selesai, "HH:mm:ss").format(
+            endDate: moment(data[0].tglSelesaiKegiatan).format("YYYY-MM-DD"),
+            endTime: moment(data[0].jamSelesaiKegiatan, "HH:mm:ss").format(
               "HH:mm"
             ),
 
-            place: data[0].keg_tempat,
-            jenisKegiatan: data[0].jkg_id,
-            modifBy: "User",
+            place: data[0].tempatKegiatan,
+            jenisKegiatan: data[0].idJenisKegiatan,
           });
         }
-        console.log(formData);
       } catch (error) {
         console.error("Error fetching data:", error);
         setError("Failed to fetch data.");
@@ -151,7 +147,6 @@ export default function Edit({ onChangePage }) {
       return;
     }
 
-    // Combine date and time values into Date objects
     const startDate = new Date(
       `${tglMulaiRef.current.value} ${jamMulaiRef.current.value}`
     );
@@ -159,7 +154,6 @@ export default function Edit({ onChangePage }) {
       `${tglSelesaiRef.current.value} ${jamSelesaiRef.current.value}`
     );
 
-    // Validate that start date is less than end date
     if (startDate >= endDate) {
       SweetAlert(
         "Gagal!",
@@ -305,7 +299,9 @@ export default function Edit({ onChangePage }) {
               ref={deskripsiRef}
               label="Deskripsi Singkat"
               initialValue={formData.description}
-              onChange={(e) => setDeskripsi(e.target.value)}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               isRequired={true}
             />
 

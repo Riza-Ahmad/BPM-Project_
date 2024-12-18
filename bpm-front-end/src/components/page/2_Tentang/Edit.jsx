@@ -19,10 +19,7 @@ export default function Edit({ onChangePage }) {
   const location = useLocation();
   const isMobile = useIsMobile();
 
-  const [formData, setFormData] = useState({
-    Kategori: "",
-    Isi: "",
-  });
+  const [formData, setFormData] = useState({});
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -36,13 +33,13 @@ export default function Edit({ onChangePage }) {
       const fetchData = async () => {
         const data = await useFetch(
           API_LINK + `/MasterTentang/GetDataTentangById`,
-          { ten_id: editId }
+          { id: editId }
         );
 
         if (data && data.length > 0) {
           setFormData({
-            Kategori: data[0].ten_category,
-            Isi: decodeHtml(data[0].ten_isi),
+            Kategori: data[0].kategoriTentang,
+            Isi: decodeHtml(data[0].isiTentang),
           });
         }
       };
@@ -103,7 +100,7 @@ export default function Edit({ onChangePage }) {
     setLoading(true);
 
     try {
-      let ten_isi = formData.Isi;
+      let isi = formData.Isi;
       if (selectedFile) {
         const formData = new FormData();
         formData.append("files", selectedFile);
@@ -117,17 +114,15 @@ export default function Edit({ onChangePage }) {
           filePrefix
         );
 
-        ten_isi = uploadResult[0] || ten_isi;
+        isi = uploadResult[0] || isi;
       }
 
       const editData = {
-        ten_id: location.state.idData,
-        ten_category: formData.Kategori,
-        ten_isi,
-        ten_modif_by: "User",
+        id: location.state.idData,
+        category: formData.Kategori,
+        isi,
       };
 
-      console.log(editData);
       const editResponse = await useFetch(
         `${API_LINK}/MasterTentang/EditTentang`,
         editData,

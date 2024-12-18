@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
-import TabTahun from "./TabTahunKegiatan";
+import TabTahunKegiatan from "./TabTahunKegiatan"; // Import TabTahunKegiatan
 import HeaderText from "../../../part/HeaderText";
 import Button from "../../../part/Button";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
+import { useLocation } from "react-router-dom";
+import { useFetch } from "../../../util/useFetch";
+import { decodeHtml } from "../../../util/DecodeHtml";
 
 export default function Index({ onChangePage }) {
   const [groupedEvents, setGroupedEvents] = useState({});
@@ -11,33 +14,28 @@ export default function Index({ onChangePage }) {
   const [jenisKegiatan, setJenisKegiatan] = useState([]);
   const [selectedJenisKegiatan, setSelectedJenisKegiatan] = useState(null);
   const isMobile = useIsMobile();
+  const location = useLocation();
 
-  // Fetch jenis kegiatan data on component mount
+  useEffect(() => {
+    if (!location.state?.idData) return;
+    console.log("state", location.state?.idData);
+  }, [location.state?.idData]);
+
   useEffect(() => {
     const fetchJenisKegiatan = async () => {
       try {
-        const response = await fetch(
+        const data = await useFetch(
           `${API_LINK}/MasterKegiatan/GetDataJenisKegiatan`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({}),
-          }
+          JSON.stringify({}),
+          "POST"
         );
+        const formattedData = data.map((item) => ({
+          Value: item.idJenisKegiatan,
+          Text: item.namaJenisKegiatan,
+        }));
 
-        if (response.ok) {
-          const data = await response.json();
-          const formattedData = data.map((item) => ({
-            Value: item.jkg_id, // ID untuk nilai dropdown
-            Text: item.jkg_nama, // Nama untuk teks dropdown
-          }));
-          setJenisKegiatan(formattedData); // Menyimpan data ke state
-          setSelectedJenisKegiatan(formattedData[0]?.Value || null); // Pilih tab pertama sebagai default
-        } else {
-          throw new Error("Gagal mengambil data jenis kegiatan");
-        }
+        setJenisKegiatan(formattedData);
+        setSelectedJenisKegiatan(formattedData[0]?.Value || null);
       } catch (error) {
         console.error("Error fetching jenis kegiatan:", error);
       }
@@ -48,42 +46,30 @@ export default function Index({ onChangePage }) {
 
   const fetchEvents = async () => {
     try {
-      const response = await fetch(
+      const data = await useFetch(
         `${API_LINK}/MasterKegiatan/GetDataKegiatanByCategory`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ keg_kategori: 3 }),
-        }
+        { kategori: 3 },
+        "POST"
       );
 
-      if (!response.ok) {
-        throw new Error("Gagal mengambil data kegiatan");
-      }
-
-      const data = await response.json();
-
-      // Kelompokkan berdasarkan tahun
       const groupedData = data.reduce((acc, item) => {
-        const year = new Date(item.keg_tgl_mulai).getFullYear();
+        const year = new Date(item.tglMulaiKegiatan).getFullYear();
         if (!acc[year]) {
           acc[year] = [];
         }
         acc[year].push({
-          id: item.keg_id,
-          title: item.keg_nama,
-          description: item.keg_deskripsi,
-          category: item.keg_kategori,
-          startDate: item.keg_tgl_mulai,
-          endDate: item.keg_tgl_selesai,
-          startTime: item.keg_jam_mulai,
-          endTime: item.keg_jam_selesai,
-          location: item.keg_tempat,
-          linkFolder: item.keg_link_folder,
-          image: item.keg_foto_sampul,
-          jenisKegiatan: item.jkg_id, // Sesuaikan dengan ID jenis kegiatan
+          id: item.idKegiatan,
+          title: decodeHtml(item.namaKegiatan),
+          description: item.deskripsiKegiatan,
+          category: item.kategoriKegiatan,
+          startDate: item.tglMulaiKegiatan,
+          endDate: item.tglSelesaiKegiatan,
+          startTime: item.jamMulaiKegiatan,
+          endTime: item.jamSelesaiKegiatan,
+          location: item.tempatKegiatan,
+          linkFolder: item.linkFolderKegiatan,
+          image: item.fotoSampulKegiatan,
+          jenisKegiatan: item.idJenisKegiatan,
         });
         return acc;
       }, {});
@@ -104,7 +90,6 @@ export default function Index({ onChangePage }) {
     return <p>Loading...</p>;
   }
 
-  // Filter kegiatan berdasarkan jenis kegiatan yang dipilih
   const filteredEvents = Object.keys(groupedEvents).reduce((acc, year) => {
     const filtered = groupedEvents[year].filter(
       (event) => event.jenisKegiatan === selectedJenisKegiatan
@@ -117,6 +102,7 @@ export default function Index({ onChangePage }) {
 
   return (
     <div className="container my-5">
+      {/* Header */}
       <div
         style={{
           padding: "20px",
@@ -135,6 +121,7 @@ export default function Index({ onChangePage }) {
         />
       </div>
 
+      {/* Button */}
       <div
         style={{
           display: "flex",
@@ -150,9 +137,10 @@ export default function Index({ onChangePage }) {
         />
       </div>
 
+      {/* Filter jenis kegiatan */}
       <div className={isMobile ? "m-0" : "m-3"}>
         <div className={"row m-0 g-1"}>
-          {/* g-1 to reduce the gap between columns */}
+          {/* Filter tab kegiatan */}
           {jenisKegiatan.map((jenis) => (
             <div
               key={jenis.Value}
@@ -194,10 +182,11 @@ export default function Index({ onChangePage }) {
         >
           {Object.keys(filteredEvents).length > 0 ? (
             Object.keys(filteredEvents).map((year) => (
-              <TabTahun
+              <TabTahunKegiatan
                 key={year}
                 year={year}
                 kegiatanList={filteredEvents[year]}
+                selectedId={location.state?.idData}
               />
             ))
           ) : (
