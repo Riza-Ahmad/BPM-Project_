@@ -9,6 +9,8 @@ import Modal from "../../../part/Modal";
 import DetailData from "../../../part/DetailData";
 import SweetAlert from "../../../util/SweetAlert";
 import { SyncLoader } from "react-spinners";
+import { useIsMobile } from "../../../util/useIsMobile";
+import { useNavigate } from "react-router-dom";
 export default function Index({ onChangePage, title, breadcrumbs }) {
   const data = [
 
@@ -56,6 +58,7 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
       status: "Aktif" },
   ];
 
+  const navigate = useNavigate();
   const [pageSize] = useState(10);
   const ModalRef = useRef();
   const [modalType, setModalType] = useState("");
@@ -67,7 +70,38 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
   const indexOfFirstData = indexOfLastData - pageSize;
   const currentData = data.slice(indexOfFirstData, indexOfLastData);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchKeyword, setSearchKeyword] = useState("");
 
+  const uniqueDokRefs = data
+  .filter(
+    (item, index, self) =>
+      index === self.findIndex((obj) => obj.dok_ref === item.dok_ref)
+  )
+  .sort((a, b) => a.dok_ref - b.dok_ref);
+
+useEffect(() => {
+  if (selectedDokRef !== null) {
+    // Filter data by selected dok_ref and sort by dok_rev
+    const filteredData = data.filter(
+      (item) => item.dok_ref === selectedDokRef.dok_ref
+    );
+
+    let tempData = filteredData;
+
+    if (searchKeyword) {
+      tempData = tempData.filter((item) =>
+        item.dok_judul.toLowerCase().includes(searchKeyword.toLowerCase())
+      );
+    }
+
+    const sorted = tempData.sort(
+      (a, b) => a.dok_created_date - b.dok_created_date
+    );
+    if (JSON.stringify(sorted) !== JSON.stringify(sortedData)) {
+      setSortedData(sorted); // Update the sorted data only if it has changed
+    }
+  }
+}, [selectedDokRef, data, sortedData]);
 
   
   const handlePageNavigation = (page) => {
@@ -189,7 +223,7 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
                 </div>
               </div>
             </div>
-            {/* <div className="row mt-3 ">
+            <div className="row mt-3 ">
                 <div className="col-lg-2 col-md-6 ">
                   <Button
                     iconName="add"
@@ -199,7 +233,9 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
                   />
                 </div>
                 <div className="col-lg-8 col-md-6 ">
-                  <SearchField></SearchField>
+                  <SearchField
+                    onChange={(value)=> setSearchKeyword(value)} 
+                  />
                 </div>
                 <div className="col-lg-2 col-md-6">
                   <Button
@@ -208,7 +244,7 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
                     label="Filter"
                   />
                 </div>
-              </div> */}
+              </div>
             <div className="table-container bg-white rounded">
               <Table
                 arrHeader={["No", "Judul Dokumen", "Status"]}
