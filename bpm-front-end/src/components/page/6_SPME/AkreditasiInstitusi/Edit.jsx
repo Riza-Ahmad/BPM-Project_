@@ -7,12 +7,12 @@ import DropDown from "../../../part/Dropdown";
 import DocUpload from "../../../part/DocUpload";
 
 export default function Edit({ onChangePage }) {
-  const title = "Akreditasi Prodi";
+  const title = "Akreditasi Institusi";
   const breadcrumbs = [
-    { label: "SPME" },
+    { label: "SPME"},
     { label: "Status Akreditasi" },
-    { label: "Program Studi" },
-    { label: "Tambah" },
+    { label: "Institusi" },
+    { label: "Edit" },
   ];
   const arrData = [
     { Value: "Controlled Copy", Text: "Controlled Copy" },

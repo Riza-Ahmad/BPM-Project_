@@ -7,6 +7,7 @@ import {
 import Index from "./Index";
 import ScrollToTop from "../../../part/ScrollToTop";
 import Add from "./Add";
+import Edit from "./Edit";
 
 export default function AkreInstitusi() {
   const navigate = useNavigate();
@@ -49,11 +50,18 @@ export default function AkreInstitusi() {
             />
           }
         />
+
+
         <Route
           path="/add"
           element={<Add onChangePage={handlePageChange} />}
         />
+        <Route
+          path="/spme/status/institusi/edit"
+          element={<Edit onChangePage={handlePageChange} />}
+        />
       </Routes>
+      
     </>
   );
 }

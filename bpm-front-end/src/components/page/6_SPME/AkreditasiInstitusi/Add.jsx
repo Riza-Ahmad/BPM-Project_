@@ -7,11 +7,11 @@ import DropDown from "../../../part/Dropdown";
 import DocUpload from "../../../part/DocUpload";
 
 export default function Add({ onChangePage }) {
-  const title = "Akreditasi Prodi";
+  const title = "Akreditasi Institusi";
   const breadcrumbs = [
     { label: "SPME" },
     { label: "Status Akreditasi" },
-    { label: "Program Studi" },
+    { label: "Institusi" },
     { label: "Tambah" },
   ];
 
