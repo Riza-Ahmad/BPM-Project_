@@ -11,6 +11,7 @@ import Penetapan from "./components/page/5_SPMI/siklus_spmi/penetapan/Root";
 import Peningkatan from "./components/page/5_SPMI/siklus_spmi/peningkatan/Root";
 import Pengendalian from "./components/page/5_SPMI/siklus_spmi/pengendalian/Root";
 import Evaluasi from "./components/page/5_SPMI/siklus_spmi/evaluasi/Root";
+import RingkasanAkre from "./components/page/6_SPME/RingkasStatusAkreditasi/Root";
 import Peraturan from "./components/page/10_Peraturan/ms_kebijakanPeraturan/Root";
 import PeraturanEksternal from "./components/page/10_Peraturan/ms_peraturanEksternal/Root";
 import InstrumenAps from "./components/page/10_Peraturan/ms_instrumenAps/Root";
@@ -54,6 +55,7 @@ function App() {
               element={<Pengendalian />}
             />
             <Route path="/spmi/siklus/evaluasi/*" element={<Evaluasi />} />
+            <Route path="/spme/status/tabel/*" element={<RingkasanAkre />} />
             <Route path="/peraturan/kebijakan/*" element={<Peraturan />} />
             <Route
               path="/peraturan/eksternal/*"
