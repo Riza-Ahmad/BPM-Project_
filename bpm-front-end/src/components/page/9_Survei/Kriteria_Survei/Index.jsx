@@ -57,6 +57,8 @@ export default function KriteriaSurvei({ onChangePage }) {
     ksr_modif_date: "",
   });
 
+  const nama_layananRef = useRef();
+
   useEffect(() => {
     const fetchKriteria = async () => {
       try {
@@ -96,13 +98,9 @@ export default function KriteriaSurvei({ onChangePage }) {
 
   const handleAddKriteria = async () => {
     const newKriteria = {
-      ksr_id: formData.ksr_id || "",
       ksr_nama: formData.ksr_nama?.trim() || "",
-      ksr_status: formData.ksr_status || "1",
       ksr_created_by: formData.ksr_created_by || "Admin", // Berikan default jika kosong
       ksr_created_date: formData.ksr_created_date || new Date().toISOString(), // Format ISO 8601
-      ksr_modif_by: formData.ksr_modif_by || "",
-      ksr_modif_date: formData.ksr_modif_date || "",
     };
 
     try {
@@ -133,13 +131,9 @@ export default function KriteriaSurvei({ onChangePage }) {
 
         // Reset form setelah submit
         setFormData({
-          ksr_id: "",
           ksr_nama: "",
-          ksr_status: "",
           ksr_created_by: "",
           ksr_created_date: "",
-          ksr_modif_by: "",
-          ksr_modif_date: "",
         });
 
         // Tutup modal
@@ -163,7 +157,7 @@ export default function KriteriaSurvei({ onChangePage }) {
       const response = await fetch(
         `${API_LINK}/MasterKriteriaSurvei/EditKriteriaSurvei`,
         {
-          method: "PUT",
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
@@ -228,7 +222,7 @@ export default function KriteriaSurvei({ onChangePage }) {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ ksr_id: id }), // Kirim ID dalam body
+          body: JSON.stringify({ ksr_id: id.id }), // Kirim ID dalam body
         }
       );
 
@@ -237,9 +231,24 @@ export default function KriteriaSurvei({ onChangePage }) {
       }
 
       const data = await response.json();
-      console.log("Data fetched for edit:", data);
+      const group = data.reduce((acc, item) => {
+        if (!acc[item.ksr_id]) {
+          acc[item.ksr_id] = {
+            ksr_id: item.ksr_id,
+            ksr_nama: item.ksr_nama,
+            ksr_status: item.ksr_status,
+            ksr_created_by: item.ksr_created_by,
+            ksr_created_date: item.ksr_created_date,
+            ksr_modif_by: item.ksr_modif_by,
+            ksr_modif_date: item.ksr_modif_date,
+          };
+        }
+        return acc;
+      }, {});
 
-      setEditFormData(data); // Simpan data ke state form edit
+      // Ambil salah satu objek, misalnya menggunakan ID tertentu
+      const editObject = group[id.No] || {};
+      setEditFormData(editObject); // Simpan data ke state form edit sebagai objek
       editModalRef.current.open(); // Buka modal edit
     } catch (error) {
       console.error("Error fetching data for edit:", error);
@@ -250,14 +259,41 @@ export default function KriteriaSurvei({ onChangePage }) {
   const handleDetail = async (id) => {
     setLoadingDetail(true); // Mulai loading
     try {
+      console.log("Fetching data for edit with ID:", id);
       const response = await fetch(
-        `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurveiById?id=${id}`
+        `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurveiById`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ksr_id: id.idData }), // Kirim ID dalam body
+        }
       );
+
       if (!response.ok) {
         throw new Error("Gagal mengambil data detail.");
       }
       const data = await response.json();
-      setSelectedKriteria(data);
+      const group = data.reduce((acc, item) => {
+        if (!acc[item.ksr_id]) {
+          acc[item.ksr_id] = {
+            ksr_id: item.ksr_id,
+            ksr_nama: item.ksr_nama,
+            ksr_status: item.ksr_status,
+            ksr_created_by: item.ksr_created_by,
+            ksr_created_date: item.ksr_created_date,
+            ksr_modif_by: item.ksr_modif_by,
+            ksr_modif_date: item.ksr_modif_date,
+          };
+        }
+        return acc;
+      }, {});
+
+      // Ambil salah satu objek, misalnya menggunakan ID tertentu
+      const editObject = group[id.idData] || {};
+
+      setSelectedKriteria(editObject);
       detailModalRef.current.open(); // Buka modal detail
     } catch (error) {
       console.error("Error fetching detail data:", error);
@@ -313,20 +349,16 @@ export default function KriteriaSurvei({ onChangePage }) {
           >
             <Table
               arrHeader={["No", "Nama Kriteria"]}
-              headerToDataMap={{
-                No: "No",
-                "Nama Kriteria": "nama",
-              }}
               data={currentData.map((item, index) => ({
                 key: item.Key || index,
+                idData: item.id,
                 No: indexOfFirstData + index + 1,
-                nama: item.nama,
+                "Nama Kriteria": item.nama,
               }))}
               actions={["Detail", "Edit"]}
               onDetail={(id) => handleDetail(id)}
               // onEdit={(id) => handleEdit(id)}
               onEdit={(id) => {
-                console.log("Editing item with ID:", id); // Debug log
                 handleEdit(id);
               }}
             />
@@ -377,7 +409,8 @@ export default function KriteriaSurvei({ onChangePage }) {
             size="medium"
             Button1={
               <Button
-                label="Tutup"
+                classType="danger"
+                label="Batal"
                 onClick={() => detailModalRef.current.close()}
               />
             }
@@ -387,30 +420,31 @@ export default function KriteriaSurvei({ onChangePage }) {
             ) : selectedKriteria ? (
               <div>
                 <p>
-                  <strong>ID:</strong> {selectedKriteria.ksr_id}
+                  <strong>Nama Kriteria:</strong> <br />{" "}
+                  {selectedKriteria.ksr_nama}
                 </p>
-                <p>
-                  <strong>Nama Kriteria:</strong> {selectedKriteria.ksr_nama}
-                </p>
-                <p>
-                  <strong>Status:</strong> {selectedKriteria.ksr_status}
-                </p>
-                <p>
-                  <strong>Dibuat Oleh:</strong>{" "}
-                  {selectedKriteria.ksr_created_by}
-                </p>
-                <p>
-                  <strong>Tanggal Dibuat:</strong>{" "}
-                  {selectedKriteria.ksr_created_date}
-                </p>
-                <p>
-                  <strong>Dimodifikasi Oleh:</strong>{" "}
-                  {selectedKriteria.ksr_modif_by}
-                </p>
-                <p>
-                  <strong>Tanggal Dimodifikasi:</strong>{" "}
-                  {selectedKriteria.ksr_modif_date}
-                </p>
+                <div className="row col-12 mt-5">
+                  <div className="col-md-6">
+                    <p>
+                      <strong>Dibuat Oleh:</strong> <br />
+                      {selectedKriteria.ksr_created_by}
+                    </p>
+                    <p>
+                      <strong>Tanggal Dibuat:</strong> <br />{" "}
+                      {selectedKriteria.ksr_created_date}
+                    </p>
+                  </div>
+                  <div className="col-md-6">
+                    <p>
+                      <strong>Dimodifikasi Oleh:</strong> <br />{" "}
+                      {selectedKriteria.ksr_modif_by}
+                    </p>
+                    <p>
+                      <strong>Tanggal Dimodifikasi:</strong> <br />{" "}
+                      {selectedKriteria.ksr_modif_date}
+                    </p>
+                  </div>
+                </div>
               </div>
             ) : (
               <p>Data tidak ditemukan.</p>
@@ -464,9 +498,10 @@ export default function KriteriaSurvei({ onChangePage }) {
           >
             <form>
               <InputField
+                ref={nama_layananRef}
                 label="Nama Kriteria"
                 isRequired="true"
-                value={editFormData.ksr_nama || ""} // Menggunakan state editFormData
+                value={editFormData.ksr_nama || console.log(editFormData)} // Menggunakan state editFormData
                 onChange={(e) =>
                   setEditFormData((prev) => ({
                     ...prev,

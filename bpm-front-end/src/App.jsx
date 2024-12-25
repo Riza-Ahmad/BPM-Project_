@@ -15,7 +15,11 @@ import PeraturanEksternal from "./components/page/10_Peraturan/ms_peraturanEkste
 import InstrumenAps from "./components/page/10_Peraturan/ms_instrumenAps/Root";
 import KriteriaSurvei from "./components/page/9_Survei/Kriteria_Survei/Root";
 import SkalaSurvei from "./components/page/9_Survei/Skala_Penilaian/Root";
+import Pertanyaan_Survei from "./components/page/9_Survei/Pertanyaan_Survei/Root";
 import TemplateSurvei from "./components/page/9_Survei/Template_Survei/Root";
+import Survei from "./components/page/9_Survei/Survei/Root";
+import Daftar_Survei from "./components/page/9_Survei/Daftar_Survei/Root";
+import Dashboard_Survei from "./components/page/9_Survei/Dashboard_Survei/Root";
 import ScrollToTop from "./components/part/ScrollToTop";
 import "./App.css";
 
@@ -61,8 +65,14 @@ function App() {
             <Route path="/peraturan/aps/*" element={<InstrumenAps />} />
             <Route path="/survei/kriteria/*" element={<KriteriaSurvei />} />
             <Route path="/survei/skala/*" element={<SkalaSurvei />} />
+            <Route
+              path="/survei/pertanyaan/*"
+              element={<Pertanyaan_Survei />}
+            />
             <Route path="/survei/template/*" element={<TemplateSurvei />} />
-
+            <Route path="/survei/survei/*" element={<Survei />} />
+            <Route path="/survei/daftar/*" element={<Daftar_Survei />} />
+            <Route path="/survei/dashboard/*" element={<Dashboard_Survei />} />
             {/* Halaman 404 */}
             <Route path="*" element={<div>Halaman tidak ditemukan</div>} />
           </Routes>

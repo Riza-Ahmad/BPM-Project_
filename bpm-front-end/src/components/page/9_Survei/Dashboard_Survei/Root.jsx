@@ -7,13 +7,13 @@ import {
 import Index from "./Index";
 import ScrollToTop from "../../../part/ScrollToTop";
 
-export default function Daftar_Survei() {
+export default function Dashboard_Survei() {
   const navigate = useNavigate();
 
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
       case "index":
-        navigate("/survei/daftar");
+        navigate("/survei/dashboard");
         break;
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
