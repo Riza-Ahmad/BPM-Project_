@@ -17,6 +17,8 @@ import FileUpload from "../../../part/FileUpload";
 import { uploadFile } from "../../../util/UploadFile";
 import SweetAlert from "../../../util/SweetAlert";
 import { useFetch } from "../../../util/useFetch";
+import { useLocation } from "react-router-dom";
+import { decodeHtml } from "../../../util/DecodeHtml";
 
 export default function AddExisting({ onChangePage }) {
   const title = "Tambah Dokumentasi Kegiatan";
@@ -50,6 +52,15 @@ export default function AddExisting({ onChangePage }) {
   });
 
   const [existingKegiatan, setExistingKegiatan] = useState([]);
+  const location = useLocation();
+
+  useEffect(() => {
+    const idData = location.state?.idData;
+
+    if (idData && existingKegiatan.length > 0) {
+      handleDropdownChange({ target: { value: idData } });
+    }
+  }, [location.state?.idData, existingKegiatan]); // Tambahkan existingKegiatan sebagai dependency
 
   const namaRef = useRef();
   const folderLinkRef = useRef();
@@ -67,8 +78,8 @@ export default function AddExisting({ onChangePage }) {
         );
         const formattedData = data.map((item) => ({
           Value: item.idKegiatan,
-          Text: item.namaKegiatan,
-          deskripsiJenisKegiatan: item.deskripsiKegiatan,
+          Text: decodeHtml(item.namaKegiatan),
+          deskripsiJenisKegiatan: decodeHtml(item.deskripsiKegiatan),
           tglMulaiKegiatan: item.tglMulaiKegiatan,
           tglSelesaiKegiatan: item.tglSelesaiKegiatan,
           jamMulaiKegiatan: item.jamMulaiKegiatan,
@@ -89,7 +100,6 @@ export default function AddExisting({ onChangePage }) {
   }, []);
 
   const handleDropdownChange = (e) => {
-    console.log(existingKegiatan);
     const selectedId = e.target.value;
     const selectedData = existingKegiatan.find(
       (item) => item.Value === Number(selectedId)

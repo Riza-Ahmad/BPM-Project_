@@ -6,6 +6,7 @@ import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { useLocation } from "react-router-dom";
 import { useFetch } from "../../../util/useFetch";
+import { decodeHtml } from "../../../util/DecodeHtml";
 
 export default function Index({ onChangePage }) {
   const [groupedEvents, setGroupedEvents] = useState({});
@@ -58,7 +59,7 @@ export default function Index({ onChangePage }) {
         }
         acc[year].push({
           id: item.idKegiatan,
-          title: item.namaKegiatan,
+          title: decodeHtml(item.namaKegiatan),
           description: item.deskripsiKegiatan,
           category: item.kategoriKegiatan,
           startDate: item.tglMulaiKegiatan,
