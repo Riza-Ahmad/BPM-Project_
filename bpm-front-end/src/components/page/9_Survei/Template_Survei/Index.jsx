@@ -278,10 +278,10 @@ export default function Template_Survei() {
               arrHeader={["No", "Nama Template", "Tanggal Final", "Status"]}
               data={currentData.map((item, index) => ({
                 id: item.id, // Tambahkan ID agar bisa digunakan di actions
-                No: indexOfFirstData + index + 1,
-                name: item.name,
-                finalDate: item.finalDate,
-                status: item.status === 0 ? "Draft" : "Final", // Hanya untuk tampilan
+                "No": indexOfFirstData + index + 1,
+                "Nama Template": item.name,
+                "Tanggal Final": item.finalDate,
+                "Status": item.status === 0 ? "Draft" : "Final", // Hanya untuk tampilan
               }))}
               actions={(row) => {
                 console.log("Row diterima di actions:", row); // Debugging row

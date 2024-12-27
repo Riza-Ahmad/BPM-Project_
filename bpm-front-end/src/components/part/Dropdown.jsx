@@ -84,16 +84,20 @@ const DropDown = forwardRef(function DropDown(
         name={forInput}
         disabled={isDisabled}
         value={value}
-        onChange={handleChange} // Call the parent onChange
+        onChange={handleChange}
         {...props}
       >
         {placeholder}
         {arrData &&
           arrData.length > 0 &&
-          arrData.map((data) => {
+          arrData.map((data, index) => {
+            // Handle both value/label and Value/Text formats
+            const optionValue = data.Value !== undefined ? data.Value : data.value;
+            const optionText = data.Text !== undefined ? data.Text : data.label;
+            
             return (
-              <option key={data.Value} value={data.Value}>
-                {data.Text}
+              <option key={optionValue || index} value={optionValue}>
+                {optionText}
               </option>
             );
           })}

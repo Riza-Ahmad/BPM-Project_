@@ -14,32 +14,28 @@ export default function Table({
   onUpdateHistory = () => {},
   onSurveyor = () => {},
   onResponden = () => {},
-  onToggle = () => {},
+  onToggle = () => {}, // Dideklarasikan untuk menghindari error
 }) {
   function generateActionButton(actionType, id, status = "Aktif") {
     switch (actionType) {
       case "Toggle": {
-        if (status === "Aktif") {
-          return (
-            <Icon
-              name="toggle-on"
-              type="Bold"
-              cssClass="btn px-1 py-0 text-primary"
-              title="Nonaktifkan"
-              onClick={() => onToggle(id)}
-            />
-          );
-        } else if (status === "Tidak Aktif") {
-          return (
-            <Icon
-              name="toggle-off"
-              type="Bold"
-              cssClass="btn px-1 py-0 text-secondary"
-              title="Aktifkan"
-              onClick={() => onToggle(id)}
-            />
-          );
-        }
+        return status === "Aktif" ? (
+          <Icon
+            name="toggle-on"
+            type="Bold"
+            cssClass="btn px-1 py-0 text-primary"
+            title="Nonaktifkan"
+            onClick={() => onToggle(id)}
+          />
+        ) : (
+          <Icon
+            name="toggle-off"
+            type="Bold"
+            cssClass="btn px-1 py-0 text-secondary"
+            title="Aktifkan"
+            onClick={() => onToggle(id)}
+          />
+        );
       }
       case "Delete":
         return (
@@ -128,7 +124,7 @@ export default function Table({
             name="users"
             cssClass="btn px-1 py-0 text-warning"
             title="Edit Responden"
-            onResponden={() => onResponden(id)}
+            onClick={() => onResponden(id)}
           />
         );
       default:
@@ -146,7 +142,7 @@ export default function Table({
           <tr>
             {arrHeader.map((header, index) => (
               <th
-                key={header}
+                key={`header-${index}`}
                 className="text-center align-middle"
                 style={{
                   backgroundColor: "#2654A1",
@@ -171,15 +167,15 @@ export default function Table({
         <tbody>
           {data.length > 0 ? (
             data.map((row, rowIndex) => (
-              <tr key={row-${rowIndex}}>
+              <tr key={`row-${rowIndex}`}>
                 {arrHeader.map((column, colIndex) => (
                   <td
-                    key={cell-${rowIndex}-${colIndex}}
+                    key={`cell-${rowIndex}-${colIndex}`}
                     className={`align-middle ${
                       column === "No" ? "text-center" : "text-start"
                     }`}
                   >
-                    {row[column] || ""}
+                    {row[column] || "-"}
                   </td>
                 ))}
                 <td
@@ -189,7 +185,7 @@ export default function Table({
                   {typeof actions === "function"
                     ? actions(row).map((action, actionIndex) => (
                         <React.Fragment
-                          key={${action}-${row.Key || rowIndex}}
+                          key={`${action}-${row.Key || rowIndex}`}
                         >
                           {generateActionButton(action, row)}
                         </React.Fragment>
@@ -197,7 +193,7 @@ export default function Table({
                     : Array.isArray(actions) && actions.length > 0
                     ? actions.map((action, actionIndex) => (
                         <React.Fragment
-                          key={${action}-${row.Key || rowIndex}}
+                          key={`${action}-${row.Key || rowIndex}`}
                         >
                           {generateActionButton(action, row)}
                         </React.Fragment>
