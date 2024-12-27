@@ -102,7 +102,7 @@ export default function Edit({ onChangePage }) {
           setFormData({
             id: location.state.idData,
             jenisKegiatan: data[0].idJenisKegiatan,
-            name: data[0].namaKegiatan,
+            name: decodeHtml(data[0].namaKegiatan),
             description: decodeHtml(data[0].deskripsiKegiatan),
             startDate: moment(data[0].tglMulaiKegiatan).format("YYYY-MM-DD"),
             startTime: moment(data[0].jamMulaiKegiatan, "HH:mm:ss").format(

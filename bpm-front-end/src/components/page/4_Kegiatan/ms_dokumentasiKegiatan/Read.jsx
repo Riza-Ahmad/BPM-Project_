@@ -13,6 +13,7 @@ import { useIsMobile } from "../../../util/useIsMobile";
 import SweetAlert from "../../../util/SweetAlert";
 import moment from "moment";
 import "moment-timezone";
+import { decodeHtml } from "../../../util/DecodeHtml";
 
 export default function Read({ onChangePage }) {
   const isMobile = useIsMobile();
@@ -83,7 +84,7 @@ export default function Read({ onChangePage }) {
 
             return {
               id: item.idKegiatan,
-              title: item.namaKegiatan,
+              title: decodeHtml(item.namaKegiatan),
               description: item.deskripsiKegiatan,
               category: item.kategoriKegiatan,
               start: moment(`${startDate}T${item.jamMulaiKegiatan}`).toDate(),
