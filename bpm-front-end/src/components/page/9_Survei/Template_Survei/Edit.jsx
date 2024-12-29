@@ -1,274 +1,252 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import Button from "../../../part/Button";
-import TextField from "../../../part/TextField";
-import Table from "../../../part/Table";
-import Dropdown from "../../../part/Dropdown";
 import PageTitleNav from "../../../part/PageTitleNav";
-import Swal from "sweetalert2";
+import TextField from "../../../part/TextField";
+import Button from "../../../part/Button";
+import Loading from "../../../part/Loading";
+import Dropdown from "../../../part/Dropdown";
+import SweetAlert from "../../../util/SweetAlert";
+import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
+import { useNavigate, useLocation } from "react-router-dom";
 
-function Edit() {
-  const navigate = useNavigate();
-  const { id } = useParams(); // Mendapatkan ID dari URL
+async function fetchAPI(url, body = null, method = "POST") {
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      ...(body && { body }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("API Error:", error);
+    throw new Error("Failed to fetch data from API");
+  }
+}
+
+export default function Edit({ onChangePage }) {
   const isMobile = useIsMobile();
+  const location = useLocation();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // State untuk template survei
-  const [templateName, setTemplateName] = useState("");
-  const [selectedKriteria, setSelectedKriteria] = useState(null);
-  const [selectedSkala, setSelectedSkala] = useState(null);
-  const [questions, setQuestions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    id: location.state?.idData || "", // Make sure this is set correctly
+    name: "",
+    createdBy: "dianvivi.widiyawati",
+    ksrId: "",
+    skpId: "",
+  });
 
-  // State untuk dropdown
-  const [kriteriaOptions, setKriteriaOptions] = useState([]);
-  const [skalaOptions, setSkalaOptions] = useState([]);
+  const [kriteriaSurvei, setKriteriaSurvei] = useState([]);
+  const [skalaPenilaian, setSkalaPenilaian] = useState([]);
 
   useEffect(() => {
-    // Fetch data template untuk edit
-    const fetchTemplate = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `${API_LINK}/TemplateSurvei/GetTemplate/${id}`
-        );
-        if (!response.ok) throw new Error("Gagal mengambil data template");
+    if (!location.state?.idData) return;
 
-        const result = await response.json();
-        setTemplateName(result.template_name);
-        setSelectedKriteria(result.kriteria_id);
-        setSelectedSkala(result.skala_id);
-        setQuestions(result.questions);
-      } catch (err) {
-        console.error("Fetch error:", err);
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: "Gagal mengambil data template!",
+    const editId = location.state.idData; // Use the id from location.state
+    const fetchData = async () => {
+      try {
+        console.log("Fetching data for template ID:", editId); // Debugging ID
+
+        setLoading(true);
+        setError(null);
+
+        const [kriteriaData, skalaData, templateData] = await Promise.all([
+          fetchAPI(
+            `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`,
+            JSON.stringify({})
+          ),
+          fetchAPI(
+            `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
+            JSON.stringify({})
+          ),
+          fetchAPI(
+            `${API_LINK}/TemplateSurvei/GetDataTemplateSurveiById`,
+            JSON.stringify({ id: editId })
+          ),
+        ]);
+
+        console.log("Fetched Kriteria Survei Data:", kriteriaData); // Debugging data
+        console.log("Fetched Skala Penilaian Data:", skalaData); // Debugging data
+        console.log("Fetched Template Data:", templateData); // Debugging data
+
+        setKriteriaSurvei(
+          kriteriaData.map((item) => ({
+            Value: item.ksr_id?.toString() || "",
+            Text: item.ksr_nama || "Tidak diketahui",
+          }))
+        );
+
+        setSkalaPenilaian(
+          skalaData.map((item) => ({
+            Value: item.skp_id?.toString() || "",
+            Text: item.skp_deskripsi || "Tidak diketahui",
+          }))
+        );
+
+        setFormData({
+          name: templateData?.name || "",
+          createdBy: templateData?.createdBy || "dianvivi.widiyawati",
+          ksrId: templateData?.ksrId?.toString() || "",
+          skpId: templateData?.skpId?.toString() || "",
         });
-        navigate("/survei/template");
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("Gagal memuat data. Silakan coba lagi nanti.");
       } finally {
         setLoading(false);
       }
     };
 
-    // Fetch data dropdown
-    const fetchDropdownData = async () => {
-      try {
-        const kriteriaResponse = await fetch(
-          `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ page: 1, pageSize: 100 }),
-          }
-        );
-        const skalaResponse = await fetch(
-          `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-          }
-        );
+    fetchData();
+  }, [location.state?.idData]); // Trigger when idData is changed
 
-        if (!kriteriaResponse.ok || !skalaResponse.ok) {
-          throw new Error("Gagal mengambil data dropdown");
-        }
-
-        const kriteriaResult = await kriteriaResponse.json();
-        const skalaResult = await skalaResponse.json();
-
-        setKriteriaOptions(
-          kriteriaResult.map((item) => ({
-            value: item.ksr_id,
-            label: item.ksr_nama,
-          }))
-        );
-        setSkalaOptions(
-          skalaResult.map((item) => ({
-            value: item.skala_id,
-            label: item.skala_nama,
-          }))
-        );
-      } catch (err) {
-        console.error("Fetch error:", err);
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: "Gagal mengambil data dropdown!",
-        });
-      }
-    };
-
-    fetchTemplate();
-    fetchDropdownData();
-  }, [id, navigate]);
-
-  // Event Handlers
-  const handleAddQuestion = () => {
-    setQuestions([
-      ...questions,
-      {
-        id: questions.length + 1,
-        header: "",
-        question: "",
-        scale: "Radio Button",
-      },
-    ]);
+  const validateForm = () => {
+    if (!formData.name) return "Nama Template tidak boleh kosong.";
+    if (formData.name.length > 50)
+      return "Nama Template tidak boleh lebih dari 50 karakter.";
+    if (!formData.ksrId) return "Kriteria Survei harus dipilih.";
+    if (!formData.skpId) return "Skala Penilaian harus dipilih.";
+    return null;
   };
 
-  const handleDeleteQuestion = (id) => {
-    setQuestions(questions.filter((q) => q.id !== id));
-  };
+  const handleSubmit = async () => {
+    const errorMessage = validateForm();
+    if (errorMessage) {
+      SweetAlert("Error", errorMessage, "error", "OK");
+      return;
+    }
 
-  const handleInputChange = (id, field, value) => {
-    setQuestions(
-      questions.map((q) => (q.id === id ? { ...q, [field]: value } : q))
-    );
-  };
+    console.log("Form data before submitting:", formData); // Debugging form data
 
-  const handleSave = async () => {
+    setLoading(true);
     try {
       const payload = {
-        template_id: id,
-        template_name: templateName,
-        kriteria_id: selectedKriteria,
-        skala_id: selectedSkala,
-        questions,
+        ...formData,
+        id: parseInt(formData.id, 10), // Ensure ID is parsed correctly
+        ksrId: parseInt(formData.ksrId, 10),
+        skpId: parseInt(formData.skpId, 10),
       };
 
-      const response = await fetch(
-        `${API_LINK}/TemplateSurvei/UpdateTemplate`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
+      console.log("Payload to be sent:", payload); // Debugging payload
+
+      await fetchAPI(
+        `${API_LINK}/TemplateSurvei/UpdateTemplateSurvei`,
+        JSON.stringify(payload),
+        "POST"
       );
 
-      if (!response.ok) throw new Error("Gagal menyimpan template");
-
-      Swal.fire({
-        icon: "success",
-        title: "Berhasil!",
-        text: "Template berhasil disimpan!",
-      });
-      navigate("/survei/template");
+      SweetAlert(
+        "Sukses",
+        "Template survei berhasil diperbarui.",
+        "success",
+        "OK"
+      ).then(() => onChangePage("index"));
     } catch (err) {
-      console.error("Save error:", err);
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Gagal menyimpan template!",
-      });
+      console.error("Error submitting form:", err);
+      SweetAlert(
+        "Error",
+        "Terjadi kesalahan saat memperbarui data.",
+        "error",
+        "OK"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    navigate("/survei/template");
-  };
+  if (loading) return <Loading />;
+  if (error) return <p>{error}</p>;
 
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <div className="d-flex flex-column">
-            <div className={isMobile ? "m-0 p-0" : "m-3 mb-0"}>
-              <PageTitleNav
-                title="Edit Template Survei"
-                breadcrumbs={[
-                  { label: "Survei", href: "/survei" },
-                  { label: "Template Survei", href: "/survei/template" },
-                  { label: "Edit Template Survei" },
-                ]}
-                onClick={() => navigate("/survei/template")}
+        <div
+          className="form-container"
+          style={{
+            padding: isMobile ? "1rem" : "2rem",
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+            backgroundColor: "#fff",
+            margin: isMobile ? "1rem" : "2rem",
+          }}
+        >
+          <PageTitleNav
+            title="Edit Template Survei"
+            breadcrumbs={[
+              { label: "Survei", href: "/survei" },
+              { label: "Template Survei", href: "/survei/template" },
+              { label: "Edit Template Survei" },
+            ]}
+            onClick={() => onChangePage("index")}
+          />
+          <h3 style={{ textAlign: "center", margin: "1rem 0" }}>
+            Formulir Edit Template Survei
+            <hr />
+          </h3>
+          <form>
+            <TextField
+              label="Nama Template"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              isRequired={true}
+            />
+            <TextField
+              label="Dibuat Oleh"
+              value={formData.createdBy}
+              onChange={(e) =>
+                setFormData({ ...formData, createdBy: e.target.value })
+              }
+              isRequired={true}
+            />
+            <Dropdown
+              label="Kriteria Survei"
+              arrData={kriteriaSurvei}
+              type="pilih"
+              forInput="kriteriaSurvei"
+              value={formData.ksrId}
+              onChange={(e) =>
+                setFormData({ ...formData, ksrId: e.target.value })
+              }
+              isRequired={true}
+            />
+            <Dropdown
+              label="Skala Penilaian"
+              arrData={skalaPenilaian}
+              type="pilih"
+              forInput="skalaPenilaian"
+              value={formData.skpId}
+              onChange={(e) =>
+                setFormData({ ...formData, skpId: e.target.value })
+              }
+              isRequired={true}
+            />
+            <div className="d-flex justify-content-between">
+              <Button
+                classType="primary"
+                label="Simpan"
+                onClick={handleSubmit}
+                style={{ flex: 1, margin: "0.5rem" }}
               />
-
-              <div
-                className="form-container"
-                style={{
-                  marginTop: "2rem",
-                  padding: isMobile ? "1rem" : "2rem",
-                  borderRadius: "8px",
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                  backgroundColor: "#fff",
-                }}
-              >
-                <h3 className="text-center">Formulir Edit Template Survei</h3>
-                <hr />
-                <form>
-                  <TextField
-                    label="Nama Template"
-                    isRequired
-                    value={templateName}
-                    onChange={(e) => setTemplateName(e.target.value)}
-                    placeholder="Masukkan Nama Template"
-                  />
-                  <Dropdown
-                    label="Kriteria Survei"
-                    isRequired
-                    options={kriteriaOptions}
-                    value={selectedKriteria}
-                    onChange={(value) => setSelectedKriteria(value)}
-                    placeholder="Pilih Kriteria Survei"
-                  />
-                  <Dropdown
-                    label="Skala Penilaian"
-                    isRequired
-                    options={skalaOptions}
-                    value={selectedSkala}
-                    onChange={(value) => setSelectedSkala(value)}
-                    placeholder="Pilih Skala Penilaian"
-                  />
-                </form>
-
-                <div className="mt-3">
-                  <Button
-                    classType="primary"
-                    label="Tambah Pertanyaan"
-                    onClick={handleAddQuestion}
-                  />
-                  <Table
-                    arrHeader={["No", "Header", "Pertanyaan", "Skala"]}
-                    headerToDataMap={{
-                      No: "No",
-                      Header: "header",
-                      Pertanyaan: "question",
-                      Skala: "scale",
-                    }}
-                    data={questions.map((q, index) => ({
-                      key: q.id,
-                      No: index + 1,
-                      header: q.header,
-                      question: q.question,
-                      scale: q.scale,
-                    }))}
-                    actions={["Edit", "Delete"]}
-                    onDelete={(id) => handleDeleteQuestion(id)}
-                  />
-                </div>
-
-                <div className="d-flex justify-content-between mt-4">
-                  <Button
-                    classType="primary"
-                    label="Simpan"
-                    onClick={handleSave}
-                  />
-                  <Button
-                    classType="secondary"
-                    label="Batal"
-                    onClick={handleCancel}
-                  />
-                </div>
-              </div>
+              <Button
+                classType="danger"
+                label="Batal"
+                onClick={() => onChangePage("index")}
+                style={{ flex: 1, margin: "0.5rem" }}
+              />
             </div>
-          </div>
-        )}
+          </form>
+        </div>
       </main>
     </div>
   );
 }
-
-export default Edit;

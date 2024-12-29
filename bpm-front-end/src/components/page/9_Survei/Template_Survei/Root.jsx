@@ -22,10 +22,10 @@ export default function Template_Survei() {
         navigate("/survei/template/add");
         break;
       case "edit":
-        navigate(`/survei/template/edit/${withState.id}`);
+        navigate("/survei/template/edit", withState);
         break;
       case "detail":
-        navigate(`/survei/template/detail/${withState.id}`);
+        navigate("/survei/template/detail", withState);
         break;
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
@@ -38,13 +38,13 @@ export default function Template_Survei() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Index onChangePage={handlePageChange} />} />
-        <Route path="add" element={<Add onChangePage={handlePageChange} />} />
+        <Route path="/add" element={<Add onChangePage={handlePageChange} />} />
         <Route
-          path="edit/:id"
+          path="/edit"
           element={<Edit onChangePage={handlePageChange} />}
         />
         <Route
-          path="detail/:id"
+          path="/detail"
           element={<Detail onChangePage={handlePageChange} />}
         />
       </Routes>

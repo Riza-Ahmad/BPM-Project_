@@ -9,10 +9,8 @@ import SearchField from "../../../part/SearchField";
 import Filter from "../../../part/Filter";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
-import { useNavigate } from "react-router-dom";
 
-
-export default function Template_Survei() {
+export default function Index({ onChangePage }) {
   const [pageSize] = useState(10);
   const isMobile = useIsMobile();
   const [pageCurrent, setPageCurrent] = useState(1);
@@ -24,10 +22,7 @@ export default function Template_Survei() {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const navigate = useNavigate();
-
   useEffect(() => {
-    // Fetch templates from the backend
     const fetchTemplateSurvei = async () => {
       setLoading(true);
       try {
@@ -79,11 +74,9 @@ export default function Template_Survei() {
     setSelectedStatus(status);
   };
 
-  // Filter and sort data
   useEffect(() => {
     let filtered = [...data];
 
-    // Filter berdasarkan query pencarian di semua atribut
     if (searchQuery) {
       filtered = filtered.filter((item) =>
         Object.values(item)
@@ -93,14 +86,12 @@ export default function Template_Survei() {
       );
     }
 
-    // Filter berdasarkan status
     if (selectedStatus) {
       filtered = filtered.filter(
         (item) => item.status === (selectedStatus === "Draft" ? 0 : 1)
       );
     }
 
-    // Sort berdasarkan tanggal final
     filtered.sort((a, b) => {
       if (a.finalDate === "-" || b.finalDate === "-") return 0;
       return sortOrder === "asc"
@@ -119,54 +110,6 @@ export default function Template_Survei() {
 
   if (loading) return <Loading />;
 
-  const handleDeleteToggle = async (id) => {
-    // Menyiapkan parameter sesuai stored procedure
-    const parameters = {
-      p1: id, // ID Template yang akan dihapus
-      p2: "Admin", // User yang melakukan modifikasi
-    };
-
-    // Menampilkan konfirmasi menggunakan SweetAlert
-    const confirm = await Swal.fire({
-      title: "Konfirmasi",
-      text: "Apakah Anda yakin ingin menghapus Template Survei ini?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Ya, Hapus",
-      cancelButtonText: "Batal",
-    });
-
-    // Jika user menekan tombol konfirmasi
-    if (confirm.isConfirmed) {
-      try {
-        const response = await fetch(
-          `${API_LINK}/TemplateSurvei/DeleteTemplateSurvei`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(parameters),
-          }
-        );
-
-        if (!response.ok) throw new Error("Gagal menghapus Template Survei.");
-
-        Swal.fire("Berhasil", "Template Survei berhasil dihapus.", "success");
-
-        // Memperbarui data setelah penghapusan
-        fetchSkala(); // Menyegarkan data template
-      } catch (err) {
-        console.error("Error:", err);
-        Swal.fire(
-          "Gagal",
-          "Terjadi kesalahan saat menghapus Template Survei.",
-          "error"
-        );
-      }
-    }
-  };
-
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
@@ -178,7 +121,7 @@ export default function Template_Survei() {
                 { label: "Survei", href: "/survei" },
                 { label: "Template Survei" },
               ]}
-              onClick={() => navigate("/survei")}
+              onClick={() => onChangePage("index")}
             />
           </div>
 
@@ -190,7 +133,7 @@ export default function Template_Survei() {
               iconName="add"
               classType="primary"
               label="Tambah Template"
-              onClick={() => navigate("/survei/template/add")}
+              onClick={() => onChangePage("add")}
             />
 
             <div className="row mt-5">
@@ -202,7 +145,7 @@ export default function Template_Survei() {
                   <button
                     className="btn btn-primary dropdown-toggle w-100"
                     type="button"
-                    onClick={() => setIsFilterOpen(!isFilterOpen)} // Toggle dropdown
+                    onClick={() => setIsFilterOpen(!isFilterOpen)}
                   >
                     Filter
                   </button>
@@ -269,13 +212,9 @@ export default function Template_Survei() {
                   ? ["Detail", "Edit", "Delete", "Final"]
                   : ["Detail", "Toggle"]
               }
-              onEdit={(id) => navigate(`/survei/template/edit/${id}`)}
-              onDetail={(id) => navigate(`/survei/template/detail/${id}`)}
+              onEdit={(id) => onChangePage("edit", { state: { id } })}
+              onDetail={(id) => onChangePage("detail", { state: { id } })}
               onDelete={(id) => handleDelete(id)}
-              onFinal={(id) => handleUpdateStatus(id)}
-              onToggle={(id) => {
-                handleDeleteToggle(id);
-              }}
             />
             <Paging
               pageSize={pageSize}
