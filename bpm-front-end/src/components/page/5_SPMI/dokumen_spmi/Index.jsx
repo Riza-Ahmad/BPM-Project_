@@ -132,6 +132,14 @@ export default function Index({ onChangePage }) {
     });
   };
 
+  const handleUpdateHistory = (item) => {
+    onChangePage("updHistory", {
+      idData: item.Key,
+      idMenu: idMenu,
+      breadcrumbs: breadcrumbs,
+    });
+  };
+
   const handleDelete = (item) => {
     const selected = filteredData.find((obj) => obj.idDok == item.Key);
     console.log(selected.judulDok + " deleted");
@@ -247,6 +255,7 @@ export default function Index({ onChangePage }) {
                   onDetail={handleDetail}
                   onPrint={handleDownload}
                   onDelete={handleDelete}
+                  onUpdateHistory={handleUpdateHistory}
                 />
                 <Paging
                   pageSize={pageSize}

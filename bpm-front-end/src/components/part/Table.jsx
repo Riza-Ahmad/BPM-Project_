@@ -149,7 +149,7 @@ export default function Table({
             type="Reguler"
             name="upload"
             cssClass="btn px-1 py-0 text-secondary"
-            title="Unduh File"
+            title="Unggah File"
             onClick={() => onUpload(id)}
           />
         );

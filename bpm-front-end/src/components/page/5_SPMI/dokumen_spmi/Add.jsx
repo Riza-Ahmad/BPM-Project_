@@ -172,7 +172,6 @@ export default function Add({ onChangePage }) {
                   : "shadow p-5 m-5 mt-0 bg-white rounded"
               }
             >
-              {" "}
               <HeaderForm label="Formulir Dokumen" />
               <InputField
                 ref={judulDokRef}
