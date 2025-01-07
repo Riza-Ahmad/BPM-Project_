@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import PageTitleNav from "../../../part/PageTitleNav";
 import DetailData from "../../../part/DetailData";
 import HeaderForm from "../../../part/HeaderText";
 import Loading from "../../../part/Loading";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
-import moment from "moment";
-import "moment-timezone";
 import { useFetch } from "../../../util/useFetch";
 
 export default function Detail({ onChangePage }) {
@@ -18,11 +16,12 @@ export default function Detail({ onChangePage }) {
   ];
   const isMobile = useIsMobile();
   const location = useLocation();
+  const navigate = useNavigate();
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     templateName: "",
-    description: "",
     createdBy: "",
     createdDate: "",
     modifiedBy: "",
@@ -30,57 +29,94 @@ export default function Detail({ onChangePage }) {
     status: "",
   });
 
-  useEffect(() => {
-    if (!location.state?.idTemplate) return;
+  // Fetch data function
+  const fetchData = async (templateId) => {
+    try {
+      const response = await fetch(
+        `${API_LINK}/TemplateSurvei/GetDataTemplateSurveiById`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id: templateId }),
+        }
+      );
 
-    const templateId = location.state.idTemplate;
-    setLoading(true);
+      const data = await response.json();
+      console.log("API Response Data:", data);
 
-    const fetchData = async () => {
-      try {
-        const data = await useFetch(
-          `${API_LINK}/TemplateSurvei/GetDataTemplateById`,
-          { id: templateId }
-        );
-        if (data) {
-          setFormData({
-            templateName: data[0].templateName,
-            description: data[0].description,
-            createdBy: data[0].createdBy,
-            createdDate: new Date(data[0].createdDate).toLocaleDateString(
-              "id-ID",
-              {
+      if (data && data.length > 0) {
+        const template = data[0];
+        setFormData({
+          templateName: template.tsu_nama || "Tidak tersedia",
+          createdBy: template.tsu_created_by || "Tidak tersedia",
+          createdDate: template.tsu_created_date
+            ? new Date(template.tsu_created_date).toLocaleDateString("id-ID", {
                 weekday: "long",
                 day: "numeric",
                 month: "long",
                 year: "numeric",
-              }
-            ),
-            modifiedBy: data[0].modifiedBy || "-",
-            modifiedDate: data[0].modifiedDate
-              ? new Date(data[0].modifiedDate).toLocaleDateString("id-ID", {
-                  weekday: "long",
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })
-              : "-",
-            status: data[0].status === 1 ? "Aktif" : "Tidak Aktif",
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setError("Failed to fetch data.");
-      } finally {
-        setLoading(false);
+              })
+            : "-",
+          modifiedBy: template.tsu_modif_by || "-",
+          modifiedDate: template.tsu_modif_date
+            ? new Date(template.tsu_modif_date).toLocaleDateString("id-ID", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })
+            : "-",
+          status:
+            template.tsu_status === 1
+              ? "Final"
+              : template.tsu_status === 0
+              ? "Draft"
+              : template.tsu_status === 2
+              ? "Tidak Aktif"
+              : "Tidak Tersedia",
+        });
+      } else {
+        setError("Template data tidak ditemukan.");
       }
-    };
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setError("Gagal mengambil data template.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchData();
+  // Use effect to fetch data on mount
+  useEffect(() => {
+    if (!location.state?.idTemplate) {
+      setError(
+        "Template ID tidak ditemukan. Silakan kembali ke halaman sebelumnya."
+      );
+      return;
+    }
+
+    const templateId = location.state.idTemplate;
+    setLoading(true);
+    fetchData(templateId);
   }, [location.state?.idTemplate]);
 
   if (loading) return <Loading />;
-  if (error) return <p>{error}</p>;
+  if (error)
+    return (
+      <div className="d-flex justify-content-center align-items-center min-vh-100">
+        <div>
+          <p>{error}</p>
+          <button
+            className="btn btn-primary"
+            onClick={() => navigate("/survei/template")}
+          >
+            Kembali ke Template Survei
+          </button>
+        </div>
+      </div>
+    );
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -100,29 +136,42 @@ export default function Detail({ onChangePage }) {
                 : "shadow p-5 m-5 mt-0 bg-white rounded"
             }
           >
-            <HeaderForm label="Formulir Template Survei" />
+            <HeaderForm label="Detail Template Survei" />
             <div className="row">
               <div className="col-lg-6 col-md-6">
-                <DetailData label="Nama Template" isi={formData.templateName} />
-                <DetailData label="Status" isi={formData.status} />
+                <DetailData
+                  label="Nama Template"
+                  isi={formData.templateName}
+                  id="templateName"
+                />
+                <DetailData label="Status" isi={formData.status} id="status" />
               </div>
               <div className="col-lg-6 col-md-6">
-                <DetailData label="Dibuat Oleh" isi={formData.createdBy} />
-                <DetailData label="Dibuat Tanggal" isi={formData.createdDate} />
+                <DetailData
+                  label="Dibuat Oleh"
+                  isi={formData.createdBy}
+                  id="createdBy"
+                />
+                <DetailData
+                  label="Dibuat Tanggal"
+                  isi={formData.createdDate}
+                  id="createdDate"
+                />
               </div>
             </div>
-            <DetailData label="Deskripsi" isi={formData.description} />
             <div className="row">
               <div className="col-lg-6 col-md-6">
                 <DetailData
                   label="Dimodifikasi Oleh"
                   isi={formData.modifiedBy}
+                  id="modifiedBy"
                 />
               </div>
               <div className="col-lg-6 col-md-6">
                 <DetailData
                   label="Dimodifikasi Tanggal"
                   isi={formData.modifiedDate}
+                  id="modifiedDate"
                 />
               </div>
             </div>

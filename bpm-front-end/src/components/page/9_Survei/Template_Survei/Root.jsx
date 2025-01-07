@@ -16,7 +16,7 @@ export default function Template_Survei() {
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
       case "index":
-        navigate("/survei/template");
+        navigate("/survei/template", withState);
         break;
       case "add":
         navigate("/survei/template/add");

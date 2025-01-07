@@ -297,13 +297,18 @@ export default function NavItem() {
               </Link>
             </li>
             <li>
-              <Link className="dropdown-item" to="/survei">
+              <Link className="dropdown-item" to="/survei/survei">
                 Survei
               </Link>
             </li>
             <li>
               <Link className="dropdown-item" to="/survei/daftar">
                 Daftar Survei
+              </Link>
+            </li>
+            <li>
+              <Link className="dropdown-item" to="/survei/dashboard">
+                Dashboard Survei
               </Link>
             </li>
           </ul>

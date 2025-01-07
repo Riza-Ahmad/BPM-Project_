@@ -32,6 +32,6 @@ export default function Survei(){
                 <Route path="/tambah" element={<Add onChangePage={handlePageChange}/>}/>
                 <Route path="/detail" element={<Detail onChangePage={handlePageChange}/>}/>
             </Routes>
-        </>
-    )
+        </>
+    )
 }

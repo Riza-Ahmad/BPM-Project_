@@ -1,119 +1,136 @@
 import React, { useState, useEffect } from "react";
-import PageTitleNav from "../../../part/PageTitleNav";
-import TextField from "../../../part/TextField";
-import Button from "../../../part/Button";
-import Loading from "../../../part/Loading";
-import Dropdown from "../../../part/Dropdown";
-import SweetAlert from "../../../util/SweetAlert";
+import { useLocation, useNavigate } from "react-router-dom";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
-import { useNavigate, useLocation } from "react-router-dom";
+import PageTitleNav from "../../../part/PageTitleNav";
+import SweetAlert from "../../../util/SweetAlert";
+import Loading from "../../../part/Loading";
+import TextField from "../../../part/TextField";
+import Dropdown from "../../../part/Dropdown";
+import Button from "../../../part/Button";
+import { decodeHtml } from "../../../util/DecodeHtml";
 
-async function fetchAPI(url, body = null, method = "POST") {
-  try {
-    const response = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      ...(body && { body }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("API Error:", error);
-    throw new Error("Failed to fetch data from API");
-  }
-}
-
-export default function Edit({ onChangePage }) {
-  const isMobile = useIsMobile();
+export default function Edit() {
   const location = useLocation();
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const { idData } = location.state || {}; // Ambil idData dari state
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
   const [formData, setFormData] = useState({
-    id: location.state?.idData || "", // Make sure this is set correctly
     name: "",
-    createdBy: "dianvivi.widiyawati",
+    modifiedBy: "dianvivi.widiyawati", // Default value for modifiedBy
     ksrId: "",
     skpId: "",
   });
-
   const [kriteriaSurvei, setKriteriaSurvei] = useState([]);
   const [skalaPenilaian, setSkalaPenilaian] = useState([]);
 
+  // Ambil data template berdasarkan idData
   useEffect(() => {
-    if (!location.state?.idData) return;
+    if (!idData) {
+      navigate("/survei/template");
+      return;
+    }
 
-    const editId = location.state.idData; // Use the id from location.state
-    const fetchData = async () => {
+    const fetchTemplateData = async () => {
       try {
-        console.log("Fetching data for template ID:", editId); // Debugging ID
-
         setLoading(true);
-        setError(null);
 
-        const [kriteriaData, skalaData, templateData] = await Promise.all([
-          fetchAPI(
-            `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`,
-            JSON.stringify({})
-          ),
-          fetchAPI(
-            `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
-            JSON.stringify({})
-          ),
-          fetchAPI(
-            `${API_LINK}/TemplateSurvei/GetDataTemplateSurveiById`,
-            JSON.stringify({ id: editId })
-          ),
-        ]);
-
-        console.log("Fetched Kriteria Survei Data:", kriteriaData); // Debugging data
-        console.log("Fetched Skala Penilaian Data:", skalaData); // Debugging data
-        console.log("Fetched Template Data:", templateData); // Debugging data
-
-        setKriteriaSurvei(
-          kriteriaData.map((item) => ({
-            Value: item.ksr_id?.toString() || "",
-            Text: item.ksr_nama || "Tidak diketahui",
-          }))
+        // Panggilan API ke endpoint TemplateSurvei
+        const response = await fetch(
+          `${API_LINK}/TemplateSurvei/GetDataTemplateSurveiById`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ id: idData }), // Kirim idData sebagai body
+          }
         );
 
-        setSkalaPenilaian(
-          skalaData.map((item) => ({
-            Value: item.skp_id?.toString() || "",
-            Text: item.skp_deskripsi || "Tidak diketahui",
-          }))
-        );
+        const data = await response.json(); // Parse respons API
+        console.log("API Response Data:", data);
 
-        setFormData({
-          name: templateData?.name || "",
-          createdBy: templateData?.createdBy || "dianvivi.widiyawati",
-          ksrId: templateData?.ksrId?.toString() || "",
-          skpId: templateData?.skpId?.toString() || "",
-        });
+        if (data && data.length > 0) {
+          const templateData = data[0]; // Ambil data template pertama dari respons
+
+          setFormData({
+            name: decodeHtml(templateData.tsu_nama || "Tidak tersedia"), // Decode dan set nama
+            modifiedBy: decodeHtml(
+              templateData.tsu_modif_by || "Tidak tersedia"
+            ),
+            ksrId: templateData.ksr_id || "-", // Tambahkan ksrId
+            skpId: templateData.skp_id || "-", // Tambahkan skpId
+          });
+        } else {
+          setError("Template data tidak ditemukan.");
+        }
       } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Gagal memuat data. Silakan coba lagi nanti.");
+        console.error("Error fetching template data:", err);
+        setError("Gagal mengambil data template.");
       } finally {
-        setLoading(false);
+        setLoading(false); // Set loading selesai
       }
     };
 
-    fetchData();
-  }, [location.state?.idData]); // Trigger when idData is changed
+    fetchTemplateData();
+  }, [idData, navigate]);
+
+  // Ambil data dropdown untuk Kriteria Survei dan Skala Penilaian
+  useEffect(() => {
+    const fetchDropdownData = async () => {
+      try {
+        const kriteriaData = await fetchAPI(
+          `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`,
+          JSON.stringify({})
+        );
+        setKriteriaSurvei(
+          kriteriaData.map((item) => ({
+            Value: item.ksr_id,
+            Text: item.ksr_nama,
+          }))
+        );
+
+        const skalaData = await fetchAPI(
+          `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
+          JSON.stringify({})
+        );
+        setSkalaPenilaian(
+          skalaData.map((item) => ({
+            Value: item.skp_id,
+            Text: item.skp_deskripsi,
+          }))
+        );
+      } catch (err) {
+        console.error("Error fetching dropdown data:", err);
+        setError("Gagal memuat data dropdown. Silakan coba lagi nanti.");
+      }
+    };
+
+    fetchDropdownData();
+  }, []);
 
   const validateForm = () => {
-    if (!formData.name) return "Nama Template tidak boleh kosong.";
-    if (formData.name.length > 50)
+    if (!formData.name) {
+      return "Nama Template tidak boleh kosong.";
+    }
+    if (formData.name.length > 50) {
       return "Nama Template tidak boleh lebih dari 50 karakter.";
-    if (!formData.ksrId) return "Kriteria Survei harus dipilih.";
-    if (!formData.skpId) return "Skala Penilaian harus dipilih.";
+    }
+    if (!formData.ksrId) {
+      return "Kriteria Survei harus dipilih.";
+    }
+    if (!formData.skpId) {
+      return "Skala Penilaian harus dipilih.";
+    }
+    if (isNaN(parseInt(formData.ksrId, 10))) {
+      return "ID Kriteria Survei harus berupa angka.";
+    }
+    if (isNaN(parseInt(formData.skpId, 10))) {
+      return "ID Skala Penilaian harus berupa angka.";
+    }
     return null;
   };
 
@@ -124,42 +141,63 @@ export default function Edit({ onChangePage }) {
       return;
     }
 
-    console.log("Form data before submitting:", formData); // Debugging form data
-
     setLoading(true);
     try {
       const payload = {
+        id: idData, // Menambahkan id dari state location
         ...formData,
-        id: parseInt(formData.id, 10), // Ensure ID is parsed correctly
         ksrId: parseInt(formData.ksrId, 10),
         skpId: parseInt(formData.skpId, 10),
       };
 
-      console.log("Payload to be sent:", payload); // Debugging payload
+      console.log("Payload yang dikirim ke API:", payload);
 
-      await fetchAPI(
+      const response = await fetchAPI(
         `${API_LINK}/TemplateSurvei/UpdateTemplateSurvei`,
-        JSON.stringify(payload),
-        "POST"
+        JSON.stringify(payload)
       );
+
+      console.log("Response dari UpdateTemplateSurvei:", response);
 
       SweetAlert(
         "Sukses",
         "Template survei berhasil diperbarui.",
         "success",
         "OK"
-      ).then(() => onChangePage("index"));
+      ).then(() => navigate("/survei/template"));
     } catch (err) {
       console.error("Error submitting form:", err);
       SweetAlert(
         "Error",
-        "Terjadi kesalahan saat memperbarui data.",
+        "Terjadi kesalahan saat mengirim data.",
         "error",
         "OK"
       );
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchAPI = async (url, body, method = "POST") => {
+    console.log("URL:", url);
+    console.log("Body yang dikirim:", body);
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body,
+    });
+
+    if (!response.ok) {
+      console.error("Error response status:", response.status);
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const responseData = await response.json();
+    console.log("Response dari API:", responseData);
+    return responseData;
   };
 
   if (loading) return <Loading />;
@@ -185,7 +223,7 @@ export default function Edit({ onChangePage }) {
               { label: "Template Survei", href: "/survei/template" },
               { label: "Edit Template Survei" },
             ]}
-            onClick={() => onChangePage("index")}
+            onClick={() => navigate("/survei/template")}
           />
           <h3 style={{ textAlign: "center", margin: "1rem 0" }}>
             Formulir Edit Template Survei
@@ -201,10 +239,10 @@ export default function Edit({ onChangePage }) {
               isRequired={true}
             />
             <TextField
-              label="Dibuat Oleh"
-              value={formData.createdBy}
+              label="Dimodifikasi Oleh"
+              value={formData.modifiedBy}
               onChange={(e) =>
-                setFormData({ ...formData, createdBy: e.target.value })
+                setFormData({ ...formData, modifiedBy: e.target.value })
               }
               isRequired={true}
             />
@@ -212,7 +250,6 @@ export default function Edit({ onChangePage }) {
               label="Kriteria Survei"
               arrData={kriteriaSurvei}
               type="pilih"
-              forInput="kriteriaSurvei"
               value={formData.ksrId}
               onChange={(e) =>
                 setFormData({ ...formData, ksrId: e.target.value })
@@ -223,7 +260,6 @@ export default function Edit({ onChangePage }) {
               label="Skala Penilaian"
               arrData={skalaPenilaian}
               type="pilih"
-              forInput="skalaPenilaian"
               value={formData.skpId}
               onChange={(e) =>
                 setFormData({ ...formData, skpId: e.target.value })
@@ -240,7 +276,7 @@ export default function Edit({ onChangePage }) {
               <Button
                 classType="danger"
                 label="Batal"
-                onClick={() => onChangePage("index")}
+                onClick={() => navigate("/survei/template")}
                 style={{ flex: 1, margin: "0.5rem" }}
               />
             </div>

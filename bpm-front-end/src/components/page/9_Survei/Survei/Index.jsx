@@ -8,13 +8,12 @@ import InputField from "../../../part/InputField";
 import Loading from "../../../part/Loading";
 import SearchField from "../../../part/SearchField";
 import Filter from "../../../part/Filter";
-import Modal from "../../../part/Modal"; 
-
+import Modal from "../../../part/Modal";
 
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 
-export default function Survei({onChangePage}) {
+export default function Survei({ onChangePage }) {
   const [pageSize] = useState(10);
   const isMobile = useIsMobile();
   const [pageCurrent, setPageCurrent] = useState(1);
@@ -22,7 +21,7 @@ export default function Survei({onChangePage}) {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [allData, setAllData] = useState([]); // Data asli dari API
-  
+
   const indexOfLastData = pageCurrent * pageSize;
   const indexOfFirstData = indexOfLastData - pageSize;
   const currentData = data.slice(indexOfFirstData, indexOfLastData);
@@ -37,37 +36,45 @@ export default function Survei({onChangePage}) {
           <div className={isMobile ? "m-0 p-0" : "m-3 mb-0"}>
             <PageTitleNav
               title="Survei"
-              breadcrumbs={[
-                { label: "Survei", href:"/tentang"}
-              ]}
-              onClick={() => onChangePage("tentang")}/>
-
+              breadcrumbs={[{ label: "Survei", href: "/tentang" }]}
+              onClick={() => onChangePage("tentang")}
+            />
           </div>
-          <div className={isMobile ? "p-2 m-2 mt-2 mb-0" : "p-3 m-5 mt-2 mb-0"}
-            style={{ marginLeft: "50px"}}>
-              <Button 
+          <div
+            className={isMobile ? "p-2 m-2 mt-2 mb-0" : "p-3 m-5 mt-2 mb-0"}
+            style={{ marginLeft: "50px" }}
+          >
+            <Button
               iconName="add"
               classType="primary"
               label="Tambah Data"
               onClick={() => onChangePage("add")}
-              />
-              <div className="row mt-4 col-12">
-                <div className="col-md-11">
-                <SearchField/>
-                </div>
-                <div className="col-md-1">
-                <Filter/>
-                </div>
+            />
+            <div className="row mt-4 col-12">
+              <div className="col-md-11">
+                <SearchField />
               </div>
+              <div className="col-md-1">
+                <Filter />
+              </div>
+            </div>
           </div>
-          
-          <div className={
+
+          <div
+            className={
               isMobile
                 ? "table-container bg-white p-2 m-2 mt-0 rounded"
                 : "table-container bg-white p-3 m-5 mt-0 rounded"
-            }>
-              <Table
-              arrHeader={["No", "Nama Survei", "Tanggal Awal", "Tanggal Akhir", "Status"]}
+            }
+          >
+            <Table
+              arrHeader={[
+                "No",
+                "Nama Survei",
+                "Tanggal Awal",
+                "Tanggal Akhir",
+                "Status",
+              ]}
               headerToDataMap={{
                 No: "No",
                 "Nama Survei": "nama",
@@ -80,17 +87,18 @@ export default function Survei({onChangePage}) {
               actions={["Detail"]}
               // onDetail={handleDetail}
               // onEdit={handleEdit}
-              
             />
 
             <Paging
               pageSize={pageSize}
               pageCurrent={pageCurrent}
               totalData={data.length}
-              navigation={handlePageNavigation}/>
+              navigation={handlePageNavigation}
+            />
           </div>
         </div>
       </main>
+         
     </div>
   );
 }

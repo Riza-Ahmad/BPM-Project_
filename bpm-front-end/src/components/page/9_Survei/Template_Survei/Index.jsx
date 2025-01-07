@@ -9,8 +9,9 @@ import SearchField from "../../../part/SearchField";
 import Filter from "../../../part/Filter";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
+import { useNavigate } from "react-router-dom";
 
-export default function Index({ onChangePage }) {
+export default function Template_Survei({ onChangePage }) {
   const [pageSize] = useState(10);
   const isMobile = useIsMobile();
   const [pageCurrent, setPageCurrent] = useState(1);
@@ -22,7 +23,10 @@ export default function Index({ onChangePage }) {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
+    // Fetch templates from the backend
     const fetchTemplateSurvei = async () => {
       setLoading(true);
       try {
@@ -74,9 +78,11 @@ export default function Index({ onChangePage }) {
     setSelectedStatus(status);
   };
 
+  // Filter and sort data
   useEffect(() => {
     let filtered = [...data];
 
+    // Filter berdasarkan query pencarian di semua atribut
     if (searchQuery) {
       filtered = filtered.filter((item) =>
         Object.values(item)
@@ -86,12 +92,14 @@ export default function Index({ onChangePage }) {
       );
     }
 
+    // Filter berdasarkan status
     if (selectedStatus) {
       filtered = filtered.filter(
         (item) => item.status === (selectedStatus === "Draft" ? 0 : 1)
       );
     }
 
+    // Sort berdasarkan tanggal final
     filtered.sort((a, b) => {
       if (a.finalDate === "-" || b.finalDate === "-") return 0;
       return sortOrder === "asc"
@@ -110,6 +118,124 @@ export default function Index({ onChangePage }) {
 
   if (loading) return <Loading />;
 
+  const handleDelete = async (id) => {
+    const result = await Swal.fire({
+      title: "Apakah Anda yakin?",
+      text: "Anda akan menghapus template survei ini.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Hapus Template",
+      cancelButtonText: "Batal",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await fetch(
+          `${API_LINK}/TemplateSurvei/DeleteTemplateSurvei`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ p1: id, p2: "Admin", p3: "Admin" }), 
+          }
+        );
+
+        if (!response.ok)
+          throw new Error("Gagal menghapus Template Survei.");
+
+        Swal.fire(
+          "Berhasil",
+          "Template Survei berhasil dihapus.",
+          "success"
+        );
+
+        fetchTemplateSurvei(); // Reload the template list or data
+      } catch (err) {
+        Swal.fire("Gagal", "Terjadi kesalahan saat menghapus template survei.", "error");
+      }
+    } else {
+      Swal.fire("Dibatalkan", "Template Survei tidak terhapus.", "info");
+    }
+  };
+
+  const handleFinal = async (id) => {
+    // Display confirmation dialog before proceeding
+    const result = await Swal.fire({
+      title: "Apakah Anda yakin?",
+      text: "Anda akan menetapkan status template ini menjadi Final.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Tetapkan Final",
+      cancelButtonText: "Batal",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await fetch(
+          `${API_LINK}/TemplateSurvei/FinalTemplate`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ p1: id, p2: "Admin" }),
+          }
+        );
+
+        if (!response.ok) throw new Error("Gagal menetapkan status final.");
+
+        Swal.fire(
+          "Berhasil",
+          "Template Survei telah menjadi Final.",
+          "success"
+        );
+
+        setData((prevData) =>
+          prevData.map((item) =>
+            item.id === id ? { ...item, status: 1 } : item
+          )
+        );
+      } catch (err) {
+        Swal.fire(
+          "Gagal",
+          "Terjadi kesalahan saat menetapkan status Final.",
+          "error"
+        );
+      }
+    } else {
+      Swal.fire("Dibatalkan", "Status template tidak diubah.", "info");
+    }
+  };
+
+  const handleToggle = async (id) => {
+    try {
+      const response = await fetch(
+        `${API_LINK}/TemplateSurvei/DeleteTemplateSurvei`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ p1: id, p2: "Admin" }),
+        }
+      );
+
+      if (!response.ok)
+        throw new Error("Gagal mengganti status Template Survei.");
+
+      Swal.fire(
+        "Berhasil",
+        "Status Template Survei berhasil diganti.",
+        "success"
+      );
+
+      fetchTemplateSurvei();
+    } catch (err) {
+      Swal.fire("Gagal", "Terjadi kesalahan saat mengganti status.", "error");
+    }
+  };
+
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
@@ -121,7 +247,7 @@ export default function Index({ onChangePage }) {
                 { label: "Survei", href: "/survei" },
                 { label: "Template Survei" },
               ]}
-              onClick={() => onChangePage("index")}
+              onClick={() => navigate("/survei")}
             />
           </div>
 
@@ -133,7 +259,7 @@ export default function Index({ onChangePage }) {
               iconName="add"
               classType="primary"
               label="Tambah Template"
-              onClick={() => onChangePage("add")}
+              onClick={() => navigate("/survei/template/add")}
             />
 
             <div className="row mt-5">
@@ -145,7 +271,7 @@ export default function Index({ onChangePage }) {
                   <button
                     className="btn btn-primary dropdown-toggle w-100"
                     type="button"
-                    onClick={() => setIsFilterOpen(!isFilterOpen)}
+                    onClick={() => setIsFilterOpen(!isFilterOpen)} // Toggle dropdown
                   >
                     Filter
                   </button>
@@ -198,24 +324,41 @@ export default function Index({ onChangePage }) {
             <Table
               arrHeader={["No", "Nama Template", "Tanggal Final", "Status"]}
               data={currentData.map((item, index) => ({
-                id: item.id,
+                Key: item.id,
                 No: indexOfFirstData + index + 1,
                 "Nama Template": item.name,
                 "Tanggal Final":
                   item.finalDate === "-"
                     ? "-"
                     : new Date(item.finalDate).toLocaleDateString(),
-                Status: item.status === 0 ? "Draft" : "Final",
+                Status:
+                  item.status === 0
+                    ? "Draft"
+                    : item.status === 1
+                    ? "Final"
+                    : "Tidak Aktif", // Add the 'Tidak Aktif' status
               }))}
-              actions={(row) =>
-                row.Status === "Draft"
-                  ? ["Detail", "Edit", "Delete", "Final"]
-                  : ["Detail", "Toggle"]
+              actions={
+                (item) =>
+                  item.Status === "Draft"
+                    ? ["Detail", "Edit", "Delete", "Final"]
+                    : item.Status === "Final"
+                    ? ["Detail", "Toggle"] // Add action for 'Final' status
+                    : ["Detail", "Toggle"] // Add action for 'Tidak Aktif' status
               }
-              onEdit={(id) => onChangePage("edit", { state: { id } })}
-              onDetail={(id) => onChangePage("detail", { state: { id } })}
-              onDelete={(id) => handleDelete(id)}
+              onEdit={(item) =>
+                onChangePage("edit", { state: { idData: item.Key } })
+              }
+              onDetail={(item) =>
+                onChangePage("detail", { state: { idTemplate: item.Key } })
+              }
+              onDelete={(item) => handleDelete(item.Key)}
+              onFinal={(item) => handleFinal(item.Key)}
+              onToggle={(item) => {
+                handleToggle(item.Key);
+              }}
             />
+
             <Paging
               pageSize={pageSize}
               pageCurrent={pageCurrent}
