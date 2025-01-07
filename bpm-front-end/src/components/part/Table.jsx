@@ -14,6 +14,7 @@ export default function Table({
   onUpdateHistory = () => {},
   onSurveyor = () => {},
   onResponden = () => {},
+  onToggle = () => {},
 }) {
   function generateActionButton(actionType, id, status = "Aktif") {
     switch (actionType) {

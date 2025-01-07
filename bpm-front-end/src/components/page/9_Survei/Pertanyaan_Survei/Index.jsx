@@ -8,45 +8,87 @@ import Modal from "../../../part/Modal";
 import Filter from "../../../part/Filter";
 import SearchField from "../../../part/SearchField";
 import SweetAlert from "../../../util/SweetAlert";
+import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { API_LINK } from "../../../util/Constants";
 
-export default function Index({onChangePage}) {
+export default function Pertanyaan_Survei({ onChangePage }) {
     const [filterValue, setFilterValue] = useState("");
-    const [pageSize] = useState(10);
+    const [pageSize] = useState(12);
     const [pageCurrent, setPageCurrent] = useState(1);
-    const [selectedQuestion, setSelectedQuestion] = useState(null);
+    const [selectedQuestion, setSelectedQuestion] = useState("");
     const [formData, setFormData] = useState({ questionText: '' });
-    const importModalRef = useRef();
-    const [file, setFile] = useState(null);
-    const [Data, setData] = useState(null);
+    const importModalRef = useRef("");
+    const [file, setFile] = useState("");
+    const [Data, setData] = useState("");
+    const [filteredData, setFilteredData] = useState([]);
+    const [loading, setLoading] = useState(true);
 
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchDataPertanyaan = async () => {
+          setLoading(true); // Aktifkan indikator loading
           try {
-            const result = await fetchWithParams(
+            // Panggil API
+            const response = await fetch(
               `${API_LINK}/MasterPertanyaan/GetDataPertanyaan`,
-              {} // Parameter kosong jika tidak diperlukan
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({}), // Parameter kosong
+              }
             );
       
-            console.log(result); // Debugging jika diperlukan
-            setData(result);
-          } catch (err) {
-            console.error("Fetch error:", err);
+            // Cek status response
+            if (!response.ok) {
+              throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+      
+            // Parsing hasil JSON
+            const result = await response.json();
+      
+            // Cek apakah result adalah array
+            if (!Array.isArray(result)) {
+              console.error("Data yang diterima bukan array");
+              return;
+            }
+      
+            // Mapping data dan pastikan pty_id ada di setiap item
+            const formattedPertanyaan = result.map((item, index) => {
+      
+              return {
+                Key: item.pty_id || "No ID", // Jika pty_id tidak ada, gunakan fallback
+                question: item.pty_pertanyaan,
+                isHeader: item.pty_isheader,
+                isGeneral: item.pty_isgeneral,
+                status: item.pty_status,
+                createdBy: item.pty_created_by,
+                createdDate: item.pty_created_date
+                  ? new Date(item.pty_created_date).toISOString()
+                  : "-",
+                role: item.pty_role_responden,
+              };
+            });
+      
+            // Pastikan data sudah diformat dengan benar
+      
+            // Set data ke state
+            setData(formattedPertanyaan);
+            setFilteredData(formattedPertanyaan);
+          } catch (error) {
+            console.error("Fetch error:", error);
             Swal.fire({
               icon: "error",
               title: "Oops...",
-              text: "Gagal mengambil data pertanyaan!",
+              text: error.message || "Gagal mengambil data pertanyaan!",
             });
           } finally {
-            setLoading(false);
+            setLoading(false); // Matikan indikator loading
           }
         };
-      
-        fetchData();
-    }, []);
+        fetchDataPertanyaan();
+      }, []);      
 
     const addModalRef = useRef();
     const updateModalRef = useRef();
@@ -59,6 +101,7 @@ export default function Index({onChangePage}) {
     const [generalQuestion, setGeneralQuestion] = useState('Ya');
     const [surveyCriteria, setSurveyCriteria] = useState('');
     const [respondent, setRespondent] = useState('');
+    
 
     const handleAddQuestion = () => {
         const newQuestion = {
@@ -141,13 +184,13 @@ export default function Index({onChangePage}) {
 
     const indexOfLastData = pageCurrent * pageSize;
     const indexOfFirstData = indexOfLastData - pageSize;
+    const currentData = filteredData.slice(indexOfFirstData, indexOfLastData);
     // const filteredQuestions = Data.filter((question) =>
     //     question.text.toLowerCase().includes(filterValue.toLowerCase())
     // );
     
     // Mengambil data yang sudah difilter berdasarkan halaman saat ini
-    //const currentData = Data.slice(indexOfFirstData, indexOfLastData);
-        
+    //const currentData = Data.slice(indexOfFirstData, indexOfLastData);   
 
     const handlePageNavigation = (page) => {
         setPageCurrent(page);
@@ -164,43 +207,88 @@ export default function Index({onChangePage}) {
         setIsHeader(!isHeader);
     };
 
-    const handleEdit = (item) => {
-        onChangePage("edit", { state: { editData: item } });
-      };
-
-    const handleDetail = (item) => {
-        onChangePage("detail", {state: {detailData: item }});
-    }
+    const handleEdit = (id) => {
+        // ()=>onChangePage('edit')
+        if (!id) {
+            console.error("ID tidak ada atau tidak valid");
+            return;  // Hentikan jika id tidak valid
+        }
     
-
+        // Debugging: Cek nilai id
+        console.log("ID yang akan digunakan untuk request:", id);
+    
+        // Lakukan request ke API dengan id yang valid
+        fetch(`MasterPertanyaan/GetDataPertanyaanById/${id}`)
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error("Request gagal");
+                }
+                return response.json();
+            })
+            .then((data) => {
+                // Proses data yang diterima
+                console.log("Data diterima:", data);
+                // Update state atau lakukan tindakan lain dengan data
+            })
+            .catch((error) => {
+                console.error("Terjadi kesalahan:", error);
+            });
+    };
+    
     const handleSelectChange = (e) => {
         setGeneralQuestion(e.target.value);
     };
 
-
-    const handleDelete = (id) => {
-        SweetAlert(
-            "Konfirmasi Hapus",
-            "Apakah Anda yakin ingin menghapus pertanyaan ini?",
-            "warning",
-            "Hapus",
-            null,
-            "",
-            true 
-        ).then((result) => {
-            if (result) {
-                setQuestions((prevQuestions) =>
-                    prevQuestions.filter((q) => q.id !== id)
-                );
-                SweetAlert("Berhasil", "Pertanyaan berhasil dihapus.", "success");
-            } else {
-                SweetAlert("Batal", "Penghapusan dibatalkan.", "info");
-            }
+    const handleToggle = async (id) => {
+        const parameters = { p1: id, p2: "Admin" };
+    
+        const confirm = await Swal.fire({
+            title: "Konfirmasi",
+            text: "Apakah Anda yakin ingin toggle status pertanyaan ini?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Ya, Toggle",
+            cancelButtonText: "Batal",
         });
-        ``
-    };
-
-
+    
+        if (confirm.isConfirmed) {
+            try {
+                const response = await fetch(
+                    `${API_LINK}/MasterPertanyaan/DeletePertanyaan`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(parameters),
+                });
+    
+                if (!response.ok) throw new Error("Gagal toggle status pertanyaan.");
+    
+                const result = await response.json();
+    
+                // Update status di frontend
+                setData((prevData) =>
+                    prevData.map((item) =>
+                        item.id === id ? { ...item, isDeleted: !item.isDeleted } : item
+                    )
+                );
+    
+                // Update filteredData agar hanya menampilkan data yang isDeleted = false
+                setFilteredData((prevFilteredData) =>
+                    prevFilteredData.map((item) =>
+                        item.id === id ? { ...item, isDeleted: !item.isDeleted } : item
+                    )
+                );
+    
+                Swal.fire("Berhasil", "Status pertanyaan berhasil di-toggle.", "success");
+    
+            } catch (err) {
+                console.error("Error:", err);
+                Swal.fire("Gagal", "Terjadi kesalahan saat toggle status.", "error");
+            }
+        } else {
+            Swal.fire("Batal", "Toggle dibatalkan.", "info");
+        }
+    };    
+    
     return (
         <div className="d-flex flex-column min-vh-100">
             <main className="flex-grow-1" style={{ marginTop: '80px' }}>
@@ -230,38 +318,34 @@ export default function Index({onChangePage}) {
                         </div>
                     </div>
                 </div>
+                <div
+                className="table-container bg-white p-3 mt-0 rounded"
+                style={{ margin: isMobile ? "1rem" : "3rem" }}
+                >
+                <Table
+                    arrHeader={["No", "Pertanyaan", "Header", "Pertanyaan Umum"]}
+                    data={currentData.map((item, index) => ({
+                        Key: item.id, 
+                        No: indexOfFirstData + index + 1, // Pastikan `indexOfFirstData` sudah didefinisikan dengan benar
+                        Pertanyaan: item.question,
+                        Header: item.isHeader ? "Ya" : "Tidak",
+                        "Pertanyaan Umum": item.isGeneral ? "Ya" : "Tidak",
+                    }))}
+                    actions={() => ["Detail", "Edit", "Toggle"]}
+                    onDetail={(item) => onChangePage("detail", { state: { idPertanyaan: item.Key } })}
+                    onEdit={(item) => handleEdit(item.Key)} // Pastikan `item.Key` yang digunakan
+                    onToggle={(item) => handleToggle(item.Key)} // Pastikan `item.Key` yang digunakan
+                />
 
-                    <div className="table-container bg-white p-3 mt-0 rounded" style={{ margin: isMobile ? "1rem" : "3rem" }}>
-                        <Table
-                            arrHeader={["No", "Pertanyaan", "Header", "Pertanyaan Umum"]}
-                            headerToDataMap={{
-                                "No": "No",
-                                "Pertanyaan": "text",
-                                "Header": "Header",
-                                "Pertanyaan Umum": "generalQuestion",
-                            }}
-                            data={currentData.map((item, index) => ({
-                                key: item.id,
-                                No: indexOfFirstData + index + 1,
-                                text: item.text,
-                                Header: item.Header || "Tidak", 
-                                generalQuestion: item.generalQuestion || "Ya",
-                            }))}
-                            actions={["Detail", "Edit", "Delete"]}
-                            onDetail={handleDetail}
-                            onEdit={handleEdit}
-                            onDelete={handleDelete}
-                        />
-                        <Paging
-                            pageSize={pageSize}
-                            pageCurrent={pageCurrent}
-                            totalData={questions.length}
-                            navigation={handlePageNavigation}
-                        />
-                    </div>
+                <Paging
+                    pageSize={pageSize}
+                    pageCurrent={pageCurrent}
+                    totalData={questions.length}
+                    navigation={handlePageNavigation}
+                />
                 </div>
+               </div>
             </main>
-
             {/* Import Modal */}
             <Modal
                 ref={importModalRef}
@@ -346,6 +430,9 @@ export default function Index({onChangePage}) {
                 title="Tambah Pertanyaan Survei"
                 size="full"
                 Button1={<Button classType="primary" label="Simpan" onClick={handleAddQuestion} />}
+
+
+
                 Button2={<Button classType="secondary" label="Batal" onClick={() => addModalRef.current.close()} 
                 />}
                 
@@ -493,7 +580,6 @@ export default function Index({onChangePage}) {
                     />
                 </div>
             </Modal>
-            
         </div>
     );
 }

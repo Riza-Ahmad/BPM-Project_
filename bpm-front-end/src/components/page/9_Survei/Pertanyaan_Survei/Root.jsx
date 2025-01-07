@@ -3,7 +3,7 @@ import Index from './Index';
 import Add from './Add';
 import Edit from './Edit';
 import ScrollToTop from '../../../part/ScrollToTop';
-import Detail from './Detail'; // Pastikan untuk mengimpor komponen Detail
+import Detail from './Detail';
 
 export default function Pertanyaan_Survei() {
   const navigate = useNavigate();
@@ -11,16 +11,16 @@ export default function Pertanyaan_Survei() {
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
       case "index":
-        navigate("/survei/pertanyaan");
+        navigate("/survei/pertanyaan", withState);
         break;
       case "add":
         navigate("/survei/pertanyaan/add");
         break;
       case "edit":
-        navigate("/survei/pertanyaan/edit");
+        navigate("/survei/pertanyaan/edit", withState); 
         break;
       case "detail":
-        navigate("/survei/pertanyaan/detail");
+        navigate("/survei/pertanyaan/detail", withState);
         break;
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
@@ -33,9 +33,9 @@ export default function Pertanyaan_Survei() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Index onChangePage={handlePageChange} />} />
-        <Route path="add" element={<Add onChangePage={handlePageChange} />} />
-        <Route path="edit" element={<Edit onChangePage={handlePageChange} />} />
-        <Route path="detail" element={<Detail onChangePage={handlePageChange} />} />
+        <Route path="/add" element={<Add onChangePage={handlePageChange} />} />
+        <Route path="/edit" element={<Edit onChangePage={handlePageChange} />} /> {/* Perubahan di sini */}
+        <Route path="/detail" element={<Detail onChangePage={handlePageChange} />} />
       </Routes>
     </>
   );

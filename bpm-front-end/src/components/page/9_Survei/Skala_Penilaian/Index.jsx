@@ -3,192 +3,324 @@ import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
 import PageTitleNav from "../../../part/PageTitleNav";
 import Button from "../../../part/Button";
-import TextField from "../../../part/TextField";
+import { API_LINK } from "../../../util/Constants";
 import Modal from "../../../part/Modal";
 import Filter from "../../../part/Filter";
-import SearchField from "../../../part/SearchField";
-import FileUpload from "../../../part/FileUpload";
-import DropDown from "../../../part/Dropdown";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../../../util/useIsMobile";
+import Swal from "sweetalert2";
+
 
 export default function Index() {
-    const [pageSize] = useState(10);
-    const [pageCurrent, setPageCurrent] = useState(1);
-    const [selectedSkala, setSelectedSkala] = useState(null);
-    const [formData, setFormData] = useState({ name: '' });
-    const addModalRef = useRef();
-    const updateModalRef = useRef();
-    const detailModalRef = useRef();
-    const navigate = useNavigate();
-    const isMobile = useIsMobile(); 
+  const [pageSize] = useState(10);
+  const [pageCurrent, setPageCurrent] = useState(1);
+  const [selectedSkala, setSelectedSkala] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [Skala, setSkala] = useState([]);
+  const [Detail, setDetail] = useState([]);
+  const [filterType, setFilterType] = useState("");
 
-    useEffect(() => {
-        if (selectedSkala && detailModalRef.current) {
-            detailModalRef.current.open();
+  const detailModalRef = useRef();
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
+
+  const handlePageNavigation = (page) => setPageCurrent(page);
+
+  const filteredSkala = Skala.filter((item) => {
+    const searchRegex = new RegExp(searchQuery, "i");
+    const matchesQuery =
+      searchRegex.test(item.skp_tipe) ||
+      searchRegex.test(item.skp_skala) ||
+      searchRegex.test(item.skp_deskripsi) ||
+      searchRegex.test(item.skp_status) ||
+      searchRegex.test(item.skp_created_by) ||
+      searchRegex.test(item.skp_created_date) ||
+      searchRegex.test(item.skp_modif_by) ||
+      searchRegex.test(item.skp_modif_date);
+    const matchesFilterType = filterType ? item.skp_tipe === filterType : true;
+    return matchesQuery && matchesFilterType;
+  });
+
+  const currentData = filteredSkala.slice(
+    (pageCurrent - 1) * pageSize,
+    pageCurrent * pageSize
+  );
+
+  const openModal = (ref) => ref?.current?.open();
+  const closeModal = (ref) => ref?.current?.close();
+
+  const handleDetailSkala = (id) => {
+    fetchSkalaById(id);
+    openModal(detailModalRef);
+  };
+
+  const title = "Skala Penilaian";
+  const breadcrumbs = [{ label: "Skala Penilaian" }];
+
+  const fetchSkala = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
         }
-    }, [selectedSkala]);
-    
-    const dataOptions = [
-        { Value: "1", Text: "Pria" },
-        { Value: "2", Text: "Wanita" },
-        { Value: "3", Text: "Tidak Ingin Disebutkan" },
-    ];
+      );
 
-    const [Skala, setSkala] = useState([
-        { id: 1, Nama: 'Dosen' },
-        { id: 2, Nama: 'Tenaga Pendidik' },
-        { id: 3, Nama: 'Mahasiswa' }
-    ]);
+      if (!response.ok) throw new Error("Gagal mengambil data skala.");
 
-    const handleAddSkala = () => {
-        const newSkala = {
-            id: Skala.length + 1,
-            Nama: formData.name,
-        };
-        setSkala([...Skala, newSkala]);
-        setFormData({ name: '' });
-        addModalRef.current.close();
+      const result = await response.json();
+      setSkala(result);
+    } catch (err) {
+      console.error("Fetch error:", err);
+      alert("Gagal mengambil data skala.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchSkalaById = async (id) => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${API_LINK}/SkalaPenilaian/GetDataSkalaPenilaianById`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ p1: id }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Gagal mengambil data skala.");
+
+      const result = await response.json();
+      console.log(result);
+      setDetail(result[0]);
+    } catch (err) {
+      console.error("Fetch error:", err);
+      alert("Gagal mengambil data skala.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSkala();
+  }, []);
+
+  const handleDelete = async (id) => {
+    // Menyiapkan parameter sesuai stored procedure
+    const parameters = {
+      p1: id, // ID Skala yang akan dihapus
+      p2: "Admin", // User yang melakukan modifikasi
     };
 
-    const handleUpdateSkala = () => {
-        if (!selectedSkala) return; // Check if selectedSkala is set
-        const updatedSkala = {
-            ...selectedSkala,
-            Nama: formData.name,
-        };
-        setSelectedSkala(null);
-        setSkala(Skala.map(Skala => Skala.id === selectedSkala.id ? updatedSkala : Skala));
-        setFormData({ name: '' }); // Reset form data
-        updateModalRef.current.close();
-    };
+    // Menampilkan konfirmasi menggunakan SweetAlert
+    const confirm = await Swal.fire({
+      title: "Konfirmasi",
+      text: "Apakah Anda yakin ingin menghapus Skala Penilaian ini?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Hapus",
+      cancelButtonText: "Batal",
+    });
 
-    const handleSelectSkala = (Skala) => {
-        setSelectedSkala(Skala);
-        setFormData({
-            name: Skala.Nama,
-        });
-        updateModalRef.current.open();
-    };
+    // Jika user menekan tombol konfirmasi
+    if (confirm.isConfirmed) {
+      try {
+        const response = await fetch(
+          `${API_LINK}/SkalaPenilaian/DeleteSkalaPenilaian`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(parameters),
+          }
+        );
 
-    const handleDetailSkala = (Skala) => {
-        setSelectedSkala(Skala);
-        detailModalRef.current.open();
-    };
+        if (!response.ok) throw new Error("Gagal menghapus Skala Penilaian.");
 
-    const indexOfLastData = pageCurrent * pageSize;
-    const indexOfFirstData = indexOfLastData - pageSize;
-    const currentData = Skala.slice(indexOfFirstData, indexOfLastData);
+        Swal.fire("Berhasil", "Skala Penilaian berhasil dihapus.", "success");
 
-    const handlePageNavigation = (page) => {
-        setPageCurrent(page);
-    };
+        // Memperbarui data setelah penghapusan
+        fetchSkala();
+      } catch (err) {
+        console.error("Error:", err);
+        Swal.fire(
+          "Gagal",
+          "Terjadi kesalahan saat menghapus Skala Penilaian.",
+          "error"
+        );
+      }
+    }
+  };
 
-    const title = "Skala Penilaian";
-    const breadcrumbs = [{ label: "Skala Penilaian" }];
+  return (
+    <div className="d-flex flex-column min-vh-100">
+      <main className="flex-grow-1" style={{ marginTop: "80px" }}>
+        <div className="d-flex flex-column">
+          <div className="mb-0" style={{ margin: isMobile ? "1rem" : "3rem" }}>
+            <PageTitleNav
+              title={title}
+              breadcrumbs={breadcrumbs}
+              onClick={() => navigate("/beranda")}
+            />
+          </div>
 
-    return (
-        <div className="d-flex flex-column min-vh-100">
-            <main className="flex-grow-1" style={{ marginTop: '80px' }}>
-                <div className="d-flex flex-column">
-                    <div className="mb-0" style={{margin: isMobile ? "1rem" : "3rem"}}>
-                        <PageTitleNav
-                            title={title}
-                            breadcrumbs={breadcrumbs}
-                            onClick={() => navigate("/beranda")}
+          <div
+            className="p-3 mt-2 mb-0"
+            style={{ margin: isMobile ? "1rem" : "3rem" }}
+          >
+            <Button
+              iconName="add"
+              classType="primary"
+              label="Tambah Skala Penilaian"
+              onClick={() => navigate("/survei/skala/add")}
+            />
+
+            <div className="row mt-5">
+              <div className="col-lg-8 col-md-6">
+                <input
+                  type="text"
+                  placeholder="Cari data..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="form-control"
+                />
+              </div>
+              <div className="col-lg-4 col-md-6">
+                <Filter>
+                  {[...new Set(Skala.map((item) => item.skp_tipe))].map(
+                    (option) => (
+                      <div key={option} className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="radio"
+                          name="filterSkala"
+                          id={`filter-${option}`}
+                          value={option}
+                          checked={filterType === option}
+                          onChange={(e) => setFilterType(e.target.value)}
                         />
-                    </div>
-                    <div className="p-3 mt-2 mb-0" style={{ marginLeft: '50px', margin: isMobile ? "1rem" : "3rem"}}>
-                        <Button iconName="add" classType="primary" label="Tambah Skala Penilaian" onClick={() => addModalRef.current.open()} />
-                        <div className="row mt-5 ">
-                            <div className="col-lg-10 col-md-6 ">
-                                <SearchField />
-                            </div>
-                            <div className="col-lg-2 col-md-6">
-                                <Filter />
-                            </div>
-                        </div>
-                    </div>
-                    <div className="table-container bg-white p-3 mt-0 rounded" style={{margin: isMobile ? "1rem" : "3rem"}}>
-                        {/* <Table
-                            arrHeader={["No", "Nama Skala Penilaian"]}
-                            headerToDataMap={{
-                                "No": "No",
-                                "Nama Skala Penilaian": "Nama",
-                            }}
-                            data={currentData.map((item, index) => ({
-                                key: item.id,
-                                No: indexOfFirstData + index + 1,
-                                Nama: item.Nama
-                            }))}
-                            actions={["Detail", "Edit", "Surveyor", "Responden"]}
-                            onDetail={handleDetailSkala}
-                            onEdit={handleSelectSkala}
-                        /> */}
-                            <Table
-                            arrHeader={["No", "Nama Skala Penilaian"]}
-                            headerToDataMap={{
-                                "No": "No",
-                                "Nama Skala Penilaian": "Nama",
-                            }}
-                            data={currentData.map((item, index) => ({
-                                key: item.id, // Pastikan key cocok dengan id Skala
-                                No: indexOfFirstData + index + 1,
-                                Nama: item.Nama
-                            }))}
-                            actions={["Detail", "Edit", "Surveyor", "Responden"]}
-                            onDetail={(id) => {
-                                const selected = Skala.find((item) => item.id === id);
-                                if (selected) handleDetailSkala(selected);
-                            }}
-                            onEdit={(id) => {
-                                const selected = Skala.find((item) => item.id === id);
-                                if (selected) handleSelectSkala(selected);
-                            }}
-                        />
-
-                        <Paging
-                            pageSize={pageSize}
-                            pageCurrent={pageCurrent}
-                            totalData={Skala.length}
-                            navigation={handlePageNavigation}
-                        />
-                    </div>
-                </div>
-            </main>
-
-            {/* ADD MODAL */}
-            <Modal
-                ref={addModalRef}
-                title="Tambah Skala Penilaian"
-                size="full"
-                Button1={<Button classType="primary" label="Simpan" onClick={handleAddSkala} />}
-            >
-                <TextField label="Skala Penilaian" isRequired={true} onChange={(e) => setFormData({ ...formData, name: e.target.value })} value={formData.name} />
-              
-            </Modal>
-
-            {/* EDIT MODAL */}
-            <Modal
-                ref={updateModalRef}
-                title="Update Skala Penilaian"
-                size="medium"
-                Button1={<Button label="Update" onClick={handleUpdateSkala} />}
-            >
-                <TextField label="Skala Penilaian" isRequired={true} onChange={(e) => setFormData({ ...formData, name: e.target.value })} value={formData.name} />
-            </Modal>
-
-            {/* DETAIL MODAL */}
-            <Modal
-                ref={detailModalRef}
-                title="Detail Skala Penilaian"
-                size="medium"
-                Button1={<Button classType="secondary" label="Tutup" onClick={() => detailModalRef.current.close()} />}
-            >
-                <label htmlFor="" className="fw-bold">Nama Skala Penilaian</label>
-                <br />
-                <p>{selectedSkala ? selectedSkala.Nama : "Data tidak tersedia"}</p>
-            </Modal>
+                        <label
+                          className="form-check-label"
+                          htmlFor={`filter-${option}`}
+                        >
+                          {option}
+                        </label>
+                      </div>
+                    )
+                  )}
+                  <div className="mt-3">
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => setFilterType("")}
+                    >
+                      Reset Filter
+                    </button>
+                  </div>
+                </Filter>
+              </div>
+            </div>
+          </div>
+          <div
+            className="table-container bg-white p-3 mt-0 rounded"
+            style={{ margin: isMobile ? "1rem" : "3rem" }}
+          >
+            <Table
+              arrHeader={["No", "Tipe Skala", "Skala", "Deskripsi", "Status"]}
+              data={currentData.map((item, index) => ({
+                key: item.skp_id,
+                No: (pageCurrent - 1) * pageSize + index + 1,
+                "Tipe Skala": item.skp_tipe,
+                Skala: item.skp_skala,
+                Deskripsi: item.skp_deskripsi,
+                Status: item.skp_status === 1 ? "Aktif" : "Tidak Aktif", // Ubah status
+              }))}
+              actions={["Detail", "Toggle", "Edit"]}
+              onDetail={(item) => {
+                handleDetailSkala(item.key);
+              }}
+              onToggle={(item) => {
+                handleDelete(item.key);
+              }}
+              onEdit={(item) => {
+                console.log(item);
+                navigate(`/survei/skala/edit/${item.key}`, {
+                  state: { editData: item.key },
+                });
+              }}
+            />
+            <Paging
+              pageSize={pageSize}
+              pageCurrent={pageCurrent}
+              totalData={filteredSkala.length}
+              navigation={handlePageNavigation}
+            />
+          </div>
         </div>
-    );
+      </main>
+
+      {/* DETAIL MODAL */}
+      <Modal
+        ref={detailModalRef}
+        title="Detail Skala Penilaian"
+        size="medium"
+        Button1={
+          <Button label="Tutup" onClick={() => closeModal(detailModalRef)} />
+        }
+      >
+        <div className="container">
+          <div className="row">
+            {/* Kolom Kiri */}
+            <div className="col-md-6">
+              <p>
+                <strong>Tipe:</strong>
+                <br />
+                {Detail.skp_tipe}
+              </p>
+              <p>
+                <strong>Status:</strong>
+                <br />
+                {Detail.skp_status}
+              </p>
+              <p>
+                <strong>Dibuat Oleh:</strong>
+                <br />
+                {Detail.skp_created_by}
+              </p>
+              <p>
+                <strong>Dimodifikasi Oleh:</strong>
+                <br />
+                {Detail.skp_modif_by || "-"}
+              </p>
+            </div>
+
+            {/* Kolom Kanan */}
+            <div className="col-md-6">
+              <p>
+                <strong>Deskripsi [ Nilai Terendah - Nilai Tertinggi ]:</strong>
+                <br />
+                {Detail.skp_deskripsi}
+              </p>
+              <p>
+                <strong>Dibuat Tanggal:</strong>
+                <br />
+                {Detail.skp_created_date}
+              </p>
+              <p>
+                <strong>Dimodifikasi Tanggal:</strong>
+                <br />
+                {Detail.skp_modif_date || "-"}
+              </p>
+            </div>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
 }

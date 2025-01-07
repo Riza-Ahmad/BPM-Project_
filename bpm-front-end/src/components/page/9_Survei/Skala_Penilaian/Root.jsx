@@ -6,6 +6,11 @@ import {
 } from "react-router-dom";
 import Index from "./Index";
 import ScrollToTop from "../../../part/ScrollToTop";
+import Add from "./Add";
+import Edit from "../Pertanyaan_Survei/Edit";
+import Detail from "./Detail";
+
+
 
 export default function Skala_Survei() {
   const navigate = useNavigate();
@@ -15,10 +20,26 @@ export default function Skala_Survei() {
       case "index":
         navigate("/survei/skala");
         break;
-      default:
-        console.warn(`Halaman "${page}" tidak dikenali.`);
-        break;
-    }
+        case "add":
+          navigate("/survei/skala/add");
+          break;
+        case "edit":  
+          const { id } = withState; // Pastikan data id diterima
+          if (id) {
+            navigate(`/survei/skala/edit/${key}`, { state: { editData: id } }); // Tambahkan `state`
+          } else {
+            Swal.fire(
+              "Error",
+              "ID tidak valid atau tidak ditemukan untuk edit.",
+              "error"
+            );
+          }
+          break;
+  
+        default:
+          console.warn(`Halaman "${page}" tidak dikenali.`);
+          break;
+      }
   };
 
   return (
@@ -26,6 +47,12 @@ export default function Skala_Survei() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Index onChangePage={handlePageChange} />} />
+        <Route path="add" element={<Add onChangePage={handlePageChange} />} />
+        <Route path="edit" element={<Edit onChangePage={handlePageChange} />} />
+        <Route path="detail" element={<Detail onChangePage={handlePageChange} />} />
+        
+        
+
       </Routes>
     </>
   );
