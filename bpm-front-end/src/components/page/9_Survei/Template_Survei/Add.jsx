@@ -4,53 +4,49 @@ import Button from "../../../part/Button";
 import TextField from "../../../part/TextField";
 import Table from "../../../part/Table";
 import Dropdown from "../../../part/Dropdown";
+import Loading from "../../../part/Loading";
 import PageTitleNav from "../../../part/PageTitleNav";
 import Swal from "sweetalert2";
 import { useIsMobile } from "../../../util/useIsMobile";
+import { API_LINK } from "../../../util/Constants";
+import { useFetch } from "../../../util/useFetch";
 
 function Add() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-
-  // State untuk pertanyaan
-  const [questions, setQuestions] = useState([
-    { id: 1, header: "", question: "", scale: "Radio Button" },
-    { id: 2, header: "", question: "", scale: "Text Area" },
-  ]);
-
-  // State untuk dropdown
+  const [loading, setLoading] = useState(true);
+  // State untuk Dropdown dan Pertanyaan
   const [kriteriaOptions, setKriteriaOptions] = useState([]);
   const [skalaOptions, setSkalaOptions] = useState([]);
+  const [questions, setQuestions] = useState([]);
+
+  // State untuk Value Dropdown
+  const [selectedKriteria, setSelectedKriteria] = useState(null);
+  const [selectedSkala, setSelectedSkala] = useState(null);
+
+  // State loading
   const [loadingKriteria, setLoadingKriteria] = useState(true);
   const [loadingSkala, setLoadingSkala] = useState(true);
 
-  // Fetch data untuk Dropdown
   useEffect(() => {
     const fetchKriteria = async () => {
-      setLoadingKriteria(true);
       try {
-        const response = await fetch(
+        setLoadingKriteria(true);
+        const data = await useFetch(
           `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ page: 1, pageSize: 100 }),
-          }
+          JSON.stringify({}),
+          "POST"
         );
-        if (!response.ok) throw new Error("Gagal mengambil data kriteria");
-
-        const result = await response.json();
-        const options = result.map((item) => ({
+        const formattedKriteria = data.map((item) => ({
           value: item.ksr_id,
-          label: item.ksr_nama,
+          Text: item.ksr_nama,
         }));
-        setKriteriaOptions(options);
-      } catch (err) {
-        console.error("Fetch error:", err);
+        setKriteriaOptions(formattedKriteria);
+      } catch (error) {
         Swal.fire({
           icon: "error",
           title: "Oops...",
-          text: "Gagal mengambil data kriteria!",
+          text: error.message || "Failed to fetch kriteria data!",
         });
       } finally {
         setLoadingKriteria(false);
@@ -58,40 +54,38 @@ function Add() {
     };
 
     const fetchSkala = async () => {
-      setLoadingSkala(true);
       try {
-        const response = await fetch(
-          `${API_LINK}/MasterSkalaPenilaian/GetDataSkalaPenilaian`,
-          {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-          }
+        setLoadingSkala(true);
+        const data = await useFetch(
+          `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
+          JSON.stringify({}),
+          "POST"
         );
-        if (!response.ok) throw new Error("Gagal mengambil data skala");
-
-        const result = await response.json();
-        const options = result.map((item) => ({
-          value: item.skala_id,
-          label: item.skala_nama,
+        const formattedSkala = data.map((item) => ({
+          value: item.skp_id,
+          Text: item.skp_deskripsi,
         }));
-        setSkalaOptions(options);
-      } catch (err) {
-        console.error("Fetch error:", err);
+        setSkalaOptions(formattedSkala);
+      } catch (error) {
         Swal.fire({
           icon: "error",
           title: "Oops...",
-          text: "Gagal mengambil data skala!",
+          text: error.message || "Failed to fetch skala data!",
         });
       } finally {
         setLoadingSkala(false);
       }
     };
 
-    fetchKriteria();
-    fetchSkala();
-  }, []);
+    const fetchData = async () => {
+      setLoading(true);
+      await Promise.all([fetchKriteria(), fetchSkala()]);
+      setLoading(false);
+    };
 
-  // Event Handlers
+    fetchData();
+  }, []); // Load initial Kriteria and Skala when component mounts
+
   const handleAddQuestion = () => {
     setQuestions([
       ...questions,
@@ -99,23 +93,37 @@ function Add() {
         id: questions.length + 1,
         header: "",
         question: "",
-        scale: "Radio Button",
+        scale: "",
       },
     ]);
   };
 
   const handleDeleteQuestion = (id) => {
-    setQuestions(questions.filter((q) => q.id !== id));
+    const updatedQuestions = questions.filter((q) => q.id !== id);
+    setQuestions(updatedQuestions);
   };
 
-  const handleInputChange = (id, field, value) => {
+  const handleScaleChange = (id, value) => {
     setQuestions(
-      questions.map((q) => (q.id === id ? { ...q, [field]: value } : q))
+      questions.map((q) => (q.id === id ? { ...q, scale: value } : q))
     );
   };
 
-  const handleSave = () => {
-    console.log("Template disimpan dengan pertanyaan:", questions);
+  const handleSave = (e) => {
+    e.preventDefault();
+
+    if (!selectedKriteria || !selectedSkala || questions.length === 0) {
+      Swal.fire("Error", "Harap lengkapi semua data!", "error");
+      return;
+    }
+
+    console.log("Data disimpan:", {
+      kriteria: selectedKriteria,
+      skala: selectedSkala,
+      questions: questions,
+    });
+
+    Swal.fire("Success", "Template berhasil disimpan!", "success");
     navigate("/survei/template");
   };
 
@@ -127,145 +135,138 @@ function Add() {
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          {/* Header Section */}
           <div className={isMobile ? "m-0 p-0" : "m-3 mb-0"}>
             <PageTitleNav
-              title="Template Survei"
+              title="Tambah Template Survei"
               breadcrumbs={[
                 { label: "Survei", href: "/survei" },
-                { label: "Template Survei", href: "/survei/template" },
+                { label: "Template Survei", href: "/survei/template/" },
                 { label: "Tambah Template Survei" },
               ]}
               onClick={() => navigate("/survei/template")}
             />
-
-            {/* Form Section */}
+          </div>
+          {/* Form Section */}
+          <div
+            className="form-container"
+            style={{
+              marginTop: "2rem",
+              padding: isMobile ? "1rem" : "2rem",
+              borderRadius: "8px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              backgroundColor: "#fff",
+            }}
+          >
+            {/* Form Title */}
             <div
-              className="form-container"
-              style={{
-                marginTop: "2rem",
-                padding: isMobile ? "1rem" : "2rem",
-                borderRadius: "8px",
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                backgroundColor: "#fff",
-              }}
+              className="form-section"
+              style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
             >
-              {/* Form Title */}
-              <div
-                className="form-section"
-                style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
-              >
-                <h3
-                  style={{
-                    fontSize: isMobile ? "1.25rem" : "1.5rem",
-                    textAlign: "center",
-                  }}
-                >
-                  Formulir Template Survei
-                  <hr />
-                </h3>
-                <form>
-                  <TextField
-                    label="Nama Template"
-                    isRequired
-                    placeholder="Masukkan Nama Template"
-                    style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
-                  />
-                  {loadingKriteria ? (
-                    <p>Loading Kriteria...</p>
-                  ) : (
-                    <Dropdown
-                      label="Kriteria Survei"
-                      isRequired
-                      placeholder="Pilih Kriteria Survei"
-                      options={kriteriaOptions}
-                      onChange={(value) =>
-                        console.log("Selected Kriteria:", value)
-                      }
-                      style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
-                    />
-                  )}
-                  {loadingSkala ? (
-                    <p>Loading Skala...</p>
-                  ) : (
-                    <Dropdown
-                      label="Skala Penilaian"
-                      isRequired
-                      placeholder="Pilih Skala Penilaian"
-                      options={skalaOptions}
-                      onChange={(value) =>
-                        console.log("Selected Skala:", value)
-                      }
-                      style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
-                    />
-                  )}
-                </form>
-              </div>
-
-              {/* Question Section */}
-              <div
-                className="question-section"
-                style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
-              >
-                <h3 className="text-center">
-                  Tambah Pertanyaan
-                  <hr />
-                </h3>
-                <div className="mb-3">
-                  <Button
-                    iconName="add"
-                    classType="primary"
-                    label="Tambah Pertanyaan Baru"
-                    onClick={handleAddQuestion}
-                    style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
-                  />
-                </div>
-
-                {/* Question Table */}
-                <Table
-                  arrHeader={["No", "Header", "Pertanyaan", "Skala"]}
-                  headerToDataMap={{
-                    No: "No",
-                    Header: "header",
-                    Pertanyaan: "question",
-                    Skala: "scale",
-                  }}
-                  data={questions.map((q, index) => ({
-                    key: q.id,
-                    No: index + 1,
-                    header: q.header,
-                    question: q.question,
-                    scale: q.scale,
-                  }))}
-                  actions={["Edit", "Delete"]}
-                  onDelete={(id) => handleDeleteQuestion(id)}
-                />
-              </div>
-              {/* Action Buttons */}
-              <div
-                className="action-buttons"
+              <h3
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginTop: isMobile ? "1rem" : "2rem",
+                  fontSize: isMobile ? "1.25rem" : "1.5rem",
+                  textAlign: "center",
                 }}
               >
-                <div className="flex flex-grow-1 m-2">
-                  <Button
-                    width="100%"
-                    classType="primary"
-                    label="Simpan"
-                    onClick={handleSave}
+                Formulir Template Survei
+                <hr />
+              </h3>
+              <form>
+                <TextField
+                  label="Nama Template"
+                  isRequired
+                  placeholder="Masukkan Nama Template"
+                  style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
+                />
+                {loadingKriteria ? (
+                  <p>Loading Kriteria...</p>
+                ) : (
+                  <Dropdown
+                    arrData={[
+                      { value: "", Text: "-- Pilih Kriteria Survei --" },
+                      ...kriteriaOptions,
+                    ]}
+                    label="Kriteria"
+                    value={selectedKriteria}
+                    onChange={(e) => setSelectedKriteria(e.target.value)}
+                    isRequired={true}
+                    style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
                   />
-                </div>
-                <div className="flex flex-grow-1 m-2">
-                  <Button
-                    width="100%"
-                    classType="secondary"
-                    label="Batal"
-                    onClick={handleCancel}
+                )}
+                {loadingSkala ? (
+                  <p>Loading Skala...</p>
+                ) : (
+                  <Dropdown
+                    arrData={[
+                      { value: "", Text: "-- Pilih Skala Penilaian --" },
+                      ...skalaOptions,
+                    ]}
+                    label="Skala"
+                    value={selectedSkala}
+                    onChange={(e) => setSelectedSkala(e.target.value)}
+                    isRequired={true}
                   />
-                </div>
+                )}
+              </form>
+            </div>
+
+            {/* Question Section */}
+            <div
+              className="question-section"
+              style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
+            >
+              <h3 className="text-center">
+                Tambah Pertanyaan
+                <hr />
+              </h3>
+              <div className="mb-3">
+                <Button
+                  iconName="add"
+                  classType="primary"
+                  label="Tambah Pertanyaan Baru"
+                  onClick={handleAddQuestion}
+                  style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
+                />
+              </div>
+
+              {/* Question Table */}
+              <Table
+                arrHeader={["No", "Header", "Pertanyaan", "Skala"]}
+                data={questions.map((q, index) => ({
+                  key: q.id,
+                  No: index + 1,
+                  header: q.header,
+                  question: q.question,
+                  scale: q.scale,
+                }))}
+                actions={["Edit", "Delete"]}
+                onDelete={(id) => handleDeleteQuestion(id)}
+              />
+            </div>
+            {/* Action Buttons */}
+            <div
+              className="action-buttons"
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginTop: isMobile ? "1rem" : "2rem",
+              }}
+            >
+              <div className="flex flex-grow-1 m-2">
+                <Button
+                  width="100%"
+                  classType="primary"
+                  label="Simpan"
+                  onClick={handleSave}
+                />
+              </div>
+              <div className="flex flex-grow-1 m-2">
+                <Button
+                  width="100%"
+                  classType="secondary"
+                  label="Batal"
+                  onClick={handleCancel}
+                />
               </div>
             </div>
           </div>

@@ -14,6 +14,7 @@ export default function Table({
   onUpdateHistory = () => {},
   onSurveyor = () => {},
   onResponden = () => {},
+  onToggle = () => {},
 }) {
   function generateActionButton(actionType, id, status = "Aktif") {
     switch (actionType) {
@@ -127,7 +128,7 @@ export default function Table({
             name="users"
             cssClass="btn px-1 py-0 text-warning"
             title="Edit Responden"
-            onClick={() => onResponden(id)}
+            onResponden={() => onResponden(id)}
           />
         );
       default:
@@ -160,7 +161,7 @@ export default function Table({
               style={{
                 backgroundColor: "#2654A1",
                 color: "#fff",
-                width: '250px',  // Reduce the width of the "Aksi" column
+                width: "250px",
               }}
             >
               Aksi
@@ -179,9 +180,6 @@ export default function Table({
                     }`}
                   >
                     {row[column] || ""}
-                {arrHeader.map((header, colIndex) => (
-                  <td key={`cell-${rowIndex}-${colIndex}`} className="align-middle text-start">
-                    {row[headerToDataMap[header]]}  {/* Mengambil data berdasarkan peta */}
                   </td>
                 ))}
                 <td

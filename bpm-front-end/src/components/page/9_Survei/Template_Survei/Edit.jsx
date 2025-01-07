@@ -64,9 +64,9 @@ function Edit() {
           }
         );
         const skalaResponse = await fetch(
-          `${API_LINK}/MasterSkalaPenilaian/GetDataSkalaPenilaian`,
+          `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
           {
-            method: "GET",
+            method: "POST",
             headers: { "Content-Type": "application/json" },
           }
         );
@@ -140,7 +140,7 @@ function Edit() {
       const response = await fetch(
         `${API_LINK}/TemplateSurvei/UpdateTemplate`,
         {
-          method: "PUT",
+          method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         }

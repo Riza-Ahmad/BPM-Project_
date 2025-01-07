@@ -6,7 +6,9 @@ import {
 } from "react-router-dom";
 import Index from "./Index";
 import Add from "./Add";
+import Edit from "./Edit";
 import ScrollToTop from "../../../part/ScrollToTop";
+import Detail from "./Detail";
 
 export default function Template_Survei() {
   const navigate = useNavigate();
@@ -15,6 +17,15 @@ export default function Template_Survei() {
     switch (page) {
       case "index":
         navigate("/survei/template");
+        break;
+      case "add":
+        navigate("/survei/template/add");
+        break;
+      case "edit":
+        navigate(`/survei/template/edit/${withState.id}`);
+        break;
+      case "detail":
+        navigate(`/survei/template/detail/${withState.id}`);
         break;
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
@@ -26,17 +37,15 @@ export default function Template_Survei() {
     <>
       <ScrollToTop />
       <Routes>
+        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
+        <Route path="add" element={<Add onChangePage={handlePageChange} />} />
         <Route
-          path="/template"
-          element={<Index onChangePage={handlePageChange} />}
+          path="edit/:id"
+          element={<Edit onChangePage={handlePageChange} />}
         />
         <Route
-          path="/template/add"
-          element={<Add onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/template/edit"
-          element={<Add onChangePage={handlePageChange} />}
+          path="detail/:id"
+          element={<Detail onChangePage={handlePageChange} />}
         />
       </Routes>
     </>

@@ -101,14 +101,10 @@ export default function KriteriaSurvei({ onChangePage }) {
 
   const handleAddKriteria = async () => {
    
-    const newKriteria = {
-        ksr_id: formData.ksr_id || "", 
+    const newKriteria = { 
         ksr_nama: formData.ksr_nama?.trim() || "", 
-        ksr_status: formData.ksr_status || "1", 
         ksr_created_by: formData.ksr_created_by || "Admin", // Berikan default jika kosong
         ksr_created_date: formData.ksr_created_date || new Date().toISOString(), // Format ISO 8601
-        ksr_modif_by: formData.ksr_modif_by || "",
-        ksr_modif_date: formData.ksr_modif_date || "",
     };
 
 
@@ -140,13 +136,9 @@ export default function KriteriaSurvei({ onChangePage }) {
 
             // Reset form setelah submit
             setFormData({
-                ksr_id: "",
                 ksr_nama: "",
-                ksr_status: "",
                 ksr_created_by: "",
                 ksr_created_date: "",
-                ksr_modif_by: "",
-                ksr_modif_date: "",
             });
 
             // Tutup modal
@@ -168,7 +160,7 @@ export default function KriteriaSurvei({ onChangePage }) {
   const handleSaveEdit = async () => {
     try {
       const response = await fetch(`${API_LINK}/MasterKriteriaSurvei/EditKriteriaSurvei`, {
-        method: "PUT",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -230,7 +222,7 @@ export default function KriteriaSurvei({ onChangePage }) {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ ksr_id: id.No }), // Kirim ID dalam body
+            body: JSON.stringify({ ksr_id: id.id }), // Kirim ID dalam body
         });
 
         if (!response.ok) {
@@ -356,15 +348,11 @@ export default function KriteriaSurvei({ onChangePage }) {
             }>
               <Table
               arrHeader={["No", "Nama Kriteria"]}
-              headerToDataMap={{
-                No: "No",
-                "Nama Kriteria": "nama",
-              }}
               data={currentData.map((item, index) => ({
                 key: item.Key || index,
                 idData: item.id,
                 No: indexOfFirstData + index + 1,
-                nama: item.nama,
+                "Nama Kriteria": item.nama,
               }))}
               actions={["Detail", "Edit"]}
               onDetail={(id) => handleDetail(id)}
@@ -412,12 +400,20 @@ export default function KriteriaSurvei({ onChangePage }) {
               <p>Sedang memuat data...</p>
             ) : selectedKriteria ? (
               <div>
-                
-                <p><strong>Nama Kriteria:</strong> {selectedKriteria.ksr_nama}</p>
-                <p><strong>Dibuat Oleh:</strong> {selectedKriteria.ksr_created_by}</p>
-                <p><strong>Tanggal Dibuat:</strong> {selectedKriteria.ksr_created_date}</p>
-                <p><strong>Dimodifikasi Oleh:</strong> {selectedKriteria.ksr_modif_by}</p>
-                <p><strong>Tanggal Dimodifikasi:</strong> {selectedKriteria.ksr_modif_date}</p>
+                <p><strong>Nama Kriteria:</strong> <br /> {selectedKriteria.ksr_nama}</p>
+                <div className="row col-12 mt-5">
+                    <div className="col-md-6">
+                      <p><strong>Dibuat Oleh:</strong> <br />{selectedKriteria.ksr_created_by}</p>
+                      <p><strong>Tanggal Dibuat:</strong> <br /> {selectedKriteria.ksr_created_date}</p>
+                    </div>
+                    <div className="col-md-6">
+                      <p><strong>Dimodifikasi Oleh:</strong> <br /> {selectedKriteria.ksr_modif_by}</p>
+                      <p><strong>Tanggal Dimodifikasi:</strong> <br /> {selectedKriteria.ksr_modif_date}</p>
+                    </div>
+                </div>
+             
+               
+             
 
               </div>
             ) : (

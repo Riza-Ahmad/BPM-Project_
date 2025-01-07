@@ -4,6 +4,7 @@ import InputField from "../../../part/InputField";
 import TextArea from "../../../part/TextArea";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
+import Dropdown from "../../../part/Dropdown";
 import { API_LINK } from "../../../util/Constants";
 import SweetAlert from "../../../util/SweetAlert";
 import { useIsMobile } from "../../../util/useIsMobile";
@@ -15,7 +16,8 @@ export default function Add({ onChangePage }) {
     { label: "Tambah Survei" }
   ];
   const isMobile = useIsMobile();
-//   const [isiBerita, setIsiBerita] = useState("");
+  const [templateSurvei, setTemplateSurvei] = useState([]);
+  //   const [isiBerita, setIsiBerita] = useState("");
 
 //   const [formData, setFormData] = useState({
 //     judul: "",
@@ -159,14 +161,40 @@ export default function Add({ onChangePage }) {
                   placeHolder="Masukkan nama survei"
                   
                   />
-                
+
+                  <InputField
+                    label="Tanggal Awal"
+                    isRequired="true"
+                    placeHolder="Masukkan Tanggal Awal Survei"
+                    type="date"
+                  />
                 </div>
+                
+                
                 <div className="col-lg-6 col-md-6">
-                  
+                <Dropdown
+                label="Template Survei"
+                // arrData={templateSurvei}
+                type="pilih"
+                forInput="templateSurvei"
+                // value={formData.ksrId}
+                // onChange={(e) =>
+                //   setFormData({ ...formData, ksrId: e.target.value })
+                // }
+                isRequired={true}
+              />
+                <InputField
+                  label="Tanggal Akhir"
+                  isRequired="true"
+                  placeHolder="Masukkan Tanggal Akhir Survei"
+                  type="date"
+                />
                 </div>
                 
               </div>
 
+              <TextArea label="Kata Pembuka"></TextArea>
+              <TextArea label="Kata Penutup"></TextArea>
               <div className="d-flex justify-content-between align-items-center">
                 <div className="flex-grow-1 m-2">
                   <Button
