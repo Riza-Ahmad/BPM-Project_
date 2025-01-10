@@ -20,6 +20,27 @@ export default function KriteriaSurvei({ onChangePage }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const filteredSkala = Skala.filter((item) => {
+    const searchRegex = new RegExp(searchQuery, "i");
+    const matchesQuery =
+      searchRegex.test(item.skp_tipe) ||
+      searchRegex.test(item.skp_skala) ||
+      searchRegex.test(item.skp_deskripsi) ||
+      searchRegex.test(item.skp_status) ||
+      searchRegex.test(item.skp_created_by) ||
+      searchRegex.test(item.skp_created_date) ||
+      searchRegex.test(item.skp_modif_by) ||
+      searchRegex.test(item.skp_modif_date);
+    const matchesFilterType = filterType ? item.skp_tipe === filterType : true;
+    return matchesQuery && matchesFilterType;
+  });
+
+  const currentData = filteredSkala.slice(
+    (pageCurrent - 1) * pageSize,
+    pageCurrent * pageSize
+  );
   
   const [formData, setFormData] = useState({
     ksr_nama: "",
@@ -193,7 +214,6 @@ export default function KriteriaSurvei({ onChangePage }) {
           return acc;
       }, {});
 
-      // Ambil salah satu objek, misalnya menggunakan ID tertentu
       const editObject = group[id.idData] || {};
 
       setSelectedKriteria(editObject);
