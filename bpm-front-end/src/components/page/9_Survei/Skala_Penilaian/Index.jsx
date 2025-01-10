@@ -4,7 +4,6 @@ import Paging from "../../../part/Paging";
 import PageTitleNav from "../../../part/PageTitleNav";
 import Button from "../../../part/Button";
 import { API_LINK } from "../../../util/Constants";
-import Modal from "../../../part/Modal";
 import Filter from "../../../part/Filter";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../../../util/useIsMobile";
@@ -13,14 +12,12 @@ import Swal from "sweetalert2";
 export default function Index() {
   const [pageSize] = useState(10);
   const [pageCurrent, setPageCurrent] = useState(1);
-  const [selectedSkala, setSelectedSkala] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [Skala, setSkala] = useState([]);
-  const [Detail, setDetail] = useState([]);
   const [filterType, setFilterType] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
 
-  const detailModalRef = useRef();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -32,32 +29,32 @@ export default function Index() {
       searchRegex.test(item.skp_tipe) ||
       searchRegex.test(item.skp_skala) ||
       searchRegex.test(item.skp_deskripsi) ||
-      searchRegex.test(item.skp_status) ||
-      searchRegex.test(item.skp_created_by) ||
-      searchRegex.test(item.skp_created_date) ||
-      searchRegex.test(item.skp_modif_by) ||
-      searchRegex.test(item.skp_modif_date);
+      searchRegex.test(item.skp_status);
+
     const matchesFilterType = filterType ? item.skp_tipe === filterType : true;
-    return matchesQuery && matchesFilterType;
+    const matchesFilterStatus =
+      filterStatus !== ""
+        ? item.skp_status.toString() === filterStatus
+        : item.skp_status === 1;
+
+    return matchesQuery && matchesFilterType && matchesFilterStatus;
   });
+
+  const resetFilter = () => {
+    setFilterStatus(""); // Reset ke status aktif
+    setFilterType(""); // Reset tipe
+    fetchSkala(); // Ambil data lagi
+  };
 
   const currentData = filteredSkala.slice(
     (pageCurrent - 1) * pageSize,
     pageCurrent * pageSize
   );
 
-  const openModal = (ref) => ref?.current?.open();
-  const closeModal = (ref) => ref?.current?.close();
-
-  const handleDetailSkala = (id) => {
-    fetchSkalaById(id);
-    openModal(detailModalRef);
-  };
-
   const title = "Skala Penilaian";
   const breadcrumbs = [{ label: "Skala Penilaian" }];
 
-  const fetchSkala = async () => {
+  const fetchSkala = async (status = null) => {
     setLoading(true);
     try {
       const response = await fetch(
@@ -65,7 +62,7 @@ export default function Index() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({}),
+          body: JSON.stringify({ status }),
         }
       );
 
@@ -81,43 +78,16 @@ export default function Index() {
     }
   };
 
-  const fetchSkalaById = async (id) => {
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `${API_LINK}/SkalaPenilaian/GetDataSkalaPenilaianById`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ p1: id }),
-        }
-      );
-
-      if (!response.ok) throw new Error("Gagal mengambil data skala.");
-
-      const result = await response.json();
-      console.log(result);
-      setDetail(result[0]);
-    } catch (err) {
-      console.error("Fetch error:", err);
-      alert("Gagal mengambil data skala.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     fetchSkala();
   }, []);
 
   const handleDelete = async (id) => {
-    // Menyiapkan parameter sesuai stored procedure
     const parameters = {
-      p1: id, // ID Skala yang akan dihapus
-      p2: "Admin", // User yang melakukan modifikasi
+      p1: id,
+      p2: "Admin",
     };
 
-    // Menampilkan konfirmasi menggunakan SweetAlert
     const confirm = await Swal.fire({
       title: "Konfirmasi",
       text: "Apakah Anda yakin ingin menghapus Skala Penilaian ini?",
@@ -127,7 +97,6 @@ export default function Index() {
       cancelButtonText: "Batal",
     });
 
-    // Jika user menekan tombol konfirmasi
     if (confirm.isConfirmed) {
       try {
         const response = await fetch(
@@ -144,8 +113,6 @@ export default function Index() {
         if (!response.ok) throw new Error("Gagal menghapus Skala Penilaian.");
 
         Swal.fire("Berhasil", "Skala Penilaian berhasil dihapus.", "success");
-
-        // Memperbarui data setelah penghapusan
         fetchSkala();
       } catch (err) {
         console.error("Error:", err);
@@ -157,6 +124,11 @@ export default function Index() {
       }
     }
   };
+
+  const activeSkala = Skala.filter((item) => item.skp_status === 1);
+  const inactiveSkala = Skala.filter((item) => item.skp_status === 0);
+
+  const filteredSkalaByType = filterStatus === "" ? activeSkala : Skala;
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -193,39 +165,56 @@ export default function Index() {
               </div>
               <div className="col-lg-4 col-md-6">
                 <Filter>
-                  {[...new Set(Skala.map((item) => item.skp_tipe))].map(
-                    (option) => (
-                      <div key={option} className="form-check">
-                        <input
-                          className="form-check-input"
-                          type="radio"
-                          name="filterSkala"
-                          id={`filter-${option}`}
-                          value={option}
-                          checked={filterType === option}
-                          onChange={(e) => setFilterType(e.target.value)}
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor={`filter-${option}`}
-                        >
-                          {option}
-                        </label>
-                      </div>
-                    )
-                  )}
-                  <div className="mt-3">
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => setFilterType("")}
+                  <div>
+                    <label htmlFor="filter-type" className="form-label">
+                      Filter Tipe Skala:
+                    </label>
+                    <select
+                      id="filter-type"
+                      className="form-select"
+                      value={filterType}
+                      onChange={(e) => setFilterType(e.target.value)}
                     >
-                      Reset Filter
-                    </button>
+                      <option value="">Pilih Tipe Skala</option>
+                      {[
+                        ...new Set(
+                          filteredSkalaByType.map((item) => item.skp_tipe)
+                        ),
+                      ].map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
                   </div>
+
+                  <div className="mt-3">
+                    <label htmlFor="filter-status" className="form-label">
+                      Filter by Status:
+                    </label>
+                    <select
+                      id="filter-status"
+                      className="form-select"
+                      value={filterStatus}
+                      onChange={(e) => setFilterStatus(e.target.value)}
+                    >
+                      <option value="">Pilih Status</option>
+                      <option value="1">Aktif</option>
+                      <option value="0">Tidak Aktif</option>
+                    </select>
+                  </div>
+
+                  <button
+                    className="btn btn-secondary mt-2"
+                    onClick={resetFilter}
+                  >
+                    Reset Filter
+                  </button>
                 </Filter>
               </div>
             </div>
           </div>
+
           <div
             className="table-container bg-white p-3 mt-0 rounded"
             style={{ margin: isMobile ? "1rem" : "3rem" }}
@@ -238,11 +227,20 @@ export default function Index() {
                 "Tipe Skala": item.skp_tipe,
                 Skala: item.skp_skala,
                 Deskripsi: item.skp_deskripsi,
-                Status: item.skp_status === 1 ? "Aktif" : "Tidak Aktif", // Ubah status
+                Status: item.skp_status === 1 ? "Aktif" : "Tidak Aktif",
               }))}
-              actions={["Detail", "Toggle", "Edit"]}
+              actions={(item) => {
+                const actions = ["Detail", "Toggle"];
+                if (item.Status === "Aktif") {
+                  actions.push("Edit"); // Tambahkan tombol Edit hanya jika data Aktif
+                }
+                return actions;
+              }}
               onDetail={(item) => {
-                handleDetailSkala(item.key);
+                console.log(item);
+                navigate(`/survei/skala/detail/${item.key}`, {
+                  state: { detailData: item.key },
+                });
               }}
               onToggle={(item) => {
                 handleDelete(item.key);
@@ -263,63 +261,6 @@ export default function Index() {
           </div>
         </div>
       </main>
-
-      {/* DETAIL MODAL */}
-      <Modal
-        ref={detailModalRef}
-        title="Detail Skala Penilaian"
-        size="medium"
-        Button1={
-          <Button label="Tutup" onClick={() => closeModal(detailModalRef)} />
-        }
-      >
-        <div className="container">
-          <div className="row">
-            {/* Kolom Kiri */}
-            <div className="col-md-6">
-              <p>
-                <strong>Tipe:</strong>
-                <br />
-                {Detail.skp_tipe}
-              </p>
-              <p>
-                <strong>Status:</strong>
-                <br />
-                {Detail.skp_status}
-              </p>
-              <p>
-                <strong>Dibuat Oleh:</strong>
-                <br />
-                {Detail.skp_created_by}
-              </p>
-              <p>
-                <strong>Dimodifikasi Oleh:</strong>
-                <br />
-                {Detail.skp_modif_by || "-"}
-              </p>
-            </div>
-
-            {/* Kolom Kanan */}
-            <div className="col-md-6">
-              <p>
-                <strong>Deskripsi [ Nilai Terendah - Nilai Tertinggi ]:</strong>
-                <br />
-                {Detail.skp_deskripsi}
-              </p>
-              <p>
-                <strong>Dibuat Tanggal:</strong>
-                <br />
-                {Detail.skp_created_date}
-              </p>
-              <p>
-                <strong>Dimodifikasi Tanggal:</strong>
-                <br />
-                {Detail.skp_modif_date || "-"}
-              </p>
-            </div>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 }

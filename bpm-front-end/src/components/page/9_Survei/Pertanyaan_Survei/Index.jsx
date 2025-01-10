@@ -7,24 +7,30 @@ import TextField from "../../../part/TextField";
 import Modal from "../../../part/Modal";
 import Filter from "../../../part/Filter";
 import SearchField from "../../../part/SearchField";
-import SweetAlert from "../../../util/SweetAlert";
+import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { API_LINK } from "../../../util/Constants";
 
-export default function Index({ onChangePage }) {
-  const [filterValue, setFilterValue] = useState("");
+const title = "Pertanyaan Survei";
+const breadcrumbs = [{ label: " Daftar Pertanyaan" }];
+
+export default function Pertanyaan_Survei({ onChangePage }) {
   const [pageSize] = useState(10);
   const [pageCurrent, setPageCurrent] = useState(1);
-  const [selectedQuestion, setSelectedQuestion] = useState(null);
+  const [selectedQuestion, setSelectedQuestion] = useState("");
   const [formData, setFormData] = useState({ questionText: "" });
-  const importModalRef = useRef();
-  const [file, setFile] = useState(null);
-  const [Data, setData] = useState(null);
+  const importModalRef = useRef("");
+  const [file, setFile] = useState("");
+  const [data, setData] = useState("");
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState(""); // Menyimpan status filter
+  const [sortOrder, setSortOrder] = useState("asc"); // Menyimpan urutan sortir
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
+    console.log(currentData);
     const fetchDataPertanyaan = async () => {
       setLoading(true); // Aktifkan indikator loading
       try {
@@ -45,21 +51,28 @@ export default function Index({ onChangePage }) {
 
         // Parsing hasil JSON
         const result = await response.json();
-        const pertanyaan = Array.isArray(result) ? result : JSON.parse(result);
 
-        // Format hasil data sesuai kebutuhan
-        const formattedPertanyaan = pertanyaan.map((item) => ({
-          id: item.pty_id, // Ganti sesuai atribut di API Anda
-          question: item.pty_pertanyaan,
-          isHeader: item.pty_isheader,
-          isGeneral: item.pty_isgeneral,
-          status: item.pty_status,
-          createdBy: item.pty_created_by,
-          createdDate: item.pty_created_date
-            ? new Date(item.pty_created_date).toISOString()
-            : "-",
-          role: item.pty_role_responden,
-        }));
+        // Cek apakah result adalah array
+        if (!Array.isArray(result)) {
+          console.error("Data yang diterima bukan array");
+          return;
+        }
+
+        // Mapping data dan pastikan pty_id ada di setiap item
+        const formattedPertanyaan = result.map((item, index) => {
+          return {
+            Key: item.pty_id || "No ID", // Jika pty_id tidak ada, gunakan fallback
+            question: item.pty_pertanyaan,
+            isHeader: item.pty_isheader,
+            isGeneral: item.pty_isgeneral,
+            status: item.pty_status,
+            createdBy: item.pty_created_by,
+            createdDate: item.pty_created_date
+              ? new Date(item.pty_created_date).toISOString()
+              : "-",
+            role: item.pty_role_responden,
+          };
+        });
 
         // Set data ke state
         setData(formattedPertanyaan);
@@ -75,7 +88,6 @@ export default function Index({ onChangePage }) {
         setLoading(false); // Matikan indikator loading
       }
     };
-
     fetchDataPertanyaan();
   }, []);
 
@@ -109,6 +121,43 @@ export default function Index({ onChangePage }) {
     5;
   };
 
+  const handleChange = (e) => {
+    setQuery(e.target.value);
+  };
+
+  const handleSearch = () => {
+    // Ambil nilai pencarian dari SearchField
+    const searchQuery = getSearchQuery(); // Ganti dengan cara Anda mendapatkan query pencarian dari SearchField
+
+    // Filter berdasarkan status dan urutan
+    let filteredData = originalData.filter((item) => {
+      // Filter berdasarkan status
+      if (statusFilter && item.status !== statusFilter) return false;
+
+      // Filter berdasarkan query pencarian
+      if (
+        searchQuery &&
+        !item.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+        return false;
+
+      return true;
+    });
+
+    // Urutkan data berdasarkan urutan yang dipilih
+    filteredData = filteredData.sort((a, b) => {
+      if (sortOrder === "asc") {
+        return a.name.localeCompare(b.name); // Urutkan berdasarkan nama secara ascending
+      } else if (sortOrder === "desc") {
+        return b.name.localeCompare(a.name); // Urutkan berdasarkan nama secara descending
+      }
+      return 0;
+    });
+
+    // Update data yang ditampilkan setelah filter dan sort
+    setCurrentData(filteredData);
+  };
+
   const handleUpdateQuestion = () => {
     if (!selectedQuestion) return;
     const updatedQuestion = {
@@ -126,24 +175,21 @@ export default function Index({ onChangePage }) {
     updateModalRef.current.close();
   };
 
-  // const handleSelectQuestion = (question) => {
-  //     setSelectedQuestion(question);
-  //     setFormData({s
-  //         questionText: question.text,
-  //     });
-  //     setGeneralQuestion(question.generalQuestion || 'Ya');
-  //     setSurveyCriteria(question.surveyCriteria || '');
-  //     setRespondent(question.respondent || '');
-  //     updateModalRef.current.open();
-  // };
-
-  // const handleDetailQuestion = (question) => {
-  //     setSelectedQuestion(question);
-  //     detailModalRef.current.open();
-  // };
-
   const handleExportQuestions = () => {
-    const csvData = questions.map((q) => `${q.id},${q.text}`).join("\n");
+    if (questions.length === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Data Kosong",
+        text: "Tidak ada pertanyaan untuk diekspor.",
+      });
+      return;
+    }
+
+    const header = "ID,Pertanyaan";
+    const csvData = [header, ...questions.map((q) => `${q.id},${q.text}`)].join(
+      "\n"
+    );
+
     const blob = new Blob([csvData], { type: "text/csv" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -170,7 +216,6 @@ export default function Index({ onChangePage }) {
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
   };
-
   const indexOfLastData = pageCurrent * pageSize;
   const indexOfFirstData = indexOfLastData - pageSize;
   const currentData = filteredData.slice(indexOfFirstData, indexOfLastData);
@@ -189,52 +234,102 @@ export default function Index({ onChangePage }) {
     importModalRef.current.open();
   };
 
-  const title = "Daftar Pertanyaan";
-  const breadcrumbs = [{ label: " Daftar Pertanyaan" }];
-
   const handleCheckboxChange = () => {
     setIsHeader(!isHeader);
   };
 
-  const handleEdit = (item) => {
-    onChangePage("edit", { state: { editData: item } });
-  };
+  const handleEdit = (id) => {
+    // ()=>onChangePage('edit')
+    if (!id) {
+      console.error("ID tidak ada atau tidak valid");
+      return; // Hentikan jika id tidak valid
+    }
 
-  const handleDetail = (item) => {
-    onChangePage("detail", { state: { detailData: item } });
-  };
+    // Debugging: Cek nilai id
+    console.log("ID yang akan digunakan untuk request:", id);
 
+    // Lakukan request ke API dengan id yang valid
+    fetch(`MasterPertanyaan/GetDataPertanyaanById/${id}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Request gagal");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        // Proses data yang diterima
+        console.log("Data diterima:", data);
+        // Update state atau lakukan tindakan lain dengan data
+      })
+      .catch((error) => {
+        console.error("Terjadi kesalahan:", error);
+      });
+  };
   const handleSelectChange = (e) => {
     setGeneralQuestion(e.target.value);
   };
 
-  const handleDelete = (id) => {
-    SweetAlert(
-      "Konfirmasi Hapus",
-      "Apakah Anda yakin ingin menghapus pertanyaan ini?",
-      "warning",
-      "Hapus",
-      null,
-      "",
-      true
-    ).then((result) => {
-      if (result) {
-        setQuestions((prevQuestions) =>
-          prevQuestions.filter((q) => q.id !== id)
-        );
-        SweetAlert("Berhasil", "Pertanyaan berhasil dihapus.", "success");
-      } else {
-        SweetAlert("Batal", "Penghapusan dibatalkan.", "info");
-      }
-    });
-    ``;
-  };
+  const handleToggle = async (id) => {
+    const parameters = { p1: id, p2: "Admin" }; // Mengirimkan ID dan user yang melakukan modifikasi
 
+    // Konfirmasi dari SweetAlert
+    const confirm = await Swal.fire({
+      title: "Konfirmasi",
+      text: "Apakah Anda yakin ingin toggle status pertanyaan ini?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya",
+      cancelButtonText: "Batal",
+    });
+
+    if (confirm.isConfirmed) {
+      try {
+        // Kirim request ke API untuk melakukan toggle status pertanyaan
+        const response = await fetch(
+          `${API_LINK}/MasterPertanyaan/TogglePertanyaanStatus`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(parameters),
+          }
+        );
+
+        if (!response.ok) throw new Error("Gagal toggle status pertanyaan.");
+
+        // Update status data di frontend
+        setData((prevData) =>
+          prevData.map(
+            (item) =>
+              item.pty_id === id
+                ? { ...item, pty_status: item.pty_status === 1 ? 0 : 1 }
+                : item // Toggle status (1 ke 0 atau sebaliknya)
+          )
+        );
+
+        // Update filteredData agar hanya menampilkan data yang statusnya aktif (pty_status = 1)
+        setFilteredData(
+          (prevFilteredData) =>
+            prevFilteredData.filter((item) => item.pty_status === 1) // Menyaring data yang aktif
+        );
+
+        Swal.fire(
+          "Berhasil",
+          "Status pertanyaan berhasil di-toggle.",
+          "success"
+        );
+      } catch (err) {
+        console.error("Error:", err);
+        Swal.fire("Gagal", "Terjadi kesalahan saat toggle status.", "error");
+      }
+    } else {
+      Swal.fire("Batal", "Toggle dibatalkan.", "info");
+    }
+  };
   return (
     <div className="d-flex flex-column min-vh-100">
-      <main className="flex-grow-1" style={{ marginTop: "80px" }}>
+      <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          <div className="mb-0" style={{ margin: isMobile ? "1rem" : "3rem" }}>
+          <div className={isMobile ? "m-0 p-0" : "m-3 mb-0"}>
             <PageTitleNav
               title={title}
               breadcrumbs={breadcrumbs}
@@ -245,7 +340,7 @@ export default function Index({ onChangePage }) {
             className="p-3 mt-2 mb-0"
             style={{ marginLeft: "50px", margin: isMobile ? "1rem" : "3rem" }}
           >
-            <div className="row" style={{ gap: "1rem" }}>
+            <div className="row" style={{ gap: "1rem", marginLeft: "5px" }}>
               {" "}
               {/* Menambahkan jarak antar elemen */}
               <div className=""></div>
@@ -278,35 +373,99 @@ export default function Index({ onChangePage }) {
               <div className="col-lg-10 col-md-6">
                 <SearchField />
               </div>
-              <div className="col-lg-2 col-md-6">
-                <Filter />
+
+              {/* <div className="col-lg-2 col-md-7" style={{marginLeft:"-70px"}}>  */}
+              <div className="col-lg-2 col-md-7">
+                <Button
+                  iconName="apps-sort"
+                  classType="primary dropdown-toggle px-4 border-start"
+                  title="Saring atau Urutkan Data"
+                  data-bs-toggle="dropdown"
+                  data-bs-auto-close="outside"
+                  label="Filter"
+                />
+
+                <div className="dropdown-menu p-4" style={{ width: "350px" }}>
+                  {/* Status Filter */}
+                  <div className="mb-3">
+                    <label className="form-label">Status</label>
+                    <select
+                      className="form-select"
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)} // Set status filter
+                    >
+                      <option value="">Semua</option>
+                      <option value="aktif">Aktif</option>
+                      <option value="tidak-aktif">Tidak Aktif</option>
+                    </select>
+                  </div>
+                  {/* Sort Order Filter */}
+                  <div className="mb-3">
+                    <label className="form-label">Urutkan Berdasarkan</label>
+                    <select
+                      className="form-select"
+                      value={sortOrder}
+                      onChange={(e) => setSortOrder(e.target.value)}
+                    >
+                      <option value="asc">Ascending</option>
+                      <option value="desc">Descending</option>
+                    </select>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-
           <div
             className="table-container bg-white p-3 mt-0 rounded"
             style={{ margin: isMobile ? "1rem" : "3rem" }}
           >
             <Table
               arrHeader={["No", "Pertanyaan", "Header", "Pertanyaan Umum"]}
-              data={currentData.map((item, index) => ({
-                id: item.id, // Properti yang akan digunakan oleh action
-                No: indexOfFirstData + index + 1,
-                Pertanyaan: item.question, // Pastikan sesuai properti data
-                Header: item.isHeader ? "Ya" : "Tidak", // Mengubah boolean menjadi "Ya" atau "Tidak"
-                "Pertanyaan Umum": item.isGeneral ? "Ya" : "Tidak", // Mengubah boolean menjadi "Ya" atau "Tidak"
-              }))}
-              actions={["Detail", "Edit", "Delete"]}
-              onDetail={(id) => handleDetail(id)}
-              onEdit={(id) => handleEdit(id)}
-              onDelete={(id) => handleDelete(id)}
+              data={currentData
+                // Filter berdasarkan status
+                .filter((item) => {
+                  if (statusFilter === "") return true; // Jika status filter kosong, tampilkan semua data
+                  if (statusFilter === "aktif" && item.status === 1)
+                    return true;
+                  if (statusFilter === "tidak-aktif" && item.status === 0)
+                    return true;
+                  return false;
+                })
+                // Sortir berdasarkan urutan
+                .sort((a, b) => {
+                  if (sortOrder === "asc") {
+                    return a.No - b.No; // Urutkan berdasarkan No secara ascending
+                  } else {
+                    return b.No - a.No; // Urutkan berdasarkan No secara descending
+                  }
+                })
+                .map((item, index) => ({
+                  Key: item.Key,
+                  No: indexOfFirstData + index + 1,
+                  Pertanyaan: item.question,
+                  Header: item.isHeader ? "Ya" : "Tidak",
+                  "Pertanyaan Umum": item.isGeneral ? "Ya" : "Tidak",
+                  status: item.status,
+                }))}
+              actions={(item) => {
+                if (item.status === 0) {
+                  return ["Toggle"];
+                } else {
+                  return ["Detail", "Edit", "Toggle"];
+                }
+              }}
+              onDetail={(item) =>
+                onChangePage("detail", { idPertanyaan: item.Key })
+              }
+              onEdit={(item) =>
+                onChangePage("edit", { idPertanyaan: item.Key })
+              }
+              onToggle={(item) => handleToggle(item.Key)}
             />
-
             <Paging
               pageSize={pageSize}
               pageCurrent={pageCurrent}
-              totalData={questions.length}
+              totalData={data.length}
               navigation={handlePageNavigation}
             />
           </div>
@@ -390,7 +549,6 @@ export default function Index({ onChangePage }) {
           />
         </div>
       </Modal>
-
       {/* ADD MODAL */}
       <Modal
         ref={addModalRef}
@@ -452,7 +610,6 @@ export default function Index({ onChangePage }) {
             placeholder="Masukkan Pertanyaan"
           />
         </div>
-
         {/* Kriteria dan Responden, tampil jika "Tidak" */}
         {generalQuestion === "Tidak" && (
           <>
@@ -467,7 +624,6 @@ export default function Index({ onChangePage }) {
               >
                 Kriteria Survei *
               </label>
-
               <select
                 id="surveyCriteria"
                 value={surveyCriteria}
@@ -485,7 +641,6 @@ export default function Index({ onChangePage }) {
               </select>
             </div>
             <br />
-
             <div>
               <label
                 htmlFor="respondent"
@@ -497,7 +652,6 @@ export default function Index({ onChangePage }) {
               >
                 Responden *
               </label>
-
               <select
                 id="respondent"
                 value={respondent}
@@ -515,26 +669,13 @@ export default function Index({ onChangePage }) {
           </>
         )}
       </Modal>
-
       {/* Update Modal */}
       <Modal
         ref={updateModalRef}
         title="Update Pertanyaan"
         size="full"
-        Button1={
-          <Button
-            classType="primary"
-            label="Simpan"
-            onClick={handleUpdateQuestion}
-          />
-        }
-        Button2={
-          <Button
-            classType="secondary"
-            label="Batal"
-            onClick={() => updateModalRef.current.close()}
-          />
-        }
+        // Button1={<Button classType="primary" label="Simpan" onClick={handleUpdateQuestion} />}
+        // Button2={<Button classType="secondary" label="Batal" onClick={() => updateModalRef.current.close()} />}
       >
         {/* Header */}
         <div>
@@ -570,7 +711,6 @@ export default function Index({ onChangePage }) {
                 </option>
               </select>
             </div>
-
             <div>
               <label>Responden</label>
               <select
@@ -583,7 +723,6 @@ export default function Index({ onChangePage }) {
             </div>
           </>
         )}
-
         <div>
           <label>Pertanyaan</label>
           <input
