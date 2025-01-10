@@ -94,9 +94,16 @@ export default function Template_Survei({ onChangePage }) {
 
     // Filter berdasarkan status
     if (selectedStatus) {
-      filtered = filtered.filter(
-        (item) => item.status === (selectedStatus === "Draft" ? 0 : 1)
-      );
+      filtered = filtered.filter((item) => {
+        if (selectedStatus === "Draft") {
+          return item.status === 0;
+        } else if (selectedStatus === "Final") {
+          return item.status === 1;
+        } else if (selectedStatus === "Tidak Aktif") {
+          return item.status === 2;
+        }
+        return true; // Jika tidak ada status yang dipilih
+      });
     }
 
     // Sort berdasarkan tanggal final
@@ -137,22 +144,22 @@ export default function Template_Survei({ onChangePage }) {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ p1: id, p2: "Admin", p3: "Admin" }), 
+            body: JSON.stringify({
+              p1: id,
+              p2: 2,
+              p3: "dianvivi.widiyawati",
+            }),
           }
         );
 
         if (!response.ok)
-          throw new Error("Gagal menghapus Template Survei.");
+          throw new Error("Gagal mengganti status Template Survei.");
 
-        Swal.fire(
-          "Berhasil",
-          "Template Survei berhasil dihapus.",
-          "success"
-        );
+        Swal.fire("Berhasil", "Template Survei berhasil dihapus.", "success");
 
         fetchTemplateSurvei(); // Reload the template list or data
       } catch (err) {
-        Swal.fire("Gagal", "Terjadi kesalahan saat menghapus template survei.", "error");
+        Swal.fire("Gagal", "Terjadi kesalahan saat mengganti status.", "error");
       }
     } else {
       Swal.fire("Dibatalkan", "Template Survei tidak terhapus.", "info");
@@ -291,15 +298,21 @@ export default function Template_Survei({ onChangePage }) {
                       </button>
                       <button
                         className="dropdown-item"
-                        onClick={() => handleFilterChange("", "Draft")}
+                        onClick={() => handleFilterChange("0", "Draft")}
                       >
                         Status Draft
                       </button>
                       <button
                         className="dropdown-item"
-                        onClick={() => handleFilterChange("", "Final")}
+                        onClick={() => handleFilterChange("1", "Final")}
                       >
                         Status Final
+                      </button>
+                      <button
+                        className="dropdown-item"
+                        onClick={() => handleFilterChange("2", "Tidak Aktif")}
+                      >
+                        Status Tidak Aktif
                       </button>
                       <button
                         className="dropdown-item"

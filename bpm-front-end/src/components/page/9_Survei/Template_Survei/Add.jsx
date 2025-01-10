@@ -5,6 +5,7 @@ import Button from "../../../part/Button";
 import Loading from "../../../part/Loading";
 import Dropdown from "../../../part/Dropdown";
 import SweetAlert from "../../../util/SweetAlert";
+import Table from "../../../part/Table"; // Asumsi Anda memiliki komponen Table reusable
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { useNavigate } from "react-router-dom";
@@ -28,6 +29,10 @@ export default function Add() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+
+  const [formDisabled, setFormDisabled] = useState(false);
+  const [questions, setQuestions] = useState([]); // Daftar pertanyaan di template survei
+  const [questionBank, setQuestionBank] = useState([]); // Pertanyaan yang tersedia
 
   const [formData, setFormData] = useState({
     name: "",
@@ -64,6 +69,12 @@ export default function Add() {
             Text: item.skp_deskripsi,
           }))
         );
+
+        const questionBankData = await fetchAPI(
+          `${API_LINK}/MasterPertanyaan/GetDataPertanyaan`,
+          JSON.stringify({})
+        );
+        setQuestionBank(questionBankData);
       } catch (err) {
         console.error("Error fetching dropdown data:", err);
         setError("Gagal memuat data dropdown. Silakan coba lagi nanti.");
@@ -119,12 +130,9 @@ export default function Add() {
 
       console.log("Response from CreateTemplateSurvei:", response);
 
-      SweetAlert(
-        "Sukses",
-        "Template survei berhasil dibuat.",
-        "success",
-        "OK"
-      ).then(() => navigate("/survei/template"));
+      setFormDisabled(true); // Disable form
+      setQuestions([]); // Reset pertanyaan
+      SweetAlert("Sukses", "Template survei berhasil dibuat.", "success", "OK");
     } catch (err) {
       console.error("Error submitting form:", err);
       SweetAlert(
@@ -136,6 +144,19 @@ export default function Add() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDetail = (id) => {
+    console.log("Detail for question ID:", id);
+  };
+
+  const handleEdit = (id) => {
+    console.log("Edit for question ID:", id);
+  };
+
+  const handleDelete = (id) => {
+    setQuestions((prev) => prev.filter((item) => item.id !== id));
+    console.log("Delete for question ID:", id);
   };
 
   if (loading) return <Loading />;
@@ -170,6 +191,7 @@ export default function Add() {
           <form>
             <TextField
               label="Nama Template"
+              placeholder="Masukkan Nama Template"
               value={formData.name}
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
@@ -221,6 +243,41 @@ export default function Add() {
               />
             </div>
           </form>
+
+          {formDisabled && (
+            <div className="mt-4">
+              <h3>Daftar Pertanyaan</h3>
+              <Table
+                arrHeader={["No", "Pertanyaan"]}
+                data={questions.map((item, index) => ({
+                  id: item.id,
+                  No: index + 1,
+                  Pertanyaan: item.pertanyaan,
+                  Aksi: (
+                    <div className="d-flex gap-2">
+                      <Button
+                        classType="info"
+                        label="Detail"
+                        onClick={() => handleDetail(item.id)}
+                        style={{ marginRight: "0.5rem" }}
+                      />
+                      <Button
+                        classType="warning"
+                        label="Edit"
+                        onClick={() => handleEdit(item.id)}
+                        style={{ marginRight: "0.5rem" }}
+                      />
+                      <Button
+                        classType="danger"
+                        label="Hapus"
+                        onClick={() => handleDelete(item.id)}
+                      />
+                    </div>
+                  ),
+                }))}
+              />
+            </div>
+          )}
         </div>
       </main>
     </div>
