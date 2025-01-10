@@ -33,7 +33,9 @@ export default function Index() {
 
     const matchesFilterType = filterType ? item.skp_tipe === filterType : true;
     const matchesFilterStatus =
-      filterStatus !== "" ? item.skp_status.toString() === filterStatus : item.skp_status === 1;
+      filterStatus !== ""
+        ? item.skp_status.toString() === filterStatus
+        : item.skp_status === 1;
 
     return matchesQuery && matchesFilterType && matchesFilterStatus;
   });
@@ -123,8 +125,8 @@ export default function Index() {
     }
   };
 
-  const activeSkala = Skala.filter(item => item.skp_status === 1);
-  const inactiveSkala = Skala.filter(item => item.skp_status === 0);
+  const activeSkala = Skala.filter((item) => item.skp_status === 1);
+  const inactiveSkala = Skala.filter((item) => item.skp_status === 0);
 
   const filteredSkalaByType = filterStatus === "" ? activeSkala : Skala;
 
@@ -174,13 +176,15 @@ export default function Index() {
                       onChange={(e) => setFilterType(e.target.value)}
                     >
                       <option value="">Pilih Tipe Skala</option>
-                      {[...new Set(filteredSkalaByType.map((item) => item.skp_tipe))].map(
-                        (option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        )
-                      )}
+                      {[
+                        ...new Set(
+                          filteredSkalaByType.map((item) => item.skp_tipe)
+                        ),
+                      ].map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -225,7 +229,13 @@ export default function Index() {
                 Deskripsi: item.skp_deskripsi,
                 Status: item.skp_status === 1 ? "Aktif" : "Tidak Aktif",
               }))}
-              actions={["Detail", "Toggle", "Edit"]}
+              actions={(item) => {
+                const actions = ["Detail", "Toggle"];
+                if (item.Status === "Aktif") {
+                  actions.push("Edit"); // Tambahkan tombol Edit hanya jika data Aktif
+                }
+                return actions;
+              }}
               onDetail={(item) => {
                 console.log(item);
                 navigate(`/survei/skala/detail/${item.key}`, {
@@ -241,7 +251,6 @@ export default function Index() {
                   state: { editData: item.key },
                 });
               }}
-              
             />
             <Paging
               pageSize={pageSize}
