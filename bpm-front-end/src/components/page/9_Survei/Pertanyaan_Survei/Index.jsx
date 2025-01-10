@@ -233,9 +233,9 @@ export default function Index({onChangePage}) {
 
     return (
         <div className="d-flex flex-column min-vh-100">
-            <main className="flex-grow-1" style={{ marginTop: '80px' }}>
+            <main className="flex-grow-1 p-3" style={{ marginTop: '80px' }}>
                 <div className="d-flex flex-column">
-                    <div className="mb-0" style={{ margin: isMobile ? "1rem" : "3rem" }}>
+                    <div className={ isMobile ? "m-0 p-0" : "m-3 mb-0" }>
                         <PageTitleNav
                             title={title}
                             breadcrumbs={breadcrumbs}
