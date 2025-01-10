@@ -1,134 +1,164 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
-import Swal from "sweetalert2";
+import { useParams, useNavigate } from "react-router-dom";
+import PageTitleNav from "../../../part/PageTitleNav";
+import DetailData from "../../../part/DetailData";
+import HeaderForm from "../../../part/HeaderText";
 import Loading from "../../../part/Loading";
-import Button from "../../../part/Button";
+import Swal from "sweetalert2";
 import { API_LINK } from "../../../util/Constants";
+import { useIsMobile } from "../../../util/useIsMobile";
+import Button from "../../../part/Button";
 
-export default function Detail() {
-  const { id } = useParams(); // Ambil ID dari URL
+export default function DetailSkalaPenilaian() {
+  const title = "";
+  const { detailId } = useParams();
   const navigate = useNavigate();
-  const location = useLocation(); // Untuk menerima data tambahan dari state
+  const isMobile = useIsMobile();
 
   const [loading, setLoading] = useState(true);
-  const [detail, setDetail] = useState(null);
+  const [detail, setDetail] = useState({
+    skp_tipe: "",
+    skp_status: "",
+    skp_created_by: "",
+    skp_created_date: "",
+    skp_modif_by: "",
+    skp_modif_date: "",
+    skp_deskripsi: "",
+  });
 
-  // Fetch detail data berdasarkan ID
+
   useEffect(() => {
     const fetchDetailSkalaPenilaian = async () => {
-      setLoading(true);
       try {
         const response = await fetch(
           `${API_LINK}/SkalaPenilaian/GetDataSkalaPenilaianById`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ p1: id }),
+            body: JSON.stringify({ p1: detailId }),
           }
         );
 
         if (!response.ok) {
-          throw new Error("Gagal mengambil data skala penilaian.");
+          throw new Error("Failed to fetch skala penilaian data.");
         }
 
         const result = await response.json();
         if (result && result.length > 0) {
           setDetail(result[0]);
         } else {
-          throw new Error("Data tidak ditemukan.");
+          throw new Error("Data not found.");
         }
       } catch (error) {
         Swal.fire({
           icon: "error",
           title: "Oops...",
-          text: error.message || "Gagal mengambil detail skala penilaian!",
+          text: error.message || "Failed to fetch skala penilaian detail!",
         });
-        navigate("/survei/skala"); // Kembali ke halaman sebelumnya jika gagal
+        navigate("/survei/skala");
       } finally {
         setLoading(false);
       }
     };
 
     fetchDetailSkalaPenilaian();
-  }, [id, navigate]);
+  }, [detailId, navigate]);
 
   if (loading) return <Loading />;
-
-  if (!detail) {
-    return (
-      <div className="p-5 text-center">
-        <h4>Data tidak ditemukan.</h4>
-        <Button
-          classType="secondary"
-          label="Kembali"
-          onClick={() => navigate("/survei/skala")}
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
-        <div className="container">
-          <div className="card mt-4 p-4 shadow-sm">
-            <h5 className="mb-3">Detail Skala Penilaian</h5>
-            <table className="table table-striped">
-              <tbody>
-                <tr>
-                  <th scope="row">ID Skala</th>
-                  <td>{detail.skp_id}</td>
-                </tr>
-                <tr>
-                  <th scope="row">Skala</th>
-                  <td>{detail.skp_skala}</td>
-                </tr>
-                <tr>
-                  <th scope="row">Deskripsi</th>
-                  <td>{detail.skp_deskripsi}</td>
-                </tr>
-                <tr>
-                  <th scope="row">Tipe</th>
-                  <td>{detail.skp_tipe}</td>
-                </tr>
-                <tr>
-                  <th scope="row">Status</th>
-                  <td>{detail.skp_status === 0 ? "Inactive" : "Active"}</td>
-                </tr>
-                <tr>
-                  <th scope="row">Dibuat Oleh</th>
-                  <td>{detail.skp_created_by || "N/A"}</td>
-                </tr>
-                <tr>
-                  <th scope="row">Tanggal Dibuat</th>
-                  <td>
-                    {detail.skp_created_date
-                      ? new Date(detail.skp_created_date).toLocaleDateString()
-                      : "-"}
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row">Dimodifikasi Oleh</th>
-                  <td>{detail.skp_modif_by || "-"}</td>
-                </tr>
-                <tr>
-                  <th scope="row">Tanggal Dimodifikasi</th>
-                  <td>
-                    {detail.skp_modif_date
-                      ? new Date(detail.skp_modif_date).toLocaleDateString()
-                      : "-"}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+        <div className="d-flex flex-column">
+          <PageTitleNav
+            title="Detail Skala Penilaian"
+            breadcrumbs={[
+              { label: "Skala", href: "/survei/skala" },
+              { label: "Detail Skala Penilaian" },
+            ]}
+            onClick={() => navigate("/survei/skala")}
+          />
+          {/* Navigation and Title */}
+          <div
+            className={`d-flex align-items-center ${
+              isMobile ? "flex-column" : "mb-4"
+            }`}
+          >
+            <h5 className="m-0 text-center">{title}</h5>
+          </div>
 
-            <div className="mt-4 d-flex justify-content-end gap-2">
-              <Button
-                classType="secondary"
-                label="Kembali"
-                onClick={() => navigate("/survei/skala")}
-              />
-              
+          {/* Detail Card */}
+          <div className="shadow p-5 mt-4 bg-white rounded">
+            <HeaderForm label={title} />
+            <div className="row">
+              {/* Left Column */}
+              <div className="col-lg-6 col-md-6">
+                <DetailData label="Tipe" isi={detail.skp_tipe || "-"} />
+                <DetailData
+                  label="Status"
+                  isi={detail.skp_status === 0 ? "Tidak" : "Ya"}
+                />
+                <DetailData
+                  label="Dibuat Oleh"
+                  isi={detail.skp_created_by || "Tidak tersedia"}
+                />
+                <DetailData
+                  label="Dibuat Tanggal"
+                  isi={
+                    detail.skp_created_date
+                      ? new Date(detail.skp_created_date).toLocaleDateString(
+                          "id-ID",
+                          {
+                            weekday: "long",
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          }
+                        )
+                      : "-"
+                  }
+                />
+              </div>
+
+              {/* Right Column */}
+              <div className="col-lg-6 col-md-6">
+                <DetailData
+                  label="Deskripsi Nilai (Terendah - Tertinggi)"
+                  isi={detail.skp_deskripsi || "-"}
+                />
+                <DetailData
+                  label="Dimodifikasi Oleh"
+                  isi={detail.skp_modif_by || "Tidak tersedia"}
+                />
+                <DetailData
+                  label="Dimodifikasi Tanggal"
+                  isi={
+                    detail.skp_modif_date
+                      ? new Date(detail.skp_modif_date).toLocaleDateString(
+                          "id-ID",
+                          {
+                            weekday: "long",
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          }
+                        )
+                      : "-"
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="d-flex justify-content-between align-items-center">
+
+              <div className="flex-grow-1 m-2">
+                <Button
+                  width="100%"
+                  label="Batal"
+                  classType="danger"
+                  onClick={() => navigate('/survei/skala')} 
+                />
+              </div>
             </div>
           </div>
         </div>

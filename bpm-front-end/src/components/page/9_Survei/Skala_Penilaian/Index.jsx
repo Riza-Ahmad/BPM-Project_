@@ -16,8 +16,6 @@ export default function Index() {
   const [loading, setLoading] = useState(false);
   const [Skala, setSkala] = useState([]);
   const [filterType, setFilterType] = useState("");
-  const [filterSkalaMin, setFilterSkalaMin] = useState("");
-  const [filterSkalaMax, setFilterSkalaMax] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
 
   const navigate = useNavigate();
@@ -34,14 +32,17 @@ export default function Index() {
       searchRegex.test(item.skp_status);
 
     const matchesFilterType = filterType ? item.skp_tipe === filterType : true;
-    const matchesFilterSkala =
-      (filterSkalaMin ? item.skp_skala >= filterSkalaMin : true) &&
-      (filterSkalaMax ? item.skp_skala <= filterSkalaMax : true);
     const matchesFilterStatus =
-      filterStatus !== "" ? item.skp_status.toString() === filterStatus : true;
+      filterStatus !== "" ? item.skp_status.toString() === filterStatus : item.skp_status === 1;
 
-    return matchesQuery && matchesFilterType && matchesFilterSkala && matchesFilterStatus;
+    return matchesQuery && matchesFilterType && matchesFilterStatus;
   });
+
+  const resetFilter = () => {
+    setFilterStatus(""); // Reset ke status aktif
+    setFilterType(""); // Reset tipe
+    fetchSkala(); // Ambil data lagi
+  };
 
   const currentData = filteredSkala.slice(
     (pageCurrent - 1) * pageSize,
@@ -51,7 +52,7 @@ export default function Index() {
   const title = "Skala Penilaian";
   const breadcrumbs = [{ label: "Skala Penilaian" }];
 
-  const fetchSkala = async () => {
+  const fetchSkala = async (status = null) => {
     setLoading(true);
     try {
       const response = await fetch(
@@ -59,7 +60,7 @@ export default function Index() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({}),
+          body: JSON.stringify({ status }),
         }
       );
 
@@ -122,6 +123,11 @@ export default function Index() {
     }
   };
 
+  const activeSkala = Skala.filter(item => item.skp_status === 1);
+  const inactiveSkala = Skala.filter(item => item.skp_status === 0);
+
+  const filteredSkalaByType = filterStatus === "" ? activeSkala : Skala;
+
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1" style={{ marginTop: "80px" }}>
@@ -157,41 +163,25 @@ export default function Index() {
               </div>
               <div className="col-lg-4 col-md-6">
                 <Filter>
-                  {[...new Set(Skala.map((item) => item.skp_tipe))].map((option) => (
-                    <div key={option} className="form-check">
-                      <input
-                        className="form-check-input"
-                        type="radio"
-                        name="filterSkalaType"
-                        id={`filter-type-${option}`}
-                        value={option}
-                        checked={filterType === option}
-                        onChange={(e) => setFilterType(e.target.value)}
-                      />
-                      <label className="form-check-label" htmlFor={`filter-type-${option}`}>
-                        {option}
-                      </label>
-                    </div>
-                  ))}
-
-                  <div className="mt-3">
-                    <label htmlFor="filter-skala-range" className="form-label">
-                      Filter by Skala Range:
+                  <div>
+                    <label htmlFor="filter-type" className="form-label">
+                      Filter Tipe Skala:
                     </label>
-                    <input
-                      type="number"
-                      placeholder="Min"
-                      className="form-control"
-                      value={filterSkalaMin}
-                      onChange={(e) => setFilterSkalaMin(e.target.value)}
-                    />
-                    <input
-                      type="number"
-                      placeholder="Max"
-                      className="form-control mt-2"
-                      value={filterSkalaMax}
-                      onChange={(e) => setFilterSkalaMax(e.target.value)}
-                    />
+                    <select
+                      id="filter-type"
+                      className="form-select"
+                      value={filterType}
+                      onChange={(e) => setFilterType(e.target.value)}
+                    >
+                      <option value="">Pilih Tipe Skala</option>
+                      {[...new Set(filteredSkalaByType.map((item) => item.skp_tipe))].map(
+                        (option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        )
+                      )}
+                    </select>
                   </div>
 
                   <div className="mt-3">
@@ -204,29 +194,23 @@ export default function Index() {
                       value={filterStatus}
                       onChange={(e) => setFilterStatus(e.target.value)}
                     >
-                      <option value="">All</option>
+                      <option value="">Pilih Status</option>
                       <option value="1">Aktif</option>
                       <option value="0">Tidak Aktif</option>
                     </select>
                   </div>
 
-                  <div className="mt-3">
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => {
-                        setFilterType("");
-                        setFilterSkalaMin("");
-                        setFilterSkalaMax("");
-                        setFilterStatus("");
-                      }}
-                    >
-                      Reset Filters
-                    </button>
-                  </div>
+                  <button
+                    className="btn btn-secondary mt-2"
+                    onClick={resetFilter}
+                  >
+                    Reset Filter
+                  </button>
                 </Filter>
               </div>
             </div>
           </div>
+
           <div
             className="table-container bg-white p-3 mt-0 rounded"
             style={{ margin: isMobile ? "1rem" : "3rem" }}
@@ -239,7 +223,7 @@ export default function Index() {
                 "Tipe Skala": item.skp_tipe,
                 Skala: item.skp_skala,
                 Deskripsi: item.skp_deskripsi,
-                Status: item.skp_status === 1 ? "Aktif" : "Tidak Aktif", // Ubah status
+                Status: item.skp_status === 1 ? "Aktif" : "Tidak Aktif",
               }))}
               actions={["Detail", "Toggle", "Edit"]}
               onDetail={(item) => {
@@ -257,6 +241,7 @@ export default function Index() {
                   state: { editData: item.key },
                 });
               }}
+              
             />
             <Paging
               pageSize={pageSize}
