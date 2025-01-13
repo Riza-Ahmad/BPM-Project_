@@ -5,7 +5,8 @@ import Button from "../../../part/Button";
 import Loading from "../../../part/Loading";
 import Dropdown from "../../../part/Dropdown";
 import SweetAlert from "../../../util/SweetAlert";
-import Table from "../../../part/Table"; // Asumsi Anda memiliki komponen Table reusable
+import Table from "../../../part/Table";
+import Paging from "../../../part/Paging";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { useNavigate } from "react-router-dom";
@@ -29,20 +30,24 @@ export default function Add() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-
   const [formDisabled, setFormDisabled] = useState(false);
-  const [questions, setQuestions] = useState([]); // Daftar pertanyaan di template survei
-  const [questionBank, setQuestionBank] = useState([]); // Pertanyaan yang tersedia
-
+  const [pageCurrent, setPageCurrent] = useState(1);
+  const [pageSize] = useState(10);
+  const [questions, setQuestions] = useState([]);
+  const [questionBank, setQuestionBank] = useState([]);
+  const [kriteriaSurvei, setKriteriaSurvei] = useState([]);
+  const [skalaPenilaian, setSkalaPenilaian] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const indexOfLastData = pageCurrent * pageSize;
+  const indexOfFirstData = indexOfLastData - pageSize;
+  const currentData = filteredData.slice(indexOfFirstData, indexOfLastData);
+  const handlePageNavigation = (page) => setPageCurrent(page);
   const [formData, setFormData] = useState({
     name: "",
     createdBy: "dianvivi.widiyawati",
     ksrId: "",
     skpId: "",
   });
-
-  const [kriteriaSurvei, setKriteriaSurvei] = useState([]);
-  const [skalaPenilaian, setSkalaPenilaian] = useState([]);
 
   useEffect(() => {
     const fetchDropdownData = async () => {
@@ -118,9 +123,10 @@ export default function Add() {
     setLoading(true);
     try {
       const payload = {
-        ...formData,
-        ksrId: parseInt(formData.ksrId, 10),
-        skpId: parseInt(formData.skpId, 10),
+        nama_template: formData.name,
+        created_by: formData.createdBy,
+        ksr_id: parseInt(formData.ksrId, 10),
+        skp_id: parseInt(formData.skpId, 10),
       };
 
       const response = await fetchAPI(
@@ -131,7 +137,6 @@ export default function Add() {
       console.log("Response from CreateTemplateSurvei:", response);
 
       setFormDisabled(true); // Disable form
-      setQuestions([]); // Reset pertanyaan
       SweetAlert("Sukses", "Template survei berhasil dibuat.", "success", "OK");
     } catch (err) {
       console.error("Error submitting form:", err);
@@ -146,17 +151,18 @@ export default function Add() {
     }
   };
 
-  const handleDetail = (id) => {
-    console.log("Detail for question ID:", id);
+  const handleAddQuestion = () => {
+    console.log("Tambah Pertanyaan");
+    setQuestions([...questions, { id: questions.length + 1, pertanyaan: "" }]);
   };
 
-  const handleEdit = (id) => {
-    console.log("Edit for question ID:", id);
+  const handleSaveQuestions = () => {
+    console.log("Simpan Pertanyaan");
   };
 
-  const handleDelete = (id) => {
-    setQuestions((prev) => prev.filter((item) => item.id !== id));
-    console.log("Delete for question ID:", id);
+  const handleCancelQuestions = () => {
+    setQuestions([]);
+    console.log("Batalkan Pertanyaan");
   };
 
   if (loading) return <Loading />;
@@ -197,6 +203,7 @@ export default function Add() {
                 setFormData({ ...formData, name: e.target.value })
               }
               isRequired={true}
+              disabled={formDisabled}
             />
             <TextField
               label="Dibuat Oleh"
@@ -205,6 +212,7 @@ export default function Add() {
                 setFormData({ ...formData, createdBy: e.target.value })
               }
               isRequired={true}
+              disabled={formDisabled}
             />
             <Dropdown
               label="Kriteria Survei"
@@ -216,6 +224,7 @@ export default function Add() {
                 setFormData({ ...formData, ksrId: e.target.value })
               }
               isRequired={true}
+              disabled={formDisabled}
             />
             <Dropdown
               label="Skala Penilaian"
@@ -227,55 +236,71 @@ export default function Add() {
                 setFormData({ ...formData, skpId: e.target.value })
               }
               isRequired={true}
+              disabled={formDisabled}
             />
-            <div className="d-flex justify-content-between">
-              <Button
-                classType="primary"
-                label="Simpan"
-                onClick={handleSubmit}
-                style={{ flex: 1, margin: "0.5rem" }}
-              />
-              <Button
-                classType="danger"
-                label="Batal"
-                onClick={() => navigate("/survei/template")}
-                style={{ flex: 1, margin: "0.5rem" }}
-              />
-            </div>
+            {!formDisabled && (
+              <div className="d-flex justify-content-between">
+                <Button
+                  classType="primary"
+                  label="Simpan"
+                  onClick={handleSubmit}
+                  style={{ flex: 1, margin: "0.5rem" }}
+                />
+                <Button
+                  classType="danger"
+                  label="Batal"
+                  onClick={() => navigate("/survei/template")}
+                  style={{ flex: 1, margin: "0.5rem" }}
+                />
+              </div>
+            )}
           </form>
 
           {formDisabled && (
-            <div className="mt-4">
-              <h3>Daftar Pertanyaan</h3>
+            <div className="mt-5">
+              <h3 style={{ textAlign: "center", margin: "1rem 0" }}>
+                Daftar Pertanyaan 
+                <hr />
+              </h3>
+              <Button
+                classType="primary"
+                label="Tambah Pertanyaan"
+                onClick={handleAddQuestion}
+                style={{ marginBottom: "1rem" }}
+              />
               <Table
                 arrHeader={["No", "Pertanyaan"]}
-                data={questions.map((item, index) => ({
+                data={currentData.map((item, index) => ({
                   id: item.id,
                   No: index + 1,
                   Pertanyaan: item.pertanyaan,
-                  Aksi: (
-                    <div className="d-flex gap-2">
-                      <Button
-                        classType="info"
-                        label="Detail"
-                        onClick={() => handleDetail(item.id)}
-                        style={{ marginRight: "0.5rem" }}
-                      />
-                      <Button
-                        classType="warning"
-                        label="Edit"
-                        onClick={() => handleEdit(item.id)}
-                        style={{ marginRight: "0.5rem" }}
-                      />
-                      <Button
-                        classType="danger"
-                        label="Hapus"
-                        onClick={() => handleDelete(item.id)}
-                      />
-                    </div>
-                  ),
                 }))}
+                actions={["Edit", "Delete"]}
+                onEdit={(item) =>
+                  onChangePage("edit", { state: { idData: item.Key } })
+                }
+                onDelete={(item) => handleDelete(item.Key)}
               />
+              <Paging
+                pageSize={pageSize}
+                pageCurrent={pageCurrent}
+                totalData={filteredData.length}
+                navigation={handlePageNavigation}
+              />
+              <div className="d-flex justify-content-between mt-3">
+                <Button
+                  classType="primary"
+                  label="Simpan"
+                  onClick={handleSaveQuestions}
+                  style={{ flex: 1, margin: "0.5rem" }}
+                />
+                <Button
+                  classType="danger"
+                  label="Batal"
+                  onClick={handleCancelQuestions}
+                  style={{ flex: 1, margin: "0.5rem" }}
+                />
+              </div>
             </div>
           )}
         </div>

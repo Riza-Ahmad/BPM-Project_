@@ -16,13 +16,19 @@ export default function Template_Survei({ onChangePage }) {
   const isMobile = useIsMobile();
   const [pageCurrent, setPageCurrent] = useState(1);
   const [data, setData] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-
+  const [sortDate, setSortDate] = useState(""); // Untuk sort tanggal
+  const [filterStatus, setFilterStatus] = useState(""); // Untuk filter status
+  const [filteredData, setFilteredData] = useState(data); // Data yang akan ditampilkan
+  const indexOfLastData = pageCurrent * pageSize;
+  const indexOfFirstData = indexOfLastData - pageSize;
+  const currentData = filteredData.slice(indexOfFirstData, indexOfLastData);
+  const handlePageNavigation = (page) => setPageCurrent(page);
+  const handleSearchChange = (query) => setSearchQuery(query);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,7 +52,12 @@ export default function Template_Survei({ onChangePage }) {
         const result = await response.json();
         const templates = Array.isArray(result) ? result : JSON.parse(result);
 
-        const formattedTemplates = templates.map((item) => ({
+        // Filter templates by status 0 and 1 only
+        const filteredTemplates = templates.filter(
+          (item) => item.tsu_status === 0 || item.tsu_status === 1
+        );
+
+        const formattedTemplates = filteredTemplates.map((item) => ({
           id: item.tsu_id,
           name: item.tsu_nama,
           finalDate: item.tsu_modif_date
@@ -71,18 +82,17 @@ export default function Template_Survei({ onChangePage }) {
     fetchTemplateSurvei();
   }, []);
 
-  const handleSearchChange = (query) => setSearchQuery(query);
-
-  const handleFilterChange = (order, status) => {
-    setSortOrder(order);
-    setSelectedStatus(status);
+  // The handleFilterChange function can now take two separate arguments: sortDate and status
+  const handleFilterChange = (dateOrder, status) => {
+    setSortDate(dateOrder);
+    setFilterStatus(status);
   };
 
-  // Filter and sort data
+  // UseEffect hook for applying filter and sort
   useEffect(() => {
-    let filtered = [...data];
+    let filtered = [...data]; // Start with a copy of the original data
 
-    // Filter berdasarkan query pencarian di semua atribut
+    // Apply search filter
     if (searchQuery) {
       filtered = filtered.filter((item) =>
         Object.values(item)
@@ -92,36 +102,34 @@ export default function Template_Survei({ onChangePage }) {
       );
     }
 
-    // Filter berdasarkan status
-    if (selectedStatus) {
+    // Apply status filter
+    if (filterStatus) {
       filtered = filtered.filter((item) => {
-        if (selectedStatus === "Draft") {
-          return item.status === 0;
-        } else if (selectedStatus === "Final") {
-          return item.status === 1;
-        } else if (selectedStatus === "Tidak Aktif") {
-          return item.status === 2;
-        }
-        return true; // Jika tidak ada status yang dipilih
+        if (filterStatus === "0") return item.status === 0;
+        if (filterStatus === "1") return item.status === 1;
+        if (filterStatus === "2") return item.status === 2;
+        return true;
       });
     }
 
-    // Sort berdasarkan tanggal final
-    filtered.sort((a, b) => {
-      if (a.finalDate === "-" || b.finalDate === "-") return 0;
-      return sortOrder === "asc"
-        ? new Date(a.finalDate) - new Date(b.finalDate)
-        : new Date(b.finalDate) - new Date(a.finalDate);
-    });
+    // Apply date sorting
+    if (sortDate) {
+      filtered.sort((a, b) => {
+        if (a.finalDate === "-" || b.finalDate === "-") return 0;
+        return sortDate === "asc"
+          ? new Date(a.finalDate) - new Date(b.finalDate)
+          : new Date(b.finalDate) - new Date(a.finalDate);
+      });
+    }
 
-    setFilteredData(filtered);
-  }, [searchQuery, selectedStatus, sortOrder, data]);
+    setFilteredData(filtered); // Update filtered data
+  }, [searchQuery, filterStatus, sortDate, data]); // Ensure these are the only dependencies
 
-  const indexOfLastData = pageCurrent * pageSize;
-  const indexOfFirstData = indexOfLastData - pageSize;
-  const currentData = filteredData.slice(indexOfFirstData, indexOfLastData);
-
-  const handlePageNavigation = (page) => setPageCurrent(page);
+  // Reset filter button should reset both date and status filters
+  const resetFilters = () => {
+    setSortDate(""); // Reset sort date
+    setFilterStatus(""); // Reset filter status
+  };
 
   if (loading) return <Loading />;
 
@@ -274,55 +282,55 @@ export default function Template_Survei({ onChangePage }) {
                 <SearchField onChange={handleSearchChange} />
               </div>
               <div className="col-lg-1 col-md-6">
-                <div className="dropdown">
+                <Filter>
+                  <div>
+                    <label htmlFor="filter-date" className="form-label">
+                      Sort Tanggal:
+                    </label>
+                    <select
+                      id="filter-date"
+                      className="form-select"
+                      value={sortDate}
+                      onChange={(e) =>
+                        handleFilterChange(e.target.value, filterStatus)
+                      }
+                    >
+                      <option value="" disabled>
+                        -- Pilih Sorting --
+                      </option>
+                      <option value="asc">Ascending</option>
+                      <option value="desc">Descending</option>
+                    </select>
+                  </div>
+
+                  <div className="mt-3">
+                    <label htmlFor="filter-status" className="form-label">
+                      Filter by Status:
+                    </label>
+                    <select
+                      id="filter-status"
+                      className="form-select"
+                      value={filterStatus}
+                      onChange={(e) =>
+                        handleFilterChange(sortDate, e.target.value)
+                      }
+                    >
+                      <option value="" disabled>
+                        -- Pilih Status --
+                      </option>
+                      <option value="0">Draft</option>
+                      <option value="1">Final</option>
+                      <option value="2">Tidak Aktif</option>
+                    </select>
+                  </div>
+
                   <button
-                    className="btn btn-primary dropdown-toggle w-100"
-                    type="button"
-                    onClick={() => setIsFilterOpen(!isFilterOpen)} // Toggle dropdown
+                    className="btn btn-secondary mt-2"
+                    onClick={() => handleFilterChange("", "")}
                   >
-                    Filter
+                    Reset Filter
                   </button>
-                  {isFilterOpen && (
-                    <div className="dropdown-menu" style={{ display: "block" }}>
-                      <button
-                        className="dropdown-item"
-                        onClick={() => handleFilterChange("asc", "")}
-                      >
-                        Sort Tanggal Ascending
-                      </button>
-                      <button
-                        className="dropdown-item"
-                        onClick={() => handleFilterChange("desc", "")}
-                      >
-                        Sort Tanggal Descending
-                      </button>
-                      <button
-                        className="dropdown-item"
-                        onClick={() => handleFilterChange("0", "Draft")}
-                      >
-                        Status Draft
-                      </button>
-                      <button
-                        className="dropdown-item"
-                        onClick={() => handleFilterChange("1", "Final")}
-                      >
-                        Status Final
-                      </button>
-                      <button
-                        className="dropdown-item"
-                        onClick={() => handleFilterChange("2", "Tidak Aktif")}
-                      >
-                        Status Tidak Aktif
-                      </button>
-                      <button
-                        className="dropdown-item"
-                        onClick={() => handleFilterChange("", "")}
-                      >
-                        Reset Filter
-                      </button>
-                    </div>
-                  )}
-                </div>
+                </Filter>
               </div>
             </div>
           </div>
