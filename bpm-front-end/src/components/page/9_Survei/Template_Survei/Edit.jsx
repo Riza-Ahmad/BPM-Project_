@@ -14,8 +14,8 @@ export default function Edit() {
   const location = useLocation();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const { idData } = location.state || {}; // Ambil idData dari state
-
+  const [kriteriaSurvei, setKriteriaSurvei] = useState([]);
+  const [skalaPenilaian, setSkalaPenilaian] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
@@ -24,8 +24,7 @@ export default function Edit() {
     ksrId: "",
     skpId: "",
   });
-  const [kriteriaSurvei, setKriteriaSurvei] = useState([]);
-  const [skalaPenilaian, setSkalaPenilaian] = useState([]);
+  const { idData } = location.state || {}; // Ambil idData dari state
 
   // Ambil data template berdasarkan idData
   useEffect(() => {

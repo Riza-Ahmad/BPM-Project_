@@ -7,6 +7,7 @@ import Dropdown from "../../../part/Dropdown";
 import SweetAlert from "../../../util/SweetAlert";
 import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
+import Modal from "../../../part/Modal";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { useNavigate } from "react-router-dom";
@@ -26,10 +27,8 @@ async function fetchAPI(url, body, method = "POST") {
 }
 
 export default function Add() {
-  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
   const [formDisabled, setFormDisabled] = useState(false);
   const [pageCurrent, setPageCurrent] = useState(1);
   const [pageSize] = useState(10);
@@ -38,10 +37,14 @@ export default function Add() {
   const [kriteriaSurvei, setKriteriaSurvei] = useState([]);
   const [skalaPenilaian, setSkalaPenilaian] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [newQuestion, setNewQuestion] = useState("");
+  const isMobile = useIsMobile();
   const indexOfLastData = pageCurrent * pageSize;
   const indexOfFirstData = indexOfLastData - pageSize;
   const currentData = filteredData.slice(indexOfFirstData, indexOfLastData);
   const handlePageNavigation = (page) => setPageCurrent(page);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     createdBy: "dianvivi.widiyawati",
@@ -152,12 +155,51 @@ export default function Add() {
   };
 
   const handleAddQuestion = () => {
-    console.log("Tambah Pertanyaan");
-    setQuestions([...questions, { id: questions.length + 1, pertanyaan: "" }]);
+    setModalVisible(true); // Tampilkan modal
   };
 
-  const handleSaveQuestions = () => {
-    console.log("Simpan Pertanyaan");
+  const handleSaveNewQuestion = async () => {
+    if (!newQuestion.trim()) {
+      SweetAlert("Error", "Pertanyaan tidak boleh kosong.", "error", "OK");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const payload = {
+        pertanyaan: newQuestion,
+        created_by: formData.createdBy,
+      };
+
+      const response = await fetchAPI(
+        `${API_LINK}/MasterPertanyaan/CreatePertanyaan`,
+        JSON.stringify(payload)
+      );
+
+      console.log("Response from CreatePertanyaan:", response);
+
+      // Tambahkan pertanyaan baru ke state
+      const addedQuestion = {
+        id: response.id, // Pastikan respons API memberikan ID
+        pertanyaan: newQuestion,
+      };
+      setQuestions([...questions, addedQuestion]);
+      setFilteredData([...questions, addedQuestion]); // Update tabel
+
+      SweetAlert("Sukses", "Pertanyaan berhasil ditambahkan.", "success", "OK");
+      setModalVisible(false); // Tutup modal
+      setNewQuestion(""); // Reset input
+    } catch (err) {
+      console.error("Error saving new question:", err);
+      SweetAlert(
+        "Error",
+        "Gagal menambahkan pertanyaan. Silakan coba lagi.",
+        "error",
+        "OK"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancelQuestions = () => {
@@ -259,7 +301,7 @@ export default function Add() {
           {formDisabled && (
             <div className="mt-5">
               <h3 style={{ textAlign: "center", margin: "1rem 0" }}>
-                Daftar Pertanyaan 
+                Daftar Pertanyaan
                 <hr />
               </h3>
               <Button
@@ -305,6 +347,31 @@ export default function Add() {
           )}
         </div>
       </main>
+      {/* Modal untuk menambah pertanyaan */}
+      {modalVisible && (
+        <Modal title="Tambah Pertanyaan" onClose={() => setModalVisible(false)}>
+          <TextField
+            label="Pertanyaan"
+            placeholder="Masukkan pertanyaan"
+            value={newQuestion}
+            onChange={(e) => setNewQuestion(e.target.value)}
+            isRequired={true}
+          />
+          <div className="d-flex justify-content-end mt-3">
+            <Button
+              classType="primary"
+              label="Simpan"
+              onClick={handleSaveNewQuestion}
+              style={{ marginRight: "0.5rem" }}
+            />
+            <Button
+              classType="danger"
+              label="Batal"
+              onClick={() => setModalVisible(false)}
+            />
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

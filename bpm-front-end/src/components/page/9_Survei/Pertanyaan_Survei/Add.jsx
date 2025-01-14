@@ -13,7 +13,6 @@ export default function Add({ onChangePage }) {
     { label: "Daftar Pertanyaan", href: "/survei/pertanyaan" },
     { label: "Tambah Pertanyaan", href: "/survei/pertanyaan/add" },
   ];
-
   const [isPertanyaanUmumYes, setPertanyaanUmumYes] = useState(false);
   const [pertanyaan, setPertanyaan] = useState("");
   const [kriteriaSurvei, setKriteriaSurvei] = useState([]);
