@@ -9,6 +9,7 @@ import Add from "./Add";
 import Edit from "./Edit";
 import ScrollToTop from "../../../part/ScrollToTop";
 import Detail from "./Detail";
+import Preview from "./Preview";
 
 export default function Template_Survei() {
   const navigate = useNavigate();
@@ -26,6 +27,9 @@ export default function Template_Survei() {
         break;
       case "detail":
         navigate("/survei/template/detail", withState);
+        break;
+      case "preview":
+        navigate("/survei/template/preview", withState);
         break;
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
@@ -46,6 +50,10 @@ export default function Template_Survei() {
         <Route
           path="/detail"
           element={<Detail onChangePage={handlePageChange} />}
+        />
+        <Route
+          path="/preview"
+          element={<Preview onChangePage={handlePageChange} />}
         />
       </Routes>
     </>

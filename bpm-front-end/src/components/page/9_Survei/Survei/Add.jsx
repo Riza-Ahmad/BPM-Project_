@@ -1,9 +1,11 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import PageTitleNav from "../../../part/PageTitleNav";
 import InputField from "../../../part/InputField";
 import TextArea from "../../../part/TextArea";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
+import Dropdown from "../../../part/Dropdown";
+import CheckBox from "../../../part/CheckBox";
 import { API_LINK } from "../../../util/Constants";
 import SweetAlert from "../../../util/SweetAlert";
 import { useIsMobile } from "../../../util/useIsMobile";
@@ -12,126 +14,46 @@ export default function Add({ onChangePage }) {
   const title = "Tambah Survei";
   const breadcrumbs = [
     { label: "Survei", href: "/survei/survei" },
-    { label: "Tambah Survei" }
+    { label: "Tambah Survei" },
   ];
   const isMobile = useIsMobile();
-//   const [isiBerita, setIsiBerita] = useState("");
+  const [templateOptions, setTemplateOptions] = useState([]);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [loadingTemplate, setLoadingTemplate] = useState(true);
+  const checkBoxRef = useRef(null);
+  const [selectedValues, setSelectedValues] = useState([]);
 
-//   const [formData, setFormData] = useState({
-//     judul: "",
-//     penulis: "",
-//     tanggal: "",
-//     isi: "",
-//   });
+  useEffect(() => {
+    const fetchTemplate = async () => {
+      try {
+        setLoadingTemplate(true);
+        const response = await fetch(`${API_LINK}/TemplateSurvei/GetTemplateSurvei`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
+        });
 
-//   const [images, setImages] = useState([]);
+        if (!response.ok) {
+          throw new Error("Failed to fetch template data!");
+        }
 
-//   // Refs untuk validasi
-//   const judulRef = useRef();
-//   const penulisRef = useRef();
-//   const tanggalRef = useRef();
-//   const isiRef = useRef();
-//   const fotoRef = useRef();
+        const data = await response.json();
+        const formattedTemplate = data.map((item) => ({
+          value: item.tsu_id,
+          Text: item.tsu_nama,
+        }));
+        setTemplateOptions(formattedTemplate);
+      } catch (error) {
+        SweetAlert("Error", error.message, "error");
+      } finally {
+        setLoadingTemplate(false);
+      }
+    };
 
-//   const handleChange = (e) => {
-//     const { name, value } = e.target;
-//     setFormData((prevData) => ({
-//       ...prevData,
-//       [name]: value,
-//     }));
-//   };
-
-//   const handleUploadChange = (updatedFiles) => {
-//     setImages(updatedFiles);
-//   };
-
-//   const handleSubmit = async () => {
-//     const isJudulValid = judulRef.current?.validate();
-//     const isPenulisValid = penulisRef.current?.validate();
-//     const isTanggalValid = tanggalRef.current?.validate();
-//     const isIsiValid = isiRef.current?.validate();
-//     const isFotoValid = fotoRef.current?.validate();
-
-//     if (!isJudulValid) {
-//       judulRef.current?.focus();
-//       return;
-//     }
-//     if (!isPenulisValid) {
-//       penulisRef.current?.focus();
-//       return;
-//     }
-//     if (!isTanggalValid) {
-//       tanggalRef.current?.focus();
-//       return;
-//     }
-//     if (!isIsiValid) {
-//       isiRef.current?.focus();
-//       return;
-//     }
-//     if (!isFotoValid) {
-//       fotoRef.current?.focus();
-//       return;
-//     }
-
-//     try {
-//       // Upload foto
-//       const formData = new FormData();
-//       images.forEach((file) => formData.append("files", file));
-
-//       const uploadResponse = await fetch(
-//         `${API_LINK}/MasterBerita/UploadFiles`,
-//         {
-//           method: "POST",
-//           body: formData,
-//         }
-//       );
-
-//       if (!uploadResponse.ok) {
-//         throw new Error("Gagal mengunggah gambar");
-//       }
-
-//       const uploadedFileNames = await uploadResponse.json();
-
-//       const beritaData = {
-//         ber_judul: judulRef.current.value,
-//         ber_tgl: tanggalRef.current.value,
-//         ber_isi: isiBerita,
-//         ber_status: 1,
-//         ber_created_by: penulisRef.current.value,
-//         ber_penulis: penulisRef.current.value,
-//         fotoList: uploadedFileNames,
-//       };
-
-//       console.log(beritaData);
-
-//       const createResponse = await fetch(
-//         `${API_LINK}/MasterBerita/CreateBerita`,
-//         {
-//           method: "POST",
-//           headers: { "Content-Type": "application/json" },
-//           body: JSON.stringify(beritaData),
-//         }
-//       );
-
-//       if (!createResponse.ok) {
-//         throw new Error("Gagal menambahkan berita");
-//       }
-
-//       SweetAlert(
-//         "Berhasil!",
-//         "Data berhasil ditambahkan.",
-//         "success",
-//         "OK"
-//       ).then(() => onChangePage("read"));
-//     } catch (error) {
-//       console.error("Error:", error.message);
-//       SweetAlert("Gagal!", error.message, "error", "OK");
-//     }
-//   };
-
-//   const handleIsiChange = (e) => {
-//     setIsiBerita(e.target.value);
-//   };
+    fetchTemplate();
+  }, []);
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -154,31 +76,59 @@ export default function Add({ onChangePage }) {
               <div className="row">
                 <div className="col-lg-6 col-md-6">
                   <InputField
-                  label="Nama Survei"
-                  isRequired="true"
-                  placeHolder="Masukkan nama survei"
-                  
+                    label="Nama Survei"
+                    isRequired={true}
+                    placeHolder="Masukkan nama survei"
                   />
 
                   <InputField
                     label="Tanggal Awal"
-                    isRequired="true"
+                    isRequired={true}
                     placeHolder="Masukkan Tanggal Awal Survei"
-                    classType="date"
+                    type="date"
                   />
                 </div>
-                
-                
+
                 <div className="col-lg-6 col-md-6">
-                <InputField
-                  label="Tanggal Akhir"
-                  isRequired="true"
-                  placeHolder="Masukkan Tanggal Akhir Survei"
-                  classType="date"
-                />
+                <Dropdown
+                    arrData={[
+                      { value: "", Text: "-- Pilih Template Survei --" },
+                      ...templateOptions,
+                    ]}
+                    label="Template Survei"
+                    value={selectedTemplate}
+                    onChange={(e) => setSelectedTemplate(e.target.value)}
+                    isRequired={true}
+                  />
+                  <InputField
+                    label="Tanggal Akhir"
+                    isRequired={true}
+                    placeHolder="Masukkan Tanggal Akhir Survei"
+                    type="date"
+                  />
+
+                 
                 </div>
-                
               </div>
+
+              <CheckBox
+                ref={checkBoxRef}
+                arrData={[
+                  { Value: "option1", Text: "Mahasiswa" },
+                  { Value: "option2", Text: "Dosen" },
+                  { Value: "option3", Text: "Tenaga Pendidik" },
+                  { Value: "option4", Text: "Mitra Kerja Sama" },
+                ]}
+                label="Pilih Responden"
+                name="exampleCheckBox"
+                isRequired={true}
+                values={selectedValues}
+                onChange={setSelectedValues}
+                errorMessage="Pilih setidaknya satu opsi sebelum melanjutkan."
+              />
+
+              <TextArea label="Kata Pembuka" />
+              <TextArea label="Kata Penutup" />
 
               <div className="d-flex justify-content-between align-items-center">
                 <div className="flex-grow-1 m-2">
@@ -187,7 +137,7 @@ export default function Add({ onChangePage }) {
                     type="button"
                     label="Simpan"
                     width="100%"
-                    onClick="#"
+                    onClick={() => {}}
                   />
                 </div>
                 <div className="flex-grow-1 m-2">

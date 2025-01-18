@@ -31,68 +31,68 @@ export default function Template_Survei({ onChangePage }) {
   const handleSearchChange = (query) => setSearchQuery(query);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Fetch templates from the backend
-    const fetchTemplateSurvei = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `${API_LINK}/TemplateSurvei/GetTemplateSurvei`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({}),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
+  const fetchTemplateSurvei = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${API_LINK}/TemplateSurvei/GetTemplateSurvei`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
         }
+      );
 
-        const result = await response.json();
-        const templates = Array.isArray(result) ? result : JSON.parse(result);
-
-        // Filter templates by status 0 and 1 only
-        const filteredTemplates = templates.filter(
-          (item) => item.tsu_status === 0 || item.tsu_status === 1
-        );
-
-        const formattedTemplates = filteredTemplates.map((item) => ({
-          id: item.tsu_id,
-          name: item.tsu_nama,
-          finalDate: item.tsu_modif_date
-            ? new Date(item.tsu_modif_date).toISOString()
-            : "-",
-          status: item.tsu_status,
-        }));
-
-        setData(formattedTemplates);
-        setFilteredData(formattedTemplates);
-      } catch (error) {
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: error.message || "Gagal mengambil data template survei!",
-        });
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
-    };
 
+      const result = await response.json();
+
+      if (!result || !Array.isArray(result)) {
+        throw new Error("Data template survei tidak valid.");
+      }
+
+      const filteredTemplates = result.filter(
+        (item) => item.tsu_status === 0 || item.tsu_status === 1
+      );
+
+      const formattedTemplates = filteredTemplates.map((item) => ({
+        id: item.tsu_id,
+        name: item.tsu_nama,
+        finalDate: item.tsu_modif_date
+          ? new Date(item.tsu_modif_date).toISOString(2)
+          : "-",
+        status: item.tsu_status,
+      }));
+
+      setData(formattedTemplates);
+      setFilteredData(formattedTemplates);
+    } catch (error) {
+      console.error("Error fetching templates:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: error.message || "Gagal mengambil data template survei!",
+      });
+    } finally {
+      setLoading(false);
+      5;
+    }
+  };
+
+  useEffect(() => {
     fetchTemplateSurvei();
   }, []);
 
-  // The handleFilterChange function can now take two separate arguments: sortDate and status
   const handleFilterChange = (dateOrder, status) => {
     setSortDate(dateOrder);
     setFilterStatus(status);
   };
 
-  // UseEffect hook for applying filter and sort
   useEffect(() => {
-    let filtered = [...data]; // Start with a copy of the original data
+    let filtered = [...data];
 
-    // Apply search filter
     if (searchQuery) {
       filtered = filtered.filter((item) =>
         Object.values(item)
@@ -102,7 +102,6 @@ export default function Template_Survei({ onChangePage }) {
       );
     }
 
-    // Apply status filter
     if (filterStatus) {
       filtered = filtered.filter((item) => {
         if (filterStatus === "0") return item.status === 0;
@@ -112,7 +111,6 @@ export default function Template_Survei({ onChangePage }) {
       });
     }
 
-    // Apply date sorting
     if (sortDate) {
       filtered.sort((a, b) => {
         if (a.finalDate === "-" || b.finalDate === "-") return 0;
@@ -122,21 +120,18 @@ export default function Template_Survei({ onChangePage }) {
       });
     }
 
-    setFilteredData(filtered); // Update filtered data
-  }, [searchQuery, filterStatus, sortDate, data]); // Ensure these are the only dependencies
+    setFilteredData(filtered);
+  }, [searchQuery, filterStatus, sortDate, data]);
 
-  // Reset filter button should reset both date and status filters
   const resetFilters = () => {
-    setSortDate(""); // Reset sort date
-    setFilterStatus(""); // Reset filter status
+    setSortDate("");
+    setFilterStatus("");
   };
-
-  if (loading) return <Loading />;
 
   const handleDelete = async (id) => {
     const result = await Swal.fire({
       title: "Apakah Anda yakin?",
-      text: "Anda akan menghapus template survei ini.",
+      text: "Anda akan menghapus template survei ini secara permanen.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Ya, Hapus Template",
@@ -146,7 +141,7 @@ export default function Template_Survei({ onChangePage }) {
     if (result.isConfirmed) {
       try {
         const response = await fetch(
-          `${API_LINK}/TemplateSurvei/DeleteTemplateSurvei`,
+          `${API_LINK}/TemplateSurvei/HardDeleteTemplateSurvei`,
           {
             method: "POST",
             headers: {
@@ -154,20 +149,30 @@ export default function Template_Survei({ onChangePage }) {
             },
             body: JSON.stringify({
               p1: id,
-              p2: 2,
-              p3: "dianvivi.widiyawati",
             }),
           }
         );
 
-        if (!response.ok)
-          throw new Error("Gagal mengganti status Template Survei.");
+        if (!response.ok) {
+          const errorMessage = await response.text();
+          console.error("Delete failed:", errorMessage);
+          throw new Error("Gagal menghapus Template Survei.");
+        }
 
-        Swal.fire("Berhasil", "Template Survei berhasil dihapus.", "success");
+        Swal.fire(
+          "Berhasil",
+          "Template Survei berhasil dihapus secara permanen.",
+          "success"
+        );
 
-        fetchTemplateSurvei(); // Reload the template list or data
+        await fetchTemplateSurvei();
       } catch (err) {
-        Swal.fire("Gagal", "Terjadi kesalahan saat mengganti status.", "error");
+        console.error("Error during deletion:", err);
+        Swal.fire(
+          "Gagal",
+          "Terjadi kesalahan saat menghapus Template Survei.",
+          "error"
+        );
       }
     } else {
       Swal.fire("Dibatalkan", "Template Survei tidak terhapus.", "info");
@@ -175,7 +180,6 @@ export default function Template_Survei({ onChangePage }) {
   };
 
   const handleFinal = async (id) => {
-    // Display confirmation dialog before proceeding
     const result = await Swal.fire({
       title: "Apakah Anda yakin?",
       text: "Anda akan menetapkan status template ini menjadi Final.",
@@ -211,6 +215,7 @@ export default function Template_Survei({ onChangePage }) {
             item.id === id ? { ...item, status: 1 } : item
           )
         );
+        await fetchTemplateSurvei();
       } catch (err) {
         Swal.fire(
           "Gagal",
@@ -245,11 +250,13 @@ export default function Template_Survei({ onChangePage }) {
         "success"
       );
 
-      fetchTemplateSurvei();
+      await fetchTemplateSurvei();
     } catch (err) {
       Swal.fire("Gagal", "Terjadi kesalahan saat mengganti status.", "error");
     }
   };
+
+  if (loading) return <Loading />;
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -362,10 +369,10 @@ export default function Template_Survei({ onChangePage }) {
               actions={
                 (item) =>
                   item.Status === "Draft"
-                    ? ["Detail", "Edit", "Delete", "Final"]
+                    ? ["Detail", "Edit", "Delete", "Preview", "Final"]
                     : item.Status === "Final"
-                    ? ["Detail", "Toggle"] // Add action for 'Final' status
-                    : ["Detail", "Toggle"] // Add action for 'Tidak Aktif' status
+                    ? ["Detail", "Preview", "Toggle"] // Add action for 'Final' status
+                    : ["Detail", "Preview", "Toggle"] // Add action for 'Tidak Aktif' status
               }
               onEdit={(item) =>
                 onChangePage("edit", { state: { idData: item.Key } })
@@ -375,9 +382,10 @@ export default function Template_Survei({ onChangePage }) {
               }
               onDelete={(item) => handleDelete(item.Key)}
               onFinal={(item) => handleFinal(item.Key)}
-              onToggle={(item) => {
-                handleToggle(item.Key);
-              }}
+              onToggle={(item) => handleToggle(item.Key)}
+              onPreview={(item) =>
+                onChangePage("preview", { state: { idTemplate: item.Key } })
+              }
             />
 
             <Paging

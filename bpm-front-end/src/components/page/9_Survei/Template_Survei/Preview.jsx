@@ -8,11 +8,11 @@ import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { useFetch } from "../../../util/useFetch";
 
-export default function Detail({ onChangePage }) {
-  const title = "Detail Template Survei";
+export default function Preview({ onChangePage }) {
+  const title = "Preview Template Survei";
   const breadcrumbs = [
     { label: "Template Survei", href: "/survei/template" },
-    { label: "Detail Template Survei" },
+    { label: "Preview Template Survei" },
   ];
   const isMobile = useIsMobile();
   const location = useLocation();
@@ -113,8 +113,8 @@ export default function Detail({ onChangePage }) {
           );
           const skpData = await skpResponse.json();
           if (skpData && skpData.length > 0) {
-            const skala = skpData[0].skp_skala; 
-            const deskripsi = skpData[0].skp_deskripsi; 
+            const skala = skpData[0].skp_skala;
+            const deskripsi = skpData[0].skp_deskripsi;
 
             // Gabungkan skala dan deskripsi
             setSkpName(`${skala} (${deskripsi})`);
@@ -179,7 +179,7 @@ export default function Detail({ onChangePage }) {
                 : "shadow p-5 m-5 mt-0 bg-white rounded"
             }
           >
-            <HeaderForm label="Detail Template Survei" />
+            <HeaderForm label="Preview Template Survei" />
             <div className="row">
               <div className="col-lg-6 col-md-6">
                 <DetailData

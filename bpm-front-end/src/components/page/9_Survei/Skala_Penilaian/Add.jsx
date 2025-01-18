@@ -111,10 +111,10 @@ export default function Add({ onChangePage }) {
                 value={formData.skp_tipe}
                 onChange={(e) => handleTypeChange("skp_tipe", e.target.value)}
                 arrData={[
-                  { value: "RadioButton", label: "RadioButton" },
-                  { value: "TextBox", label: "TextBox" },
-                  { value: "TextArea", label: "TextArea" },
-                  { value: "CheckBox", label: "CheckBox" },
+                  { Value: "RadioButton", Text: "RadioButton" },
+                  { Value: "TextBox", Text: "TextBox" },
+                  { Value: "TextArea", Text: "TextArea" },
+                  { Value: "CheckBox", Text: "CheckBox" },
                 ]}
               />
 

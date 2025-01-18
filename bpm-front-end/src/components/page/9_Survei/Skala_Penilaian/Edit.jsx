@@ -383,7 +383,10 @@ export default function Edit({ onChangePage }) {
               name="skp_tipe"
               value={formData.skp_tipe || ""}
               onChange={(e) => handleInputChange("skp_tipe", e.target.value)}
-              arrData={tipeOptions}
+              arrData={tipeOptions.map((option) => ({
+                value: option.value,
+                Text: option.label,
+              }))}
             />
 
             {renderTypeSpecificInputs()}

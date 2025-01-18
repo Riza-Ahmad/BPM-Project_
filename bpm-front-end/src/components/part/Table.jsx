@@ -15,6 +15,7 @@ export default function Table({
   onSurveyor = () => {},
   onResponden = () => {},
   onToggle = () => {}, // Dideklarasikan untuk menghindari error
+  onPreview = () => {},
 }) {
   function generateActionButton(actionType, id, status = "Aktif") {
     switch (actionType) {
@@ -125,6 +126,16 @@ export default function Table({
             cssClass="btn px-1 py-0 text-warning"
             title="Edit Responden"
             onClick={() => onResponden(id)}
+          />
+        );
+      case "Preview":
+        return (
+          <Icon
+            type="Reguler"
+            name="list"
+            cssClass="btn px-1 py-0 text-primary"
+            title="Preview"
+            onClick={() => onPreview(id)}
           />
         );
       default:
