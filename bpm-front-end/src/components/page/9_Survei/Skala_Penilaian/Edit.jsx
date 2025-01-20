@@ -9,83 +9,92 @@ import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 
 export default function Edit({ onChangePage }) {
-  const isMobile = useIsMobile();
-  const { key } = useParams();
-  const [formData, setFormData] = useState({
+  const scaleTypes = {
+    textarea: "TextArea",
+    textbox: "TextBox",
+    checkbox: "CheckBox",
+    radio: "RadioButton",
+  };
+
+  const scaleOptions = [
+    { id: 1, value: scaleTypes.textarea, label: "TextArea" },
+    { id: 2, value: scaleTypes.textbox, label: "TextBox" },
+    { id: 3, value: scaleTypes.checkbox, label: "CheckBox" },
+    { id: 4, value: scaleTypes.radio, label: "RadioButton" },
+  ];
+
+  const initialFormState = {
     skp_tipe: "",
     skp_status: "",
     scale: 4,
     descriptions: [],
     checkedValues: [],
     name: "",
-  });
+  };
 
-  const tipeOptions = [
-    { id: 1, value: "TextArea", label: "TextArea" },
-    { id: 2, value: "TextBox", label: "TextBox" },
-    { id: 3, value: "CheckBox", label: "CheckBox" },
-    { id: 4, value: "RadioButton", label: "RadioButton" },
-  ];
+  const isMobile = useIsMobile();
+  const { key } = useParams();
+  const [originalData, setOriginalData] = useState(null);
+  const [formData, setFormData] = useState(initialFormState);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(
-          `${API_LINK}/SkalaPenilaian/GetDataSkalaPenilaianById`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ param1: key }),
-          }
-        );
-
-        // Periksa apakah respons berhasil
-        if (!response.ok) throw new Error("Gagal mengambil data");
-
-        // Parsing JSON dari respons
-        const result = await response.json();
-
-        // Validasi bahwa respons adalah array dan memiliki data
-        if (!Array.isArray(result) || result.length === 0) {
-          throw new Error("Respons tidak memiliki data yang valid.");
-        }
-
-        // Proses data jika respons valid
-        const firstItem = result[0]; // Ambil item pertama
-        const additionalData = firstItem.skp_additional_data
-          ? JSON.parse(firstItem.skp_additional_data)
-          : {
-              scale: firstItem.skp_skala || 4,
-              descriptions: [firstItem.skp_deskripsi || ""],
-              checkedValues: [],
-              name: "",
-            };
-
-        let descriptions;
-        if (["CheckBox", "RadioButton"].includes(firstItem.skp_tipe)) {
-          descriptions = firstItem.skp_deskripsi
-            ? firstItem.skp_deskripsi.split(",").map((desc) => desc.trim())
-            : Array(parseInt(firstItem.skp_skala) || 4).fill("");
-        } else {
-          descriptions = [firstItem.skp_deskripsi || ""];
-        }
-
-        setFormData({
-          ...firstItem,
-          scale: parseInt(firstItem.skp_skala) || 4,
-          descriptions: descriptions,
-          checkedValues: additionalData.checkedValues || [],
-          name: additionalData.name || "",
-        });
-      } catch (err) {
-        console.error("Fetch error:", err);
-        SweetAlert("Error", err.message, "error", "OK");
-      }
-    };
-
-    fetchData();
+    fetchScaleData();
   }, [key]);
 
+  const fetchScaleData = async () => {
+    try {
+      const response = await fetch(
+        `${API_LINK}/SkalaPenilaian/GetDataSkalaPenilaianById`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ param1: key }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Gagal mengambil data");
+      const result = await response.json();
+
+      if (!Array.isArray(result) || result.length === 0) {
+        throw new Error("Respons tidak memiliki data yang valid.");
+      }
+
+      const processedData = processInitialData(result[0]);
+      setOriginalData(processedData);
+      setFormData(processedData);
+    } catch (err) {
+      console.error("Fetch error:", err);
+      SweetAlert("Error", err.message, "error", "OK");
+    }
+  };
+
+  // Data Processing
+  const processInitialData = (data) => {
+    const additionalData = data.skp_additional_data
+      ? JSON.parse(data.skp_additional_data)
+      : {
+          scale: data.skp_skala || 4,
+          descriptions: [data.skp_deskripsi || ""],
+          checkedValues: [],
+          name: "",
+        };
+
+    const descriptions = isMultiOptionType(data.skp_tipe)
+      ? data.skp_deskripsi
+        ? data.skp_deskripsi.split(",").map((desc) => desc.trim())
+        : Array(parseInt(data.skp_skala) || 4).fill("")
+      : [data.skp_deskripsi || ""];
+
+    return {
+      ...data,
+      scale: parseInt(data.skp_skala) || 4,
+      descriptions,
+      checkedValues: additionalData.checkedValues || [],
+      name: additionalData.name || "",
+    };
+  };
+
+  // Form Handlers
   const handleInputChange = (name, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -93,6 +102,39 @@ export default function Edit({ onChangePage }) {
     }));
   };
 
+  const handleSubmit = async () => {
+    try {
+      if (!validateForm()) return;
+      if (isDataUnchanged()) {
+        SweetAlert(
+          "Peringatan!",
+          "Tidak ada perubahan data untuk disimpan.",
+          "warning",
+          "OK"
+        );
+        return;
+      }
+
+      await saveFormData();
+      await SweetAlert(
+        "Berhasil!",
+        "Data berhasil diperbarui.",
+        "success",
+        "OK"
+      );
+      onChangePage("index");
+    } catch (error) {
+      console.error("Update error:", error);
+      SweetAlert(
+        "Gagal!",
+        `Terjadi kesalahan: ${error.message}`,
+        "error",
+        "OK"
+      );
+    }
+  };
+
+  // Validation
   const validateForm = () => {
     const { skp_tipe, scale, descriptions } = formData;
 
@@ -111,8 +153,24 @@ export default function Edit({ onChangePage }) {
       return false;
     }
 
-    // Validate descriptions based on type
-    if (["TextBox", "TextArea"].includes(skp_tipe)) {
+    if (!validateDescriptions(skp_tipe, descriptions, scale)) {
+      return false;
+    }
+
+    return true;
+  };
+
+  // Helper Functions
+  const isDataUnchanged = () => {
+    return JSON.stringify(formData) === JSON.stringify(originalData);
+  };
+
+  const isMultiOptionType = (type) => {
+    return [scaleTypes.checkbox, scaleTypes.radio].includes(type);
+  };
+
+  const validateDescriptions = (type, descriptions, scale) => {
+    if ([scaleTypes.textbox, scaleTypes.textarea].includes(type)) {
       if (!descriptions[0]) {
         SweetAlert("Peringatan!", "Harap isi deskripsi.", "warning", "OK");
         return false;
@@ -131,57 +189,32 @@ export default function Edit({ onChangePage }) {
         return false;
       }
     }
-
     return true;
   };
 
-  const handleSubmit = async () => {
-    try {
-      if (!validateForm()) return;
+  const saveFormData = async () => {
+    const skalaPenilaianData = {
+      skp_id: key,
+      skp_skala: formData.scale.toString(),
+      skp_deskripsi: formData.descriptions.join(","),
+      skp_tipe: formData.skp_tipe,
+      skp_modif_by: "Admin",
+    };
 
-      const skalaPenilaianData = {
-        skp_id: key,
-        skp_skala: formData.scale.toString(),
-        skp_deskripsi: formData.descriptions.join(","),
-        skp_tipe: formData.skp_tipe,
-        skp_modif_by: "Retno Widiastuti",
-      };
+    const response = await fetch(
+      `${API_LINK}/SkalaPenilaian/UpdateSkalaPenilaian`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(skalaPenilaianData),
+      }
+    );
 
-      console.log("Data sent to Update API:", skalaPenilaianData);
-
-      const response = await fetch(
-        `${API_LINK}/SkalaPenilaian/UpdateSkalaPenilaian`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            skp_id: key,
-            skp_skala: formData.scale.toString(),
-            skp_deskripsi: formData.descriptions.join(","),
-            skp_tipe: formData.skp_tipe,
-            skp_modif_by: "Admin",
-          }),
-        }
-      );
-
-      if (!response.ok) throw new Error("Gagal menyimpan data");
-
-      const result = await response.json();
-      console.log("Update API Response:", result);
-
-      await SweetAlert("Berhasil!", "Data berhasil diperbarui.", "success", "OK");
-      onChangePage("index");
-    } catch (error) {
-      console.error("Update error:", error);
-      SweetAlert(
-        "Gagal!",
-        `Terjadi kesalahan: ${error.message}`,
-        "error",
-        "OK"
-      );
-    }
+    if (!response.ok) throw new Error("Gagal menyimpan data");
+    return await response.json();
   };
 
+  // Render Components
   const renderScaleInput = () => (
     <div style={{ marginBottom: "20px" }}>
       <label>
@@ -205,7 +238,6 @@ export default function Edit({ onChangePage }) {
     </div>
   );
 
-  // Rest of your render functions remain the same
   const renderDescriptionInputs = () => (
     <div>
       <label>
@@ -234,116 +266,97 @@ export default function Edit({ onChangePage }) {
     </div>
   );
 
+  const renderOptionPreview = (type) => (
+    <div style={{ marginBottom: "20px" }}>
+      <label>
+        <strong>Preview</strong>
+      </label>
+      <div style={{ marginTop: "10px" }}>
+        {Array.from({ length: formData.scale || 4 }, (_, i) => i + 1).map(
+          (value) => (
+            <label
+              key={value}
+              style={{
+                marginRight: "15px",
+                display: "inline-flex",
+                alignItems: "center",
+              }}
+            >
+              <input
+                type={type}
+                name={type === "radio" ? "preview" : undefined}
+                value={value}
+                checked={
+                  type === "radio"
+                    ? formData.name === String(value)
+                    : formData.checkedValues?.includes(value)
+                }
+                onChange={(e) => {
+                  if (type === "radio") {
+                    handleInputChange("name", e.target.value);
+                  } else {
+                    const checkedValues = formData.checkedValues || [];
+                    const newValues = e.target.checked
+                      ? [...checkedValues, value]
+                      : checkedValues.filter((v) => v !== value);
+                    handleInputChange("checkedValues", newValues);
+                  }
+                }}
+                style={{ marginRight: "5px" }}
+              />
+              {value}
+            </label>
+          )
+        )}
+      </div>
+    </div>
+  );
+
+  const renderTextInput = () => (
+    <div>
+      <label>
+        <strong>Preview *</strong>
+      </label>
+      <textarea
+        rows={formData.skp_tipe === scaleTypes.textarea ? "4" : "1"}
+        className="form-control"
+        value={formData.descriptions[0] || ""}
+        onChange={(e) => {
+          handleInputChange("descriptions", [e.target.value]);
+        }}
+        style={{
+          width: "100%",
+          padding: "5px",
+          border: "1px solid #ccc",
+          borderRadius: "5px",
+        }}
+      />
+    </div>
+  );
+
   const renderTypeSpecificInputs = () => {
     switch (formData.skp_tipe) {
-      case "RadioButton":
+      case scaleTypes.radio:
         return (
           <div style={{ marginTop: "20px" }}>
             {renderScaleInput()}
-            <div style={{ marginBottom: "20px" }}>
-              <label>
-                <strong>Preview</strong>
-              </label>
-              <div style={{ marginTop: "10px" }}>
-                {Array.from(
-                  { length: formData.scale || 4 },
-                  (_, i) => i + 1
-                ).map((value) => (
-                  <label
-                    key={value}
-                    style={{
-                      marginRight: "15px",
-                      display: "inline-flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="preview"
-                      value={value}
-                      checked={formData.name === String(value)}
-                      onChange={(e) =>
-                        handleInputChange("name", e.target.value)
-                      }
-                      style={{ marginRight: "5px" }}
-                    />
-                    {value}
-                  </label>
-                ))}
-              </div>
-            </div>
+            {renderOptionPreview("radio")}
             {renderDescriptionInputs()}
           </div>
         );
 
-      case "CheckBox":
+      case scaleTypes.checkbox:
         return (
           <div style={{ marginTop: "20px" }}>
             {renderScaleInput()}
-            <div style={{ marginBottom: "20px" }}>
-              <label>
-                <strong>Preview</strong>
-              </label>
-              <div style={{ marginTop: "10px" }}>
-                {Array.from(
-                  { length: formData.scale || 4 },
-                  (_, i) => i + 1
-                ).map((value) => (
-                  <label
-                    key={value}
-                    style={{
-                      marginRight: "15px",
-                      display: "inline-flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      value={value}
-                      checked={formData.checkedValues?.includes(value)}
-                      onChange={(e) => {
-                        const checkedValues = formData.checkedValues || [];
-                        const newValues = e.target.checked
-                          ? [...checkedValues, value]
-                          : checkedValues.filter((v) => v !== value);
-                        handleInputChange("checkedValues", newValues);
-                      }}
-                      style={{ marginRight: "5px" }}
-                    />
-                    {value}
-                  </label>
-                ))}
-              </div>
-            </div>
+            {renderOptionPreview("checkbox")}
             {renderDescriptionInputs()}
           </div>
         );
 
-      case "TextBox":
-      case "TextArea":
-        return (
-          <div style={{ marginTop: "20px" }}>
-            <div>
-              <label>
-                <strong>Preview *</strong>
-              </label>
-              <textarea
-                rows={formData.skp_tipe === "TextArea" ? "4" : "1"}
-                className="form-control"
-                value={formData.descriptions[0] || ""}
-                onChange={(e) => {
-                  handleInputChange("descriptions", [e.target.value]);
-                }}
-                style={{
-                  width: "100%",
-                  padding: "5px",
-                  border: "1px solid #ccc",
-                  borderRadius: "5px",
-                }}
-              />
-            </div>
-          </div>
-        );
+      case scaleTypes.textbox:
+      case scaleTypes.textarea:
+        return <div style={{ marginTop: "20px" }}>{renderTextInput()}</div>;
 
       default:
         return null;
@@ -375,10 +388,13 @@ export default function Edit({ onChangePage }) {
               type="pilih"
               label="Tipe Skala"
               isRequired
-              name="skp_tipe"
+              forInput="skp_tipe"
               value={formData.skp_tipe || ""}
               onChange={(e) => handleInputChange("skp_tipe", e.target.value)}
-              arrData={tipeOptions}
+              arrData={scaleOptions.map((option) => ({
+                Value: option.value,
+                Text: option.label,
+              }))}
             />
 
             {renderTypeSpecificInputs()}

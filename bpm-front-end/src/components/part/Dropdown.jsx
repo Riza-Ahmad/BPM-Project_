@@ -83,25 +83,22 @@ const DropDown = forwardRef(function DropDown(
         id={forInput}
         name={forInput}
         disabled={isDisabled}
-        value={value}
-        onChange={handleChange}
+        value={value ?? ""} // Pastikan nilai tidak null atau undefined
+        onChange={handleChange} // Call the parent onChange
         {...props}
       >
         {placeholder}
         {arrData &&
           arrData.length > 0 &&
           arrData.map((data, index) => {
-            // Handle both value/label and Value/Text formats
-            const optionValue = data.Value !== undefined ? data.Value : data.value;
-            const optionText = data.Text !== undefined ? data.Text : data.label;
-            
             return (
-              <option key={optionValue || index} value={optionValue}>
-                {optionText}
+              <option key={data.Value || index} value={data.Value}>
+                {data.Text}
               </option>
             );
           })}
       </select>
+
       {error && (
         <div className="invalid-feedback">
           {errorMessage || "Field ini wajib diisi."}

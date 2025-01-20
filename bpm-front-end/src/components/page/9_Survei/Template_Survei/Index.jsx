@@ -11,218 +11,248 @@ import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { useNavigate } from "react-router-dom";
 
-export default function Template_Survei() {
+export default function Template_Survei({ onChangePage }) {
   const [pageSize] = useState(10);
   const isMobile = useIsMobile();
   const [pageCurrent, setPageCurrent] = useState(1);
   const [data, setData] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedYear, setSelectedYear] = useState("");
+  const [sortOrder, setSortOrder] = useState("asc");
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [sortDate, setSortDate] = useState(""); // Untuk sort tanggal
+  const [filterStatus, setFilterStatus] = useState(""); // Untuk filter status
+  const [filteredData, setFilteredData] = useState(data); // Data yang akan ditampilkan
+  const indexOfLastData = pageCurrent * pageSize;
+  const indexOfFirstData = indexOfLastData - pageSize;
+  const currentData = filteredData.slice(indexOfFirstData, indexOfLastData);
+  const handlePageNavigation = (page) => setPageCurrent(page);
+  const handleSearchChange = (query) => setSearchQuery(query);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Fetch templates from the backend
-    const fetchTemplateSurvei = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `${API_LINK}/TemplateSurvei/GetTemplateSurvei`,
-          {
-            method: "POST", // Jika GET lebih sesuai, ganti method di sini.
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({}), // Kirimkan body kosong jika backend membutuhkan struktur JSON.
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
+  const fetchTemplateSurvei = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${API_LINK}/TemplateSurvei/GetTemplateSurvei`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
         }
+      );
 
-        const result = await response.json();
-
-        // Pastikan response adalah array atau lakukan parsing sesuai kebutuhan.
-        const templates = Array.isArray(result) ? result : JSON.parse(result);
-
-        // Map data ke dalam format yang sesuai dengan kebutuhan frontend.
-        const formattedTemplates = templates.map((item) => ({
-          id: item.tsu_id,
-          name: item.tsu_nama,
-          finalDate: item.tsu_modif_date
-            ? new Date(item.tsu_modif_date).toLocaleDateString()
-            : "-",
-          status: item.tsu_status,
-        }));
-
-        // Update state dengan data yang diformat.
-        setData(formattedTemplates);
-        setFilteredData(formattedTemplates);
-      } catch (error) {
-        console.error("Fetch error:", error);
-
-        // Tampilkan pesan error menggunakan Swal.
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: error.message || "Gagal mengambil data template survei!",
-        });
-      } finally {
-        setLoading(false); // Hentikan loading setelah selesai.
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
-    };
 
+      const result = await response.json();
+
+      if (!result || !Array.isArray(result)) {
+        throw new Error("Data template survei tidak valid.");
+      }
+
+      const filteredTemplates = result.filter(
+        (item) => item.tsu_status === 0 || item.tsu_status === 1
+      );
+
+      const formattedTemplates = filteredTemplates.map((item) => ({
+        id: item.tsu_id,
+        name: item.tsu_nama,
+        finalDate: item.tsu_modif_date
+          ? new Date(item.tsu_modif_date).toISOString(2)
+          : "-",
+        status: item.tsu_status,
+      }));
+
+      setData(formattedTemplates);
+      setFilteredData(formattedTemplates);
+    } catch (error) {
+      console.error("Error fetching templates:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: error.message || "Gagal mengambil data template survei!",
+      });
+    } finally {
+      setLoading(false);5
+    }
+  };
+
+  useEffect(() => {
     fetchTemplateSurvei();
   }, []);
 
-  // Handle search and filters
-  const handleSearchChange = (query) => setSearchQuery(query);
-  const handleFilterChange = (year, status) => {
-    setSelectedYear(year);
-    setSelectedStatus(status);
+  const handleFilterChange = (dateOrder, status) => {
+    setSortDate(dateOrder);
+    setFilterStatus(status);
   };
 
-  // Filter data
   useEffect(() => {
     let filtered = [...data];
 
     if (searchQuery) {
       filtered = filtered.filter((item) =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase())
+        Object.values(item)
+          .join(" ")
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase())
       );
     }
 
-    if (selectedYear) {
-      filtered = filtered.filter((item) =>
-        item.finalDate.includes(selectedYear)
-      );
+    if (filterStatus) {
+      filtered = filtered.filter((item) => {
+        if (filterStatus === "0") return item.status === 0;
+        if (filterStatus === "1") return item.status === 1;
+        if (filterStatus === "2") return item.status === 2;
+        return true;
+      });
     }
 
-    if (selectedStatus) {
-      filtered = filtered.filter((item) => item.status === selectedStatus);
+    if (sortDate) {
+      filtered.sort((a, b) => {
+        if (a.finalDate === "-" || b.finalDate === "-") return 0;
+        return sortDate === "asc"
+          ? new Date(a.finalDate) - new Date(b.finalDate)
+          : new Date(b.finalDate) - new Date(a.finalDate);
+      });
     }
 
     setFilteredData(filtered);
-  }, [searchQuery, selectedYear, selectedStatus, data]);
+  }, [searchQuery, filterStatus, sortDate, data]);
 
-  const indexOfLastData = pageCurrent * pageSize;
-  const indexOfFirstData = indexOfLastData - pageSize;
-  const currentData = filteredData.slice(indexOfFirstData, indexOfLastData);
+  const resetFilters = () => {
+    setSortDate("");
+    setFilterStatus("");
+  };
 
-  const handlePageNavigation = (page) => setPageCurrent(page);
+  const handleDelete = async (id) => {
+    const result = await Swal.fire({
+      title: "Apakah Anda yakin?",
+      text: "Anda akan menghapus template survei ini secara permanen.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Hapus Template",
+      cancelButtonText: "Batal",
+    });
 
-  // Handle Update Status to Final
-  const handleUpdateStatus = async (id) => {
-    // Mencari template dengan ID yang sesuai di data
-    const templateToUpdate = data.find((item) => item.id === id);
+    if (result.isConfirmed) {
+      try {
+        const response = await fetch(
+          `${API_LINK}/TemplateSurvei/HardDeleteTemplateSurvei`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              p1: id,
+            }),
+          }
+        );
 
-    // Jika template tidak ditemukan atau statusnya sudah Final, tampilkan error
-    if (!templateToUpdate) {
-      Swal.fire("Error", "Template tidak ditemukan!", "error");
-      return;
+        if (!response.ok) {
+          const errorMessage = await response.text();
+          console.error("Delete failed:", errorMessage);
+          throw new Error("Gagal menghapus Template Survei.");
+        }
+
+        Swal.fire(
+          "Berhasil",
+          "Template Survei berhasil dihapus secara permanen.",
+          "success"
+        );
+
+        await fetchTemplateSurvei();
+      } catch (err) {
+        console.error("Error during deletion:", err);
+        Swal.fire(
+          "Gagal",
+          "Terjadi kesalahan saat menghapus Template Survei.",
+          "error"
+        );
+      }
+    } else {
+      Swal.fire("Dibatalkan", "Template Survei tidak terhapus.", "info");
     }
+  };
 
-    if (templateToUpdate.status === 1) {
-      Swal.fire("Info", "Template ini sudah Final.", "info");
-      return;
+  const handleFinal = async (id) => {
+    const result = await Swal.fire({
+      title: "Apakah Anda yakin?",
+      text: "Anda akan menetapkan status template ini menjadi Final.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Tetapkan Final",
+      cancelButtonText: "Batal",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await fetch(
+          `${API_LINK}/TemplateSurvei/FinalTemplate`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ p1: id, p2: "Admin" }),
+          }
+        );
+
+        if (!response.ok) throw new Error("Gagal menetapkan status final.");
+
+        Swal.fire(
+          "Berhasil",
+          "Template Survei telah menjadi Final.",
+          "success"
+        );
+
+        setData((prevData) =>
+          prevData.map((item) =>
+            item.id === id ? { ...item, status: 1 } : item
+          )
+        );
+        await fetchTemplateSurvei();
+      } catch (err) {
+        Swal.fire(
+          "Gagal",
+          "Terjadi kesalahan saat menetapkan status Final.",
+          "error"
+        );
+      }
+    } else {
+      Swal.fire("Dibatalkan", "Status template tidak diubah.", "info");
     }
+  };
 
-    // Validasi: Periksa apakah template bisa diubah statusnya
-    // Misalnya, hanya template dengan status Draft yang bisa diubah menjadi Final
-    if (templateToUpdate.status !== 0) {
-      Swal.fire(
-        "Error",
-        "Hanya template dengan status Draft yang bisa diubah menjadi Final.",
-        "error"
-      );
-      return;
-    }
-
-    // Lanjutkan untuk mengupdate status jika semua validasi lolos
+  const handleToggle = async (id) => {
     try {
       const response = await fetch(
-        `${API_LINK}/TemplateSurvei/UpdateTemplateSurveiStatus`,
+        `${API_LINK}/TemplateSurvei/DeleteTemplateSurvei`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tsu_id: id, // ID Template Survei yang akan diubah
-            tsu_status: 1, // Status 1 = Final
-            tsu_modif_by: "retno.widiastuti", // Ganti dengan user login saat ini
-            tsu_modif_date: new Date().toISOString(), // Waktu sekarang dalam format ISO
-          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ p1: id, p2: "Admin" }),
         }
       );
 
       if (!response.ok)
-        throw new Error("Gagal memperbarui status template survei");
-
-      // Setelah berhasil memperbarui status, update data di frontend
-      const updatedData = data.map((item) =>
-        item.id === id
-          ? { ...item, status: 1 } // Status diperbarui ke 1 (Final)
-          : item
-      );
-
-      setData(updatedData);
-      setFilteredData(updatedData);
+        throw new Error("Gagal mengganti status Template Survei.");
 
       Swal.fire(
-        "Berhasil!",
-        "Status template survei berhasil diperbarui.",
+        "Berhasil",
+        "Status Template Survei berhasil diganti.",
         "success"
       );
-    } catch (error) {
-      console.error("Update error:", error);
-      Swal.fire(
-        "Gagal!",
-        "Tidak dapat memperbarui status template survei.",
-        "error"
-      );
+
+      await fetchTemplateSurvei();
+    } catch (err) {
+      Swal.fire("Gagal", "Terjadi kesalahan saat mengganti status.", "error");
     }
-  };
-
-  const handleDelete = async (id) => {
-    Swal.fire({
-      title: "Apakah Anda yakin?",
-      text: "Template survei ini akan dihapus secara permanen.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Ya, hapus",
-      cancelButtonText: "Batal",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          const response = await fetch(
-            `${API_LINK}/TemplateSurvei/DeleteTemplateSurvei`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ tsu_id: id }), // Hanya kirim ID
-            }
-          );
-
-          if (!response.ok) throw new Error("Gagal menghapus template survei");
-
-          const updatedData = data.filter((item) => item.id !== id); // Hapus di state
-          setData(updatedData);
-          setFilteredData(updatedData);
-
-          Swal.fire(
-            "Berhasil!",
-            "Template survei berhasil dihapus dari database.",
-            "success"
-          );
-        } catch (error) {
-          Swal.fire(
-            "Gagal!",
-            "Tidak dapat menghapus template survei.",
-            "error"
-          );
-        }
-      }
-    });
   };
 
   if (loading) return <Loading />;
@@ -255,14 +285,58 @@ export default function Template_Survei() {
 
             <div className="row mt-5">
               <div className="col-lg-11 col-md-6">
-                <SearchField onSearchChange={handleSearchChange} />
+                <SearchField onChange={handleSearchChange} />
               </div>
               <div className="col-lg-1 col-md-6">
-                <Filter
-                  onChange={handleFilterChange}
-                  selectedYear={selectedYear}
-                  selectedStatus={selectedStatus}
-                />
+                <Filter>
+                  <div>
+                    <label htmlFor="filter-date" className="form-label">
+                      Sort Tanggal:
+                    </label>
+                    <select
+                      id="filter-date"
+                      className="form-select"
+                      value={sortDate}
+                      onChange={(e) =>
+                        handleFilterChange(e.target.value, filterStatus)
+                      }
+                    >
+                      <option value="" disabled>
+                        -- Pilih Sorting --
+                      </option>
+                      <option value="asc">Ascending</option>
+                      <option value="desc">Descending</option>
+                    </select>
+                  </div>
+
+                  <div className="mt-3">
+                    <label htmlFor="filter-status" className="form-label">
+                      Filter by Status:
+                    </label>
+                    <select
+                      id="filter-status"
+                      className="form-select"
+                      value={filterStatus}
+                      onChange={(e) =>
+                        handleFilterChange(sortDate, e.target.value)
+                      }
+                    >
+                      <option value="" disabled>
+                        -- Pilih Status --
+                      </option>
+                      <option value="0">Draft</option>
+                      <option value="1">Final</option>
+                      <option value="2">Tidak Aktif</option>
+                    </select>
+                  </div>
+
+                  <button
+                    className="btn btn-secondary mt-2"
+                    onClick={() => handleFilterChange("", "")}
+                  >
+                    Reset Filter
+                  </button>
+                </Filter>
               </div>
             </div>
           </div>
@@ -277,24 +351,39 @@ export default function Template_Survei() {
             <Table
               arrHeader={["No", "Nama Template", "Tanggal Final", "Status"]}
               data={currentData.map((item, index) => ({
-                id: item.id, // Tambahkan ID agar bisa digunakan di actions
-                "No": indexOfFirstData + index + 1,
+                Key: item.id,
+                No: indexOfFirstData + index + 1,
                 "Nama Template": item.name,
-                "Tanggal Final": item.finalDate,
-                "Status": item.status === 0 ? "Draft" : "Final", // Hanya untuk tampilan
+                "Tanggal Final":
+                  item.finalDate === "-"
+                    ? "-"
+                    : new Date(item.finalDate).toLocaleDateString(),
+                Status:
+                  item.status === 0
+                    ? "Draft"
+                    : item.status === 1
+                    ? "Final"
+                    : "Tidak Aktif", // Add the 'Tidak Aktif' status
               }))}
-              actions={(row) => {
-                console.log("Row diterima di actions:", row); // Debugging row
-
-                // Cek kondisi status dan kembalikan aksi yang sesuai
-                return row.status === "Draft"
-                  ? ["Detail", "Edit", "Delete", "Final"]
-                  : ["Detail", "Toggle"];
+              actions={
+                (item) =>
+                  item.Status === "Draft"
+                    ? ["Detail", "Edit", "Delete", "Final"]
+                    : item.Status === "Final"
+                    ? ["Detail", "Toggle"] // Add action for 'Final' status
+                    : ["Detail", "Toggle"] // Add action for 'Tidak Aktif' status
+              }
+              onEdit={(item) =>
+                onChangePage("edit", { state: { idData: item.Key } })
+              }
+              onDetail={(item) =>
+                onChangePage("detail", { state: { idTemplate: item.Key } })
+              }
+              onDelete={(item) => handleDelete(item.Key)}
+              onFinal={(item) => handleFinal(item.Key)}
+              onToggle={(item) => {
+                handleToggle(item.Key);
               }}
-              onEdit={(id) => navigate(`/survei/template/edit/${id}`)} // Fungsi Edit
-              onDetail={(id) => navigate(`/survei/template/detail/${id}`)} // Fungsi Detail
-              onDelete={(id) => handleDelete(id)} // Fungsi Delete
-              onFinal={(id) => handleUpdateStatus(id)} // Fungsi Final
             />
 
             <Paging

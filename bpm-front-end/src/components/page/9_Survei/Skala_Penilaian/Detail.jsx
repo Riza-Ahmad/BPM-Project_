@@ -125,6 +125,7 @@ export default function DetailSkalaPenilaian() {
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
+          
           {/* Navigasi dan Judul */}
           <PageTitleNav
             title="Detail Skala Penilaian"

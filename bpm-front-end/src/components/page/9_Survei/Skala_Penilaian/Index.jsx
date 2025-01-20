@@ -1,166 +1,166 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
 import PageTitleNav from "../../../part/PageTitleNav";
 import Button from "../../../part/Button";
-import { API_LINK } from "../../../util/Constants";
+import Loading from "../../../part/Loading";
+import SearchField from "../../../part/SearchField";
 import Filter from "../../../part/Filter";
-import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../../../util/useIsMobile";
+import { API_LINK } from "../../../util/Constants";
 import Swal from "sweetalert2";
 
-export default function Index() {
-  const [pageSize] = useState(10);
-  const [pageCurrent, setPageCurrent] = useState(1);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [Skala, setSkala] = useState([]);
-  const [filterType, setFilterType] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
+const endpoints = {
+  get: `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
+  delete: `${API_LINK}/SkalaPenilaian/DeleteSkalaPenilaian`,
+};
 
+const config = {
+  pageSize: 10,
+  initialPage: 1,
+  title: "Skala Penilaian",
+};
+
+const tableHeaders = ["No", "Tipe Skala", "Skala", "Deskripsi", "Status"];
+
+export default function Index() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  const handlePageNavigation = (page) => setPageCurrent(page);
+  const [pageCurrent, setPageCurrent] = useState(config.initialPage);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [skalaData, setSkalaData] = useState([]);
+  const [filterType, setFilterType] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
 
-  const filteredSkala = Skala.filter((item) => {
+  const applyFilters = (item) => {
     const searchRegex = new RegExp(searchQuery, "i");
-    const matchesQuery =
+    const matchesSearch =
       searchRegex.test(item.skp_tipe) ||
       searchRegex.test(item.skp_skala) ||
       searchRegex.test(item.skp_deskripsi) ||
       searchRegex.test(item.skp_status);
 
-    const matchesFilterType = filterType ? item.skp_tipe === filterType : true;
-    const matchesFilterStatus =
-      filterStatus !== ""
-        ? item.skp_status.toString() === filterStatus
-        : item.skp_status === 1;
+    const matchesType = filterType ? item.skp_tipe === filterType : true;
+    const matchesStatus = filterStatus !== "" 
+      ? item.skp_status.toString() === filterStatus 
+      : item.skp_status === 1;
 
-    return matchesQuery && matchesFilterType && matchesFilterStatus;
-  });
-
-  const resetFilter = () => {
-    setFilterStatus(""); // Reset ke status aktif
-    setFilterType(""); // Reset tipe
-    fetchSkala(); // Ambil data lagi
+    return matchesSearch && matchesType && matchesStatus;
   };
 
-  const currentData = filteredSkala.slice(
-    (pageCurrent - 1) * pageSize,
-    pageCurrent * pageSize
-  );
+  const getPageData = () => {
+    const filteredData = skalaData.filter(applyFilters);
+    const startIndex = (pageCurrent - 1) * config.pageSize;
+    const endIndex = startIndex + config.pageSize;
+    return {
+      currentPageData: filteredData.slice(startIndex, endIndex),
+      totalFilteredItems: filteredData.length
+    };
+  };
 
-  const title = "Skala Penilaian";
-  const breadcrumbs = [{ label: "Skala Penilaian" }];
-
-  const fetchSkala = async (status = null) => {
+  const fetchSkala = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status }),
-        }
-      );
+      const response = await fetch(endpoints.get, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: null }),
+      });
 
-      if (!response.ok) throw new Error("Gagal mengambil data skala.");
+      if (!response.ok) throw new Error("Failed to fetch data");
 
       const result = await response.json();
-      setSkala(result);
-    } catch (err) {
-      console.error("Fetch error:", err);
-      alert("Gagal mengambil data skala.");
+      setSkalaData(result);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      Swal.fire("Error", "Failed to fetch data", "error");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDelete = async (id) => {
+    const result = await Swal.fire({
+      title: "Confirm Deletion",
+      text: "Are you sure you want to delete this item?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const response = await fetch(endpoints.delete, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ p1: id, p2: "Admin" }),
+      });
+
+      if (!response.ok) throw new Error("Delete operation failed");
+
+      Swal.fire("Success", "Item deleted successfully", "success");
+      fetchSkala();
+    } catch (error) {
+      console.error("Delete error:", error);
+      Swal.fire("Error", "Failed to delete item", "error");
+    }
+  };
+
+  const handleNavigation = {
+    toAdd: () => navigate("/survei/skala/add"),
+    toDetail: (key) => navigate(`/survei/skala/detail/${key}`, { state: { detailData: key } }),
+    toEdit: (key) => navigate(`/survei/skala/edit/${key}`, { state: { editData: key } }),
+    toBeranda: () => navigate("/beranda"),
+  };
+
+  const handleResetFilter = () => {
+    setFilterStatus("");
+    setFilterType("");
+    fetchSkala();
   };
 
   useEffect(() => {
     fetchSkala();
   }, []);
 
-  const handleDelete = async (id) => {
-    const parameters = {
-      p1: id,
-      p2: "Admin",
-    };
+  if (loading) return <Loading />;
 
-    const confirm = await Swal.fire({
-      title: "Konfirmasi",
-      text: "Apakah Anda yakin ingin menghapus Skala Penilaian ini?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Ya, Hapus",
-      cancelButtonText: "Batal",
-    });
-
-    if (confirm.isConfirmed) {
-      try {
-        const response = await fetch(
-          `${API_LINK}/SkalaPenilaian/DeleteSkalaPenilaian`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(parameters),
-          }
-        );
-
-        if (!response.ok) throw new Error("Gagal menghapus Skala Penilaian.");
-
-        Swal.fire("Berhasil", "Skala Penilaian berhasil dihapus.", "success");
-        fetchSkala();
-      } catch (err) {
-        console.error("Error:", err);
-        Swal.fire(
-          "Gagal",
-          "Terjadi kesalahan saat menghapus Skala Penilaian.",
-          "error"
-        );
-      }
-    }
-  };
-
-  const activeSkala = Skala.filter((item) => item.skp_status === 1);
-  const inactiveSkala = Skala.filter((item) => item.skp_status === 0);
-
-  const filteredSkalaByType = filterStatus === "" ? activeSkala : Skala;
+  const { currentPageData, totalFilteredItems } = getPageData();
+  const activeData = filterStatus === "" ? skalaData.filter(item => item.skp_status === 1) : skalaData;
+  const uniqueTypes = [...new Set(activeData.map(item => item.skp_tipe))];
+  const marginStyle = { margin: isMobile ? "1rem" : "3rem" };
 
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          <div className="mb-0" style={{ margin: isMobile ? "1rem" : "3rem" }}>
+          <div className="mb-0" style={marginStyle}>
             <PageTitleNav
-              title={title}
-              breadcrumbs={breadcrumbs}
-              onClick={() => navigate("/beranda")}
+              title={config.title}
+              breadcrumbs={[{ label: config.title }]}
+              onClick={handleNavigation.toBeranda}
             />
           </div>
 
-          <div
-            className="p-3 mt-2 mb-0"
-            style={{ margin: isMobile ? "1rem" : "3rem" }}
-          >
+          <div className="p-3 mt-2 mb-0" style={marginStyle}>
             <Button
               iconName="add"
               classType="primary"
               label="Tambah Skala Penilaian"
-              onClick={() => navigate("/survei/skala/add")}
+              onClick={handleNavigation.toAdd}
             />
 
             <div className="row mt-5">
               <div className="col-lg-8 col-md-6">
-                <input
-                  type="text"
-                  placeholder="Cari data..."
+                <SearchField
+                  placeHolder="Cari data..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="form-control"
+                  onChange={setSearchQuery}
                 />
               </div>
               <div className="col-lg-4 col-md-6">
@@ -175,22 +175,16 @@ export default function Index() {
                       value={filterType}
                       onChange={(e) => setFilterType(e.target.value)}
                     >
-                      <option value="">Pilih Tipe Skala</option>
-                      {[
-                        ...new Set(
-                          filteredSkalaByType.map((item) => item.skp_tipe)
-                        ),
-                      ].map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
+                      <option value="">Semua Tipe</option>
+                      {uniqueTypes.map(type => (
+                        <option key={type} value={type}>{type}</option>
                       ))}
                     </select>
                   </div>
 
                   <div className="mt-3">
                     <label htmlFor="filter-status" className="form-label">
-                      Filter by Status:
+                      Filter Status:
                     </label>
                     <select
                       id="filter-status"
@@ -198,7 +192,7 @@ export default function Index() {
                       value={filterStatus}
                       onChange={(e) => setFilterStatus(e.target.value)}
                     >
-                      <option value="">Pilih Status</option>
+                      <option value="">Semua Status</option>
                       <option value="1">Aktif</option>
                       <option value="0">Tidak Aktif</option>
                     </select>
@@ -206,7 +200,7 @@ export default function Index() {
 
                   <button
                     className="btn btn-secondary mt-2"
-                    onClick={resetFilter}
+                    onClick={handleResetFilter}
                   >
                     Reset Filter
                   </button>
@@ -215,15 +209,12 @@ export default function Index() {
             </div>
           </div>
 
-          <div
-            className="table-container bg-white p-3 mt-0 rounded"
-            style={{ margin: isMobile ? "1rem" : "3rem" }}
-          >
+          <div className="table-container bg-white p-3 mt-0 rounded" style={marginStyle}>
             <Table
-              arrHeader={["No", "Tipe Skala", "Skala", "Deskripsi", "Status"]}
-              data={currentData.map((item, index) => ({
+              arrHeader={tableHeaders}
+              data={currentPageData.map((item, index) => ({
                 key: item.skp_id,
-                No: (pageCurrent - 1) * pageSize + index + 1,
+                No: (pageCurrent - 1) * config.pageSize + index + 1,
                 "Tipe Skala": item.skp_tipe,
                 Skala: item.skp_skala,
                 Deskripsi: item.skp_deskripsi,
@@ -231,32 +222,18 @@ export default function Index() {
               }))}
               actions={(item) => {
                 const actions = ["Detail", "Toggle"];
-                if (item.Status === "Aktif") {
-                  actions.push("Edit"); // Tambahkan tombol Edit hanya jika data Aktif
-                }
+                if (item.Status === "Aktif") actions.push("Edit");
                 return actions;
               }}
-              onDetail={(item) => {
-                console.log(item);
-                navigate(`/survei/skala/detail/${item.key}`, {
-                  state: { detailData: item.key },
-                });
-              }}
-              onToggle={(item) => {
-                handleDelete(item.key);
-              }}
-              onEdit={(item) => {
-                console.log(item);
-                navigate(`/survei/skala/edit/${item.key}`, {
-                  state: { editData: item.key },
-                });
-              }}
+              onDetail={(item) => handleNavigation.toDetail(item.key)}
+              onToggle={(item) => handleDelete(item.key)}
+              onEdit={(item) => handleNavigation.toEdit(item.key)}
             />
             <Paging
-              pageSize={pageSize}
+              pageSize={config.pageSize}
               pageCurrent={pageCurrent}
-              totalData={filteredSkala.length}
-              navigation={handlePageNavigation}
+              totalData={totalFilteredItems}
+              navigation={setPageCurrent}
             />
           </div>
         </div>
