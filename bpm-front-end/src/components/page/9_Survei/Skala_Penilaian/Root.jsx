@@ -1,5 +1,4 @@
 import React from "react";
-import React from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -8,8 +7,6 @@ import {
 } from "react-router-dom";
 import Index from "./Index";
 import Add from "./Add";
-import Detail from "./Detail";
-import Edit from "./Edit";
 import Detail from "./Detail";
 import Edit from "./Edit";
 import ScrollToTop from "../../../part/ScrollToTop";
@@ -41,7 +38,9 @@ export default function Skala_Survei() {
       case "detail":
         const { detailId } = withState; // For detail page, ensure that detailId is passed
         if (detailId) {
-          navigate(`/survei/skala/detail/${detailId}`, { state: { detailData: detailId } }); // Pass detailId to the detail route
+          navigate(`/survei/skala/detail/${detailId}`, {
+            state: { detailData: detailId },
+          }); // Pass detailId to the detail route
         } else {
           Swal.fire(
             "Error",
@@ -50,7 +49,6 @@ export default function Skala_Survei() {
           );
         }
         break;
-
 
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
