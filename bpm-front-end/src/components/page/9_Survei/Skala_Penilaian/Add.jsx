@@ -1,8 +1,15 @@
 import React, { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageTitleNav from "../../../part/PageTitleNav";
 import HeaderForm from "../../../part/HeaderText";
+import PageTitleNav from "../../../part/PageTitleNav";
+import HeaderForm from "../../../part/HeaderText";
 import { API_LINK } from "../../../util/Constants";
+import { useIsMobile } from "../../../util/useIsMobile";
+import Button from "../../../part/Button";
+import DropDown from "../../../part/Dropdown";
+import SweetAlert from "../../../util/SweetAlert";
 import { useIsMobile } from "../../../util/useIsMobile";
 import Button from "../../../part/Button";
 import DropDown from "../../../part/Dropdown";
@@ -39,6 +46,7 @@ export default function Add({ onChangePage }) {
   const handleTypeChange = (name, value) => {
     setFormData({
       ...formData,
+      [name]: value,
       [name]: value,
       scale: 1,
       descriptions: [],

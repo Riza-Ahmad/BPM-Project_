@@ -418,6 +418,7 @@ export default function Edit({ onChangePage }) {
           </div>
         </div>
       </main>
+      </main>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import React from "react";
+import React from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -7,6 +8,8 @@ import {
 } from "react-router-dom";
 import Index from "./Index";
 import Add from "./Add";
+import Detail from "./Detail";
+import Edit from "./Edit";
 import Detail from "./Detail";
 import Edit from "./Edit";
 import ScrollToTop from "../../../part/ScrollToTop";
@@ -48,6 +51,7 @@ export default function Skala_Survei() {
         }
         break;
 
+
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
         break;
@@ -60,6 +64,14 @@ export default function Skala_Survei() {
       <Routes>
         <Route path="/" element={<Index onChangePage={handlePageChange} />} />
         <Route path="add" element={<Add onChangePage={handlePageChange} />} />
+        <Route
+          path="edit/:key"
+          element={<Edit onChangePage={handlePageChange} />}
+        />
+        <Route
+          path="detail/:detailId"
+          element={<Detail onChangePage={handlePageChange} />}
+        />
         <Route
           path="edit/:key"
           element={<Edit onChangePage={handlePageChange} />}

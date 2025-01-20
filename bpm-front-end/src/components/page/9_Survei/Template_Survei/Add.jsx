@@ -39,7 +39,6 @@ export default function Add() {
   const [filteredData, setFilteredData] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [newQuestion, setNewQuestion] = useState("");
-  const [existingTemplates, setExistingTemplates] = useState([]);
   const isMobile = useIsMobile();
   const indexOfLastData = pageCurrent * pageSize;
   const indexOfFirstData = indexOfLastData - pageSize;
@@ -75,7 +74,7 @@ export default function Add() {
         setSkalaPenilaian(
           skalaData.map((item) => ({
             Value: item.skp_id,
-            Text: item.skp_skala + " (" + item.skp_deskripsi + ")",
+            Text: item.skp_deskripsi,
           }))
         );
 
@@ -95,43 +94,6 @@ export default function Add() {
     fetchDropdownData();
   }, []);
 
-  // Fungsi untuk fetch existing templates
-  const fetchExistingTemplates = async () => {
-    try {
-      const response = await fetch(
-        `${API_LINK}/TemplateSurvei/GetTemplateSurvei`,
-        {
-          method: "POST", // Change to POST
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({}), // Send empty body if no specific data is needed
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch data, status: " + response.status);
-      }
-
-      const data = await response.json(); // Parse the JSON response
-      setExistingTemplates(data); // Save the data to the state
-    } catch (err) {
-      console.error("Error fetching existing templates:", err);
-      SweetAlert(
-        "Error",
-        "Gagal mengambil data template survei.",
-        "error",
-        "OK"
-      );
-    }
-  };
-
-  // Panggil fungsi saat komponen dimuat
-  useEffect(() => {
-    fetchExistingTemplates();
-  }, []);
-
-  // Validasi form dengan menunggu data
   const validateForm = () => {
     if (!formData.name) {
       return "Nama Template tidak boleh kosong.";
@@ -145,24 +107,12 @@ export default function Add() {
     if (!formData.skpId) {
       return "Skala Penilaian harus dipilih.";
     }
-
-    // Pastikan existingTemplates sudah terisi
-    if (existingTemplates && Array.isArray(existingTemplates)) {
-      const isDuplicate = existingTemplates.some(
-        (template) =>
-          template.nama_template.trim().toLowerCase() ===
-            formData.name.trim().toLowerCase() &&
-          template.ksr_id === parseInt(formData.ksrId, 10) &&
-          template.skp_id === parseInt(formData.skpId, 10)
-      );
-
-      if (isDuplicate) {
-        return "Template survei dengan nama, kriteria survei, dan skala penilaian yang sama sudah ada.";
-      }
-    } else {
-      console.error("existingTemplates is not an array or not yet populated");
+    if (isNaN(parseInt(formData.ksrId, 10))) {
+      return "ID Kriteria Survei harus berupa angka.";
     }
-
+    if (isNaN(parseInt(formData.skpId, 10))) {
+      return "ID Skala Penilaian harus berupa angka.";
+    }
     return null;
   };
 
@@ -177,9 +127,9 @@ export default function Add() {
     try {
       const payload = {
         nama_template: formData.name,
+        created_by: formData.createdBy,
         ksr_id: parseInt(formData.ksrId, 10),
         skp_id: parseInt(formData.skpId, 10),
-        created_by: formData.createdBy,
       };
 
       const response = await fetchAPI(
@@ -217,32 +167,27 @@ export default function Add() {
     setLoading(true);
     try {
       const payload = {
-        tsu_id: formData.ksrId, // Assuming tsu_id corresponds to ksrId
-        tsd_pertanyaan: newQuestion,
-        tsd_isheader: 0, // Set the default value for tsd_isheader (e.g., 0 or 1 depending on your logic)
-        ksr_id: formData.ksrId, // Assuming ksrId is needed here
-        tsd_status: 1, // Set default status (1 = active, or adjust according to your status logic)
-        tsd_created_by: formData.createdBy,
-        tsd_created_date: new Date().toISOString(), // Set the current date and time
+        pertanyaan: newQuestion,
+        created_by: formData.createdBy,
       };
 
       const response = await fetchAPI(
-        `${API_LINK}/TemplateSurveiDetail/CreateTemplateSurveiDetail`,
+        `${API_LINK}/MasterPertanyaan/CreatePertanyaan`,
         JSON.stringify(payload)
       );
 
       console.log("Response from CreatePertanyaan:", response);
 
-      // Assuming the response contains the necessary ID or other details, adjust accordingly.
+      // Tambahkan pertanyaan baru ke state
       const addedQuestion = {
-        id: response.id || Math.random(), // Fallback in case the response does not return an ID
+        id: response.id, // Pastikan respons API memberikan ID
         pertanyaan: newQuestion,
       };
       setQuestions([...questions, addedQuestion]);
-      setFilteredData([...questions, addedQuestion]); // Update table data
+      setFilteredData([...questions, addedQuestion]); // Update tabel
 
       SweetAlert("Sukses", "Pertanyaan berhasil ditambahkan.", "success", "OK");
-      setModalVisible(false); // Close modal
+      setModalVisible(false); // Tutup modal
       setNewQuestion(""); // Reset input
     } catch (err) {
       console.error("Error saving new question:", err);
@@ -365,18 +310,6 @@ export default function Add() {
                 onClick={handleAddQuestion}
                 style={{ marginBottom: "1rem" }}
               />
-              <Button
-                classType="primary"
-                label="Import Pertanyaan"
-                onClick={handleImport}
-                style={{ marginBottom: "1rem" }}
-              />
-              <Button
-                classType="primary"
-                label="Import Pertanyaan"
-                onClick={handleImport}
-                style={{ marginBottom: "1rem" }}
-              />
               <Table
                 arrHeader={["No", "Pertanyaan"]}
                 data={currentData.map((item, index) => ({
@@ -400,7 +333,7 @@ export default function Add() {
                 <Button
                   classType="primary"
                   label="Simpan"
-                  //onClick={handleSaveQuestions}
+                  onClick={handleSaveQuestions}
                   style={{ flex: 1, margin: "0.5rem" }}
                 />
                 <Button
@@ -414,6 +347,31 @@ export default function Add() {
           )}
         </div>
       </main>
+      {/* Modal untuk menambah pertanyaan */}
+      {modalVisible && (
+        <Modal title="Tambah Pertanyaan" onClose={() => setModalVisible(false)}>
+          <TextField
+            label="Pertanyaan"
+            placeholder="Masukkan pertanyaan"
+            value={newQuestion}
+            onChange={(e) => setNewQuestion(e.target.value)}
+            isRequired={true}
+          />
+          <div className="d-flex justify-content-end mt-3">
+            <Button
+              classType="primary"
+              label="Simpan"
+              onClick={handleSaveNewQuestion}
+              style={{ marginRight: "0.5rem" }}
+            />
+            <Button
+              classType="danger"
+              label="Batal"
+              onClick={() => setModalVisible(false)}
+            />
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
