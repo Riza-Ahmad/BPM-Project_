@@ -1,5 +1,4 @@
 import React, { useState, useCallback, forwardRef } from "react";
-import { FILE_LINK } from "../util/Constants";
 
 const DocUpload = forwardRef(function DocUpload(
   {
@@ -148,9 +147,7 @@ const DocUpload = forwardRef(function DocUpload(
               className="d-flex justify-content-center align-items-center"
             >
               <h2>
-                <strong>
-                  Seret atau pilih file PDF, DOCX, XLSX, atau PPTX
-                </strong>
+                <strong>Drag & drop file here or click to upload</strong>
               </h2>
             </div>
           )}
@@ -162,7 +159,7 @@ const DocUpload = forwardRef(function DocUpload(
           <br />
           Berkas saat ini:{" "}
           <a
-            href={FILE_LINK + hasExisting}
+            href={hasExisting}
             className="text-decoration-none"
             target="_blank"
             rel="noopener noreferrer"

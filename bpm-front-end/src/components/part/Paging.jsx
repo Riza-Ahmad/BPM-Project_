@@ -1,4 +1,13 @@
+import React from "react";
 import Button from "./Button";
+
+const ScrollToTop = () => {
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  return null;
+};
 
 export default function Paging({
   pageSize,
@@ -16,25 +25,30 @@ export default function Paging({
         key="previous"
         label="Sebelumnya"
         classType={pageCurrent > 1 ? "light border" : "light border disabled"}
-        onClick={() => pageCurrent > 1 && navigation(pageCurrent - 1)}
+        onClick={() => {
+          if (pageCurrent > 1) {
+            navigation(pageCurrent - 1);
+            window.scrollTo(0, 0);
+          }
+        }}
       />
     );
 
-    // Menampilkan halaman
     if (totalPage <= 2) {
-      // Jika total halaman kurang dari atau sama dengan 2, tampilkan semua
       for (let i = 1; i <= totalPage; i++) {
         pageButtons.push(
           <Button
             key={`page${i}`}
             label={i}
             classType={pageCurrent === i ? "primary" : "light border"}
-            onClick={() => navigation(i)}
+            onClick={() => {
+              navigation(i);
+              window.scrollTo(0, 0);
+            }}
           />
         );
       }
     } else {
-      // Untuk halaman saat ini 1
       if (pageCurrent === 1) {
         pageButtons.push(<Button key="page1" label="1" classType="primary" />);
         pageButtons.push(
@@ -42,7 +56,10 @@ export default function Paging({
             key="page2"
             label="2"
             classType="light border"
-            onClick={() => navigation(2)}
+            onClick={() => {
+              navigation(2);
+              window.scrollTo(0, 0);
+            }}
           />
         );
         pageButtons.push(
@@ -57,17 +74,17 @@ export default function Paging({
             key="page1"
             label="1"
             classType="light border"
-            onClick={() => navigation(1)}
+            onClick={() => {
+              navigation(1);
+              window.scrollTo(0, 0);
+            }}
           />
         );
         pageButtons.push(<Button key="page2" label="2" classType="primary" />);
         pageButtons.push(
           <Button key="dots1" label="..." classType="light border disabled" />
         );
-      }
-
-      // Untuk halaman saat ini 3 atau lebih
-      else {
+      } else {
         pageButtons.push(
           <Button key="dots1" label="..." classType="light border disabled" />
         );
@@ -76,7 +93,10 @@ export default function Paging({
             key={`page${pageCurrent - 1}`}
             label={pageCurrent - 1}
             classType="light border"
-            onClick={() => navigation(pageCurrent - 1)}
+            onClick={() => {
+              navigation(pageCurrent - 1);
+              window.scrollTo(0, 0);
+            }}
           />
         );
         pageButtons.push(
@@ -87,14 +107,16 @@ export default function Paging({
           />
         );
 
-        // Jika tidak berada di halaman terakhir
         if (pageCurrent < totalPage - 1) {
           pageButtons.push(
             <Button
               key={`page${pageCurrent + 1}`}
               label={pageCurrent + 1}
               classType="light border"
-              onClick={() => navigation(pageCurrent + 1)}
+              onClick={() => {
+                navigation(pageCurrent + 1);
+                window.scrollTo(0, 0); // Scroll to top on page change
+              }}
             />
           );
 
@@ -120,7 +142,12 @@ export default function Paging({
         classType={
           pageCurrent < totalPage ? "light border" : "light border disabled"
         }
-        onClick={() => pageCurrent < totalPage && navigation(pageCurrent + 1)}
+        onClick={() => {
+          if (pageCurrent < totalPage) {
+            navigation(pageCurrent + 1);
+            window.scrollTo(0, 0); // Scroll to top on page change
+          }
+        }}
       />
     );
 
@@ -129,6 +156,7 @@ export default function Paging({
 
   return (
     <div className="mt-lg-0 mt-md-0 mt-sm-3 mt-3">
+      <ScrollToTop /> {/* Ensure ScrollToTop is included */}
       <div className="input-group">
         {generatePageButton(pageSize, pageCurrent, totalData)}
       </div>

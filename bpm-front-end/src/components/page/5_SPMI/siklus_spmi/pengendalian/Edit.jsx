@@ -1,12 +1,8 @@
 import React, { useState } from "react";
 import PageTitleNav from "../../../../part/PageTitleNav";
 import TextField from "../../../../part/TextField";
-import TextArea from "../../../../part/TextArea";
-import DatePicker from "../../../../part/DatePicker";
-import UploadFoto from "../../../../part/UploadFotoMulti";
 import HeaderForm from "../../../../part/HeaderText";
 import Button from "../../../../part/Button";
-import DetailData from "../../../../part/DetailData";
 import DocUpload from "../../../../part/DocUpload";
 import DropDown from "../../../../part/Dropdown";
 

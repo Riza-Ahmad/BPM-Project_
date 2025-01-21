@@ -1,0 +1,291 @@
+import React, { useState, useRef, useEffect } from "react";
+import { useLocation, useParams } from "react-router-dom";
+import { API_LINK, DOKUMEN_LINK } from "../../../util/Constants";
+import { useFetch } from "../../../util/useFetch";
+import Table from "../../../part/Table";
+import Paging from "../../../part/Paging";
+import Cookies from "js-cookie";
+import { useIsMobile } from "../../../util/useIsMobile";
+import { decodeHtml } from "../../../util/DecodeHtml";
+import Loading from "../../../part/Loading";
+import HeaderText from "../../../part/HeaderText";
+import PageTitleNav from "../../../part/PageTitleNav";
+import DetailData from "../../../part/DetailData";
+
+const breadcrumbs = [{ label: "Evaluasi" }, { label: "Audit Mutu Internal" }];
+
+export default function Index({ onChangePage }) {
+  const location = useLocation();
+  let activeUser = "";
+  let role = "";
+  const cookie = Cookies.get("activeUser");
+  if (cookie) activeUser = JSON.parse(cookie).username;
+  if (cookie) role = JSON.parse(cookie).RoleID.slice(0, 5);
+
+  const isMobile = useIsMobile();
+
+  const [pageSize] = useState(10);
+  const [pageCurrent, setPageCurrent] = useState(1);
+  const [totalData, setTotalData] = useState(0);
+  const [filteredData, setFilteredData] = useState([]);
+
+  const idData = location.state?.idData;
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const handlePageNavigation = (page) => {
+    setPageCurrent(page);
+  };
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const result = await useFetch(
+        `${API_LINK}/TransaksiAnalisaTemuan/GetAllTemuanById`,
+        {
+          id: idData,
+          size: pageSize,
+          page: pageCurrent,
+        }
+      );
+
+      console.log(result);
+      if (result === "ERROR" || result === null || result.length === 0) {
+        setFilteredData([]);
+        setTotalData(0);
+      } else {
+        const arrResult = Object.values(result);
+        setFilteredData(arrResult);
+        setTotalData(arrResult[0].totalData);
+      }
+    } catch (err) {
+      setError("Gagal mengambil data: " + err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [pageCurrent, idData]);
+
+  if (error) return <p>{error}</p>;
+  if (loading) return <Loading />;
+
+  return (
+    <div className="d-flex flex-column min-vh-100">
+      <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
+        <div className="d-flex flex-column">
+          <div className={isMobile ? "m-0 p-2" : "m-3 ms-5 mb-0"}>
+            <PageTitleNav
+              title="Analisa Temuan"
+              breadcrumbs={location.state.breadcrumbs}
+              onClick={() => onChangePage("index")}
+            />
+          </div>
+
+          <div className={isMobile ? "m-0" : "m-3"}>
+            <div
+              className={
+                isMobile
+                  ? "shadow p-4 m-2 mt-0 bg-white rounded"
+                  : "shadow p-5 m-5 mt-0 bg-white rounded"
+              }
+            >
+              {filteredData && filteredData.length > 0 ? (
+                <>
+                  {" "}
+                  <HeaderText
+                    label={
+                      filteredData[0].namaBagAuditee +
+                      " (" +
+                      filteredData[0].kodeBagAuditee +
+                      ")"
+                    }
+                  />
+                  <div className="border bg-white rounded mt-5 mb-5 p-3">
+                    <DetailData
+                      label="Bagian Auditee"
+                      isi={filteredData[0].namaBagAuditee || ""}
+                    />
+
+                    <div className="row">
+                      <div className="col-4">
+                        <DetailData
+                          label="Lead Auditor"
+                          isi={filteredData[0].namaLeadAuditor || ""}
+                        />
+                      </div>
+                      <div className="col-4">
+                        <DetailData
+                          label="Auditor"
+                          isi={filteredData[0].namaAuditor || ""}
+                        />
+                      </div>
+                    </div>
+                    <div className="row">
+                      <div className="col-4">
+                        <DetailData
+                          label="Tanggal Konfirmasi"
+                          isi={
+                            filteredData[0]?.tgl
+                              ? new Date(
+                                  filteredData[0].tgl
+                                ).toLocaleDateString("id-ID", {
+                                  weekday: "long",
+                                  day: "numeric",
+                                  month: "long",
+                                  year: "numeric",
+                                })
+                              : ""
+                          }
+                        />
+                        <DetailData
+                          label="Tanggal Realisasi"
+                          isi={
+                            filteredData[0]?.tglAktual
+                              ? new Date(
+                                  filteredData[0].tglAktual
+                                ).toLocaleDateString("id-ID", {
+                                  weekday: "long",
+                                  day: "numeric",
+                                  month: "long",
+                                  year: "numeric",
+                                })
+                              : "-"
+                          }
+                        />
+                        <DetailData label="Jumlah Terselesaikan" isi="-" />
+                      </div>
+                      <div className="col-4">
+                        <DetailData
+                          label="Waktu Awal"
+                          isi={filteredData[0]?.waktuAwal + " WIB"}
+                        />
+                        <DetailData label="Jumlah Temuan" isi="-" />
+                        <DetailData
+                          label="Jumlah Belum Terselesaikan"
+                          isi="-"
+                        />
+                      </div>
+                      <div className="col-4">
+                        <DetailData
+                          label="Waktu Akhir"
+                          isi={filteredData[0]?.waktuAkhir + " WIB"}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                ""
+              )}
+
+              {loading ? (
+                <Loading />
+              ) : (
+                <div>
+                  <Table
+                    arrHeader={[
+                      "No",
+                      "Kriteria",
+                      "Temuan",
+                      "Tanggal Closed (Plan)",
+                      "Status Penyelesaian",
+                    ]}
+                    data={filteredData.map((item, index) => ({
+                      Key: item.idTemuan,
+                      No: (pageCurrent - 1) * pageSize + index + 1,
+                      Kriteria: item.namaKriteria,
+                      Temuan: (
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: decodeHtml(item.namaTemuan || ""),
+                          }}
+                        />
+                      ),
+
+                      "Tanggal Closed (Plan)": item.tglRencanaTemuan
+                        ? new Date(item.tglRencanaTemuan).toLocaleDateString(
+                            "id-ID",
+                            {
+                              weekday: "long",
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            }
+                          )
+                        : "-",
+
+                      "Status Penyelesaian": item.statusTemuan,
+                      Status: item.statusTemuan,
+                      kadep: item.kadep,
+                      pic1: item.pic1,
+                      pic2: item.pic2,
+                      idAuditor: item.idAuditor,
+                      idLeadAuditor: item.idLeadAuditor,
+                    }))}
+                    actions={(item) => {
+                      switch (item.Status) {
+                        case "Belum Terselesaikan":
+                          if (
+                            item.kadep === activeUser ||
+                            item.pic1 === activeUser ||
+                            item.pic2 === activeUser
+                          ) {
+                            return ["Edit"];
+                          } else {
+                            return ["Detail"]; // Default return if the condition is not met
+                          }
+                        case "Menunggu Monitoring":
+                          if (
+                            item.idAuditor === activeUser ||
+                            item.idLeadAuditor === activeUser
+                          ) {
+                            return ["Edit"];
+                          } else {
+                            return ["Detail"]; // Default return if the condition is not met
+                          }
+                        default:
+                          return [""];
+                      }
+                    }}
+                    onEdit={(item) => {
+                      if (item.Status === "Belum Terselesaikan") {
+                        onChangePage("editAnalisaTemuan", {
+                          idData: item.Key,
+                          instrumen: item.instrumen,
+                          breadcrumbs: breadcrumbs,
+                          idAnalisa: idData,
+                        });
+                      } else {
+                        return;
+                      }
+                    }}
+                    onDetail={(item) =>
+                      onChangePage("detailAnalisaTemuan", {
+                        idData: item.Key,
+                        instrumen: item.instrumen,
+                        breadcrumbs: breadcrumbs,
+                        idAnalisa: idData,
+                      })
+                    }
+                  />
+
+                  <Paging
+                    pageSize={pageSize}
+                    pageCurrent={pageCurrent}
+                    totalData={totalData}
+                    navigation={handlePageNavigation}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+          {/* Main Content Section */}
+        </div>
+      </main>
+    </div>
+  );
+}
