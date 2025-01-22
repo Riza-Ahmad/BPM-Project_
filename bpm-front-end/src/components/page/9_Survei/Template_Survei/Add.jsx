@@ -5,8 +5,10 @@ import Button from "../../../part/Button";
 import Loading from "../../../part/Loading";
 import Dropdown from "../../../part/Dropdown";
 import SweetAlert from "../../../util/SweetAlert";
+import Swal from "sweetalert2";
 import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
+import CheckBox from "../../../part/CheckBox";
 import Modal from "../../../part/Modal";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
@@ -32,7 +34,7 @@ export default function Add() {
   const [formDisabled, setFormDisabled] = useState(false);
   const [pageCurrent, setPageCurrent] = useState(1);
   const [pageSize] = useState(10);
-  const [questionBank, setQuestionBank] = useState([]);
+  const [data, setData] = useState([]);
   const [kriteriaSurvei, setKriteriaSurvei] = useState([]);
   const [skalaPenilaian, setSkalaPenilaian] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -43,8 +45,7 @@ export default function Add() {
   const [isHeader, setIsHeader] = useState(false);
   const [jenis, setJenis] = useState("");
   const [questions, setQuestions] = useState([]);
-  const [
-    templateId, setTemplateId] = useState(null);
+  const [templateId, setTemplateId] = useState(null);
   const [createdBy, setCreatedBy] = useState("");
   const isMobile = useIsMobile();
   const indexOfLastData = pageCurrent * pageSize;
@@ -57,6 +58,9 @@ export default function Add() {
     ksrId: "",
     skpId: "",
     createdBy: "dianvivi.widiyawati",
+    pertanyaan: "",
+    isHeader: "",
+    jenis: "",
   });
 
   useEffect(() => {
@@ -176,8 +180,11 @@ export default function Add() {
   };
 
   const handleSubmit = async () => {
+    console.log("handleSubmit dimulai...");
+
     const errorMessage = validateForm();
     if (errorMessage) {
+      console.error("Validasi form gagal:", errorMessage);
       SweetAlert("Error", errorMessage, "error", "OK");
       return;
     }
@@ -191,17 +198,23 @@ export default function Add() {
         created_by: formData.createdBy,
       };
 
+      console.log("Payload yang dikirim ke API:", payload);
+
       const response = await fetchAPI(
         `${API_LINK}/TemplateSurvei/CreateTemplateSurvei`,
         JSON.stringify(payload)
       );
 
-      console.log("Response from CreateTemplateSurvei:", response);
+      console.log("Response dari API:", response);
 
-      // Pastikan templateId diambil dari response
-      if (response && response.templateId) {
-        setTemplateId(response.templateId); // Simpan templateId dalam state
-        setFormDisabled(true); // Disable form
+      const templateId =
+        response?.templateId || response?.[0]?.templateId || null;
+
+      if (templateId) {
+        console.log("Template ID berhasil didapatkan:", templateId);
+        setTemplateId(templateId); // Store the templateId
+        setFormData((prev) => ({ ...prev, templateId })); // Update formData with templateId
+        setFormDisabled(true);
         SweetAlert(
           "Sukses",
           "Template survei berhasil dibuat.",
@@ -209,6 +222,7 @@ export default function Add() {
           "OK"
         );
       } else {
+        console.error("Template ID gagal didapatkan:", response);
         SweetAlert(
           "Error",
           response?.message || "Gagal mendapatkan ID template.",
@@ -217,7 +231,7 @@ export default function Add() {
         );
       }
     } catch (err) {
-      console.error("Error submitting form:", err);
+      console.error("Error saat mengirim data:", err);
       SweetAlert(
         "Error",
         "Terjadi kesalahan saat mengirim data.",
@@ -226,47 +240,74 @@ export default function Add() {
       );
     } finally {
       setLoading(false);
+      console.log("handleSubmit selesai.");
     }
   };
 
   const handleSubmitDetail = async () => {
+    console.log("handleSubmitDetail dimulai...");
+
+    // Check if templateId is available
     if (!templateId) {
+      console.error("Template ID tidak ditemukan.");
       SweetAlert("Error", "Template ID tidak ditemukan.", "error", "OK");
       return;
     }
 
-    if (!pertanyaan) {
+    // Check if required fields are provided
+    if (!formData.pertanyaan) {
+      console.error("Pertanyaan kosong.");
       SweetAlert("Error", "Pertanyaan tidak boleh kosong.", "error", "OK");
+      return;
+    }
+
+    if (!formData.jenis) {
+      console.error("Jenis pertanyaan belum dipilih.");
+      SweetAlert("Error", "Jenis pertanyaan harus dipilih.", "error", "OK");
       return;
     }
 
     setLoading(true);
     try {
       const payload = {
-        tsu_id: templateId, 
-        tsd_pertanyaan: pertanyaan,
-        tsd_isheader: isHeader ? 1 : 0,
-        tsd_jenis: jenis,
-        tsd_created_by: createdBy,
+        tsu_id: templateId, // Menggunakan templateId yang sudah ada
+        tsd_pertanyaan: formData.pertanyaan,
+        tsd_isheader: formData.isHeader ? 1 : 0,
+        tsd_jenis: formData.jenis,
+        tsd_created_by: formData.createdBy,
       };
 
+      console.log("Payload untuk detail pertanyaan:", payload);
+
+      // Mengirim request ke API
       const response = await fetchAPI(
         `${API_LINK}/TemplateSurveiDetail/CreateTemplateSurveiDetail`,
         JSON.stringify(payload)
       );
 
-      console.log("API Response:", response);
+      console.log("Response dari API:", response);
 
       if (response && response.success) {
+        console.log("Pertanyaan berhasil ditambahkan:", response.data);
         SweetAlert(
           "Sukses",
           "Pertanyaan berhasil ditambahkan.",
           "success",
           "OK"
         );
-        setCurrentData((prev) => [...prev, payload]);
-        setPertanyaan(""); 
+
+        // Pastikan response.data berisi data yang valid
+        if (response.data) {
+          // Menambahkan data pertanyaan baru ke dalam state
+          setData((prev) => [...prev, { ...response.data }]);
+        }
+
+        // Reset form
+        setPertanyaan("");
+        setJenis("");
+        setIsHeader(false);
       } else {
+        console.error("Gagal menambahkan pertanyaan:", response);
         SweetAlert(
           "Error",
           response?.message || "Terjadi kesalahan saat menambahkan pertanyaan.",
@@ -275,70 +316,75 @@ export default function Add() {
         );
       }
     } catch (err) {
-      console.error("Error submitting detail:", err);
+      console.error("Error saat menambahkan pertanyaan:", err);
       SweetAlert("Error", "Gagal menambahkan pertanyaan.", "error", "OK");
+    } finally {
+      setLoading(false);
+      console.log("handleSubmitDetail selesai.");
+    }
+  };
+
+  const fetchPertanyaan = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${API_LINK}/TemplateSurveiDetail/GetTemplateSurveiDetailByTemplateId`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tsu_id: templateId }), // Menggunakan tsu_id untuk filter template
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      console.log("Raw result from API:", result);
+
+      if (!result || !Array.isArray(result)) {
+        throw new Error("Data pertanyaan tidak valid atau gagal diambil.");
+      }
+
+      const filteredQuestions = result.filter(
+        (item) =>
+          item.tsu_id === templateId &&
+          (item.tsd_status === 0 || item.tsd_status === 1)
+      );
+
+      const formattedQuestions = filteredQuestions.map((item) => ({
+        id: item.tsd_id,
+        pertanyaan: item.tsd_pertanyaan,
+      }));
+
+      setData(formattedQuestions);
+      setFilteredData(formattedQuestions);
+    } catch (error) {
+      console.error("Error saat mengambil data pertanyaan:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: error.message || "Gagal mengambil data pertanyaan!",
+      });
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchPertanyaan();
+  }, [templateId]); // Ensure the effect is triggered when templateId changes
+
   const handleAddQuestion = () => {
-    setModalVisible(true); // Tampilkan modal
+    setModalVisible(true);
   };
-
-  // const handleSaveNewQuestion = async () => {
-  //   if (!newQuestion.trim()) {
-  //     SweetAlert("Error", "Pertanyaan tidak boleh kosong.", "error", "OK");
-  //     return;
-  //   }
-
-  //   setLoading(true);
-  //   try {
-  //     const payload = {
-  //       tsu_id: formData.ksrId, // Assuming tsu_id corresponds to ksrId
-  //       tsd_pertanyaan: newQuestion,
-  //       tsd_isheader: 0, // Set the default value for tsd_isheader (e.g., 0 or 1 depending on your logic)
-  //       tsd_jenis: jenis, // Assuming ksrId is needed here
-  //       tsd_status: 1, // Set default status (1 = active, or adjust according to your status logic)
-  //       tsd_created_by: formData.createdBy,
-  //       //tsd_created_date: new Date().toISOString(), // Set the current date and time
-  //     };
-
-  //     const response = await fetchAPI(
-  //       `${API_LINK}/TemplateSurveiDetail/CreateTemplateSurveiDetail`,
-  //       JSON.stringify(payload)
-  //     );
-
-  //     console.log("Response from CreatePertanyaan:", response);
-
-  //     // Assuming the response contains the necessary ID or other details, adjust accordingly.
-  //     const addedQuestion = {
-  //       id: response.id || Math.random(), // Fallback in case the response does not return an ID
-  //       pertanyaan: newQuestion,
-  //     };
-  //     setQuestions([...questions, addedQuestion]);
-  //     setFilteredData([...questions, addedQuestion]); // Update table data
-
-  //     SweetAlert("Sukses", "Pertanyaan berhasil ditambahkan.", "success", "OK");
-  //     setModalVisible(false); // Close modal
-  //     setNewQuestion(""); // Reset input
-  //   } catch (err) {
-  //     console.error("Error saving new question:", err);
-  //     SweetAlert(
-  //       "Error",
-  //       "Gagal menambahkan pertanyaan. Silakan coba lagi.",
-  //       "error",
-  //       "OK"
-  //     );
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const handleCancelQuestions = () => {
     setPertanyaan("");
     setIsHeader(false);
-    setIsGeneral("multiple_choice");
+    setJenis("null");
   };
 
   if (loading) return <Loading />;
@@ -381,7 +427,7 @@ export default function Add() {
               isRequired={true}
               disabled={formDisabled}
             />
-            <TextField
+            {/* <TextField
               label="Dibuat Oleh"
               value={formData.createdBy}
               onChange={(e) =>
@@ -389,7 +435,7 @@ export default function Add() {
               }
               isRequired={true}
               disabled={formDisabled}
-            />
+            /> */}
             <Dropdown
               label="Kriteria Survei"
               arrData={kriteriaSurvei}
@@ -442,28 +488,29 @@ export default function Add() {
                 <div className="row mb-2">
                   {/* Checkbox Header */}
                   <div className="col-2 d-flex align-items-center">
-                    <div className="form-check">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        checked={isHeader}
-                        onChange={() => setIsHeader(!isHeader)}
-                      />
-                      <label className="form-check-label">Header?</label>
-                    </div>
+                    <CheckBox
+                      label="Header?"
+                      name="isHeader"
+                      arrData={[{ Value: "1" }]} // Only a single checkbox option with value "1"
+                      values={formData.isHeader ? ["1"] : []} // Checked if true, otherwise empty array
+                      onChange={(newValues) => {
+                        setFormData({
+                          ...formData,
+                          isHeader: newValues.length > 0, // If checked, set to true
+                        });
+                      }}
+                    />
                   </div>
 
                   {/* TextField untuk Pertanyaan */}
                   <div className="col-7">
                     <TextField
-                      label={
-                        <span>
-                          Pertanyaan <span className="text-danger">*</span>
-                        </span>
+                      label={<span>Pertanyaan</span>}
+                      value={formData.pertanyaan}
+                      onChange={(e) =>
+                        setFormData({ ...formData, pertanyaan: e.target.value })
                       }
-                      value={pertanyaan}
-                      onChange={(e) => setPertanyaan(e.target.value)}
-                      required
+                      isRequired={true}
                     />
                   </div>
 
@@ -477,15 +524,16 @@ export default function Add() {
                       ]}
                       type="pilih"
                       forInput="jenisPertanyaan"
-                      value={jenis} // Ensure the selected value is passed here
+                      value={formData.jenis}
+                      onChange={(e) =>
+                        setFormData({ ...formData, jenis: e.target.value })
+                      }
                       isRequired={true}
                       errorMessage="Jenis pertanyaan wajib dipilih."
-                      onChange={(e) => setJenis(e.target.value)} // Update state when selection changes
                     />
                   </div>
                 </div>
               </form>
-
               {/* Buttons for Actions */}
               <div className="d-flex justify-content-start gap-2 mt-4 mb-4">
                 <Button
@@ -516,12 +564,11 @@ export default function Add() {
                 />
               </div>
 
-              {/* Table */}
               <Table
                 arrHeader={["No", "Pertanyaan"]}
                 data={currentData.map((item, index) => ({
-                  id: item.id,
-                  No: index + 1,
+                  Key: item.id,
+                  No: indexOfFirstData + index + 1,
                   Pertanyaan: item.pertanyaan,
                 }))}
                 actions={["Edit", "Delete"]}
@@ -531,15 +578,13 @@ export default function Add() {
                 onDelete={(item) => handleDelete(item.Key)}
               />
 
-              {/* Pagination */}
               <Paging
                 pageSize={pageSize}
                 pageCurrent={pageCurrent}
                 totalData={filteredData.length}
                 navigation={handlePageNavigation}
               />
-
-              {/* Simpan dan Batal Buttons */}
+              {/* Simpan dan Batal Buttons
               <div className="d-flex justify-content-between mt-3">
                 <Button
                   classType="primary"
@@ -552,7 +597,7 @@ export default function Add() {
                   onClick={handleCancelQuestions}
                   style={{ flex: 1, margin: "0.5rem" }}
                 />
-              </div>
+              </div> */}
             </div>
           )}
         </div>

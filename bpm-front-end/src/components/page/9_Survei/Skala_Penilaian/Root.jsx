@@ -70,6 +70,14 @@ export default function Skala_Survei() {
           path="detail/:detailId"
           element={<Detail onChangePage={handlePageChange} />}
         />
+        <Route
+          path="edit/:key"
+          element={<Edit onChangePage={handlePageChange} />}
+        />
+        <Route
+          path="detail/:detailId"
+          element={<Detail onChangePage={handlePageChange} />}
+        />
       </Routes>
     </>
   );

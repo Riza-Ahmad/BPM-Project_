@@ -21,10 +21,10 @@ export default function Edit({ onChangePage }) {
   });
 
   const tipeOptions = [
-    { id: 1, value: "TextArea", label: "TextArea" },
-    { id: 2, value: "TextBox", label: "TextBox" },
-    { id: 3, value: "CheckBox", label: "CheckBox" },
-    { id: 4, value: "RadioButton", label: "RadioButton" },
+    { Value: "TextArea", Text: "TextArea" },
+    { Value: "TextBox", Text: "TextBox" },
+    { Value: "CheckBox", Text: "CheckBox" },
+    { Value: "RadioButton", Text: "RadioButton" },
   ];
 
   useEffect(() => {
@@ -87,12 +87,21 @@ export default function Edit({ onChangePage }) {
   }, [key]);
 
   const handleInputChange = (name, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    if (typeof name === "object" && name.target) {
+      // Handle event from dropdown
+      const { name: fieldName, value: fieldValue } = name.target;
+      setFormData((prev) => ({
+        ...prev,
+        [fieldName]: fieldValue,
+      }));
+    } else {
+      // Handle direct value updates
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
-
   const validateForm = () => {
     const { skp_tipe, scale, descriptions } = formData;
 
@@ -380,13 +389,10 @@ export default function Edit({ onChangePage }) {
               type="pilih"
               label="Tipe Skala"
               isRequired
-              name="skp_tipe"
-              value={formData.skp_tipe || ""}
-              onChange={(e) => handleInputChange("skp_tipe", e.target.value)}
-              arrData={tipeOptions.map((option) => ({
-                value: option.value,
-                Text: option.label,
-              }))}
+              forInput="skp_tipe"
+              value={formData.skp_tipe}
+              onChange={handleInputChange}
+              arrData={tipeOptions}
             />
 
             {renderTypeSpecificInputs()}
