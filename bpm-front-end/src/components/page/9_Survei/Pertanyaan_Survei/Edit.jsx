@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import PageTitleNav from "../../../part/PageTitleNav";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -143,7 +144,7 @@ export default function Edit({ onChangePage, questionId }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const data = {
-      pty_id: pertanyaanId,
+      pertanyaanId,
       pertanyaan,
       isHeader: isHeader ? 1 : 0,
       isGeneral,

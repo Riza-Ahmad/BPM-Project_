@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import PageTitleNav from "../../../part/PageTitleNav";
@@ -56,15 +57,12 @@ export default function Detail({ onChangePage }) {
           status: pertanyaan.pty_status === 0 ? "Tidak Aktif" : "Aktif",
           createdBy: pertanyaan.pty_created_by || "Tidak tersedia",
           createdDate: pertanyaan.pty_created_date
-            ? new Date(pertanyaan.pty_created_date).toLocaleDateString(
-                "id-ID",
-                {
-                  weekday: "long",
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                }
-              )
+            ? new Date(pertanyaan.pty_created_date).toLocaleDateString("id-ID", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })
             : "-",
           modifiedBy: pertanyaan.pty_modif_by || "-",
           modifiedDate: pertanyaan.pty_modif_date
@@ -90,9 +88,7 @@ export default function Detail({ onChangePage }) {
   // Use effect to fetch data on mount
   useEffect(() => {
     if (!location.state?.idPertanyaan) {
-      setError(
-        "Pertanyaan ID tidak ditemukan. Silakan kembali ke halaman sebelumnya."
-      );
+      setError("Pertanyaan ID tidak ditemukan. Silakan kembali ke halaman sebelumnya.");
       setLoading(false); // Menambahkan setLoading false jika ID tidak ditemukan
       return;
     }
@@ -100,7 +96,7 @@ export default function Detail({ onChangePage }) {
     const pertanyaanId = location.state.idPertanyaan;
     setLoading(true); // Menentukan loading true saat mulai ambil data
     fetchData(pertanyaanId); // Panggil fungsi fetchData
-  }, [location.state?.idPertanyaan]);
+  }, [location.state?.idPertanyaan]);  
 
   if (loading) return <Loading />; // Menunggu data
   if (error)
@@ -156,7 +152,11 @@ export default function Detail({ onChangePage }) {
                 />
               </div>
               <div className="col-lg-6 col-md-6">
-                <DetailData label="Status" isi={formData.status} id="status" />
+                <DetailData
+                  label="Status"
+                  isi={formData.status}
+                  id="status"
+                />
                 <DetailData
                   label="Dibuat Oleh"
                   isi={formData.createdBy}
