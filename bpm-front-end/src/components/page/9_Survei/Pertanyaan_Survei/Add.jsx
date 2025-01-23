@@ -1,7 +1,7 @@
 import Swal from "sweetalert2";
 import React, { useEffect, useState } from "react";
 import PageTitleNav from "../../../part/PageTitleNav";
-import TextField from "../../../part/TextField";
+import InputField from "../../../part/InputField";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
 import Dropdown from "../../../part/Dropdown";
@@ -228,7 +228,7 @@ export default function Add({ onChangePage }) {
               {/* Input Pertanyaan */}
               <div className="row">
                 <div className="col-lg-12 col-md-6">
-                  <TextField
+                  <InputField
                     label="Pertanyaan"
                     value={pertanyaan}
                     onChange={(e) => setPertanyaan(e.target.value)}

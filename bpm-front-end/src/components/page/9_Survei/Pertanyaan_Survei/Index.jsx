@@ -3,7 +3,7 @@ import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
 import PageTitleNav from "../../../part/PageTitleNav";
 import Button from "../../../part/Button";
-import TextField from "../../../part/TextField";
+import InputField from "../../../part/InputField";
 import Modal from "../../../part/Modal";
 import Filter from "../../../part/Filter";
 import SearchField from "../../../part/SearchField";
@@ -602,7 +602,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
 
         {/* Input Pertanyaan */}
         <div>
-          <TextField
+          <InputField
             label="Pertanyaan"
             isRequired={true}
             value={questionText}

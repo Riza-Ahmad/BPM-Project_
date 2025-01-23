@@ -1,19 +1,30 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  useNavigate,
-} from "react-router-dom";
-import Index from "./Index";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import ScrollToTop from "../../../part/ScrollToTop";
+import ProtectedRoute from "../../../util/ProtectedRoute";
+import Index from "./Index";
+// import Add from "./Add";
+// import Edit from "./Edit";
+// import Detail from "./Detail";
 
 export default function Dashboard_Survei() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.pathname;
 
+  // Handler for page navigation
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
       case "index":
-        navigate("/survei/dashboard");
+        navigate(`${currentPath}`, { state: { mode: "index", ...withState } });
+        break;
+      case "add":
+        navigate(`${currentPath}`, { state: { mode: "add", ...withState } });
+        break;
+      case "edit":
+        navigate(`${currentPath}`, { state: { mode: "edit", ...withState } });
+        break;
+      case "detail":
+        navigate(`${currentPath}`, { state: { mode: "detail", ...withState } });
         break;
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
@@ -21,11 +32,28 @@ export default function Dashboard_Survei() {
     }
   };
 
+  const { mode } = location.state || { mode: "index" };
+
   return (
     <>
       <ScrollToTop />
       <Routes>
-        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute isRole={true}>
+              {mode === "add" ? (
+                <Add onChangePage={handlePageChange} />
+              ) : mode === "edit" ? (
+                <Edit onChangePage={handlePageChange} />
+              ) : mode === "detail" ? (
+                <Detail onChangePage={handlePageChange} />
+              ) : (
+                <Index onChangePage={handlePageChange} />
+              )}
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </>
   );

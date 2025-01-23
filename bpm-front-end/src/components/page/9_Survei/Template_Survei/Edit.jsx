@@ -5,7 +5,7 @@ import { useIsMobile } from "../../../util/useIsMobile";
 import PageTitleNav from "../../../part/PageTitleNav";
 import SweetAlert from "../../../util/SweetAlert";
 import Loading from "../../../part/Loading";
-import TextField from "../../../part/TextField";
+import InputField from "../../../part/InputField";
 import Dropdown from "../../../part/Dropdown";
 import Button from "../../../part/Button";
 import Paging from "../../../part/Paging";
@@ -153,7 +153,7 @@ export default function Edit() {
             Text: item.ksr_nama,
           }))
         );
-        
+
         const skalaData = await fetchAPI(
           `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
           JSON.stringify({})
@@ -439,7 +439,7 @@ export default function Edit() {
             <hr />
           </h3>
           <form>
-            <TextField
+            <InputField
               label="Nama Template"
               value={formData.name}
               onChange={(e) =>
@@ -490,9 +490,9 @@ export default function Edit() {
                     />
                   </div>
 
-                  {/* TextField untuk Pertanyaan */}
+                  {/* InputField untuk Pertanyaan */}
                   <div className="col-7">
-                    <TextField
+                    <InputField
                       label={<span>Pertanyaan</span>}
                       value={formData.pertanyaan}
                       onChange={(e) =>
