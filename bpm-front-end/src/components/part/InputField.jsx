@@ -1,6 +1,6 @@
 import { forwardRef, useImperativeHandle, useState, useRef } from "react";
 
-const InputField = forwardRef(function TextField(
+const InputField = forwardRef(function InputField(
   {
     id,
     label = "",

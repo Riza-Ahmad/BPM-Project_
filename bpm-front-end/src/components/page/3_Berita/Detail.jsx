@@ -29,11 +29,11 @@ export default function Detail({ onChangePage }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const title = "Edit Berita";
+  const title = "Detail Berita";
   const breadcrumbs = [
     { label: "Berita", href: "/berita" },
     { label: "Kelola Berita", href: "/berita/kelola" },
-    { label: "Edit Berita" },
+    { label: "Detail Berita" },
   ];
 
   useEffect(() => {

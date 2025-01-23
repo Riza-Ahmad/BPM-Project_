@@ -3,6 +3,7 @@ import {
   Routes,
   Route,
   useNavigate,
+  useLocation,
 } from "react-router-dom";
 import Index from "./Index";
 import Read from "./Read";
@@ -10,26 +11,32 @@ import Add from "./Add";
 import Edit from "./Edit";
 import Detail from "./Detail";
 import ScrollToTop from "../../../part/ScrollToTop";
+import ProtectedRoute from "../../../util/ProtectedRoute"; // Import the ProtectedRoute component
 
 export default function JadwalKegiatan() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
       case "index":
-        navigate("/kegiatan/jadwal");
+        navigate("/kegiatan/jadwal", withState);
         break;
       case "read":
-        navigate("/kegiatan/jadwal/kelola");
+        navigate("/kegiatan/jadwal/kelola", { state: { mode: "read" } });
         break;
       case "add":
-        navigate("/kegiatan/jadwal/kelola/tambah");
+        navigate("/kegiatan/jadwal/kelola", { state: { mode: "add" } });
         break;
       case "edit":
-        navigate("/kegiatan/jadwal/kelola/edit", withState);
+        navigate("/kegiatan/jadwal/kelola", {
+          state: { mode: "edit", ...withState },
+        });
         break;
       case "detail":
-        navigate("/kegiatan/jadwal/kelola/detail", withState);
+        navigate("/kegiatan/jadwal/kelola", {
+          state: { mode: "detail", ...withState },
+        });
         break;
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
@@ -37,26 +44,32 @@ export default function JadwalKegiatan() {
     }
   };
 
+  // Mengambil mode dari location.state
+  const { mode } = location.state || { mode: "read" };
+
   return (
     <>
       <ScrollToTop />
       <Routes>
+        {/* Public Route */}
         <Route path="/" element={<Index onChangePage={handlePageChange} />} />
+
+        {/* Protected Routes */}
         <Route
           path="/kelola"
-          element={<Read onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/kelola/tambah"
-          element={<Add onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/kelola/edit"
-          element={<Edit onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/kelola/detail"
-          element={<Detail onChangePage={handlePageChange} />}
+          element={
+            <ProtectedRoute isRole={true}>
+              {mode === "add" ? (
+                <Add onChangePage={handlePageChange} />
+              ) : mode === "edit" ? (
+                <Edit onChangePage={handlePageChange} />
+              ) : mode === "detail" ? (
+                <Detail onChangePage={handlePageChange} />
+              ) : (
+                <Read onChangePage={handlePageChange} />
+              )}
+            </ProtectedRoute>
+          }
         />
       </Routes>
     </>

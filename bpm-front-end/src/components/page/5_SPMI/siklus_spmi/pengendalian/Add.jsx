@@ -1,14 +1,11 @@
 import React, { useState } from "react";
 import PageTitleNav from "../../../../part/PageTitleNav";
 import TextField from "../../../../part/TextField";
-import TextArea from "../../../../part/TextArea";
-import DatePicker from "../../../../part/DatePicker";
-import UploadFoto from "../../../../part/UploadFotoMulti";
 import HeaderForm from "../../../../part/HeaderText";
 import Button from "../../../../part/Button";
-import DetailData from "../../../../part/DetailData";
 import DocUpload from "../../../../part/DocUpload";
 import DropDown from "../../../../part/Dropdown";
+import FileUpload from "../../../../part/FileUpload";
 
 export default function Add({ onChangePage }) {
   const title = "Tambah Dokumen";
@@ -20,7 +17,7 @@ export default function Add({ onChangePage }) {
 
   const arrData = [
     { Value: "Controlled Copy", Text: "Controlled Copy" },
-    { Value: "Uncontrolled Copy", Text: "Uncontrolled Copy" }
+    { Value: "Uncontrolled Copy", Text: "Uncontrolled Copy" },
   ];
 
   const handleChange = (e) => {
@@ -49,13 +46,17 @@ export default function Add({ onChangePage }) {
                 <TextField label="Nomor Induk Dokumen" isRequired="true" />
               </div>
               <div className="col-lg-6 col-md-6">
-                <TextField label="Tahun Dokumen" isRequired="true" type="date" />
+                <TextField
+                  label="Tanggal Berlaku"
+                  isRequired="true"
+                  type="date"
+                />
               </div>
               <div className="col-lg-6 col-md-6">
                 <DropDown
                   arrData={arrData}
                   type="pilih"
-                  label="Select an Option"
+                  label="Pilih Jenis Dokumen"
                   forInput="dropdownExample"
                   isRequired={true}
                   onChange={handleChange}
@@ -63,16 +64,28 @@ export default function Add({ onChangePage }) {
                 />
               </div>
               <div className="col-lg-6 col-md-6">
-                <TextField label="Tahun Kadaluarsa" isRequired="true" type="date" />
+                <TextField
+                  label="Tanggal Kadaluarsa"
+                  isRequired="true"
+                  type="date"
+                />
               </div>
             </div>
 
             <div className="row">
-              <DocUpload
+              {/* <DocUpload
                 label="Dokumen"
                 forInput="document"
                 isRequired={true}
-              />
+              /> */}
+              <FileUpload
+                  label="Dokumen"
+                  forInput="fileDok"
+                  // onChange={handleFileChange}
+                  name="fileDok"
+                  // ref={fileRef}
+                  isRequired={true}
+                />
             </div>
 
             <div className="d-flex justify-content-between align-items-center">

@@ -11,6 +11,7 @@ const CheckBox = forwardRef(function CheckBox(
     showLabel = true,
     values = [],
     onChange,
+    col = "col-6",
     ...props
   },
   ref
@@ -36,11 +37,18 @@ const CheckBox = forwardRef(function CheckBox(
   }));
 
   const handleChange = (e, checkedValue) => {
+    if (!onChange) return; // Jangan lakukan apa pun jika onChange tidak didefinisikan
+
     const newValue = e.target.checked
       ? [...values, checkedValue]
       : values.filter((val) => val !== checkedValue);
 
-    onChange(newValue);
+    onChange({
+      target: {
+        name,
+        value: newValue,
+      },
+    });
 
     if (isRequired) {
       setError(newValue.length === 0);
@@ -57,7 +65,7 @@ const CheckBox = forwardRef(function CheckBox(
       )}
       <div className="row">
         {arrData.map((data, index) => (
-          <div className="col-6" key={data.Value}>
+          <div className={col} key={data.Value}>
             <div className="form-check">
               <input
                 className={`form-check-input ${error ? "is-invalid" : ""}`}
