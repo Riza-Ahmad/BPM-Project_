@@ -1,16 +1,19 @@
-.nav * {
+.top-nav-item .top-nav-link {
+  color: #fff;
   font-size: 16px;
   font-weight: 600;
 }
 
 .nav-item .nav-link {
-  color: #FFF;
+  color: #fff;
+  font-weight: 600;
 }
 
 /* Nav Dekstop View */
 @media (min-width: 1200px) {
   .nav .nav-item {
-    margin-right: 15px;
+    margin-right: 1rem;
+    font-weight: 600;
   }
 
   .dropdown-submenu {
@@ -22,6 +25,7 @@
     left: 100%;
     margin-top: -8px;
     display: none;
+    font-weight: 600;
   }
 
   .dropdown:hover > .dropdown-menu {
@@ -35,12 +39,19 @@
   }
 
   .dropdown-item:hover {
+    font-weight: 600;
     background-color: #d3e3ff;
   }
 
   .nav-item:hover {
     background-color: #183667;
+    border-radius: 10px;
+  }
+
+  .top-nav-item:hover {
+    background-color: #183667;
     border-radius: 12px;
+    font-weight: 600;
   }
 }
 
@@ -54,19 +65,20 @@
     /* overflow: auto;
     pointer-events: none;
     opacity: 0; */
-    transition: top .4s, opacity .3s;
+    transition: top 0.4s, opacity 0.3s;
   }
   .navmenu::-webkit-scrollbar {
     width: 0;
   }
   .nav {
-    background-color: #2654A1;
     padding-top: 1rem;
     display: block;
     width: 100vh;
+    max-width: 100%;
+    max-height: 85vh; /* Menentukan tinggi maksimal */
+    overflow-y: auto;
   }
-  .nav
-  .dropdown-submenu {
+  .nav .dropdown-submenu {
     position: relative;
   }
 
@@ -89,8 +101,8 @@
 
   .dropdown-item:hover {
     background-color: #d3e3ff;
+    font-weight: 600;
   }
-
 
   .nav-item:hover {
     background-color: #183667;

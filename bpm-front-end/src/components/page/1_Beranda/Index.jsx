@@ -9,7 +9,7 @@ import { useFetch } from "../../util/useFetch";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { useEffect, useState } from "react";
-import SliderBerita from "../../part/SliderBerita";
+import SliderBerita from "../../part/SliderBerita2";
 import { API_LINK } from "../../util/Constants";
 import Loading from "../../part/Loading";
 import SliderKegiatan from "../../part/SliderKegiatan";
@@ -117,7 +117,7 @@ export default function Index({ onChangePage }) {
       try {
         const data = await useFetch(
           `${API_LINK}/MasterKegiatan/GetDataKegiatanByCategory`,
-          { kategori: 1 },
+          { kategori: "Rencana" },
           "POST"
         );
         const formattedData = [
@@ -142,7 +142,13 @@ export default function Index({ onChangePage }) {
       try {
         const result = await useFetch(
           `${API_LINK}/MasterBerita/GetDataBerita`,
-          JSON.stringify({}),
+          {
+            param1: "",
+            param2: "",
+            param3: "5",
+            param4: "1",
+            param5: "tglBerita DESC",
+          },
           "POST"
         );
 
@@ -192,7 +198,7 @@ export default function Index({ onChangePage }) {
   return (
     <>
       <div
-        className="latarGradasi mt-5"
+        className="latarGradasi"
         style={{
           position: "relative",
           display: "flex",
@@ -201,6 +207,7 @@ export default function Index({ onChangePage }) {
           justifyContent: "center",
           minHeight: "80vh",
           zIndex: "0",
+          marginTop: "3rem",
         }}
       >
         <img
@@ -304,22 +311,21 @@ export default function Index({ onChangePage }) {
 
       <SliderProgramStudi akreditasiData={akreditasiData} />
 
+      <HeaderText
+        label="Berita BPM Terkini"
+        warna="#2654A1"
+        alignText="center"
+        fontWeight="650"
+        lebar="310px"
+        marginBottom="1rem"
+        marginTop="4rem"
+      />
+      <SliderBerita beritaItems={beritaData} />
       <div
         className={`${
-          isMobile ? "flex-grow-1 p-0 mt-3" : "flex-grow-1 p-5 mt-3"
+          isMobile ? "flex-grow-1 p-0 mt-0 mb-5" : "flex-grow-1 mt-3 mb-5"
         } d-flex flex-column align-items-center`}
       >
-        <HeaderText
-          label="Berita BPM Terkini"
-          warna="#2654A1"
-          alignText="center"
-          fontWeight="650"
-          lebar="310px"
-          marginBottom="1rem"
-          marginTop="4rem"
-        />
-        <SliderBerita beritaItems={beritaData} />
-
         <Button
           classType="btn btn-primary ms-3"
           title="Lihat Berita lainnya"

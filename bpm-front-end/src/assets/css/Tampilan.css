@@ -1,66 +1,78 @@
 .latarGradasi {
-    background: linear-gradient(to bottom, #2654A1, #2654A1, #4989C2, #42ABDC); /* Gradasi warna */
-    height: 95vh; /* Atur tinggi latar sesuai kebutuhan, contoh ini 40% tinggi layar */
-    width: 100%; /* 100% lebar layar */
-    display: flex; /* Agar konten bisa diatur menggunakan flexbox */
-    justify-content: center; /* Memposisikan konten horizontal di tengah */
-    position: relative;
-    overflow: hidden; /* Menghindari elemen keluar dari batas latar */
-  }
-
-  .latarGradasi2 {
-    background: linear-gradient(to top, #2654A1, #2654A1, #4989C2, #42ABDC); /* Gradasi warna */
-    height: 100%; /* Atur tinggi latar sesuai kebutuhan, contoh ini 40% tinggi layar */
-    width: 100%; /* 100% lebar layar */
-    display: flex; /* Agar konten bisa diatur menggunakan flexbox */
-    justify-content: center; /* Memposisikan konten horizontal di tengah */
-    position: relative;
-    overflow: hidden; /* Menghindari elemen keluar dari batas latar */
-  }
-
-  .card {
-    padding: 50px; /* Optional padding for spacing */
-    background: linear-gradient(180deg, rgba(94, 201, 255, 0.5) 0%, rgba(55, 125, 255, 0.5) 30%);
-    border-radius: 20px;
-    display: inline-block; /* Ensures it only takes up as much space as needed */
-    border-color: #5CC7AF;
-    width: 100%;
+  background: linear-gradient(
+    to bottom,
+    #2654a1,
+    #2654a1,
+    #4989c2,
+    #42abdc
+  ); /* Gradasi warna */
+  height: 100vh; /* Atur tinggi latar sesuai kebutuhan, contoh ini 40% tinggi layar */
+  width: 100%; /* 100% lebar layar */
+  display: flex; /* Agar konten bisa diatur menggunakan flexbox */
+  justify-content: center; /* Memposisikan konten horizontal di tengah */
+  position: relative;
+  overflow: hidden; /* Menghindari elemen keluar dari batas latar */
 }
 
+.latarGradasi2 {
+  background: linear-gradient(
+    to top,
+    #2654a1,
+    #2654a1,
+    #4989c2,
+    #42abdc
+  ); /* Gradasi warna */
+  height: 100%; /* Atur tinggi latar sesuai kebutuhan, contoh ini 40% tinggi layar */
+  width: 100%; /* 100% lebar layar */
+  display: flex; /* Agar konten bisa diatur menggunakan flexbox */
+  justify-content: center; /* Memposisikan konten horizontal di tengah */
+  position: relative;
+  overflow: hidden; /* Menghindari elemen keluar dari batas latar */
+}
 
+.card {
+  padding: 50px; /* Optional padding for spacing */
+  background: linear-gradient(
+    180deg,
+    rgba(94, 201, 255, 0.5) 0%,
+    rgba(55, 125, 255, 0.5) 30%
+  );
+  border-radius: 20px;
+  display: inline-block; /* Ensures it only takes up as much space as needed */
+  border-color: #5cc7af;
+  width: 100%;
+}
 
-  .content {
-    position: absolute;
-    bottom: 10%; /* Jarak dari bawah */
-    left: 50%;
-    transform: translateX(-50%);
-    text-align: center;
-    color: #fff; /* Warna teks agar kontras dengan latar belakang */
-  }
-  
+.content {
+  position: absolute;
+  bottom: 10%; /* Jarak dari bawah */
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  color: #fff; /* Warna teks agar kontras dengan latar belakang */
+}
 
-  
-  /* SPMI */
-  .carousel-inner {
-    border-radius: 20px;
-  }
-  .carousel-control-left {
-    background-color: #2654A1;
-    border-radius: 30px;
-    height: 50px;
-    width: 50px;
-    transform: translateX(-200%);
-    opacity: 100%;
-  }
-  .carousel-control-right {
-    background-color: #2654A1;
-    border-radius: 30px;
-    height: 50px;
-    width: 50px;
-    transform: translateX(200%);
-    opacity: 100%;
-  }
-  .carousel-img {
-    height: 50vh;
-    object-fit: cover;
-  }
+/* SPMI */
+.carousel-inner {
+  border-radius: 20px;
+}
+.carousel-control-left {
+  background-color: #2654a1;
+  border-radius: 30px;
+  height: 50px;
+  width: 50px;
+  transform: translateX(-200%);
+  opacity: 100%;
+}
+.carousel-control-right {
+  background-color: #2654a1;
+  border-radius: 30px;
+  height: 50px;
+  width: 50px;
+  transform: translateX(200%);
+  opacity: 100%;
+}
+.carousel-img {
+  height: 50vh;
+  object-fit: cover;
+}

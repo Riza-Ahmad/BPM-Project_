@@ -4,6 +4,7 @@ import "moment/locale/id";
 import CardKegiatan from "../../../part/CardKegiatan.jsx";
 import HeaderText from "../../../part/HeaderText.jsx";
 import { useIsMobile } from "../../../util/useIsMobile.js";
+import { KEGIATANFILE_LINK } from "../../../util/Constants.js";
 
 const formatTime = (time) => {
   return moment(time, "HH:mm").format("HH:mm [WIB]");
@@ -95,6 +96,8 @@ const TabTahunKegiatan = ({ year, kegiatanList, selectedId }) => {
                       location={kegiatan.location}
                       image={kegiatan.image}
                       galleryLink={kegiatan.linkFolder}
+                      fileNotulen={KEGIATANFILE_LINK + kegiatan.fileNotulen}
+                      statusFileNotulen={kegiatan.statusFileNotulen}
                     />
                   </div>
                 ))}
@@ -119,6 +122,8 @@ const TabTahunKegiatan = ({ year, kegiatanList, selectedId }) => {
                       location={kegiatan.location}
                       image={kegiatan.image}
                       galleryLink={kegiatan.linkFolder}
+                      fileNotulen={KEGIATANFILE_LINK + kegiatan.fileNotulen}
+                      statusFileNotulen={kegiatan.statusFileNotulen}
                     />
                   </div>
                 ))}

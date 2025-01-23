@@ -38,6 +38,7 @@ export default function Detail({ onChangePage }) {
     ModifDate: "",
     status: "",
     jenisKegiatan: "",
+    fotoSampul: "",
   });
 
   useEffect(() => {
@@ -55,7 +56,7 @@ export default function Detail({ onChangePage }) {
         if (data) {
           setFormData({
             name: data[0].namaKegiatan,
-            description: data[0].deksripsiKegiatan,
+            description: data[0].deskripsiKegiatan,
             startDate: new Date(data[0].tglMulaiKegiatan).toLocaleDateString(
               "id-ID",
               {
@@ -165,7 +166,10 @@ export default function Detail({ onChangePage }) {
                 <DetailData label="Waktu Selesai" isi={formData.endTime} />
               </div>
             </div>
-            <DetailData label="Deskripsi Singkat" isi={formData.description} />
+            <DetailData
+              label="Deskripsi Singkat"
+              isi={formData.description || ""}
+            />
             <div className="row">
               <div className="col-lg-6 col-md-6">
                 <div className="mb-3">
@@ -186,7 +190,7 @@ export default function Detail({ onChangePage }) {
                   <label className="form-label fw-bold">File Notulensi</label>{" "}
                   <br></br>
                   <a
-                    href={`${KEGIATANFILE_LINK}${formData.fileNotulen}`}
+                    href={`${KEGIATANFILE_LINK}${formData.fileNotulen}` || ""}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -203,7 +207,7 @@ export default function Detail({ onChangePage }) {
                 <div>
                   <label className="form-label fw-bold">Foto Sampul</label>
                   <img
-                    src={`${KEGIATANFILE_LINK}${formData.fotoSampul}`}
+                    src={`${KEGIATANFILE_LINK}${formData.fotoSampul}` || ""}
                     alt="Uploaded"
                     className="img-fluid mb-3"
                     style={{ maxHeight: "80%" }}

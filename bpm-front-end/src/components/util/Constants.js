@@ -1,11 +1,14 @@
 export const APPLICATION_NAME = "Website BPM";
-export const APPLICATION_ID = "APP58";
+export const APPLICATION_ID = "APP14";
 export const ROOT_LINK = "http://localhost:5173";
 export const API_LINK = "http://localhost:5187/api";
 export const TENTANGFILE_LINK = "http://localhost:5187/Tentang/";
 export const BERITAFOTO_LINK = "http://localhost:5187/Berita/";
 export const KEGIATANFILE_LINK = "http://localhost:5187/Kegiatan/";
 export const PRODIGAMBAR_LINK = "http://localhost:5187/ProgramStudi/";
+export const PERATURAN_FILE_LINK = "http://localhost:5187/Peraturan/";
 export const FILE_LINK = "http://localhost:5187/Tentang/";
+export const DOKUMEN_LINK = "http://localhost:5187/Dokumen/";
+export const AUDIT_FILE_LINK = "http://localhost:5187/Audit/";
 export const BASE_ROUTE = "";
 export const PAGE_SIZE = 10;
