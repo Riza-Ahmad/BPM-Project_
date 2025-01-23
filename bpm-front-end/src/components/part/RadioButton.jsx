@@ -11,6 +11,7 @@ const RadioButton = forwardRef(function RadioButton(
     showLabel = true,
     value,
     onChange,
+    col = "col-6",
     ...props
   },
   ref
@@ -52,7 +53,7 @@ const RadioButton = forwardRef(function RadioButton(
       )}
       <div className="row">
         {arrData.map((data, index) => (
-          <div className="col-6" key={data.Value}>
+          <div className={col} key={data.Value}>
             <div className="form-check">
               <input
                 className={`form-check-input ${error ? "is-invalid" : ""}`}

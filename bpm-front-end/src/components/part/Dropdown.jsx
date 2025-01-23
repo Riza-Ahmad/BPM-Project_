@@ -51,11 +51,7 @@ const DropDown = forwardRef(function DropDown(
       );
       break;
     case "semua":
-      placeholder = (
-        <option value="" disabled>
-          -- Semua --
-        </option>
-      );
+      placeholder = <option value="">-- Semua --</option>;
       break;
     default:
       placeholder = null;
@@ -77,6 +73,7 @@ const DropDown = forwardRef(function DropDown(
           {isRequired ? <span className="text-danger"> *</span> : ""}
         </label>
       )}
+
       <select
         ref={selectRef}
         className={`form-select ${error ? "is-invalid" : ""}`}

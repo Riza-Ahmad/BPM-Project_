@@ -237,6 +237,7 @@ export default function Edit({ onChangePage }) {
                   value={formData.date}
                   onChange={(date) => setFormData({ ...formData, date: date })}
                   type="date"
+                  max={new Date().toISOString().split("T")[0]}
                 />
               </div>
             </div>

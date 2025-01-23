@@ -36,7 +36,7 @@ const SliderProgramStudi = ({ akreditasiData }) => {
             scrollSnapType: "x mandatory",
             WebkitOverflowScrolling: "touch",
             gap: "1.6rem",
-            padding: isMobile ? "0rem" : "3rem",
+            padding: isMobile ? "0rem 0rem 2rem 0rem" : "3rem",
             borderRadius: "8px",
             scrollbarWidth: "none",
             msOverflowStyle: "none",

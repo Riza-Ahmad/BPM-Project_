@@ -1,5 +1,10 @@
 import { decodeHtml } from "../util/DecodeHtml";
-export default function DetailData({ label, isi, id }) {
+export default function DetailData({
+  label,
+  isi,
+  id,
+  colorIsi = "text-secondary mb-4",
+}) {
   const decodedIsi = decodeHtml(isi);
   return (
     <>
@@ -8,7 +13,7 @@ export default function DetailData({ label, isi, id }) {
       </label>
       <p
         id={id}
-        className="text-secondary mb-4"
+        className={colorIsi}
         dangerouslySetInnerHTML={{ __html: decodedIsi }}
       />
     </>

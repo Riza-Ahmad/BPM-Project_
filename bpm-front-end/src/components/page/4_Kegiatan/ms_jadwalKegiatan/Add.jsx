@@ -67,7 +67,6 @@ export default function Add({ onChangePage }) {
   const jenisKegiatanRef = useRef();
 
   const handleSubmit = async () => {
-    console.log(jenisKegiatanRef.current.value);
     if (!namaRef.current?.validate()) {
       namaRef.current?.focus();
       return;
@@ -101,8 +100,6 @@ export default function Add({ onChangePage }) {
       jenisKegiatanRef.current?.focus();
       return;
     }
-
-    console.log(formData);
 
     // Combine date and time values into Date objects
     const startDate = new Date(

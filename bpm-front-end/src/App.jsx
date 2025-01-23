@@ -1,3 +1,11 @@
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
+import { Suspense } from "react";
+import ProtectedRoute from "./components/util/ProtectedRoute";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "./components/backbone/Header";
 import Footer from "./components/backbone/Footer";
@@ -22,10 +30,18 @@ import Pertanyaan_Survei from "./components/page/9_Survei/Pertanyaan_Survei/Root
 import Daftar_Survei from "./components/page/9_Survei/Daftar_Survei/Root"
 import Dashboard_Survei from "./components/page/9_Survei/Dashboard_Survei/Root";
 import ScrollToTop from "./components/part/ScrollToTop";
+import routeList from "./components/util/RouteList";
 import "./App.css";
 
-function App() {
+function Layout() {
+  const location = useLocation();
+  const isLoginPage = location.pathname === "/login";
+
   return (
+    <div className="d-flex flex-column min-vh-100">
+      {!isLoginPage && <Header />}
+      <main className="flex-grow-1">
+        <Suspense fallback={<div>Loading...</div>}>
     <Router
       future={{
         v7_startTransition: true, // Mengaktifkan startTransition
@@ -37,6 +53,20 @@ function App() {
         <Header />
         <main className="flex-grow-1">
           <Routes>
+            {routeList.map((route, index) => {
+              if (route.protected) {
+                return (
+                  <Route
+                    key={index}
+                    path={route.path}
+                    element={<ProtectedRoute>{route.element}</ProtectedRoute>}
+                  />
+                );
+              }
+              return (
+                <Route key={index} path={route.path} element={route.element} />
+              );
+            })}
             <Route path="/" element={<Beranda />} />
             <Route path="/tentang/*" element={<Tentang />} />
             <Route path="/berita/*" element={<Berita />} />
@@ -77,6 +107,19 @@ function App() {
             {/* Halaman 404 */}
             <Route path="*" element={<div>Halaman tidak ditemukan</div>} />
           </Routes>
+        </Suspense>
+      </main>
+
+      {!isLoginPage && <Footer />}
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <ScrollToTop />
+      <Layout />
         </main>
         <Footer />
       </div>

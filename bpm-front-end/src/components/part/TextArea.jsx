@@ -44,15 +44,31 @@ const TextArea = React.forwardRef(
 
     const focusEditor = () => {
       if (editorRef.current) {
-        editorRef.current.focus();
+        // Fokuskan editor menggunakan API internal Jodit
+        const editor = editorRef.current.editor;
+        if (editor) {
+          editor.focus();
+        }
       }
     };
 
     const validate = () => {
+      // Memeriksa apakah editor kosong atau hanya berisi spasi
       if (isRequired && !editorValue.trim()) {
         setError(true);
         return false;
       }
+
+      // Memeriksa apakah konten hanya berisi <p><br></p> atau tag HTML kosong lainnya
+      const isEmptyHtml = /^(<p><br><\/p>|<br\s*\/?>|\s*)$/i.test(
+        editorValue.trim()
+      );
+
+      if (isEmptyHtml) {
+        setError(true);
+        return false;
+      }
+
       setError(false);
       return true;
     };
@@ -102,7 +118,7 @@ const TextArea = React.forwardRef(
         />
         {error && (
           <span className="small text-danger">
-            {errorMsg || "This field is required."}
+            {errorMsg || "field ini wajib diisi."}
           </span>
         )}
         {maxChar && (

@@ -2,6 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import Icon from "./Icon";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useLocation } from "react-router-dom";
 
 const PageTitleNav = ({
   title,
@@ -10,6 +11,8 @@ const PageTitleNav = ({
   onClick = () => {},
 }) => {
   const navigate = useNavigate(); // Initialize navigate function
+  const location = useLocation();
+  const idMenu = location.state?.idMenu;
 
   return (
     <header>
@@ -47,7 +50,13 @@ const PageTitleNav = ({
                       textDecoration: "none",
                       cursor: "pointer",
                     }}
-                    onClick={() => navigate(breadcrumb.href)} // Use navigate for programmatic routing
+                    onClick={() =>
+                      navigate(breadcrumb.href, {
+                        state: {
+                          idMenu: idMenu,
+                        },
+                      })
+                    }
                   >
                     {breadcrumb.label}
                   </span>
