@@ -1,35 +1,35 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  useNavigate,
-  useLocation,
-} from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import ScrollToTop from "../../../part/ScrollToTop";
+import ProtectedRoute from "../../../util/ProtectedRoute";
 import Index from "./Index";
 import Add from "./Add";
 import Edit from "./Edit";
-import ScrollToTop from "../../../part/ScrollToTop";
 import Detail from "./Detail";
 
 export default function Pertanyaan_Survei() {
   const navigate = useNavigate();
   const location = useLocation();
+  const currentPath = location.pathname;
+
+  // Handler for page navigation
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
       case "index":
-        navigate("/survei/pertanyaan", withState);
+        navigate(`${currentPath}`, { state: { mode: "index", ...withState } });
         break;
       case "add":
-        navigate("/survei/pertanyaan/add");
+        navigate(`${currentPath}`, {
+          state: { mode: "add", ...withState },
+        });
         break;
       case "edit":
-        navigate("/survei/pertanyaan/edit", {
-          state: { ...withState },
+        navigate(`${currentPath}`, {
+          state: { mode: "edit", ...withState },
         });
         break;
       case "detail":
-        navigate("/survei/pertanyaan/detail", {
-          state: { ...withState },
+        navigate(`${currentPath}`, {
+          state: { mode: "detail", ...withState },
         });
         break;
       default:
@@ -38,11 +38,28 @@ export default function Pertanyaan_Survei() {
     }
   };
 
+  const { mode } = location.state || { mode: "index" };
+
   return (
     <>
       <ScrollToTop />
       <Routes>
-        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute isRole={true}>
+              {mode === "add" ? (
+                <Add onChangePage={handlePageChange} />
+              ) : mode === "edit" ? (
+                <Edit onChangePage={handlePageChange} />
+              ) : mode === "detail" ? (
+                <Detail onChangePage={handlePageChange} />
+              ) : (
+                <Index onChangePage={handlePageChange} />
+              )}
+            </ProtectedRoute>
+          }
+        />
         <Route path="/add" element={<Add onChangePage={handlePageChange} />} />
         <Route
           path="/edit"

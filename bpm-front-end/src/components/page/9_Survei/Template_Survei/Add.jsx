@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PageTitleNav from "../../../part/PageTitleNav";
-import TextField from "../../../part/TextField";
+import InputField from "../../../part/InputField";
 import Button from "../../../part/Button";
 import Loading from "../../../part/Loading";
 import Dropdown from "../../../part/Dropdown";
@@ -417,7 +417,7 @@ export default function Add() {
             <hr />
           </h3>
           <form>
-            <TextField
+            <InputField
               label="Nama Template"
               placeholder="Masukkan Nama Template"
               value={formData.name}
@@ -427,7 +427,7 @@ export default function Add() {
               isRequired={true}
               disabled={formDisabled}
             />
-            {/* <TextField
+            {/* <InputField
               label="Dibuat Oleh"
               value={formData.createdBy}
               onChange={(e) =>
@@ -502,9 +502,9 @@ export default function Add() {
                     />
                   </div>
 
-                  {/* TextField untuk Pertanyaan */}
+                  {/* InputField untuk Pertanyaan */}
                   <div className="col-7">
-                    <TextField
+                    <InputField
                       label={<span>Pertanyaan</span>}
                       value={formData.pertanyaan}
                       onChange={(e) =>

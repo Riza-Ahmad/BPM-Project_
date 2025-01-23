@@ -3,8 +3,7 @@ import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
 import PageTitleNav from "../../../part/PageTitleNav";
 import Button from "../../../part/Button";
-import TextField from "../../../part/TextField";
-import DropDown from "../../../part/Dropdown";
+import InputField from "../../../part/InputField";
 import Modal from "../../../part/Modal";
 import Filter from "../../../part/Filter";
 import SearchField from "../../../part/SearchField";
@@ -590,6 +589,125 @@ export default function Pertanyaan_Survei({ onChangePage }) {
       </Modal>
 
       {/* ADD MODAL */}
+      <Modal
+        ref={addModalRef}
+        title="Tambah Pertanyaan Survei"
+        size="full"
+        Button1={
+          <Button
+            classType="primary"
+            label="Simpan"
+            onClick={handleAddQuestion}
+          />
+        }
+        Button2={
+          <Button
+            classType="secondary"
+            label="Batal"
+            onClick={() => addModalRef.current.close()}
+          />
+        }
+      >
+        {/* Header Checkbox */}
+        <div>
+          <label>Header</label>
+          <input
+            type="checkbox"
+            checked={isHeader}
+            onChange={handleCheckboxChange}
+          />
+        </div>
+        <br />
+
+        {/* Pertanyaan Umum */}
+        <div>
+          <label htmlFor="generalQuestion">Pertanyaan Umum *</label>
+          <br />
+          <select
+            id="generalQuestion"
+            value={generalQuestion}
+            onChange={handleSelectChange}
+            required
+            style={{ width: "100%", padding: "8px", marginTop: "5px" }}
+          >
+            <option value="" disabled>
+              Pilih salah satu
+            </option>
+            <option value="Ya">Ya</option>
+            <option value="Tidak">Tidak</option>
+          </select>
+        </div>
+        <br />
+
+        {/* Input Pertanyaan */}
+        <div>
+          <InputField
+            label="Pertanyaan"
+            isRequired={true}
+            value={questionText}
+            onChange={(e) => setQuestionText(e.target.value)}
+            placeholder="Masukkan Pertanyaan"
+          />
+        </div>
+        {/* Kriteria dan Responden, tampil jika "Tidak" */}
+        {generalQuestion === "Tidak" && (
+          <>
+            <div>
+              <label
+                htmlFor="surveyCriteria"
+                style={{
+                  fontWeight: "bold",
+                  display: "block",
+                  marginBottom: "8px",
+                }}
+              >
+                Kriteria Survei *
+              </label>
+              <select
+                id="surveyCriteria"
+                value={surveyCriteria}
+                onChange={(e) => setSurveyCriteria(e.target.value)}
+                required
+                style={{ width: "100%", padding: "8px", marginTop: "5px" }}
+              >
+                <option value="" disabled>
+                  Pilih Kriteria
+                </option>
+                <option value="Kepuasan Dosen">Kepuasan Dosen</option>
+                <option value="Kepuasan Tenaga Pendidik">
+                  Kepuasan Tenaga Pendidik
+                </option>
+              </select>
+            </div>
+            <br />
+            <div>
+              <label
+                htmlFor="respondent"
+                style={{
+                  fontWeight: "bold",
+                  display: "block",
+                  marginBottom: "8px",
+                }}
+              >
+                Responden *
+              </label>
+              <select
+                id="respondent"
+                value={respondent}
+                onChange={(e) => setRespondent(e.target.value)}
+                required
+                style={{ width: "100%", padding: "8px", marginTop: "5px" }}
+              >
+                <option value="" disabled>
+                  Pilih Responden
+                </option>
+                <option value="Mahasiswa">Mahasiswa</option>
+                <option value="Tenaga Pendidik">Tenaga Pendidik</option>
+              </select>
+            </div>
+          </>
+        )}
+      </Modal>
       {/* Update Modal */}
     </div>
   );
