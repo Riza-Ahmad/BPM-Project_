@@ -6,5 +6,6 @@ export const TENTANGFILE_LINK = "http://localhost:5187/Tentang/";
 export const BERITAFOTO_LINK = "http://localhost:5187/Berita/";
 export const KEGIATANFILE_LINK = "http://localhost:5187/Kegiatan/";
 export const FILE_LINK = "http://localhost:5187/Tentang/";
+export const TEMPLATE_LINK = "http://localhost:5187/Uploads/";
 export const BASE_ROUTE = "";
 export const PAGE_SIZE = 10;

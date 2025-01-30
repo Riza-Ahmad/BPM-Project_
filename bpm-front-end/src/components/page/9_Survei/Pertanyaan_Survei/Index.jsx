@@ -3,583 +3,605 @@ import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
 import PageTitleNav from "../../../part/PageTitleNav";
 import Button from "../../../part/Button";
-import TextField from "../../../part/TextField";
+import DropDown from "../../../part/Dropdown";
 import Modal from "../../../part/Modal";
 import Filter from "../../../part/Filter";
 import SearchField from "../../../part/SearchField";
-import SweetAlert from "../../../util/SweetAlert";
 import Swal from "sweetalert2";
-import { useNavigate } from "react-router-dom";
+import { matchPath, useNavigate } from "react-router-dom";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { API_LINK } from "../../../util/Constants";
+import * as XLSX from "xlsx";
+import { useFetch } from "../../../util/useFetch";
+import { API_LINK as API_URL, TEMPLATE_LINK } from "../../../util/Constants";
+
+const title = "Pertanyaan Survei";
+const breadcrumbs = [{ label: " Daftar Pertanyaan" }];
+
+const inisialisasiData = [
+  {
+    Key: null,
+    Kriteria: null,
+    Pertanyaan: null,
+    Skala: null,
+    Status: null,
+    Aksi: null,
+    Count: 0,
+  },
+];
+
+const dataFilterSort = [
+  { Value: "[pty_pertanyaan] ASC", Text: "Pertanyaan [↑]" },
+  { Value: "[pty_pertanyaan] DESC", Text: "Pertanyaan [↓]" },
+];
+
+const dataFilterStatus = [
+  { Value: "1", Text: "Aktif" },
+  { Value: "0", Text: "Tidak Aktif" },
+];
+
+let parsedData = [];
 
 export default function Pertanyaan_Survei({ onChangePage }) {
-    const [filterValue, setFilterValue] = useState("");
-    const [pageSize] = useState(12);
-    const [pageCurrent, setPageCurrent] = useState(1);
-    const [selectedQuestion, setSelectedQuestion] = useState("");
-    const [formData, setFormData] = useState({ questionText: '' });
-    const importModalRef = useRef("");
-    const [file, setFile] = useState("");
-    const [Data, setData] = useState("");
-    const [filteredData, setFilteredData] = useState([]);
-    const [loading, setLoading] = useState(true);
+  const [pageSize] = useState(10);
+  const [pageCurrent, setPageCurrent] = useState(1);
+  const [currentData, setCurrentData] = useState([inisialisasiData]);
+  const [formData, setFormData] = useState({ questionText: "" });
+  const importModalRef = useRef("");
+  const [file, setFile] = useState("");
+  const [data, setData] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchFilterSort = useRef(null);
+  const searchFilterStatus = useRef(null);
 
+  const [currentFilter, setCurrentFilter] = useState({
+    p1: 1,
+    p2: searchQuery,
+    p3: "[pty_pertanyaan] ASC",
+    p4: 1,
+  });
 
-    useEffect(() => {
-        const fetchDataPertanyaan = async () => {
-          setLoading(true); // Aktifkan indikator loading
-          try {
-            // Panggil API
-            const response = await fetch(
-              `${API_LINK}/MasterPertanyaan/GetDataPertanyaan`,
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({}), // Parameter kosong
-              }
-            );
-      
-            // Cek status response
-            if (!response.ok) {
-              throw new Error(`Error ${response.status}: ${response.statusText}`);
-            }
-      
-            // Parsing hasil JSON
-            const result = await response.json();
-      
-            // Cek apakah result adalah array
-            if (!Array.isArray(result)) {
-              console.error("Data yang diterima bukan array");
-              return;
-            }
-      
-            // Mapping data dan pastikan pty_id ada di setiap item
-            const formattedPertanyaan = result.map((item, index) => {
-      
+  const [loading, setLoading] = useState(false);
+  const addModalRef = useRef();
+  const updateModalRef = useRef();
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const [isError, setIsError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterYear, setFilterYear] = useState("");
+  const [filteredData, setFilteredData] = useState([]);
+
+  const indexOfLastData = pageCurrent * pageSize;
+  const indexOfFirstData = indexOfLastData - pageSize;
+  const currentDataPage = currentData.slice(indexOfFirstData, indexOfLastData);
+
+  // Fetch data dari API dan perbarui state
+  const fetchData = async () => {
+    setIsLoading(true); // Mulai loading
+    try {
+      const response = await fetch(
+        `${API_LINK}/MasterPertanyaan/GetDataPertanyaan`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(currentFilter), // Mengirim filter jika diperlukan
+        }
+      );
+      const dataJson = await response.json();
+      console.log("Data Terambil:", dataJson); // Gunakan console.log, bukan cons
+
+      if (dataJson) {
+        setCurrentData(dataJson); // Memperbarui state dengan data yang baru
+      } else {
+        setCurrentData([]); // Jika data kosong, set currentData menjadi array kosong
+      }
+    } catch (error) {
+      setIsError(true);
+      console.error("Error fetch data:", error); // Gunakan console.error
+    } finally {
+      setIsLoading(false); // Selesai loading
+    }
+  };
+
+  useEffect(() => {
+    const totalPages = Math.ceil(currentData.length / pageSize);
+    if (pageCurrent > totalPages) {
+      setPageCurrent(1);
+    }
+  }, [currentData, pageCurrent, pageSize]);
+
+  useEffect(() => {
+    setCurrentFilter((prevFilter) => ({
+      ...prevFilter,
+      p2: searchQuery,
+    }));
+  }, [searchQuery]);
+
+  // Ambil data berdasarkan filter yang sudah diatur
+  useEffect(() => {
+    fetchData();
+  }, [currentFilter, pageCurrent, pageSize]);
+
+  useEffect(() => {
+    const searchRegex = new RegExp(searchQuery, "i");
+
+    const filtered = currentData.filter((item) => {
+      // Menggabungkan semua kondisi pencarian ke dalam satu variabel
+      const matchesSearch =
+        item.Pertanyaan && searchRegex.test(item.pty_pertanyaan);
+
+      const matchesStatus =
+        filterStatus === "" ? true : item.Status.toString() === filterStatus;
+
+      const matchesYear =
+        filterYear === ""
+          ? true
+          : new Date(item.CreatedDate).getFullYear().toString() === filterYear;
+
+      return matchesSearch && matchesStatus && matchesYear;
+    });
+
+    setFilteredData(filtered);
+  }, [searchQuery, filterStatus, filterYear, currentData]);
+
+  const handleExportQuestions = () => {
+    const dataToExport = filteredData.length > 0 ? filteredData : currentData;
+
+    if (dataToExport.length === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Data Kosong",
+        text: "Tidak ada data untuk diekspor.",
+      });
+      return;
+    }
+
+    // Konversi data yang sudah difilter atau data keseluruhan menjadi format untuk Excel
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+
+    // Buat workbook dan tambahkan worksheet
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Data Pertanyaan");
+
+    // Generate file Excel dan trigger download
+    XLSX.writeFile(workbook, "questions_export.xlsx");
+  };
+
+  const handleImportQuestions = async () => {
+    try {
+     for (let index = 0; index < parsedData.length; index++) {
+       try {
+       const createResponse = await fetch(
+         `${API_LINK}/MasterPertanyaan/CreatePertanyaan`,
+         {
+           method: "POST",
+           headers: { "Content-Type": "application/json" },
+           body: JSON.stringify(parsedData[index]),
+         }
+       );
+
+       const responseData = await createResponse.json();
+       console.log("Response API:", responseData);
+
+       if (!createResponse.ok || responseData === "ERROR") {
+         throw new Error(
+           `Gagal menambah data pada indeks ${index}: ${
+             responseData.message || "Kesalahan tidak diketahui"
+           }`
+         );
+       } else {
+         console.log(`Data pada indeks ${index} berhasil ditambahkan.`);
+       }
+       } catch (error) {
+         console.error(`Error pada indeks ${index}:`, error.message);
+         Swal.fire(
+           "Gagal!",
+           `Error pada data ke-${index + 1}: ${error.message}`,
+           "error"
+         );
+
+         break; // Hentikan proses jika ada error
+       }
+     }
+      // Jika semua berhasil, lakukan refresh data
+      const updatedDataResponse = await fetch(
+        `${API_LINK}/MasterPertanyaan/GetDataPertanyaan`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(currentFilter),
+        }
+      );
+      const result = await updatedDataResponse.json(); // Simpan hasil response terlebih dahulu
+
+      if (updatedDataResponse.ok) {
+        setCurrentData(result); // Gunakan result yang sudah diambil
+        Swal.fire("Sukses", "Pertanyaan berhasil diimpor!", "success");
+        importModalRef.current.close();
+      } else {
+        Swal.fire(
+          "Gagal",
+          result.message || "Terjadi kesalahan saat memperbarui data.",
+          "error"
+        );
+      }
+    } catch (error) {
+      console.error("Error:", error.message);
+      Swal.fire(
+        "Gagal",
+        "Terjadi kesalahan saat mengimpor pertanyaan.",
+        "error"
+      );
+    } finally {
+      setLoading(false); // Menyelesaikan status loading setelah proses selesai
+    }
+  };
+
+  const handleFileChange = (file) => {
+    if (!file) {
+      console.error("File tidak ditemukan");
+      return;
+    }
+    setSelectedFile(file);
+
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+
+        // Ambil sheet pertama
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+
+        if (!worksheet) {
+          console.error("Sheet tidak ditemukan dalam file Excel.");
+          return;
+        }
+        // Konversi sheet ke JSON
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+        if (!jsonData || jsonData.length <= 1) {
+          console.error("Data di dalam sheet kosong atau tidak valid.");
+          return;
+        }
+
+        console.log("Data JSON mentah:", jsonData);
+
+        // Parsing data ke format yang diinginkan
+        const formattedData = jsonData
+          .map((row, index) => {
+            if (index > 0 && row[0]) {
               return {
-                Key: item.pty_id || "No ID", // Jika pty_id tidak ada, gunakan fallback
-                question: item.pty_pertanyaan,
-                isHeader: item.pty_isheader,
-                isGeneral: item.pty_isgeneral,
-                status: item.pty_status,
-                createdBy: item.pty_created_by,
-                createdDate: item.pty_created_date
-                  ? new Date(item.pty_created_date).toISOString()
-                  : "-",
-                role: item.pty_role_responden,
+                pertanyaan: row[0] || "",
+                kriteria: row[1] || "",
+                skala: row[2] || "",
+                isActive: row[3] === 1 ? "Aktif" : "Tidak Aktif",
               };
-            });
-      
-            // Pastikan data sudah diformat dengan benar
-      
-            // Set data ke state
-            setData(formattedPertanyaan);
-            setFilteredData(formattedPertanyaan);
-          } catch (error) {
-            console.error("Fetch error:", error);
-            Swal.fire({
-              icon: "error",
-              title: "Oops...",
-              text: error.message || "Gagal mengambil data pertanyaan!",
-            });
-          } finally {
-            setLoading(false); // Matikan indikator loading
-          }
-        };
-        fetchDataPertanyaan();
-      }, []);      
-
-    const addModalRef = useRef();
-    const updateModalRef = useRef();
-    const detailModalRef = useRef();
-    const navigate = useNavigate();
-    const isMobile = useIsMobile();
-    const [questions, setQuestions] = useState([]); 
-    const [questionText, setQuestionText] = useState('');
-    const [isHeader, setIsHeader] = useState(false);
-    const [generalQuestion, setGeneralQuestion] = useState('Ya');
-    const [surveyCriteria, setSurveyCriteria] = useState('');
-    const [respondent, setRespondent] = useState('');
-    
-
-    const handleAddQuestion = () => {
-        const newQuestion = {
-            id: questions.length + 1,
-            text: questionText,
-            generalQuestion,
-            surveyCriteria,
-            respondent
-        };
-        setQuestions([...questions, newQuestion]);
-        setQuestionText('');
-        setSurveyCriteria('');
-        setRespondent('');
-        setIsHeader(false);
-        setGeneralQuestion('Ya');
-        addModalRef.current.close();5
-    };
-
-    const handleUpdateQuestion = () => {
-        if (!selectedQuestion) return;
-        const updatedQuestion = {
-            ...selectedQuestion,
-            text: formData.questionText,
-            generalQuestion,
-            surveyCriteria,
-            respondent
-        };
-        setQuestions(questions.map(q => q.id === selectedQuestion.id ? updatedQuestion : q));
-        setSelectedQuestion(null);
-        setFormData({ questionText: '' });
-        updateModalRef.current.close();
-    };
-
-    // const handleSelectQuestion = (question) => {
-    //     setSelectedQuestion(question);
-    //     setFormData({s
-    //         questionText: question.text,
-    //     });
-    //     setGeneralQuestion(question.generalQuestion || 'Ya');
-    //     setSurveyCriteria(question.surveyCriteria || '');
-    //     setRespondent(question.respondent || '');
-    //     updateModalRef.current.open();
-    // };
-
-    // const handleDetailQuestion = (question) => {
-    //     setSelectedQuestion(question);
-    //     detailModalRef.current.open();
-    // };
-    
-
-    const handleExportQuestions = () => {
-        const csvData = questions.map((q) => `${q.id},${q.text}`).join("\n");
-        const blob = new Blob([csvData], { type: "text/csv" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "questions_export.csv";
-        link.click();
-    };
-
-    const handleImportQuestions = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const content = e.target.result;
-                const lines = content.split("\n");
-                const newQuestions = lines.map((line) => {
-                    const [id, text] = line.split(",");
-                    return { id: parseInt(id, 10), text };
-                });
-                setQuestions(newQuestions);
-            }; 
-            reader.readAsText(file);
-        }
-    };
-      const handleFileChange = (event) => {
-        setFile(event.target.files[0]);
-      };
-
-
-    const indexOfLastData = pageCurrent * pageSize;
-    const indexOfFirstData = indexOfLastData - pageSize;
-    const currentData = filteredData.slice(indexOfFirstData, indexOfLastData);
-    // const filteredQuestions = Data.filter((question) =>
-    //     question.text.toLowerCase().includes(filterValue.toLowerCase())
-    // );
-    
-    // Mengambil data yang sudah difilter berdasarkan halaman saat ini
-    //const currentData = Data.slice(indexOfFirstData, indexOfLastData);   
-
-    const handlePageNavigation = (page) => {
-        setPageCurrent(page);
-    };
-    
-    const handleOpenImportModal = () => {
-        importModalRef.current.open();
-      };
-
-    const title = "Daftar Pertanyaan";
-    const breadcrumbs = [{ label: " Daftar Pertanyaan" }];
-
-    const handleCheckboxChange = () => {
-        setIsHeader(!isHeader);
-    };
-
-    const handleEdit = (id) => {
-        // ()=>onChangePage('edit')
-        if (!id) {
-            console.error("ID tidak ada atau tidak valid");
-            return;  // Hentikan jika id tidak valid
-        }
-    
-        // Debugging: Cek nilai id
-        console.log("ID yang akan digunakan untuk request:", id);
-    
-        // Lakukan request ke API dengan id yang valid
-        fetch(`MasterPertanyaan/GetDataPertanyaanById/${id}`)
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error("Request gagal");
-                }
-                return response.json();
-            })
-            .then((data) => {
-                // Proses data yang diterima
-                console.log("Data diterima:", data);
-                // Update state atau lakukan tindakan lain dengan data
-            })
-            .catch((error) => {
-                console.error("Terjadi kesalahan:", error);
-            });
-    };
-    
-    const handleSelectChange = (e) => {
-        setGeneralQuestion(e.target.value);
-    };
-
-    const handleToggle = async (id) => {
-        const parameters = { p1: id, p2: "Admin" };
-    
-        const confirm = await Swal.fire({
-            title: "Konfirmasi",
-            text: "Apakah Anda yakin ingin toggle status pertanyaan ini?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Ya, Toggle",
-            cancelButtonText: "Batal",
-        });
-    
-        if (confirm.isConfirmed) {
-            try {
-                const response = await fetch(
-                    `${API_LINK}/MasterPertanyaan/DeletePertanyaan`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(parameters),
-                });
-    
-                if (!response.ok) throw new Error("Gagal toggle status pertanyaan.");
-    
-                const result = await response.json();
-    
-                // Update status di frontend
-                setData((prevData) =>
-                    prevData.map((item) =>
-                        item.id === id ? { ...item, isDeleted: !item.isDeleted } : item
-                    )
-                );
-    
-                // Update filteredData agar hanya menampilkan data yang isDeleted = false
-                setFilteredData((prevFilteredData) =>
-                    prevFilteredData.map((item) =>
-                        item.id === id ? { ...item, isDeleted: !item.isDeleted } : item
-                    )
-                );
-    
-                Swal.fire("Berhasil", "Status pertanyaan berhasil di-toggle.", "success");
-    
-            } catch (err) {
-                console.error("Error:", err);
-                Swal.fire("Gagal", "Terjadi kesalahan saat toggle status.", "error");
             }
-        } else {
-            Swal.fire("Batal", "Toggle dibatalkan.", "info");
-        }
-    };    
-    
-    return (
-        <div className="d-flex flex-column min-vh-100">
-            <main className="flex-grow-1" style={{ marginTop: '80px' }}>
-                <div className="d-flex flex-column">
-                    <div className="mb-0" style={{ margin: isMobile ? "1rem" : "3rem" }}>
-                        <PageTitleNav
-                            title={title}
-                            breadcrumbs={breadcrumbs}
-                            onClick={() => navigate("/beranda")}
-                        />
-                    </div>
-                    <div className="p-3 mt-2 mb-0" style={{ marginLeft: '50px', margin: isMobile ? "1rem" : "3rem" }}>
-                    <div className="row" style={{ gap: "1rem" }}> {/* Menambahkan jarak antar elemen */}
-                        <div className="">
-                        </div>
-                        <Button iconName="add" classType="primary" label="Tambah Pertanyaan" onClick={() => onChangePage("add")} />
-                        <Button iconName="file-upload" classType="primary" label="Import Pertanyaan" onClick={handleOpenImportModal} />
-                        <Button iconName="file-download" classType="primary" label="Export Pertanyaan" onClick={handleExportQuestions} />
-                    </div>
-                    <input type="file" id="import-file" style={{ display: "none" }} onChange={handleImportQuestions} />
-                    <div className="row mt-5">
-                        <div className="col-lg-10 col-md-6">
-                            <SearchField />
-                        </div>
-                        <div className="col-lg-2 col-md-6">
-                            <Filter />
-                        </div>
-                    </div>
-                </div>
-                <div
-                className="table-container bg-white p-3 mt-0 rounded"
-                style={{ margin: isMobile ? "1rem" : "3rem" }}
-                >
-                <Table
-                    arrHeader={["No", "Pertanyaan", "Header", "Pertanyaan Umum"]}
-                    data={currentData.map((item, index) => ({
-                        Key: item.id, 
-                        No: indexOfFirstData + index + 1, // Pastikan `indexOfFirstData` sudah didefinisikan dengan benar
-                        Pertanyaan: item.question,
-                        Header: item.isHeader ? "Ya" : "Tidak",
-                        "Pertanyaan Umum": item.isGeneral ? "Ya" : "Tidak",
-                    }))}
-                    actions={() => ["Detail", "Edit", "Toggle"]}
-                    onDetail={(item) => onChangePage("detail", { state: { idPertanyaan: item.Key } })}
-                    onEdit={(item) => handleEdit(item.Key)} // Pastikan `item.Key` yang digunakan
-                    onToggle={(item) => handleToggle(item.Key)} // Pastikan `item.Key` yang digunakan
-                />
+          })
+          .filter(Boolean);
 
-                <Paging
-                    pageSize={pageSize}
-                    pageCurrent={pageCurrent}
-                    totalData={questions.length}
-                    navigation={handlePageNavigation}
-                />
-                </div>
-               </div>
-            </main>
-            {/* Import Modal */}
-            <Modal
-                ref={importModalRef}
-                title="Import Pertanyaan"
-                size="medium"
-                Button1={
-                    <Button
-                    classType="primary"
-                    label="Simpan"
-                    type="submit"
-                    style={{
-                        width: "200px",
-                        height: "40px",
-                        fontSize: "15px",
-                        margin: "10px 0", // Jarak antar tombol
-                    }}
-                    onClick={() => {
-                        if (file) {
-                        handleImportQuestions();
-                        }
-                    }}
-                    />
+        console.log("Parsed Data sebelum dikirim:", parsedData);
+      } catch (error) {
+        console.error("Error saat membaca file Excel:", error.message);
+      }
+    };
+
+    reader.onerror = (error) => {
+      console.error("Error membaca file:", error.message);
+    };
+
+    reader.readAsArrayBuffer(file);
+  };
+
+  const handlePageNavigation = (page) => {
+    const totalPage = Math.ceil(currentData.length / pageSize);
+    setPageCurrent(page > totalPage ? totalPage : page);
+  };
+
+  const handleOpenImportModal = () => {
+    importModalRef.current.open();
+  };
+
+  const handleSearchChange = (value) => {
+    setSearchQuery(value);
+  };
+
+  const handleToggle = async (id) => {
+    const parameters = { p1: id, p2: "Admin" };
+
+    // Konfirmasi dari SweetAlert
+    const confirm = await Swal.fire({
+      title: "Konfirmasi",
+      text: "Apakah Anda yakin ingin toggle status pertanyaan ini?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya",
+      cancelButtonText: "Batal",
+    });
+
+    if (confirm.isConfirmed) {
+      try {
+        // Kirim request ke API untuk melakukan toggle status pertanyaan
+        const response = await fetch(
+          `${API_LINK}/MasterPertanyaan/DeletePertanyaan`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(parameters),
+          }
+        );
+
+        if (!response.ok) throw new Error("Gagal toggle status pertanyaan.");
+
+        // Update status data di frontend tanpa me-refresh
+        setData((prevData) => {
+          if (!Array.isArray(prevData)) return []; // Validasi prevData adalah array
+
+          const updatedData = prevData.map((item) =>
+            item.pty_id === id
+              ? {
+                  ...item,
+                  Status:
+                    item.pty_status === "Tidak Aktif" ? "Aktif" : "Tidak Aktif", // Perbaikan status
                 }
-                Button2={
-                    <Button
-                    classType="danger"
-                    label="Batal"
-                    style={{
-                        width: "200px",
-                        height: "40px",
-                        fontSize: "15px",
-                        margin: "10px 0", // Jarak antar tombol
-                    }}
-                    onClick={() => {
-                        setFile(null);
-                        importModalRef.current.close();
-                    }}
+              : item
+          );
+          // Mengupdate filteredData agar hanya menampilkan data yang statusnya Aktif
+          setFilteredData(
+            updatedData.filter((item) => item.pty_status === "Aktif")
+          );
+          return updatedData;
+        });
+
+        Swal.fire(
+          "Berhasil",
+          "Status pertanyaan berhasil di-toggle.",
+          "success"
+        );
+        fetchData();
+      } catch (err) {
+        console.error("Error:", err);
+        Swal.fire("Gagal", "Terjadi kesalahan saat toggle status.", "error");
+      }
+    } else {
+      Swal.fire("Batal", "Toggle dibatalkan.", "info");
+    }
+  };
+
+  const arrHeader = ["No", "Kriteria Survei", "Pertanyaan", "Skala Penilaian"];
+  const actions = (row) => {
+    if (row.Status === "Aktif") return ["Toggle", "Detail", "Edit"];
+    return ["Toggle", "Detail", "Edit"];
+  };
+
+  //  const processedData = currentData.map((item) => ({
+  //    ...item,
+  //    Kriteria : item.Kriteria,
+  //    Pertanyaan : item.Pertanyaan,
+  //    Skala : item.Skala
+  //  }));
+
+  const processedData = currentData.map((item, index) => ({
+    ...item,
+    No: indexOfFirstData + index + 1,
+    "Kriteria Survei": item.kriteria_nama ?? "Tidak Ada", // Menggunakan nullish coalescing operator
+    Pertanyaan: item.pty_pertanyaan ?? "Tidak Ada",
+    "Skala Penilaian": item.skala_nama ?? "Tidak Ada",
+    Key: item.pty_id ?? "Tidak Ada",
+    Status: item.pty_status === "Aktif",
+  }));
+
+  return (
+    <div className="d-flex flex-column min-vh-100">
+      <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
+        <div className="d-flex flex-column">
+          <div className={isMobile ? "m-0 p-0" : "m-3 mb-0"}>
+            <PageTitleNav
+              title={title}
+              breadcrumbs={breadcrumbs}
+              onClick={() => navigate("/beranda")}
+            />
+          </div>
+          <div
+            className="p-3 mt-2 mb-0"
+            style={{ marginLeft: "50px", margin: isMobile ? "1rem" : "3rem" }}
+          >
+            <div className="row" style={{ gap: "1rem", marginLeft: "5px" }}>
+              <div className=""></div>
+              <Button
+                iconName="add"
+                classType="primary"
+                label="Tambah Pertanyaan"
+                onClick={() => onChangePage("add")}
+              />
+              <Button
+                iconName="file-upload"
+                classType="success"
+                label="Import Pertanyaan"
+                onClick={handleOpenImportModal}
+              />
+              <Button
+                iconName="file-download"
+                classType="success"
+                label="Export Pertanyaan"
+                onClick={handleExportQuestions}
+              />
+            </div>
+            <input
+              type="file"
+              id="import-file"
+              style={{ display: "none" }}
+              onChange={handleImportQuestions}
+            />
+            <div className="row mt-5">
+              <div className="col-lg-10 col-md-6">
+                <SearchField
+                  id="search"
+                  placeHolder="Cari sesuatu..."
+                  onChange={handleSearchChange}
+                  isDisabled={false} // Memastikan input menampilkan nilai terkini dari state
+                />
+              </div>
+              <div className="col-lg-2 col-md-7">
+                <div style={{ width: "350px" }}>
+                  <Filter>
+                    <DropDown
+                      ref={searchFilterSort}
+                      label="Urut Berdasarkan"
+                      type="none"
+                      arrData={dataFilterSort}
+                      onChange={(e) =>
+                        setCurrentFilter({
+                          ...currentFilter,
+                          p3: e.target.value,
+                        })
+                      }
                     />
-                }
-                >
-                <div
-                    className="form-group"
-                    style={{
-                    display: "flex",
-                    flexDirection: "column", // Atur elemen form secara vertikal
-                    // alignItems: "center", // Tengah horizontal
-                    // textAlign: "center", // Tengah teks dalam label
-                    gap: "10px", // Jarak antar elemen
-                    width: "100%", // Elemen form memenuhi modal
-                    }}
-                >
-                    <label>
-                    Silahkan unduh format template pertanyaan terlebih dahulu, <br />
-                    <a href="#" style={{ color: "blue", textDecoration: "underline" }}>
-                        Klik disini
-                    </a>
-                    </label>
-                    <label>
-                    <strong>
-                        Berkas Pertanyaan <span style={{ color: "red" }}>*</span>
-                    </strong>
-                    </label>
-                    <input
-                    type="file"
-                    onChange={handleFileChange}
-                    style={{
-                        width: "100%",
-                        padding: "10px",
-                        border: "2px solid ",
-                        borderRadius: "10px",
-                        marginTop: "5px",
-                    }}
-                    name="import-file"
-                    className="form-control"
+                    <DropDown
+                      ref={searchFilterStatus}
+                      label="Status"
+                      type="semua"
+                      arrData={dataFilterStatus}
+                      defaultValue=""
+                      onChange={(e) =>
+                        setCurrentFilter({
+                          ...currentFilter,
+                          p4: e.target.value,
+                        })
+                      }
                     />
+                  </Filter>
                 </div>
-            </Modal>
+              </div>
+            </div>
+          </div>
+          <div
+            className="table-container bg-white p-3 mt-0 rounded"
+            style={{ margin: isMobile ? "1rem" : "3rem" }}
+          >
+            <Table
+              arrHeader={arrHeader}
+              data={processedData}
+              actions={actions}
+              onDetail={(item) => {
+                onChangePage("detail", { idPertanyaan: item.Key });
+              }}
+              onEdit={(item) => {
+                onChangePage("edit", { idPertanyaan: item.Key });
+              }}
+              onToggle={(item) => handleToggle(item.Key)}
+            />
 
-            {/* ADD MODAL */}
-            <Modal
-                ref={addModalRef}
-                title="Tambah Pertanyaan Survei"
-                size="full"
-                Button1={<Button classType="primary" label="Simpan" onClick={handleAddQuestion} />}
-
-
-
-                Button2={<Button classType="secondary" label="Batal" onClick={() => addModalRef.current.close()} 
-                />}
-                
-            >
-                {/* Header Checkbox */}
-                <div>
-                    <label>Header</label>
-                    <input type="checkbox" checked={isHeader} onChange={handleCheckboxChange} />
-                </div>
-                <br />
-                
-              {/* Pertanyaan Umum */}
-                    <div>
-                        <label htmlFor="generalQuestion">Pertanyaan Umum *</label>
-                        <br />
-                        <select
-                            id="generalQuestion"
-                            value={generalQuestion}
-                            onChange={handleSelectChange}
-                            required
-                            style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                        >
-                            <option value="" disabled>Pilih salah satu</option>
-                            <option value="Ya">Ya</option>
-                            <option value="Tidak">Tidak</option>
-                        </select>
-                    </div>
-                    <br />
-
-                    {/* Input Pertanyaan */}
-                    <div>
-                        <TextField
-                            label="Pertanyaan"
-                            isRequired={true}
-                            value={questionText}
-                            onChange={(e) => setQuestionText(e.target.value)}
-                            placeholder="Masukkan Pertanyaan"
-                        />
-                    </div>
-                
-
-               {/* Kriteria dan Responden, tampil jika "Tidak" */}
-                {generalQuestion === "Tidak" && (
-                    <>
-                        <div>     
-                            <label htmlFor="surveyCriteria" style={{ fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>
-                                Kriteria Survei *
-                            </label>
-                            
-                            <select
-                                id="surveyCriteria"
-                                value={surveyCriteria}
-                                onChange={(e) => setSurveyCriteria(e.target.value)}
-                                required
-                                style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                            >
-                                <option value="" disabled>Pilih Kriteria</option>
-                                <option value="Kepuasan Dosen">Kepuasan Dosen</option>
-                                <option value="Kepuasan Tenaga Pendidik">Kepuasan Tenaga Pendidik</option>
-                            </select>
-                        </div>
-                        <br />
-
-                        <div>
-                            
-                            <label htmlFor="respondent" style={{ fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>
-                                Responden  *
-                            </label>
-                            
-                            <select
-                                id="respondent"
-                                value={respondent}
-                                onChange={(e) => setRespondent(e.target.value)}
-                                required
-                                style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                            >
-                                <option value="" disabled>Pilih Responden</option>
-                                <option value="Mahasiswa">Mahasiswa</option>
-                                <option value="Tenaga Pendidik">Tenaga Pendidik</option>
-                            </select>
-                        </div>
-                    </>
-                )}
-
-            </Modal>
-
-            {/* Update Modal */}
-            <Modal
-                ref={updateModalRef}
-                title="Update Pertanyaan"
-                size="full"
-                Button1={<Button classType="primary" label="Simpan" onClick={handleUpdateQuestion} />}
-                Button2={<Button classType="secondary" label="Batal" onClick={() => updateModalRef.current.close()} />}
-            >
-                {/* Header */}
-                <div>
-                    <label> Header </label>
-                    <input type="checkbox" checked={isHeader} onChange={handleCheckboxChange} />
-
-                </div>
-
-                {/* Pertanyaan Umum */}
-                <div>
-                    <label>Pertanyaan Umum</label>
-                    <select value={generalQuestion} onChange={handleSelectChange}>
-                        <option value="Ya">Ya</option>
-                        <option value="Tidak">Tidak</option>
-                    </select>
-                </div>
-                
-                {/* Kriteria dan Responden, tampil jika "Tidak" */}
-                {generalQuestion === "Tidak" && (
-                    <>
-                        <div>
-                            <label>Kriteria Survei</label>
-                            <select
-                                value={surveyCriteria}
-                                onChange={(e) => setSurveyCriteria(e.target.value)}
-                            >
-                                <option value="Kepuasan Dosen">Kepuasan Dosen</option>
-                                <option value="Kepuasan Tenaga Pendidik">Kepuasan Tenaga Pendidik</option>
-                            </select>
-                        </div>
-                    
-                        <div>
-                            <label>Responden</label>
-                            <select
-                                value={respondent}
-                                onChange={(e) => setRespondent(e.target.value)}
-                            >
-                                <option value="Mahasiswa">Mahasiswa</option>
-                                <option value="Tenaga Pendidik">Tenaga Pendidik</option>
-                            </select>
-                        </div>
-                    </>
-                )}
-                
-                <div>
-                    <label>Pertanyaan</label>
-                    <input
-                        type="text"
-                        value={formData.questionText}
-                        onChange={(e) => setFormData({ ...formData, questionText: e.target.value })}
-                        placeholder="Masukkan Pertanyaan"
-                    />
-                </div>
-            </Modal>
+            <Paging
+              pageSize={pageSize}
+              pageCurrent={pageCurrent}
+              totalData={currentData.length}
+              navigation={handlePageNavigation}
+            />
+          </div>
         </div>
-    );
+      </main>
+
+      {/* IMPORT MODAL */}
+      <Modal
+        ref={importModalRef}
+        title="Import Pertanyaan"
+        size="medium"
+        Button1={
+          <Button
+            classType="primary"
+            label="Simpan"
+            type="submit"
+            style={{
+              width: "200px",
+              height: "40px",
+              fontSize: "15px",
+              margin: "10px 0", // Jarak antar tombol
+            }}
+            onClick={handleImportQuestions}
+          />
+        }
+        Button2={
+          <Button
+            classType="danger"
+            label="Batal"
+            style={{
+              width: "200px",
+              height: "40px",
+              fontSize: "15px",
+              margin: "10px 0", // Jarak antar tombol
+            }}
+            onClick={() => {
+              setFile(null); // Reset file setelah batal
+              importModalRef.current.close(); // Menutup modal setelah batal
+            }}
+          />
+        }
+      >
+        <div
+          className="form-group"
+          style={{
+            display: "flex",
+            flexDirection: "column", // Atur elemen form secara vertikal
+            gap: "10px", // Jarak antar elemen
+            width: "100%", // Elemen form memenuhi modal
+          }}
+        >
+          <label>
+            Silahkan unduh format template pertanyaan terlebih dahulu, <br />
+            <a
+              style={{ color: "blue", textDecoration: "underline" }}
+              onClick={(e) => {
+                e.preventDefault(); // Mencegah navigasi default
+                const templateDokumen = "Template_Kuesioner.xlsx"; // Ganti dengan data dinamis Anda
+                const url = TEMPLATE_LINK + templateDokumen;
+
+                // Memanggil API
+                fetch(url, {
+                  method: "GET",
+                })
+                  .then((response) => {
+                    if (response.ok) {
+                      // Jika API berhasil, buka file di tab baru
+                      window.open(url, "_blank");
+                    } else {
+                      alert("Gagal mengunduh file.");
+                    }
+                  })
+                  .catch((error) => {
+                    console.error("Error:", error);
+                    alert("Terjadi kesalahan saat mengakses file.");
+                  });
+              }}
+            >
+              Klik disini
+            </a>
+          </label>
+          <label>
+            <strong>
+              Berkas Pertanyaan <span style={{ color: "red" }}>*</span>
+            </strong>
+          </label>
+          <input
+            type="file"
+            onChange={(e) => handleFileChange(e.target.files[0])}
+            style={{
+              width: "100%",
+              padding: "10px",
+              border: "2px solid ",
+              borderRadius: "10px",
+              marginTop: "5px",
+            }}
+            name="import-file"
+            className="form-control"
+          />
+        </div>
+      </Modal>
+    </div>
+  );
 }
