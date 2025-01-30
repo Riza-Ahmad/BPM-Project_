@@ -4,201 +4,195 @@ import TextField from "../../../part/TextField";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
 import Dropdown from "../../../part/Dropdown";
-import { API_LINK } from "../../../util/Constants";
-import SweetAlert from "../../../util/SweetAlert";
-import { useLocation, useNavigate } from "react-router-dom";
 
-export default function Edit({ onChangePage }) {
-  const title = "Edit Pertanyaan";
-  const breadcrumbs = [
-    { label: "Pertanyaan", href: "/survei/pertanyaan" },
-    { label: "Edit Pertanyaan" },
-  ];
+export default function Edit({ onChangePage, questionData }) {
 
-  const location = useLocation();
-  const navigate = useNavigate();
+    const [formData, setFormData] = useState({
+        pertanyaanUmum: "",
+        pertanyaan: "",
+        kriteriaSurvei: "",
+        responden: "",
+    });
 
-  const [pertanyaanId, setPertanyaanId] = useState("");
-  const [pertanyaan, setPertanyaan] = useState("");
-  const [kriteriaSurvei, setKriteriaSurvei] = useState([]);
-  const [selectedKriteriaSurvei, setSelectedKriteriaSurvei] = useState("");
-  const [skalaPenilaian, setSkalaPenilaian] = useState([]);
-  const [selectedSkalaPenilaian, setSelectedSkalaPenilaian] = useState("");
-  const [status, setStatus] = useState(1);
-  const [createdBy, setCreatedBy] = useState("");
+    const [isPertanyaanUmumYes, setPertanyaanUmumYes] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(
-          `${API_LINK}/MasterPertanyaan/GetPertanyaanById`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ id: location.state.idPertanyaan }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        const data = result[0];
-
-        setPertanyaanId(data.pty_id);
-        setPertanyaan(data.pty_pertanyaan);
-        setStatus(data.pty_status);
-        setCreatedBy(data.pty_created_by);
-        setSelectedKriteriaSurvei(data.ksr_id);
-        setSelectedSkalaPenilaian(data.skp_id);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
+    const handlePertanyaanUmumChange = (value) => {
+        setFormData((prev) => ({ ...prev, pertanyaanUmum: value }));
+        setPertanyaanUmumYes(value === "Ya");
     };
 
-    const fetchDropdownData = async () => {
-      try {
-        const [kriteriaResponse, skalaResponse] = await Promise.all([
-          fetch(`${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({}),
-          }),
-          fetch(`${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({}),
-          }),
-        ]);
-
-        if (!kriteriaResponse.ok || !skalaResponse.ok) {
-          throw new Error("Failed to fetch dropdown data");
-        }
-
-        const kriteriaData = await kriteriaResponse.json();
-        const skalaData = await skalaResponse.json();
-
-        setKriteriaSurvei(
-          kriteriaData.map((item) => ({
-            Value: item.ksr_id,
-            Text: item.ksr_nama,
-          }))
-        );
-        setSkalaPenilaian(
-          skalaData.map((item) => ({ Value: item.skp_id, Text: item.skp_tipe }))
-        );
-      } catch (error) {
-        console.error("Error fetching dropdown data:", error);
-      }
+    const handleInputChange = (field, value) => {
+        setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
-    fetchData();
-    fetchDropdownData();
-  }, [location.state.idPertanyaan]);
+    // useEffect(() => {
+    //     if (location.State?.editData) {
+    //         const editID = location.state.editData;
+    //         const selectedData = data.find((item) => item.key == editID);
+    //         if (selectedData) {
+    //             setFormData({
+    //                 pertanyaanUmum: selectedData.pertanyaanUmum,
+    //                 pertanyaan: selectedData.pertanyaan,
+    //                 kriteriaSurvei: selectedData.kriteriaSurvei,
+    //                 responden: selectedData.responden,
+    //             });
+    //         }
+    //      }
+    //  }, [location.state, data]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    const handleSubmit = (e) => {
+        const { name, value } = e.target;
+        setFormData((prevFormData) => ({ ...prevFormData, [name]: value }));
 
-    const data = {
-      pertanyaanId,
-      pertanyaan,
-      status,
-      createdBy,
-      selectedKriteriaSurvei,
-      selectedSkalaPenilaian,
     };
 
-    const confirm = await SweetAlert(
-      "Konfirmasi",
-      "Apakah Anda yakin ingin menyimpan perubahan?",
-      "warning",
-      "Ya",
-      null,
-      "",
-      true
+    return (
+        <div className="d-flex flex-column min-vh-100">
+            <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
+                <div className="d-flex flex-column">
+                <div className="m-3 mb-0">
+                    <PageTitleNav
+                    title="Edit Pertanyaan "
+                    breadcrumbs={[
+                        { label: "Daftar Pertanyaan", href: "/survei/pertanyaan" },
+                        {
+                        label: "Edit Pertanyaan",
+                        href: "/survei/pertanyaan/edit",
+                        },
+                    ]}
+                    onClick={() => onChangePage("index")}
+                    />
+                </div>
+
+                    <div className="shadow p-5 m-5 mt-0 bg-white rounded">
+                        <HeaderForm label="Formulir Edit Pertanyaan" />
+{/* 
+                        <div className="row">
+                        <Dropdown
+                            label="Pertanyaan Umum"
+                            isRequired={true}
+                            arrData={[
+                            { Text: "Tidak", Value: "Tidak" },
+                            { Text: "Ya", Value: "Ya" },
+                            ]}
+                            value={formData.pertanyaanUmum}
+                            onChange={(e) => handlePertanyaanUmumChange(e.target.value)}
+                        />
+                        </div> */}
+
+                        <div className="row">
+                            <label style={{ fontWeight: "bold" }}>
+                                Pertanyaan Umum <span style={{ color: "red" }}>*</span>
+                            </label>
+                                <div className="custom-radio-dropdown">
+                                    <div className="radio-item">
+                                        <input
+                                            type="radio"    
+                                            id="tidak"
+                                            name="pertanyaanUmum"
+                                            value="Tidak"
+                                            required
+                                            onChange={(e) => handlePertanyaanUmumChange(e.target.value)}
+                                        />
+                                        <label htmlFor="tidak">Tidak</label>
+                                    </div>
+                                    <div className="radio-item">
+                                        <input
+                                            type="radio"
+                                            id="ya"
+                                            name="pertanyaanUmum"
+                                            value="Ya"
+                                            required
+                                            onChange={(e) => handlePertanyaanUmumChange(e.target.value)}
+                                        />
+                                        <label htmlFor="ya">Ya</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <br/>
+
+                        <div className="row">
+                        <div className="col-lg-12 col-md-6">
+                            <TextField
+                            label="Pertanyaan"
+                            isRequired={true}
+                            value={formData.pertanyaan}
+                            onChange={(e) =>
+                                handleInputChange("pertanyaan", e.target.value)
+                            }
+                            />
+                        </div>
+
+                        <div className="col-lg-12 col-md-6">
+                            <Dropdown
+                            label="Kriteria Survei"
+                            isRequired={true}
+                            arrData={[
+                                { Text: "Kepuasan Dosen", Value: "Kepuasan Dosen" },
+                                { Text: "Kepuasan Tenaga Pendidik", Value: "Kepuasan Tenaga Pendidik" },
+                            ]}
+                            value={formData.kriteriaSurvei}
+                            disabled={isPertanyaanUmumYes}
+                            onChange={(e) =>
+                                handleInputChange("kriteriaSurvei", e.target.value)
+                            }
+                            />
+                        </div>
+
+                        <div className="col-lg-12 col-md-6">
+                            <Dropdown
+                            label="Skala Penilaian"
+                            isRequired={true}
+                            arrData={[
+                                { Text: " Radio Button (Cukup, Kurang, Baik, Sangat Baik)", Value: "001" },
+                                { Text: " Text Area", Value: "002" },
+                            ]}
+                            value={formData.kriteriaSurvei}
+                            disabled={isPertanyaanUmumYes}
+                            onChange={(e) =>
+                                handleInputChange("kriteriaSurvei", e.target.value)
+                            }
+                            />
+                        </div>
+
+                        <div className="col-lg-12 col-md-6">
+                            <Dropdown
+                            label="Responden"
+                            isRequired={true}
+                            arrData={[
+                                { Text: "Mahasiswa", Value: "Mahasiswa" },
+                                { Text: "Dosen", Value: "Dosen" },
+                            ]}
+                            value={formData.responden}
+                            disabled={isPertanyaanUmumYes}
+                            onChange={(e) => handleInputChange("responden", e.target.value)}
+                            />
+                        </div>
+                        </div>
+
+                        <div className="d-flex justify-content-between align-items-center mt-4">
+                        <div className="flex-grow-1 m-2">
+                            <Button
+                            classType="primary"
+                            type="button"
+                            label="Simpan"
+                            width="100%"
+                            onClick={handleSubmit}
+                            />
+                        </div>
+                        <div className="flex-grow-1 m-2">
+                            <Button
+                            classType="danger"
+                            type="button"
+                            label="Batal"
+                            width="100%"
+                            onClick={() => onChangePage("index")}
+                            />
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
     );
-
-    if (!confirm) return;
-
-    try {
-      const response = await fetch(
-        `${API_LINK}/MasterPertanyaan/editPertanyaan`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
-      await SweetAlert("Berhasil", "Data berhasil diperbarui!", "success");
-      onChangePage("index");
-    } catch (error) {
-      console.error("Error updating data:", error);
-      await SweetAlert("Error", `Terjadi kesalahan: ${error.message}`, "error");
-    }
-  };
-
-  return (
-    <div className="d-flex flex-column min-vh-100">
-      <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
-        <div className="m-3">
-          <PageTitleNav
-            title={title}
-            breadcrumbs={breadcrumbs}
-            onClick={() => onChangePage("index")}
-          />
-        </div>
-
-        <div className="shadow p-5 m-5 mt-0 bg-white rounded">
-          <HeaderForm label="Edit Pertanyaan" />
-          <form onSubmit={handleSubmit}>
-            <TextField
-              label="Pertanyaan"
-              value={pertanyaan}
-              onChange={(e) => setPertanyaan(e.target.value)}
-              isRequired={true}
-            />
-            <Dropdown
-              arrData={kriteriaSurvei}
-              label="Kriteria Survei"
-              value={selectedKriteriaSurvei}
-              onChange={(e) => setSelectedKriteriaSurvei(e.target.value)}
-            />
-            <Dropdown
-              arrData={skalaPenilaian}
-              label="Skala Penilaian"
-              value={selectedSkalaPenilaian}
-              onChange={(e) => setSelectedSkalaPenilaian(e.target.value)}
-            />
-            {/* Button Submit and Cancel */}
-            <div className="row mt-3">
-              <div className="col-md-6 text-center">
-                <Button
-                  classType="primary"
-                  type="submit"
-                  label="Simpan"
-                  width="100%"
-                />
-              </div>
-              <div className="col-md-6 text-center">
-                <Button
-                  classType="danger"
-                  type="button"
-                  label="Batal"
-                  width="100%"
-                />
-              </div>
-            </div>
-          </form>
-        </div>
-      </main>
-    </div>
-  );
 }

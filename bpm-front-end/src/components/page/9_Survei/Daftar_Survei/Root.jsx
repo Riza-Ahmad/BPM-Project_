@@ -1,28 +1,37 @@
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import Index from './Index';
-import ScrollToTop from '../../../part/ScrollToTop';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useNavigate,
+} from "react-router-dom";
+import Index from "./Index";
+import Add from "./Add";
+import ScrollToTop from "../../../part/ScrollToTop";
 
-export default function Daftar_Survei(){
-    const navigate = useNavigate();
+export default function Daftar_Survei() {
+  const navigate = useNavigate();
 
-    const handlePageChange = (page, withState = {}) => {
-        switch (page) {
-            case "index":
-                navigate("/survei/daftar");
-                break;
-            default:
-                console.warn(`Halaman "${page}" tidak dikenali.`);
-                break;
-        }
-    };
+  const handlePageChange = (page, withState = {}) => {
+    switch (page) {
+      case "index":
+        navigate("/survei/daftar");
+        break;
+      case "add":
+        navigate("/survei/daftar/add");
+        break;
+      default:
+        console.warn(`Halaman "${page}" tidak dikenali.`);
+        break;
+    }
+  };
 
-    return(
-        <>
-            <ScrollToTop/>
-            <Routes>
-                <Route path="/survei/daftar" element={<Index onChangePage={handlePageChange}/>}/>
-                           
-            </Routes>
-        </>
-    )
+  return (
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
+        <Route path="/add" element={<Add onChangePage={handlePageChange} />} />
+      </Routes>
+    </>
+  );
 }

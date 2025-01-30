@@ -23,28 +23,13 @@ export default function Skala_Survei() {
         navigate("/survei/skala/add");
         break;
       case "edit":
-        const { id } = withState; // Ensure that id is passed for editing
+        const { id } = withState; // Pastikan data id diterima
         if (id) {
-          navigate(`/survei/skala/edit/${id}`, { state: { editData: id } }); // Pass id to the edit route
+          navigate(`/survei/skala/edit/${key}`, { state: { editData: id } }); // Tambahkan `state`
         } else {
           Swal.fire(
             "Error",
             "ID tidak valid atau tidak ditemukan untuk edit.",
-            "error"
-          );
-        }
-        break;
-
-      case "detail":
-        const { detailId } = withState; // For detail page, ensure that detailId is passed
-        if (detailId) {
-          navigate(`/survei/skala/detail/${detailId}`, {
-            state: { detailData: detailId },
-          }); // Pass detailId to the detail route
-        } else {
-          Swal.fire(
-            "Error",
-            "ID tidak valid atau tidak ditemukan untuk detail.",
             "error"
           );
         }
@@ -67,15 +52,7 @@ export default function Skala_Survei() {
           element={<Edit onChangePage={handlePageChange} />}
         />
         <Route
-          path="detail/:detailId"
-          element={<Detail onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="edit/:key"
-          element={<Edit onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="detail/:detailId"
+          path="detail"
           element={<Detail onChangePage={handlePageChange} />}
         />
       </Routes>

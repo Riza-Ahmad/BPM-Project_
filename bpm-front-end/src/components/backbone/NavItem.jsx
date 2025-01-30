@@ -106,14 +106,14 @@ export default function NavItem() {
         {menuItems.map((menu) => (
           <li
             key={menu.idMenu}
-            className={`nav-item ${menu.children.length > 0 ? "dropdown" : ""}`}
-          >
+            className={`nav-item ${
+              menu.children.length > 0 ? "dropdown" : ""
+            }`}>
             {menu.children.length > 0 ? (
               <>
                 <button
                   className="nav-link dropdown-toggle"
-                  onClick={() => toggleDropdown(menu.idMenu)}
-                >
+                  onClick={() => toggleDropdown(menu.idMenu)}>
                   {menu.namaMenu}
                 </button>
                 {openDropdown === menu.idMenu && (
@@ -123,16 +123,14 @@ export default function NavItem() {
                         key={child.idMenu}
                         className={
                           child.children.length > 0 ? "dropdown-submenu" : ""
-                        }
-                      >
+                        }>
                         {child.children.length > 0 ? (
                           <button
                             className="dropdown-item dropdown-toggle"
                             onClick={(e) => {
                               e.stopPropagation();
                               toggleSubmenu(child.idMenu);
-                            }}
-                          >
+                            }}>
                             {child.namaMenu}
                           </button>
                         ) : (
@@ -140,8 +138,7 @@ export default function NavItem() {
                             className="dropdown-item"
                             onClick={() =>
                               handleNavigation(child.linkMenu, child.idMenu)
-                            }
-                          >
+                            }>
                             {child.namaMenu}
                           </button>
                         )}
@@ -156,8 +153,7 @@ export default function NavItem() {
                                       grandchild.linkMenu,
                                       grandchild.idMenu
                                     )
-                                  }
-                                >
+                                  }>
                                   {grandchild.namaMenu}
                                 </button>
                               </li>
@@ -172,8 +168,7 @@ export default function NavItem() {
             ) : (
               <button
                 className="nav-link"
-                onClick={() => handleNavigation(menu.linkMenu, menu.idMenu)}
-              >
+                onClick={() => handleNavigation(menu.linkMenu, menu.idMenu)}>
                 {menu.namaMenu}
               </button>
             )}
@@ -183,8 +178,7 @@ export default function NavItem() {
           {isLoggedIn ? (
             <button
               className="btn bg-white"
-              onClick={() => handleNavigation("/profile", null)}
-            >
+              onClick={() => handleNavigation("/profile", null)}>
               <img
                 src="https://cdn-icons-png.flaticon.com/512/1077/1077012.png"
                 alt="User Icon"
@@ -196,16 +190,14 @@ export default function NavItem() {
                   fontSize: "0.8rem",
                   marginTop: "0.6rem",
                   marginRight: "1rem",
-                }}
-              >
+                }}>
                 {jumlahNotifikasi}
               </span>
             </button>
           ) : (
             <button
               className="btn bg-white"
-              onClick={() => handleNavigation("/login", null)}
-            >
+              onClick={() => handleNavigation("/login", null)}>
               Masuk
             </button>
           )}

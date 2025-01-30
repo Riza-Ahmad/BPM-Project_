@@ -190,6 +190,7 @@ function Add() {
                     value={selectedKriteria}
                     onChange={(e) => setSelectedKriteria(e.target.value)}
                     isRequired={true}
+                    style={{ marginBottom: isMobile ? "1rem" : "2rem" }}
                   />
                 )}
                 {loadingSkala ? (
