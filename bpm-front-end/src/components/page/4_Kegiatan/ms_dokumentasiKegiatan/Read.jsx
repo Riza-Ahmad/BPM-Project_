@@ -11,8 +11,8 @@ import { API_LINK } from "../../../util/Constants";
 import Loading from "../../../part/Loading";
 import { useIsMobile } from "../../../util/useIsMobile";
 import SweetAlert from "../../../util/SweetAlert";
-import moment from "moment";
 import "moment-timezone";
+import { decodeHtml } from "../../../util/DecodeHtml";
 
 export default function Read({ onChangePage }) {
   const isMobile = useIsMobile();
@@ -22,7 +22,7 @@ export default function Read({ onChangePage }) {
     { label: "Kelola Dokumentasi Kegiatan" },
   ];
 
-  const [events, setEvents] = useState([]);
+  const [totalData, setTotalData] = useState(0);
   const [filteredData, setFilteredData] = useState([]);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
@@ -65,38 +65,28 @@ export default function Read({ onChangePage }) {
 
   useEffect(() => {
     const fetchEvents = async () => {
+      setLoading(true);
       try {
         const data = await useFetch(
-          `${API_LINK}/MasterKegiatan/GetDataKegiatanByCategory`,
-          { kategori: 3 },
+          `${API_LINK}/MasterKegiatan/GetDataKegiatanPage`,
+          {
+            search: searchKeyword,
+            year: selectedYear,
+            status: selectedStatus,
+            jenis: selectedJenis,
+            size: pageSize,
+            page: pageCurrent,
+            kategori: "Terlaksana",
+          },
           "POST"
         );
 
+        if (data.length > 0 && data[0].TotalCount !== undefined) {
+          setTotalData(data[0].TotalCount); // Set hanya sekali
+        }
+
         if (data) {
-          const formattedEvents = data.map((item) => {
-            const startDate = moment(item.tglMulaiKegiatan).format(
-              "YYYY-MM-DD"
-            );
-            const endDate = moment(item.tglSelesaiKegiatan).format(
-              "YYYY-MM-DD"
-            );
-
-            return {
-              id: item.idKegiatan,
-              title: item.namaKegiatan,
-              description: item.deskripsiKegiatan,
-              category: item.kategoriKegiatan,
-              start: moment(`${startDate}T${item.jamMulaiKegiatan}`).toDate(),
-              end: moment(`${endDate}T${item.jamSelesaiKegiatan}`).toDate(),
-              location: item.tempatKegiatan,
-              year: new Date(item.tglMulaiKegiatan).getFullYear(),
-              idJenisKegiatan: item.idJenisKegiatan,
-              jenisKegiatan: item.namaJenisKegiatan,
-            };
-          });
-
-          setEvents(formattedEvents);
-          setFilteredData(formattedEvents);
+          setFilteredData(data);
         }
       } catch (error) {
         setError("Gagal mengambil data kegiatan");
@@ -107,39 +97,11 @@ export default function Read({ onChangePage }) {
     };
 
     fetchEvents();
-  }, []);
-
-  useEffect(() => {
-    let tempData = events;
-
-    if (searchKeyword) {
-      tempData = tempData.filter((item) =>
-        item.title.toLowerCase().includes(searchKeyword.toLowerCase())
-      );
-    }
-
-    if (selectedYear) {
-      tempData = tempData.filter(
-        (item) => new Date(item.start).getFullYear() === parseInt(selectedYear)
-      );
-    }
-
-    if (selectedStatus) {
-      tempData = tempData.filter((item) => item.category === selectedStatus);
-    }
-
-    if (selectedJenis) {
-      tempData = tempData.filter(
-        (item) => item.idJenisKegiatan === parseInt(selectedJenis)
-      );
-    }
-
-    setFilteredData(tempData);
-  }, [searchKeyword, selectedJenis, selectedYear, selectedStatus, events]);
+  }, [searchKeyword, selectedJenis, selectedYear, selectedStatus, pageCurrent]);
 
   const indexOfLastData = pageCurrent * pageSize;
   const indexOfFirstData = indexOfLastData - pageSize;
-  const currentData = filteredData.slice(indexOfFirstData, indexOfLastData);
+  const currentData = filteredData;
 
   const handlePageNavigation = (page) => {
     setPageCurrent(page);
@@ -175,7 +137,9 @@ export default function Read({ onChangePage }) {
 
         SweetAlert("Berhasil", "Data Berhasil Dihapus", "success");
 
-        setEvents((prevData) => prevData.filter((item) => item.id !== id));
+        setFilteredData((prevData) =>
+          prevData.filter((item) => item.id !== id)
+        );
       } catch (err) {
         console.error(err);
         SweetAlert(
@@ -187,7 +151,6 @@ export default function Read({ onChangePage }) {
     }
   };
 
-  if (loading) return <Loading />;
   if (error) return <p>{error}</p>;
 
   return (
@@ -289,46 +252,55 @@ export default function Read({ onChangePage }) {
               </div>
             </div>
 
-            <Table
-              arrHeader={[
-                "No",
-                "Nama Kegiatan",
-                "Tanggal Mulai",
-                "Jenis Kegiatan",
-                "Tempat",
-              ]}
-              data={currentData.map((item, index) => ({
-                Key: item.id,
-                No: indexOfFirstData + index + 1,
-                "Nama Kegiatan": item.title,
-                "Tanggal Mulai": new Date(item.start).toLocaleDateString(
-                  "id-ID",
-                  {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
+            {loading ? (
+              <Loading />
+            ) : (
+              <div>
+                <Table
+                  arrHeader={[
+                    "No",
+                    "Nama Kegiatan",
+                    "Tanggal Mulai",
+                    "Jenis Kegiatan",
+                    "Tempat",
+                  ]}
+                  data={currentData.map((item, index) => ({
+                    Key: item.idKegiatan,
+                    No: indexOfFirstData + index + 1,
+                    "Nama Kegiatan": (
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: decodeHtml(item.namaKegiatan || ""),
+                        }}
+                      />
+                    ),
+                    "Tanggal Mulai": new Date(
+                      item.tglMulaiKegiatan
+                    ).toLocaleDateString("id-ID", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    }),
+                    "Jenis Kegiatan": item.namaJenisKegiatan,
+                    Tempat: item.tempatKegiatan,
+                  }))}
+                  actions={["Detail", "Edit", "Delete"]}
+                  onEdit={(item) => onChangePage("edit", { idData: item.Key })}
+                  onDetail={(item) =>
+                    onChangePage("detail", { idData: item.Key })
                   }
-                ),
-                "Jenis Kegiatan": item.jenisKegiatan,
-                Tempat: item.location,
-              }))}
-              actions={["Detail", "Edit", "Delete"]}
-              onEdit={(item) =>
-                onChangePage("edit", { state: { idData: item.Key } })
-              }
-              onDetail={(item) =>
-                onChangePage("detail", { state: { idData: item.Key } })
-              }
-              onDelete={(item) => handleDelete(item.Key)}
-            />
+                  onDelete={(item) => handleDelete(item.Key)}
+                />
 
-            <Paging
-              pageSize={pageSize}
-              pageCurrent={pageCurrent}
-              totalData={filteredData.length}
-              navigation={handlePageNavigation}
-            />
+                <Paging
+                  pageSize={pageSize}
+                  pageCurrent={pageCurrent}
+                  totalData={totalData}
+                  navigation={handlePageNavigation}
+                />
+              </div>
+            )}
           </div>
         </div>
       </main>

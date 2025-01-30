@@ -301,7 +301,7 @@ export default function Index({ onChangePage }) {
               <div className="col-lg-6 col-md-6">
                 <div className="mb-3">
                   <label className="form-label fw-bold mb-0">
-                    Tahun Kadaluarsa
+                    Tahun Kadaluwarsa
                   </label>
                   <br />
                   <p>2022/2023</p>

@@ -10,6 +10,7 @@ import SweetAlert from "../../util/SweetAlert";
 import { useIsMobile } from "../../util/useIsMobile";
 import { useFetch } from "../../util/useFetch";
 import { useLocation } from "react-router-dom";
+import { decodeHtml } from "../../util/DecodeHtml";
 
 export default function Add({ onChangePage }) {
   const title = "Tambah Berita";
@@ -25,7 +26,7 @@ export default function Add({ onChangePage }) {
     judul: location.state?.judul ? location.state.judul : "",
     penulis: "",
     tanggal: "",
-    isi: location.state?.deskripsi ? location.state.deskripsi : "",
+    isi: location.state?.deskripsi ? decodeHtml(location.state.deskripsi) : "",
     fotoList: [],
   });
 
@@ -125,11 +126,14 @@ export default function Add({ onChangePage }) {
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          <PageTitleNav
-            title={title}
-            breadcrumbs={breadcrumbs}
-            onClick={() => onChangePage("read")}
-          />
+          <div className={isMobile ? "m-0 p-0" : "m-3 mb-0"}>
+            <PageTitleNav
+              title={title}
+              breadcrumbs={breadcrumbs}
+              onClick={() => onChangePage("read")}
+            />
+          </div>
+
           <div className={isMobile ? "m-0" : "m-3"}>
             <div
               className={
@@ -175,6 +179,7 @@ export default function Add({ onChangePage }) {
                     isRequired={true}
                     name="tanggal"
                     type="date"
+                    max={new Date().toISOString().split("T")[0]}
                   />
                 </div>
               </div>

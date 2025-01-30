@@ -17,6 +17,8 @@ import FileUpload from "../../../part/FileUpload";
 import { uploadFile } from "../../../util/UploadFile";
 import SweetAlert from "../../../util/SweetAlert";
 import { useFetch } from "../../../util/useFetch";
+import { useLocation } from "react-router-dom";
+import { decodeHtml } from "../../../util/DecodeHtml";
 
 export default function AddExisting({ onChangePage }) {
   const title = "Tambah Dokumentasi Kegiatan";
@@ -36,7 +38,7 @@ export default function AddExisting({ onChangePage }) {
 
   const [formData, setFormData] = useState({
     id: "",
-    statusFileNotulen: 0,
+    statusFileNotulen: "Privat",
   });
 
   const [tempForm, settempForm] = useState({
@@ -50,6 +52,15 @@ export default function AddExisting({ onChangePage }) {
   });
 
   const [existingKegiatan, setExistingKegiatan] = useState([]);
+  const location = useLocation();
+
+  useEffect(() => {
+    const idData = location.state?.idData;
+
+    if (idData && existingKegiatan.length > 0) {
+      handleDropdownChange({ target: { value: idData } });
+    }
+  }, [location.state?.idData, existingKegiatan]); // Tambahkan existingKegiatan sebagai dependency
 
   const namaRef = useRef();
   const folderLinkRef = useRef();
@@ -62,13 +73,13 @@ export default function AddExisting({ onChangePage }) {
       try {
         const data = await useFetch(
           `${API_LINK}/MasterKegiatan/GetDataKegiatanByCategory`,
-          { kategori: 2 },
+          { kategori: "Terlewat" },
           "POST"
         );
         const formattedData = data.map((item) => ({
           Value: item.idKegiatan,
-          Text: item.namaKegiatan,
-          deskripsiJenisKegiatan: item.deskripsiKegiatan,
+          Text: decodeHtml(item.namaKegiatan),
+          deskripsiJenisKegiatan: decodeHtml(item.deskripsiKegiatan),
           tglMulaiKegiatan: item.tglMulaiKegiatan,
           tglSelesaiKegiatan: item.tglSelesaiKegiatan,
           jamMulaiKegiatan: item.jamMulaiKegiatan,
@@ -89,7 +100,6 @@ export default function AddExisting({ onChangePage }) {
   }, []);
 
   const handleDropdownChange = (e) => {
-    console.log(existingKegiatan);
     const selectedId = e.target.value;
     const selectedData = existingKegiatan.find(
       (item) => item.Value === Number(selectedId)
@@ -142,83 +152,87 @@ export default function AddExisting({ onChangePage }) {
   };
 
   const handleSubmit = async () => {
-    if (!namaRef.current?.validate()) {
-      namaRef.current?.focus();
-      return;
-    }
+    try {
+      // Form validation checks
+      if (!namaRef.current?.validate()) {
+        namaRef.current?.focus();
+        return;
+      }
 
-    if (!folderLinkRef.current?.validate()) {
-      folderLinkRef.current?.focus();
-      return;
-    }
+      if (!folderLinkRef.current?.validate()) {
+        folderLinkRef.current?.focus();
+        return;
+      }
 
-    if (!fotoSampulRef.current?.validate()) {
-      fotoSampulRef.current?.focus();
+      if (!fotoSampulRef.current?.validate()) {
+        fotoSampulRef.current?.focus();
+        return;
+      }
 
-      return;
-    }
+      if (!fileNotulenRef.current?.validate()) {
+        fileNotulenRef.current?.focus();
+        return;
+      }
 
-    if (!fileNotulenRef.current?.validate()) {
-      fileNotulenRef.current?.focus();
-      return;
-    }
+      let uploadedFileNotulen = formData.fileNotulen;
+      let uploadedFotoSampul = formData.fotoSampul;
 
-    let uploadedFileNotulen = formData.fileNotulen;
-    let uploadedFotoSampul = formData.fotoSampul;
+      // File upload logic
+      if (selectedFile) {
+        const folderName = "Kegiatan";
+        const filePrefix = "NOTULEN_" + formData.name;
+        uploadedFileNotulen = await uploadFile(
+          selectedFile,
+          folderName,
+          filePrefix
+        );
+      }
 
-    if (selectedFile) {
-      const folderName = "Kegiatan";
-      const filePrefix = "NOTULEN";
-      uploadedFileNotulen = await uploadFile(
-        selectedFile,
-        folderName,
-        filePrefix
-      );
-    }
+      if (selectedFoto) {
+        const folderName = "Kegiatan";
+        const filePrefix = "FOTO_SAMPUL_" + formData.name;
+        uploadedFotoSampul = await uploadFile(
+          selectedFoto,
+          folderName,
+          filePrefix
+        );
+      }
 
-    if (selectedFoto) {
-      const folderName = "Kegiatan";
-      const filePrefix = "FOTO";
-      uploadedFotoSampul = await uploadFile(
-        selectedFoto,
-        folderName,
-        filePrefix
-      );
-    }
-
-    setFormData((prevData) => {
+      // Prepare the new form data without setFormData
       const newFormData = {
-        ...prevData,
-        fileNotulen: uploadedFileNotulen[0],
-        fotoSampul: uploadedFotoSampul[0],
+        ...formData,
+        fileNotulen: uploadedFileNotulen ? uploadedFileNotulen[0] : null,
+        fotoSampul: uploadedFotoSampul ? uploadedFotoSampul[0] : null,
       };
 
+      // Set loading state and make API request
       setLoading(true);
-      useFetch(
+      const response = await useFetch(
         `${API_LINK}/MasterKegiatan/EditDokumentasiKegiatan`,
         newFormData,
         "POST"
-      )
-        .then((response) => {
-          if (response === "ERROR") {
-            throw new Error("Gagal memperbarui data");
-          }
-          SweetAlert(
-            "Berhasil!",
-            "Dokumentasi kegiatan berhasil dibuat.",
-            "success",
-            "OK"
-          ).then(() => onChangePage("read"));
-        })
-        .catch((error) => {
-          SweetAlert("Gagal!", error.message, "error", "OK");
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+      );
 
-      return newFormData;
-    });
+      if (response === "ERROR") {
+        throw new Error("Gagal memperbarui data");
+      }
+
+      SweetAlert(
+        "Berhasil!",
+        "Dokumentasi kegiatan berhasil ditambahkan.",
+        "success",
+        "OK"
+      ).then(() => onChangePage("read"));
+    } catch (error) {
+      SweetAlert(
+        "Gagal!",
+        error.message || "An unexpected error occurred.",
+        "error",
+        "OK"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) return <Loading />;
@@ -297,10 +311,10 @@ export default function AddExisting({ onChangePage }) {
                   label="Sifat File Notulensi"
                   name="options"
                   arrData={[
-                    { Value: 0, Text: "Privat" },
-                    { Value: 1, Text: "Publik" },
+                    { Value: "Privat", Text: "Privat" },
+                    { Value: "Publik", Text: "Publik" },
                   ]}
-                  value={Number(formData.statusFileNotulen) || 0}
+                  value={formData.statusFileNotulen || "Privat"}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,

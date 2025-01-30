@@ -10,26 +10,56 @@ import Loading from "../../../part/Loading";
 import "moment-timezone";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { useFetch } from "../../../util/useFetch";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { decodeHtml } from "../../../util/DecodeHtml";
 const localizer = momentLocalizer(moment);
+import Cookies from "js-cookie";
 
 export default function Index({ onChangePage }) {
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!location.state?.idData) return;
+
+    const event = events.find((e) => e.id === location.state.idData);
+    if (event) {
+      setSelectedEvent(event);
+    }
+  }, [location.state?.idData, events]);
 
   const fetchEvents = async () => {
+    const activeUser = Cookies.get("activeUser");
+
+    if (activeUser) {
+      const parsedUser = JSON.parse(activeUser);
+      if (parsedUser.RoleID.trim() === "ROL01") {
+        setIsLoggedIn(true);
+      } else {
+        setIsLoggedIn(false);
+      }
+    } else {
+      setIsLoggedIn(false);
+    }
+
     try {
       const data = await useFetch(
         `${API_LINK}/MasterKegiatan/GetDataKegiatan`,
-        JSON.stringify({}),
+        {
+          p1: "",
+          p2: "",
+          p3: "",
+          p4: "",
+        },
         "POST"
       );
 
-      if (!data || !Array.isArray(data)) {
+      if (data === "ERROR" || !Array.isArray(data)) {
         throw new Error("Invalid data format or no data returned");
       }
 
@@ -39,7 +69,7 @@ export default function Index({ onChangePage }) {
 
         return {
           id: item.idKegiatan,
-          title: item.namaKegiatan,
+          title: decodeHtml(item.namaKegiatan),
           description: item.deskripsiKegiatan,
           category: item.kategoriKegiatan,
           start: moment(`${startDate}T${item.jamMulaiKegiatan}`).toDate(),
@@ -49,7 +79,7 @@ export default function Index({ onChangePage }) {
       });
       setEvents(formattedEvents);
     } catch (error) {
-      console.error("Error fetching events:", error);
+      // console.error("Error fetching events:", error);
     } finally {
       setLoading(false);
     }
@@ -82,11 +112,11 @@ export default function Index({ onChangePage }) {
   });
 
   const eventStyles = {
-    1: {
+    Rencana: {
       backgroundColor: "rgba(181, 202, 251, 0.3)",
       borderColor: "#4989C2",
     },
-    3: {
+    Terlaksana: {
       backgroundColor: "rgba(193, 232, 191, 0.3)",
       borderColor: "#08A500",
     },
@@ -199,12 +229,14 @@ export default function Index({ onChangePage }) {
           marginRight: "3rem",
         }}
       >
-        <Button
-          classType="btn btn-primary"
-          title="Kelola Jadwal Kegiatan"
-          label="Kelola Jadwal Kegiatan"
-          onClick={() => onChangePage("read")}
-        />
+        {isLoggedIn && (
+          <Button
+            classType="btn btn-primary"
+            title="Kelola Jadwal Kegiatan"
+            label="Kelola Jadwal Kegiatan"
+            onClick={() => onChangePage("read")}
+          />
+        )}
       </div>
 
       {/* Main Content */}
@@ -435,7 +467,7 @@ export default function Index({ onChangePage }) {
                   style={descriptionStyle}
                 ></Text>
 
-                {selectedEvent.category === 3 && (
+                {selectedEvent.category === "Terlaksana" && (
                   <Button
                     classType="btn btn-primary"
                     title="Lihat Dokumentasi"
@@ -450,21 +482,37 @@ export default function Index({ onChangePage }) {
                   />
                 )}
 
-                {selectedEvent.category === 3 && (
+                {isLoggedIn && selectedEvent.category === "Terlewat" && (
                   <Button
-                    classType="btn btn-success ms-3"
-                    title="Tambah Berita"
-                    label="Tambah Berita"
+                    classType="btn btn-primary"
+                    title="Tambah Dokumentasi"
+                    label="Tambah Dokumentasi"
                     onClick={() =>
-                      navigate("/berita/kelola/tambah", {
-                        state: {
-                          judul: selectedEvent.title,
-                          deskripsi: selectedEvent.description,
-                        },
+                      navigate("/kegiatan/dokumentasi/kelola", {
+                        state: { mode: "addExist", idData: selectedEvent.id },
                       })
                     }
                   />
                 )}
+
+                {isLoggedIn &&
+                  (selectedEvent.category === "Terlaksana" ||
+                    selectedEvent.category === "Terlewat") && (
+                    <Button
+                      classType="btn btn-success ms-3"
+                      title="Tambah Berita"
+                      label="Tambah Berita"
+                      onClick={() =>
+                        navigate("/berita/kelola", {
+                          state: {
+                            mode: "add",
+                            judul: selectedEvent.title,
+                            deskripsi: selectedEvent.description,
+                          },
+                        })
+                      }
+                    />
+                  )}
               </div>
             </div>
           ) : (

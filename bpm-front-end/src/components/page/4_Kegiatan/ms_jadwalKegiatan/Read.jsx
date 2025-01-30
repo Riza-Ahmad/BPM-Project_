@@ -23,8 +23,8 @@ export default function Read({ onChangePage }) {
     { label: "Kelola Jadwal Kegiatan" },
   ];
 
-  const [events, setEvents] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
+  const [totalData, setTotalData] = useState(0);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedJenis, setSelectedJenis] = useState("");
@@ -34,9 +34,9 @@ export default function Read({ onChangePage }) {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [status, setStatus] = useState([
     { Value: "", Text: "Semua" },
-    { Value: 1, Text: "Rencana" },
-    { Value: 2, Text: "Terlewat" },
-    { Value: 3, Text: "Terlaksana" },
+    { Value: "Rencana", Text: "Rencana" },
+    { Value: "Terlewat", Text: "Terlewat" },
+    { Value: "Terlaksana", Text: "Terlaksana" },
   ]);
 
   const pageSize = 10;
@@ -51,6 +51,7 @@ export default function Read({ onChangePage }) {
           JSON.stringify({}),
           "POST"
         );
+
         const formattedData = [
           { Value: "", Text: "Semua" }, // Opsi default
           ...data.map((item) => ({
@@ -58,7 +59,6 @@ export default function Read({ onChangePage }) {
             Text: item.namaJenisKegiatan,
           })),
         ];
-
         setJenisKegiatan(formattedData);
       } catch (error) {
         setError(error.message);
@@ -70,32 +70,27 @@ export default function Read({ onChangePage }) {
 
   useEffect(() => {
     const fetchEvents = async () => {
+      setLoading(true);
       try {
         const data = await useFetch(
-          `${API_LINK}/MasterKegiatan/GetDataKegiatan`,
-          JSON.stringify({}),
+          `${API_LINK}/MasterKegiatan/GetDataKegiatanPage`,
+          {
+            search: searchKeyword,
+            year: selectedYear,
+            status: selectedStatus,
+            jenis: selectedJenis,
+            size: pageSize,
+            page: pageCurrent,
+            kategori: "",
+          },
           "POST"
         );
 
-        const formattedEvents = data.map((item) => {
-          const startDate = moment(item.tglMulaiKegiatan).format("YYYY-MM-DD");
-          const endDate = moment(item.tglSelesaiKegiatan).format("YYYY-MM-DD");
-          return {
-            id: item.idKegiatan,
-            title: decodeHtml(item.namaKegiatan),
-            description: item.deskripsiKegiatan,
-            category: item.kategoriKegiatan,
-            start: moment(`${startDate}T${item.jamMulaiKegiatan}`).toDate(),
-            end: moment(`${endDate}T${item.jamSelesaiKegiatan}`).toDate(),
-            location: item.tempatKegiatan,
-            year: new Date(item.tglMulaiKegiatan).getFullYear(),
-            idJenisKegiatan: item.idJenisKegiatan,
-            jenisKegiatan: item.namaJenisKegiatan,
-          };
-        });
+        if (data.length > 0 && data[0].TotalCount !== undefined) {
+          setTotalData(data[0].TotalCount); // Set hanya sekali
+        }
 
-        setEvents(formattedEvents);
-        setFilteredData(formattedEvents);
+        setFilteredData(data);
       } catch (error) {
         setError("Gagal mengambil data kegiatan");
         console.error(error);
@@ -105,41 +100,17 @@ export default function Read({ onChangePage }) {
     };
 
     fetchEvents();
-  }, []);
-
-  useEffect(() => {
-    let tempData = events;
-
-    if (searchKeyword) {
-      tempData = tempData.filter((item) =>
-        item.title.toLowerCase().includes(searchKeyword.toLowerCase())
-      );
-    }
-
-    if (selectedYear) {
-      tempData = tempData.filter(
-        (item) => new Date(item.start).getFullYear() === parseInt(selectedYear)
-      );
-    }
-
-    if (selectedStatus) {
-      tempData = tempData.filter(
-        (item) => item.category === parseInt(selectedStatus)
-      );
-    }
-
-    if (selectedJenis) {
-      tempData = tempData.filter(
-        (item) => item.idJenisKegiatan === parseInt(selectedJenis)
-      );
-    }
-
-    setFilteredData(tempData);
-  }, [searchKeyword, selectedJenis, selectedYear, selectedStatus, events]);
+  }, [
+    searchKeyword,
+    selectedJenis,
+    selectedYear,
+    selectedStatus,
+    pageSize,
+    pageCurrent,
+  ]);
 
   const indexOfLastData = pageCurrent * pageSize;
   const indexOfFirstData = indexOfLastData - pageSize;
-  const currentData = filteredData.slice(indexOfFirstData, indexOfLastData);
 
   const handlePageNavigation = (page) => {
     setPageCurrent(page);
@@ -175,7 +146,9 @@ export default function Read({ onChangePage }) {
 
         SweetAlert("Berhasil", "Data Berhasil Dihapus", "success");
 
-        setEvents((prevData) => prevData.filter((item) => item.id !== id));
+        setFilteredData((prevData) =>
+          prevData.filter((item) => item.id !== id)
+        );
       } catch (err) {
         console.error(err);
         SweetAlert(
@@ -187,7 +160,6 @@ export default function Read({ onChangePage }) {
     }
   };
 
-  if (loading) return <Loading />;
   if (error) return <p>{error}</p>;
 
   return (
@@ -273,57 +245,61 @@ export default function Read({ onChangePage }) {
               </div>
             </div>
 
-            <Table
-              arrHeader={[
-                "No",
-                "Nama Kegiatan",
-                "Tanggal Mulai",
-                "Jenis Kegiatan",
-                "Tempat",
-                "Status",
-              ]}
-              data={currentData.map((item, index) => ({
-                Key: item.id,
-                No: indexOfFirstData + index + 1,
-                "Nama Kegiatan": item.title,
-                "Tanggal Mulai": new Date(item.start).toLocaleDateString(
-                  "id-ID",
-                  {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
+            {loading ? (
+              <Loading />
+            ) : (
+              <div>
+                <Table
+                  arrHeader={[
+                    "No",
+                    "Nama Kegiatan",
+                    "Tanggal Mulai",
+                    "Jenis Kegiatan",
+                    "Tempat",
+                    "Status",
+                  ]}
+                  data={filteredData.map((item, index) => ({
+                    Key: item.idKegiatan,
+                    No: indexOfFirstData + index + 1,
+                    "Nama Kegiatan": (
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: decodeHtml(item.namaKegiatan || ""),
+                        }}
+                      />
+                    ),
+                    "Tanggal Mulai": new Date(
+                      item.tglMulaiKegiatan
+                    ).toLocaleDateString("id-ID", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    }),
+                    "Jenis Kegiatan": item.namaJenisKegiatan,
+                    Tempat: item.tempatKegiatan,
+                    Status: item.kategoriKegiatan,
+                  }))}
+                  actions={(item) => {
+                    return item.Status === "Terlaksana"
+                      ? ["Detail"]
+                      : ["Detail", "Edit", "Delete"];
+                  }}
+                  onEdit={(item) => onChangePage("edit", { idData: item.Key })}
+                  onDetail={(item) =>
+                    onChangePage("detail", { idData: item.Key })
                   }
-                ),
-                "Jenis Kegiatan": item.jenisKegiatan,
-                Tempat: item.location,
-                Status:
-                  item.category === 1
-                    ? "Rencana"
-                    : item.category === 2
-                    ? "Terlewat"
-                    : "Terlaksana",
-              }))}
-              actions={(item) => {
-                return item.Status === "Terlaksana"
-                  ? ["Detail"]
-                  : ["Detail", "Edit", "Delete"];
-              }}
-              onEdit={(item) =>
-                onChangePage("edit", { state: { idData: item.Key } })
-              }
-              onDetail={(item) =>
-                onChangePage("detail", { state: { idData: item.Key } })
-              }
-              onDelete={(item) => handleDelete(item.Key)}
-            />
+                  onDelete={(item) => handleDelete(item.Key)}
+                />
 
-            <Paging
-              pageSize={pageSize}
-              pageCurrent={pageCurrent}
-              totalData={filteredData.length}
-              navigation={handlePageNavigation}
-            />
+                <Paging
+                  pageSize={pageSize}
+                  pageCurrent={pageCurrent}
+                  totalData={totalData}
+                  navigation={handlePageNavigation}
+                />
+              </div>
+            )}
           </div>
         </div>
       </main>

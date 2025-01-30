@@ -63,7 +63,7 @@ export default function Edit({ onChangePage }) {
                 />
               </div>
               <div className="col-lg-6 col-md-6">
-                <TextField label="Tahun Kadaluarsa" isRequired="true" type="date" />
+                <TextField label="Tahun Kadaluwarsa" isRequired="true" type="date" />
               </div>
             </div>
 

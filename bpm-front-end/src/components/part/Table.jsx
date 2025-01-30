@@ -1,10 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import Icon from "./Icon";
 
 export default function Table({
   arrHeader,
   data,
+  linkColumns = [],
+  FILE_LINK = "",
+  aksiIs = true,
+  enableCheckbox = false,
   actions = [],
+  onToggle = () => {},
   onDelete = () => {},
   onDetail = () => {},
   onEdit = () => {},
@@ -14,8 +19,31 @@ export default function Table({
   onUpdateHistory = () => {},
   onSurveyor = () => {},
   onResponden = () => {},
-  onToggle = () => {},
+  onUpload = () => {},
+  onPreview = () => {},
+  onChoose = () => {},
+  onSelect = () => {},
+  onSend = () => {},
+  onSelfAssessment = () => {},
+  onRiwayatTemuan = () => {},
+  onAnalisaTemuan = () => {},
 }) {
+  const [selectedKeys, setSelectedKeys] = useState([]);
+
+  const handleCheckboxChange = (key, isChecked) => {
+    const updatedKeys = isChecked
+      ? [...selectedKeys, key]
+      : selectedKeys.filter((k) => k !== key);
+    setSelectedKeys(updatedKeys);
+    onSelect(updatedKeys); // Kirim daftar key yang dipilih ke parent
+  };
+
+  const handleSelectAll = (isChecked) => {
+    const allKeys = isChecked ? data.map((row) => row.Key) : [];
+    setSelectedKeys(allKeys);
+    onSelect(allKeys); // Kirim daftar key yang dipilih ke parent
+  };
+
   function generateActionButton(actionType, id, status = "Aktif") {
     switch (actionType) {
       case "Toggle": {
@@ -95,7 +123,7 @@ export default function Table({
         return (
           <Icon
             type="Reguler"
-            name="file-circle-info"
+            name="user-time"
             cssClass="btn px-1 py-0 text-warning"
             title="Riwayat Unduhan"
             onClick={() => onPrintHistory(id)}
@@ -105,7 +133,7 @@ export default function Table({
         return (
           <Icon
             type="Reguler"
-            name="user-time"
+            name="file-circle-info"
             cssClass="btn px-1 py-0 text-primary"
             title="Riwayat Pembaruan"
             onClick={() => onUpdateHistory(id)}
@@ -128,7 +156,77 @@ export default function Table({
             name="users"
             cssClass="btn px-1 py-0 text-warning"
             title="Edit Responden"
-            onResponden={() => onResponden(id)}
+            onClick={() => onResponden(id)}
+          />
+        );
+      case "Preview":
+        return (
+          <Icon
+            type="Reguler"
+            name="search-alt"
+            cssClass="btn px-1 py-0 text-info"
+            title="Preview"
+            onClick={() => onPreview(id)}
+          />
+        );
+      case "Upload":
+        return (
+          <Icon
+            type="Reguler"
+            name="upload"
+            cssClass="btn px-1 py-0 text-secondary"
+            title="Upload File"
+            onClick={() => onUpload(id)}
+          />
+        );
+      case "Choose":
+        return (
+          <Icon
+            type="full"
+            name="interactive"
+            cssClass="btn px-1 py-0 text-primary"
+            title="Pilih"
+            onClick={() => onChoose(id)}
+          />
+        );
+      case "Send":
+        return (
+          <Icon
+            type="Bold"
+            name="paper-plane-top"
+            cssClass="btn px-1 py-0 text-primary"
+            title="Kirim"
+            onClick={() => onSend(id)}
+          />
+        );
+      case "Self Assessment":
+        return (
+          <Icon
+            type="Bold"
+            name="member-list"
+            cssClass="btn px-1 py-0 text-primary"
+            title="Self Assessment"
+            onClick={() => onSelfAssessment(id)}
+          />
+        );
+      case "Temuan":
+        return (
+          <Icon
+            type="Bold"
+            name="time-past"
+            cssClass="btn px-1 py-0 text-info"
+            title="Riwayat Temuan"
+            onClick={() => onRiwayatTemuan(id)}
+          />
+        );
+      case "AnalisaTemuan":
+        return (
+          <Icon
+            type="Bold"
+            name="bulb"
+            cssClass="btn px-1 py-0 text-warning"
+            title="Analisa Temuan"
+            onClick={() => onAnalisaTemuan(id)}
           />
         );
       default:
@@ -144,6 +242,25 @@ export default function Table({
       >
         <thead>
           <tr>
+            {enableCheckbox && (
+              <th
+                className="text-center align-middle"
+                style={{
+                  backgroundColor: "#2654A1",
+                  color: "#fff",
+                  maxWidth: "70px",
+                  minWidth: "50px",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={
+                    selectedKeys.length === data.length && data.length > 0
+                  }
+                  onChange={(e) => handleSelectAll(e.target.checked)}
+                />
+              </th>
+            )}
             {arrHeader.map((header, index) => (
               <th
                 key={header}
@@ -151,27 +268,42 @@ export default function Table({
                 style={{
                   backgroundColor: "#2654A1",
                   color: "#fff",
+                  maxWidth: index === 0 ? "70px" : "none",
+                  minWidth: index === 0 ? "50px" : "none",
                 }}
               >
                 {header}
               </th>
             ))}
-            <th
-              className="text-center align-middle"
-              style={{
-                backgroundColor: "#2654A1",
-                color: "#fff",
-                width: "250px",
-              }}
-            >
-              Aksi
-            </th>
+            {aksiIs && ( // Render kolom aksi hanya jika aksiIs adalah false
+              <th
+                className="text-center align-middle"
+                style={{
+                  backgroundColor: "#2654A1",
+                  color: "#fff",
+                  width: "250px",
+                }}
+              >
+                Aksi
+              </th>
+            )}
           </tr>
         </thead>
         <tbody>
           {data.length > 0 ? (
             data.map((row, rowIndex) => (
               <tr key={`row-${rowIndex}`}>
+                {enableCheckbox && (
+                  <td className="text-center align-middle">
+                    <input
+                      type="checkbox"
+                      checked={selectedKeys.includes(row.Key)}
+                      onChange={(e) =>
+                        handleCheckboxChange(row.Key, e.target.checked)
+                      }
+                    />
+                  </td>
+                )}
                 {arrHeader.map((column, colIndex) => (
                   <td
                     key={`cell-${rowIndex}-${colIndex}`}
@@ -179,31 +311,45 @@ export default function Table({
                       column === "No" ? "text-center" : "text-start"
                     }`}
                   >
-                    {row[column] || ""}
+                    {/* Periksa apakah kolom ini harus memiliki hyperlink */}
+                    {linkColumns.includes(column) && row[column] ? (
+                      <a
+                        href={`${FILE_LINK}${row[column]}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary text-decoration-underline"
+                      >
+                        {row[column]}
+                      </a>
+                    ) : (
+                      row[column] || ""
+                    )}
                   </td>
                 ))}
-                <td
-                  className="text-center align-middle"
-                  style={{ width: "250px" }}
-                >
-                  {typeof actions === "function"
-                    ? actions(row).map((action, actionIndex) => (
-                        <React.Fragment
-                          key={`${action}-${row.Key || rowIndex}`}
-                        >
-                          {generateActionButton(action, row)}
-                        </React.Fragment>
-                      ))
-                    : Array.isArray(actions) && actions.length > 0
-                    ? actions.map((action, actionIndex) => (
-                        <React.Fragment
-                          key={`${action}-${row.Key || rowIndex}`}
-                        >
-                          {generateActionButton(action, row)}
-                        </React.Fragment>
-                      ))
-                    : null}
-                </td>
+                {aksiIs && ( // Render kolom aksi hanya jika aksiIs adalah false
+                  <td
+                    className="text-center align-middle"
+                    style={{ minWidth: "5rem" }}
+                  >
+                    {typeof actions === "function"
+                      ? actions(row).map((action, actionIndex) => (
+                          <React.Fragment
+                            key={`${action}-${row.Key || rowIndex}`}
+                          >
+                            {generateActionButton(action, row, row.status)}
+                          </React.Fragment>
+                        ))
+                      : Array.isArray(actions) && actions.length > 0
+                      ? actions.map((action, actionIndex) => (
+                          <React.Fragment
+                            key={`${action}-${row.Key || rowIndex}`}
+                          >
+                            {generateActionButton(action, row, row.status)}
+                          </React.Fragment>
+                        ))
+                      : null}
+                  </td>
+                )}
               </tr>
             ))
           ) : (

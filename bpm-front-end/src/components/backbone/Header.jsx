@@ -82,7 +82,7 @@ export default function Header() {
       </div>
       {isMobile && isMobileMenuOpen && (
         <div className="mobile-menu">
-          <ul className="nav flex-column p-3" style={{ marginTop: "4rem" }}>
+          <ul className="nav top-nav flex-column p-3" style={{ marginTop: "4rem" }}>
             <NavItem onClick={handleMenuItemClick} />
           </ul>
         </div>

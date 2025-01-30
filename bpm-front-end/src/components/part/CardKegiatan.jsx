@@ -4,7 +4,16 @@ import HeaderText from "./HeaderText";
 import { KEGIATANFILE_LINK } from "../util/Constants";
 import { useIsMobile } from "../util/useIsMobile";
 
-const CardKegiatan = ({ title, date, time, location, image, galleryLink }) => {
+const CardKegiatan = ({
+  title,
+  date,
+  time,
+  location,
+  image,
+  galleryLink,
+  fileNotulen,
+  statusFileNotulen,
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const isMobile = useIsMobile();
   const iconStyle = {
@@ -90,6 +99,16 @@ const CardKegiatan = ({ title, date, time, location, image, galleryLink }) => {
           >
             Galeri Selengkapnya
           </a>
+
+          {statusFileNotulen === "Publik" && (
+            <a
+              href={fileNotulen}
+              className="btn btn-danger btn-sm ms-3"
+              target="_blank"
+            >
+              File Notulen
+            </a>
+          )}
         </div>
       )}
     </div>

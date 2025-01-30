@@ -1,12 +1,8 @@
 import React, { useState } from "react";
 import PageTitleNav from "../../../../part/PageTitleNav";
 import TextField from "../../../../part/TextField";
-import TextArea from "../../../../part/TextArea";
-import DatePicker from "../../../../part/DatePicker";
-import UploadFoto from "../../../../part/UploadFotoMulti";
 import HeaderForm from "../../../../part/HeaderText";
 import Button from "../../../../part/Button";
-import DetailData from "../../../../part/DetailData";
 import DocUpload from "../../../../part/DocUpload";
 import DropDown from "../../../../part/Dropdown";
 
@@ -63,7 +59,7 @@ export default function Edit({ onChangePage }) {
                 />
               </div>
               <div className="col-lg-6 col-md-6">
-                <TextField label="Tahun Kadaluarsa" isRequired="true" type="date" />
+                <TextField label="Tahun Kadaluwarsa" isRequired="true" type="date" />
               </div>
             </div>
 
