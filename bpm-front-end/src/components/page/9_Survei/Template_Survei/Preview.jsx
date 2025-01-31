@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 import PageTitleNav from "../../../part/PageTitleNav";
 import DetailData from "../../../part/DetailData";
 import HeaderForm from "../../../part/HeaderText";
@@ -7,16 +6,13 @@ import Loading from "../../../part/Loading";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { useFetch } from "../../../util/useFetch";
+import { useLocation, useNavigate } from "react-router-dom";
 
-export default function Preview({ onChangePage }) {
-  const title = "Preview Template Survei";
-  const breadcrumbs = [
-    { label: "Template Survei", href: "/survei/template" },
-    { label: "Preview Template Survei" },
-  ];
-  const isMobile = useIsMobile();
+export default function Detail({ onChangePage }) {
+  const title = "Detail Template Survei";
   const location = useLocation();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
@@ -26,204 +22,129 @@ export default function Preview({ onChangePage }) {
     modifiedBy: "",
     modifiedDate: "",
     status: "",
-    ksrId: "",
-    skpId: "",
   });
-  const [ksrName, setKsrName] = useState("");
-  const [skpName, setSkpName] = useState("");
 
-  const fetchData = async (templateId) => {
-    try {
-      const response = await fetch(
-        `${API_LINK}/TemplateSurvei/GetDataTemplateSurveiById`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ id: templateId }),
-        }
-      );
+  const idData = location.state?.idData;
 
-      const data = await response.json();
-      console.log("API Response Data:", data);
+  // Track when template fetch is completed
+  const [isTemplateFetched, setIsTemplateFetched] = useState(false);
 
-      if (data && data.length > 0) {
-        const template = data[0];
-        setFormData({
-          templateName: template.tsu_nama || "Tidak tersedia",
-          createdBy: template.tsu_created_by || "Tidak tersedia",
-          createdDate: template.tsu_created_date
-            ? new Date(template.tsu_created_date).toLocaleDateString("id-ID", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })
-            : "-",
-          modifiedBy: template.tsu_modif_by || "-",
-          modifiedDate: template.tsu_modif_date
-            ? new Date(template.tsu_modif_date).toLocaleDateString("id-ID", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })
-            : "-",
-          status:
-            template.tsu_status === 1
-              ? "Final"
-              : template.tsu_status === 0
-              ? "Draft"
-              : template.tsu_status === 2
-              ? "Tidak Aktif"
-              : "Tidak Tersedia",
-          ksrId: template.ksr_id || "Tidak tersedia",
-          skpId: template.skp_id || "Tidak tersedia",
-        });
-
-        // Fetch names for ksrId and skpId
-        if (template.ksr_id) {
-          const ksrResponse = await fetch(
-            `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurveiById`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ id: template.ksr_id }),
-            }
-          );
-          const ksrData = await ksrResponse.json();
-          if (ksrData && ksrData.length > 0) {
-            setKsrName(ksrData[0].ksr_nama); // Assume response has ksr_nama field
-          }
-        }
-
-        if (template.skp_id) {
-          const skpResponse = await fetch(
-            `${API_LINK}/SkalaPenilaian/GetDataSkalaPenilaianById`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ id: template.skp_id }),
-            }
-          );
-          const skpData = await skpResponse.json();
-          if (skpData && skpData.length > 0) {
-            const skala = skpData[0].skp_skala;
-            const deskripsi = skpData[0].skp_deskripsi;
-
-            // Gabungkan skala dan deskripsi
-            setSkpName(`${skala} (${deskripsi})`);
-          }
-        }
-      } else {
-        setError("Template data tidak ditemukan.");
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      setError("Gagal mengambil data template.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Use effect to fetch data on mount
+  // GET DATA BY ID
   useEffect(() => {
-    if (!location.state?.idTemplate) {
-      setError(
-        "Template ID tidak ditemukan. Silakan kembali ke halaman sebelumnya."
-      );
-      return;
-    }
+    const fetchTemplateData = async () => {
+      const body = { idData: idData };
+      setLoading(true);
 
-    const templateId = location.state.idTemplate;
-    setLoading(true);
-    fetchData(templateId);
-  }, [location.state?.idTemplate]);
+      try {
+        const result = await useFetch(
+          `${API_LINK}/TemplateSurvei/GetTemplateSurveiById`,
+          body,
+          "POST"
+        );
 
-  if (loading) return <Loading />;
-  if (error)
-    return (
-      <div className="d-flex justify-content-center align-items-center min-vh-100">
-        <div>
-          <p>{error}</p>
-          <button
-            className="btn btn-primary"
-            onClick={() => navigate("/survei/template")}
-          >
-            Kembali ke Template Survei
-          </button>
-        </div>
-      </div>
-    );
+        if (result === "ERROR" || result === null || result.length === 0) {
+          setFormData({
+            templateName: "",
+            createdBy: "",
+            createdDate: "",
+            modifiedBy: "",
+            modifiedDate: "",
+            status: "",
+          });
+        } else {
+          const fetchedData = result[0];
+          setFormData({
+            templateName: fetchedData.tsu_nama,
+            createdBy: fetchedData.tsu_created_by,
+            createdDate: new Date(
+              fetchedData.tsu_created_date
+            ).toLocaleDateString("id-ID", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            }),
+            modifiedBy: fetchedData.tsu_modif_by || "-",
+            modifiedDate: fetchedData.tsu_modif_date
+              ? new Date(fetchedData.tsu_modif_date).toLocaleDateString(
+                  "id-ID",
+                  {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  }
+                )
+              : "-",
+            status: fetchedData.tsu_status || "-",
+          });
+        }
+      } catch (err) {
+        setError("Gagal mengambil data: " + err);
+      } finally {
+        setLoading(false);
+        setIsTemplateFetched(true); // Mark as fetched
+      }
+    };
+
+    fetchTemplateData();
+  }, [idData]);
+
+  if (error) return <p>{error}</p>;
 
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          <div className={isMobile ? "m-0" : "m-3"}>
+          {/* Breadcrumbs and Page Title */}
+          <div className="p-3">
             <PageTitleNav
               title={title}
-              breadcrumbs={breadcrumbs}
+              breadcrumbs={location.state.breadcrumbs}
               onClick={() => onChangePage("index")}
             />
           </div>
-          <div
-            className={
-              isMobile
-                ? "shadow p-4 m-2 mt-0 bg-white rounded"
-                : "shadow p-5 m-5 mt-0 bg-white rounded"
-            }
-          >
-            <HeaderForm label="Preview Template Survei" />
-            <div className="row">
-              <div className="col-lg-6 col-md-6">
-                <DetailData
-                  label="Nama Template"
-                  isi={formData.templateName}
-                  id="templateName"
-                />
-                <DetailData label="Status" isi={formData.status} id="status" />
-                <DetailData
-                  label="Dibuat Oleh"
-                  isi={formData.createdBy}
-                  id="createdBy"
-                />
-                <DetailData
-                  label="Dibuat Tanggal"
-                  isi={formData.createdDate}
-                  id="createdDate"
-                />
-              </div>
-              <div className="col-lg-6 col-md-6">
-                <DetailData
-                  label="Kriteria Survei"
-                  isi={ksrName || formData.ksrId}
-                  id="ksrId"
-                />
-                <DetailData
-                  label="Skala"
-                  isi={skpName || formData.skpId}
-                  id="skpId"
-                />
-                <DetailData
-                  label="Dimodifikasi Oleh"
-                  isi={formData.modifiedBy}
-                  id="modifiedBy"
-                />
-                <DetailData
-                  label="Dimodifikasi Tanggal"
-                  isi={formData.modifiedDate}
-                  id="modifiedDate"
-                />
+          <div className={isMobile ? "m-0" : "m-3"}>
+            {/* Main Content Section */}
+            <div
+              className={
+                isMobile
+                  ? "shadow p-4 m-2 mt-0 bg-white rounded"
+                  : "shadow p-5 m-5 mt-0 bg-white rounded"
+              }
+            >
+              <HeaderForm label="Formulir Template Survei" />
+
+              <div className="border bg-white rounded mt-5 p-3">
+                <DetailData label="Nama Template" isi={formData.templateName} />
+
+                <div className="row">
+                  <div className="col-lg-6 col-md-6">
+                    <DetailData label="Dibuat Oleh" isi={formData.createdBy} />
+                    <DetailData
+                      label="Dibuat Tanggal"
+                      isi={formData.createdDate}
+                    />
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <DetailData
+                      label="Dimodifikasi Oleh"
+                      isi={formData.modifiedBy}
+                    />
+                    <DetailData
+                      label="Dimodifikasi Tanggal"
+                      isi={formData.modifiedDate}
+                    />
+                  </div>
+                </div>
+
+                <DetailData label="Status" isi={formData.status} />
               </div>
             </div>
           </div>
         </div>
+
+        {loading && <Loading />}
       </main>
     </div>
   );

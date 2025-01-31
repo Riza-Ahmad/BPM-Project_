@@ -60,7 +60,7 @@ export default function Pertanyaan_Survei() {
             </ProtectedRoute>
           }
         />
-        <Route path="/add" element={<Add onChangePage={handlePageChange} />} />
+        <Route path="add" element={<Add onChangePage={handlePageChange} />} />
         <Route
           path="/edit"
           element={<Edit onChangePage={handlePageChange} />}

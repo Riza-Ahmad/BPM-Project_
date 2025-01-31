@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import PageTitleNav from "../../../part/PageTitleNav";
 import DetailData from "../../../part/DetailData";
 import HeaderForm from "../../../part/HeaderText";
 import Loading from "../../../part/Loading";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
+import { FaCodeBranch, FaSkyatlas } from "react-icons/fa";
 
 export default function Detail({ onChangePage }) {
   const title = "Detail Pertanyaan";
   const breadcrumbs = [
-    { label: "Pertanyaan", href: "/survei/pertanyaan" },
+    { label: "Pertanyaan Survei", href: "/survei/pertanyaan" },
     { label: "Detail Pertanyaan" },
   ];
   const isMobile = useIsMobile();
@@ -21,8 +22,8 @@ export default function Detail({ onChangePage }) {
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     pertanyaan: "",
-    isHeader: "",
-    isGeneral: "",
+    kriteria: "",
+    skala: "",
     status: "",
     createdBy: "",
     createdDate: "",
@@ -31,7 +32,7 @@ export default function Detail({ onChangePage }) {
   });
 
   // Fetch data function
-  const fetchData = async (pertanyaanId) => {
+  const fetchData = async () => {
     try {
       const response = await fetch(
         `${API_LINK}/MasterPertanyaan/GetPertanyaanById`,
@@ -40,7 +41,7 @@ export default function Detail({ onChangePage }) {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: pertanyaanId }),
+          body: JSON.stringify({ id: location.state.idPertanyaan }),
         }
       );
 
@@ -51,9 +52,9 @@ export default function Detail({ onChangePage }) {
         const pertanyaan = data[0];
         setFormData({
           pertanyaan: pertanyaan.pty_pertanyaan || "Tidak tersedia",
-          isHeader: pertanyaan.pty_isheader === 1 ? "Ya" : "Tidak",
-          isGeneral: pertanyaan.pty_isgeneral === 1 ? "Ya" : "Tidak",
-          status: pertanyaan.pty_status === 0 ? "Tidak Aktif" : "Aktif",
+          kriteria: pertanyaan.kriteria_nama || "Tidak tersedia",
+          skala: pertanyaan.skala_tipe || "Tidak tersedia",
+          status: pertanyaan.pty_status === 1 ? "Aktif" : "Tidak Aktif",
           createdBy: pertanyaan.pty_created_by || "Tidak tersedia",
           createdDate: pertanyaan.pty_created_date
             ? new Date(pertanyaan.pty_created_date).toLocaleDateString(
@@ -89,18 +90,9 @@ export default function Detail({ onChangePage }) {
 
   // Use effect to fetch data on mount
   useEffect(() => {
-    if (!location.state?.idPertanyaan) {
-      setError(
-        "Pertanyaan ID tidak ditemukan. Silakan kembali ke halaman sebelumnya."
-      );
-      setLoading(false); // Menambahkan setLoading false jika ID tidak ditemukan
-      return;
-    }
-
-    const pertanyaanId = location.state.idPertanyaan;
-    setLoading(true); // Menentukan loading true saat mulai ambil data
-    fetchData(pertanyaanId); // Panggil fungsi fetchData
-  }, [location.state?.idPertanyaan]);
+    console.log(formData);
+    fetchData();
+  }, []);
 
   if (loading) return <Loading />; // Menunggu data
   if (error)
@@ -145,14 +137,14 @@ export default function Detail({ onChangePage }) {
                   id="pertanyaan"
                 />
                 <DetailData
-                  label="Header"
-                  isi={formData.isHeader}
-                  id="isHeader"
+                  label="Kriteria Survei"
+                  isi={formData.kriteria}
+                  id="kriteria"
                 />
                 <DetailData
-                  label="Pertanyaan umum"
-                  isi={formData.isGeneral}
-                  id="isGeneral"
+                  label="Skala Penilaian"
+                  isi={formData.skala}
+                  id="skala"
                 />
               </div>
               <div className="col-lg-6 col-md-6">

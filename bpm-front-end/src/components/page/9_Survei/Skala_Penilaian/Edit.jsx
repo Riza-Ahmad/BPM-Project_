@@ -4,17 +4,19 @@ import PageTitleNav from "../../../part/PageTitleNav";
 import HeaderForm from "../../../part/HeaderText";
 import DropDown from "../../../part/Dropdown";
 import Button from "../../../part/Button";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
+import { useFetch } from "../../../util/useFetch";
 
 export default function Edit({ onChangePage }) {
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { key } = useParams();
   const [formData, setFormData] = useState({
     skp_tipe: "",
     skp_status: "",
-    scale: 4,
+    scale: 0,
     descriptions: [],
     checkedValues: [],
     name: "",
@@ -29,56 +31,52 @@ export default function Edit({ onChangePage }) {
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const response = await fetch(
-          `${API_LINK}/SkalaPenilaian/GetDataSkalaPenilaianById`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ param1: key }),
-          }
+      const result = await useFetch(
+        `${API_LINK}/SkalaPenilaian/GetDataSkalaPenilaianById`,
+        { formData: key }
+      );
+
+      console.log("Response from GetDataSkalaPenilaianById:", result); // Debug log
+
+      if (result === "ERROR") {
+        SweetAlert(
+          "Error",
+          "Terjadi kesalahan saat mengambil data.",
+          "error",
+          "OK"
         );
+        return;
+      }
 
-        // Periksa apakah respons berhasil
-        if (!response.ok) throw new Error("Gagal mengambil data");
-
-        // Parsing JSON dari respons
-        const result = await response.json();
-
-        // Validasi bahwa respons adalah array dan memiliki data
+      try {
         if (!Array.isArray(result) || result.length === 0) {
           throw new Error("Respons tidak memiliki data yang valid.");
         }
 
-        // Proses data jika respons valid
-        const firstItem = result[0]; // Ambil item pertama
+        const firstItem = result[0];
         const additionalData = firstItem.skp_additional_data
           ? JSON.parse(firstItem.skp_additional_data)
-          : {
-              scale: firstItem.skp_skala || 4,
-              descriptions: [firstItem.skp_deskripsi || ""],
-              checkedValues: [],
-              name: "",
-            };
+          : {};
 
-        let descriptions;
-        if (["CheckBox", "RadioButton"].includes(firstItem.skp_tipe)) {
-          descriptions = firstItem.skp_deskripsi
-            ? firstItem.skp_deskripsi.split(",").map((desc) => desc.trim())
-            : Array(parseInt(firstItem.skp_skala) || 4).fill("");
-        } else {
-          descriptions = [firstItem.skp_deskripsi || ""];
-        }
+        const convertedData = convertDataOnTypeChange(
+          firstItem.skp_tipe,
+          firstItem.skp_tipe,
+          {
+            scale: parseInt(firstItem.skp_skala) || 0,
+            descriptions: firstItem.skp_deskripsi
+              ? firstItem.skp_deskripsi.split(",").map((desc) => desc.trim())
+              : [],
+            checkedValues: additionalData.checkedValues || [],
+            name: additionalData.name || "",
+          }
+        );
 
         setFormData({
           ...firstItem,
-          scale: parseInt(firstItem.skp_skala) || 4,
-          descriptions: descriptions,
-          checkedValues: additionalData.checkedValues || [],
-          name: additionalData.name || "",
+          ...convertedData,
         });
       } catch (err) {
-        console.error("Fetch error:", err);
+        console.error("Data processing error:", err);
         SweetAlert("Error", err.message, "error", "OK");
       }
     };
@@ -86,22 +84,111 @@ export default function Edit({ onChangePage }) {
     fetchData();
   }, [key]);
 
+  const convertDataOnTypeChange = (oldType, newType, currentData) => {
+    const { scale, descriptions, checkedValues, name } = currentData;
+
+    switch (newType) {
+      case "RadioButton":
+      case "CheckBox":
+        const newScale = Math.min(Math.max(scale || 1, 1), 10);
+
+        // Strictly trim descriptions to new scale
+        const newDescriptions = descriptions.slice(0, newScale);
+
+        // Validate no empty descriptions
+        const hasEmptyDescription = newDescriptions.some(
+          (desc, index) => index < newScale && !desc.trim()
+        );
+
+        if (hasEmptyDescription) {
+          SweetAlert(
+            "Peringatan!",
+            "Harap lengkapi semua deskripsi untuk skala baru.",
+            "warning",
+            "OK"
+          );
+          return null;
+        }
+
+        return {
+          scale: newScale,
+          descriptions: newDescriptions,
+          checkedValues:
+            newType === "CheckBox"
+              ? (checkedValues || []).filter((v) => v <= newScale)
+              : [],
+          name:
+            newType === "RadioButton"
+              ? name && parseInt(name) <= newScale
+                ? name
+                : ""
+              : "",
+        };
+
+      case "TextArea":
+      case "TextBox":
+        const combinedDescription = descriptions
+          .filter((desc) => desc.trim() !== "")
+          .join(", ")
+          .trim();
+
+        if (!combinedDescription) {
+          SweetAlert(
+            "Peringatan!",
+            "Harap lengkapi deskripsi sebelum mengubah tipe.",
+            "warning",
+            "OK"
+          );
+          return null;
+        }
+
+        return {
+          scale: 1,
+          descriptions: [combinedDescription],
+          checkedValues: [],
+          name: "",
+        };
+
+      default:
+        return currentData;
+    }
+  };
+
+  const handleTypeChange = (newType) => {
+    setFormData((prevData) => {
+      const convertedData = convertDataOnTypeChange(
+        prevData.skp_tipe,
+        newType,
+        prevData
+      );
+
+      if (convertedData === null) {
+        return prevData;
+      }
+
+      return {
+        ...prevData,
+        ...convertedData,
+        skp_tipe: newType,
+      };
+    });
+  };
+
   const handleInputChange = (name, value) => {
     if (typeof name === "object" && name.target) {
-      // Handle event from dropdown
       const { name: fieldName, value: fieldValue } = name.target;
       setFormData((prev) => ({
         ...prev,
         [fieldName]: fieldValue,
       }));
     } else {
-      // Handle direct value updates
       setFormData((prev) => ({
         ...prev,
         [name]: value,
       }));
     }
   };
+
   const validateForm = () => {
     const { skp_tipe, scale, descriptions } = formData;
 
@@ -110,35 +197,40 @@ export default function Edit({ onChangePage }) {
       return false;
     }
 
-    if (!scale || scale < 1) {
-      SweetAlert(
-        "Peringatan!",
-        "Skala harus lebih besar dari 0.",
-        "warning",
-        "OK"
-      );
-      return false;
-    }
+    switch (skp_tipe) {
+      case "TextBox":
+      case "TextArea":
+        if (!descriptions[0]) {
+          SweetAlert("Peringatan!", "Harap isi deskripsi.", "warning", "OK");
+          return false;
+        }
+        break;
 
-    // Validate descriptions based on type
-    if (["TextBox", "TextArea"].includes(skp_tipe)) {
-      if (!descriptions[0]) {
-        SweetAlert("Peringatan!", "Harap isi deskripsi.", "warning", "OK");
-        return false;
-      }
-    } else {
-      const emptyDescriptions = descriptions.some(
-        (desc, index) => !desc && index < scale
-      );
-      if (emptyDescriptions) {
-        SweetAlert(
-          "Peringatan!",
-          "Harap lengkapi semua deskripsi nilai.",
-          "warning",
-          "OK"
+      case "RadioButton":
+      case "CheckBox":
+        if (scale < 1) {
+          SweetAlert(
+            "Peringatan!",
+            "Skala harus lebih besar dari 0.",
+            "warning",
+            "OK"
+          );
+          return false;
+        }
+
+        const emptyDescriptions = descriptions.some(
+          (desc, index) => !desc && index < scale
         );
-        return false;
-      }
+        if (emptyDescriptions) {
+          SweetAlert(
+            "Peringatan!",
+            "Harap lengkapi semua deskripsi nilai.",
+            "warning",
+            "OK"
+          );
+          return false;
+        }
+        break;
     }
 
     return true;
@@ -148,35 +240,40 @@ export default function Edit({ onChangePage }) {
     try {
       if (!validateForm()) return;
 
-      const skalaPenilaianData = {
-        skp_id: key,
-        skp_skala: formData.scale.toString(),
-        skp_deskripsi: formData.descriptions.join(","),
-        skp_tipe: formData.skp_tipe,
-        skp_modif_by: "Retno Widiastuti",
-      };
-
-      console.log("Data sent to Update API:", skalaPenilaianData);
-
-      const response = await fetch(
-        `${API_LINK}/SkalaPenilaian/UpdateSkalaPenilaian`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            skp_id: key,
-            skp_skala: formData.scale.toString(),
-            skp_deskripsi: formData.descriptions.join(","),
-            skp_tipe: formData.skp_tipe,
-            skp_modif_by: "Admin",
-          }),
-        }
+      // Potong deskripsi sesuai skala baru
+      const trimmedDescriptions = formData.descriptions.slice(
+        0,
+        formData.scale
       );
 
-      if (!response.ok) throw new Error("Gagal menyimpan data");
+      // Data yang akan dikirim ke API
+      const skalaPenilaianData = {
+        skp_id: key, // ID skala penilaian
+        skp_skala: formData.scale.toString(), // Skala penilaian
+        skp_deskripsi: trimmedDescriptions.join(","), // Deskripsi dipotong sesuai skala
+        skp_tipe: formData.skp_tipe, // Tipe penilaian
+        skp_additional_data: JSON.stringify({
+          ...(formData.skp_tipe === "RadioButton"
+            ? { name: formData.name }
+            : {}),
+          ...(formData.skp_tipe === "CheckBox"
+            ? { checkedValues: formData.checkedValues }
+            : {}),
+        }),
+      };
 
-      const result = await response.json();
-      console.log("Update API Response:", result);
+      console.log("Data to send:", skalaPenilaianData); // Debug log sebelum pengiriman
+
+      // Pemanggilan useFetch dengan data yang disesuaikan
+      const response = await useFetch(
+        `${API_LINK}/SkalaPenilaian/UpdateSkalaPenilaian`,
+        skalaPenilaianData, // Kirim langsung objek data
+        "POST"
+      );
+
+      console.log("Response from UpdateSkalaPenilaian:", response); // Debug log respons
+
+      if (response === "ERROR") throw new Error("Gagal menyimpan data");
 
       await SweetAlert(
         "Berhasil!",
@@ -184,7 +281,7 @@ export default function Edit({ onChangePage }) {
         "success",
         "OK"
       );
-      onChangePage("index");
+      navigate("/survei/skala");
     } catch (error) {
       console.error("Update error:", error);
       SweetAlert(
@@ -199,7 +296,9 @@ export default function Edit({ onChangePage }) {
   const renderScaleInput = () => (
     <div style={{ marginBottom: "20px" }}>
       <label>
-        <strong>Skala *</strong>
+        <strong>
+          Skala <span style={{ color: "red" }}>*</span>
+        </strong>
       </label>
       <input
         type="number"
@@ -219,13 +318,14 @@ export default function Edit({ onChangePage }) {
     </div>
   );
 
-  // Rest of your render functions remain the same
   const renderDescriptionInputs = () => (
     <div>
       <label>
-        <strong>Deskripsi Nilai *</strong>
+        <strong>
+          Deskripsi Nilai <span style={{ color: "red" }}>*</span>
+        </strong>
       </label>
-      {Array.from({ length: formData.scale || 4 }, (_, i) => (
+      {Array.from({ length: formData.scale }, (_, i) => (
         <div key={i} style={{ marginBottom: "10px" }}>
           <input
             type="text"
@@ -256,34 +356,35 @@ export default function Edit({ onChangePage }) {
             {renderScaleInput()}
             <div style={{ marginBottom: "20px" }}>
               <label>
-                <strong>Preview</strong>
+                <strong>
+                  Preview <span style={{ color: "red" }}>*</span>
+                </strong>
               </label>
               <div style={{ marginTop: "10px" }}>
-                {Array.from(
-                  { length: formData.scale || 4 },
-                  (_, i) => i + 1
-                ).map((value) => (
-                  <label
-                    key={value}
-                    style={{
-                      marginRight: "15px",
-                      display: "inline-flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="preview"
-                      value={value}
-                      checked={formData.name === String(value)}
-                      onChange={(e) =>
-                        handleInputChange("name", e.target.value)
-                      }
-                      style={{ marginRight: "5px" }}
-                    />
-                    {value}
-                  </label>
-                ))}
+                {Array.from({ length: formData.scale }, (_, i) => i + 1).map(
+                  (value) => (
+                    <label
+                      key={value}
+                      style={{
+                        marginRight: "15px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="preview"
+                        value={value}
+                        checked={formData.name === String(value)}
+                        onChange={(e) =>
+                          handleInputChange("name", e.target.value)
+                        }
+                        style={{ marginRight: "5px" }}
+                      />
+                      {value}
+                    </label>
+                  )
+                )}
               </div>
             </div>
             {renderDescriptionInputs()}
@@ -296,37 +397,38 @@ export default function Edit({ onChangePage }) {
             {renderScaleInput()}
             <div style={{ marginBottom: "20px" }}>
               <label>
-                <strong>Preview</strong>
+                <strong>
+                  Preview <span style={{ color: "red" }}>*</span>
+                </strong>
               </label>
               <div style={{ marginTop: "10px" }}>
-                {Array.from(
-                  { length: formData.scale || 4 },
-                  (_, i) => i + 1
-                ).map((value) => (
-                  <label
-                    key={value}
-                    style={{
-                      marginRight: "15px",
-                      display: "inline-flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      value={value}
-                      checked={formData.checkedValues?.includes(value)}
-                      onChange={(e) => {
-                        const checkedValues = formData.checkedValues || [];
-                        const newValues = e.target.checked
-                          ? [...checkedValues, value]
-                          : checkedValues.filter((v) => v !== value);
-                        handleInputChange("checkedValues", newValues);
+                {Array.from({ length: formData.scale }, (_, i) => i + 1).map(
+                  (value) => (
+                    <label
+                      key={value}
+                      style={{
+                        marginRight: "15px",
+                        display: "inline-flex",
+                        alignItems: "center",
                       }}
-                      style={{ marginRight: "5px" }}
-                    />
-                    {value}
-                  </label>
-                ))}
+                    >
+                      <input
+                        type="checkbox"
+                        value={value}
+                        checked={formData.checkedValues?.includes(value)}
+                        onChange={(e) => {
+                          const checkedValues = formData.checkedValues || [];
+                          const newValues = e.target.checked
+                            ? [...checkedValues, value]
+                            : checkedValues.filter((v) => v !== value);
+                          handleInputChange("checkedValues", newValues);
+                        }}
+                        style={{ marginRight: "5px" }}
+                      />
+                      {value}
+                    </label>
+                  )
+                )}
               </div>
             </div>
             {renderDescriptionInputs()}
@@ -339,7 +441,9 @@ export default function Edit({ onChangePage }) {
           <div style={{ marginTop: "20px" }}>
             <div>
               <label>
-                <strong>Preview *</strong>
+                <strong>
+                  Preview <span style={{ color: "red" }}>*</span>
+                </strong>
               </label>
               <textarea
                 rows={formData.skp_tipe === "TextArea" ? "4" : "1"}
@@ -391,27 +495,29 @@ export default function Edit({ onChangePage }) {
               isRequired
               forInput="skp_tipe"
               value={formData.skp_tipe}
-              onChange={handleInputChange}
+              onChange={(e) => handleTypeChange(e.target.value)}
               arrData={tipeOptions}
             />
 
             {renderTypeSpecificInputs()}
 
-            <div className="d-flex justify-content-between mt-4">
-              <Button
-                classType="primary"
-                type="button"
-                label="Simpan"
-                onClick={handleSubmit}
-                width="100%"
-              />
-              <Button
-                classType="danger"
-                type="button"
-                label="Batal"
-                onClick={() => onChangePage("index")}
-                width="100%"
-              />
+            <div className="d-flex justify-content-between align-items-center mt-4">
+              <div className="flex-grow-1 m-2">
+                <Button
+                  width="100%"
+                  label="Simpan"
+                  classType="primary"
+                  onClick={handleSubmit}
+                />
+              </div>
+              <div className="flex-grow-1 m-2">
+                <Button
+                  width="100%"
+                  label="Batal"
+                  classType="danger"
+                  onClick={() => navigate("/survei/skala")}
+                />
+              </div>
             </div>
           </div>
         </div>

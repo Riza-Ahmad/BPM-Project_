@@ -13,7 +13,7 @@ export default function Template_Survei() {
   const currentPath = location.pathname;
 
   // Handler for page navigation
-  const handlePageChange = (page, withState = {}) => {
+  const handlePageChange = (page, withState = {}, idData, idTemplate) => {
     switch (page) {
       case "index":
         navigate(`${currentPath}`, { state: { mode: "index", ...withState } });
@@ -29,13 +29,11 @@ export default function Template_Survei() {
         });
         break;
       case "detail":
-        navigate(`${currentPath}/detail`, {
-          state: { mode: "detail", ...withState },
-        });
+        navigate(`${currentPath}`, { state: { mode: "detail", ...withState } });
         break;
       case "preview":
-        navigate(`${currentPath}/preview`, {
-          state: { mode: "preview", ...withState },
+        navigate(`${currentPath}/preview/${idTemplate}`, {
+          state: { mode: "preview", idTemplate },
         });
         break;
       default:
@@ -70,15 +68,15 @@ export default function Template_Survei() {
         />
         <Route path="/add" element={<Add onChangePage={handlePageChange} />} />
         <Route
-          path="/edit"
+          path="/edit/:idData"
           element={<Edit onChangePage={handlePageChange} />}
         />
         <Route
-          path="/detail"
+          path="/detail/:idData"
           element={<Detail onChangePage={handlePageChange} />}
         />
         <Route
-          path="/preview"
+          path="/preview/:idTemplate"
           element={<Preview onChangePage={handlePageChange} />}
         />
       </Routes>

@@ -6,7 +6,7 @@ import Detail from "./Detail";
 import ScrollToTop from "../../../part/ScrollToTop";
 import Swal from "sweetalert2"; // Import Swal for alert
 
-export default function Skala_Survei() {
+export default function Skala_Penilaian() {
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
@@ -76,9 +76,9 @@ export default function Skala_Survei() {
             )
           }
         />
-        <Route path="/add" element={<Add onChangePage={handlePageChange} />} />
+        <Route path="add" element={<Add onChangePage={handlePageChange} />} />
         <Route
-          path="/edit/:id"
+          path="/edit/:key"
           element={<Edit onChangePage={handlePageChange} />}
         />
         <Route
