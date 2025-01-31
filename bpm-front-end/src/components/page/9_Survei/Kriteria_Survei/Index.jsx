@@ -62,10 +62,11 @@ export default function KriteriaSurvei({ onChangePage }) {
     setLoading(true);
     try {
       const result = await useFetch(
-       ` ${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`,
+        `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`,
         currentFilter,
         "POST"
       );
+
       if (result === "ERROR" || result === null || result.length === 0) {
         setFilteredData([]);
         setTotalData(0);
@@ -92,7 +93,7 @@ export default function KriteriaSurvei({ onChangePage }) {
   }
   const handleEdit = (item) => {
     onChangePage("edit", {
-      idData: item.Key,
+      id: item.Key,
       idMenu: idMenu,
       breadcrumbs: breadcrumbs,
     });
@@ -112,17 +113,16 @@ export default function KriteriaSurvei({ onChangePage }) {
       true // Tampilkan tombol batal
     ).then((result) => {
       if (result) {
-        // Jika pengguna mengonfirmasi, hanya simpan idKri dan status yang diperbarui
-        const updatedData = filteredData
-          .filter((data) => data.idKri === item.Key)
-          .map((data) => ({
-            idData: data.idKri,
-            status: data.status === "Aktif" ? "Tidak Aktif" : "Aktif",
-          }));
+        // Perbarui data yang akan dikirim
+        const updatedData = {
+          idData: item.Key,
+          status: item.status === "Aktif" ? "Tidak Aktif" : "Aktif",
+        };
 
         useFetch(
-         `${API_LINK}/MasterKriteriaSurvei/StatusKriteriaSurvei`,
-          updatedData[0]
+          `${API_LINK}/MasterKriteriaSurvei/StatusKriteriaSurvei`,
+          updatedData,
+          "POST"
         )
           .then((response) => {
             if (response === "ERROR") {
@@ -130,13 +130,13 @@ export default function KriteriaSurvei({ onChangePage }) {
             }
             SweetAlert(
               "Berhasil!",
-              updatedData[0].status === "Aktif"
-                ? "Data data berhasil diaktifkan"
-                : "Data data berhasil dinonaktifkan",
+              updatedData.status === "Aktif"
+                ? "Data berhasil diaktifkan"
+                : "Data berhasil dinonaktifkan",
               "success",
               "OK"
             ).then(() => {
-              fetchKriteria();
+              fetchKriteria(); // Panggil ulang data setelah pembaruan berhasil
             });
           })
           .catch((error) => {
@@ -167,23 +167,23 @@ export default function KriteriaSurvei({ onChangePage }) {
             <Button
               iconName="add"
               classType="primary"
-              label="Tambah Data"
+              label="Tambah Kriteria Survei"
               onClick={() => onChangePage("add")}
             />
             <div className="row mt-5">
-              <div className="col-lg-8 col-md-6">
+              <div className="col-lg-11 col-md-6">
                 <SearchField
-                  onChange={(e) =>
-                    setCurrentFilter((prevFilter) => {
-                      return {
-                        ...prevFilter,
-                        param3: e,
-                      };
-                    })
+                  value={currentFilter.param2 || ""}
+                  placeHolder="Cari Kriteria..."
+                  onInput={(e) =>
+                    setCurrentFilter((prevFilter) => ({
+                      ...prevFilter,
+                      param2: e.target.value, // Mengambil nilai input dari e.target.value
+                    }))
                   }
                 />
               </div>
-              <div className="col-lg-4 col-md-6">
+              <div className="col-lg-1 col-md-6">
                 <Filter>
                   <DropDown
                     arrData={arrSort}
@@ -235,17 +235,17 @@ export default function KriteriaSurvei({ onChangePage }) {
               "Nama Kriteria": item.namaKri,
               status: item.status,
             }))}
-            actions={(row) => {
+            actions={(item) => {
               // Jika status "Tidak Aktif", hanya tampilkan Toggle
-              if (row.status === "Tidak Aktif") {
+              if (item.status === "Tidak Aktif") {
                 return ["Toggle"];
               }
               // Jika status selain "Tidak Aktif", tampilkan semua actions
               return ["Detail", "Edit", "Toggle"];
             }}
             onEdit={handleEdit}
-            onDetail={(id) => onChangePage("detail", { id: id.idData })}
-            onToggle={(id) => handleToggle(id.idData)}
+            onDetail={(item) => onChangePage("detail", { detailId: item.Key })}
+            onToggle={(item) => handleToggle(item)}
           />
           <Paging
             pageSize={pageSize}
