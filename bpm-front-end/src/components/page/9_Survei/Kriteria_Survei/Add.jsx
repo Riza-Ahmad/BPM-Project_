@@ -1,99 +1,43 @@
-import React, { useRef, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import React, { useState } from "react";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 import PageTitleNav from "../../../part/PageTitleNav";
 import InputField from "../../../part/InputField";
 import Button from "../../../part/Button";
-import SweetAlert from "../../../util/SweetAlert";
-import { useFetch } from "../../../util/useFetch";
+import Swal from "sweetalert2";
 
 export default function Add({ onChangePage }) {
   const isMobile = useIsMobile();
-  const location = useLocation();
-  const idMenu = location.state?.idMenu;
   const [formData, setFormData] = useState({
-    kriNama: "",
+    ksr_nama: "",
+    ksr_created_by: "Admin",
+    ksr_created_date: new Date().toISOString(),
   });
 
-  const ksr_namaRef = useRef();
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
-
-  const isNameDuplicate = async (name) => {
+  const handleAddKriteria = async () => {
     try {
       const response = await fetch(
-        `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`,
+        `${API_LINK}/MasterKriteriaSurvei/CreateKriteriaSurvei`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ page: 1, pageSize: 100 }),
+          body: JSON.stringify(formData),
         }
       );
 
       if (response.ok) {
-        const result = await response.json();
-        return result.some(
-          (item) => item.namaKri.toLowerCase() === name.toLowerCase()
-        );
+        Swal.fire("Success", "Template berhasil disimpan!", "success");
+        onChangePage("index");
       } else {
-        throw new Error("Gagal memeriksa duplikasi nama.");
-      }
-    } catch (error) {
-      console.error("Error checking duplicate:", error);
-      return false; // Jika ada error, anggap tidak duplikat (default)
-    }
-  };
-
-  const handleSubmit = async () => {
-    const isNamaKriValid = ksr_namaRef.current?.validate();
-
-    if (!isNamaKriValid) {
-      ksr_namaRef.current?.focus();
-      return;
-    }
-    const isDuplicate = await isNameDuplicate(formData.kriNama);
-    if (isDuplicate) {
-      SweetAlert({
-        icon: "warning",
-        title: "Gagal Menambah Kriteria Survei",
-        text: "Nama Kriteria sudah digunakan. Silakan Masukan Nama Kriteria yang lain.",
-      });
-      return;
-    }
-    try {
-      const kriData = {
-        namaKri: ksr_namaRef.current.value,
-      };
-
-      const createResponse = await useFetch(
-        `${API_LINK}/MasterKriteriaSurvei/CreateKriteriaSurvei`,
-        kriData,
-        "POST"
-      );
-
-      if (createResponse === "ERROR") {
-        throw new Error("Gagal menambah data");
-      } else {
-        SweetAlert(
-          "Berhasil!",
-          "Data berhasil ditambahkan.",
-          "success",
-          "OK"
-        ).then(() =>
-          onChangePage("index", {
-            idMenu: idMenu,
-          })
+        const error = await response.json();
+        Swal.fire(
+          "Error",
+          `Gagal menambahkan kriteria: ${error.message}`,
+          "error"
         );
       }
     } catch (error) {
-      console.error("Error:", error.message);
-      SweetAlert("Gagal!", error.message, "error", "OK");
+      Swal.fire("Error", `Terjadi kesalahan: ${error.message}`, "error");
     }
   };
 
@@ -116,17 +60,17 @@ export default function Add({ onChangePage }) {
                 isMobile
                   ? "shadow p-4 m-2 mt-0 bg-white rounded"
                   : "shadow p-5 m-5 mt-0 bg-white rounded"
-              }>
+              }
+            >
               <div className="row">
                 <InputField
-                  ref={ksr_namaRef}
                   label="Nama Kriteria"
-                  value={formData.kriNama}
-                  onChange={handleChange}
+                  value={formData.ksr_nama}
+                  onChange={(e) =>
+                    setFormData({ ...formData, ksr_nama: e.target.value })
+                  }
                   isRequired={true}
                   placeHolder="Masukkan Nama Kriteria"
-                  maxChar="100"
-                  name="kriNama"
                 />
               </div>
 
@@ -135,7 +79,7 @@ export default function Add({ onChangePage }) {
                   <Button
                     classType="primary"
                     label="Simpan"
-                    onClick={handleSubmit}
+                    onClick={handleAddKriteria}
                     width="100%"
                   />
                 </div>

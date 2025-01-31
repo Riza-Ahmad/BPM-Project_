@@ -42,7 +42,8 @@ export default function Survei({ onChangePage }) {
           </div>
           <div
             className={isMobile ? "p-2 m-2 mt-2 mb-0" : "p-3 m-5 mt-2 mb-0"}
-            style={{ marginLeft: "50px" }}>
+            style={{ marginLeft: "50px" }}
+          >
             <Button
               iconName="add"
               classType="primary"
@@ -64,7 +65,8 @@ export default function Survei({ onChangePage }) {
               isMobile
                 ? "table-container bg-white p-2 m-2 mt-0 rounded"
                 : "table-container bg-white p-3 m-5 mt-0 rounded"
-            }>
+            }
+          >
             <Table
               arrHeader={[
                 "No",
@@ -96,6 +98,7 @@ export default function Survei({ onChangePage }) {
           </div>
         </div>
       </main>
+         
     </div>
   );
 }

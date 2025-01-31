@@ -1,37 +1,50 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  useNavigate,
-} from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import ScrollToTop from "../../../part/ScrollToTop";
+import ProtectedRoute from "../../../util/ProtectedRoute";
 import Index from "./Index";
 import Add from "./Add";
 import Edit from "./Edit";
-import ScrollToTop from "../../../part/ScrollToTop";
 import Detail from "./Detail";
+import Preview from "./Preview";
 
 export default function Template_Survei() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.pathname;
 
+  // Handler for page navigation
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
       case "index":
-        navigate("/survei/template");
+        navigate(`${currentPath}`, { state: { mode: "index", ...withState } });
         break;
       case "add":
-        navigate("/survei/template/add");
+        navigate(`${currentPath}/add`, {
+          state: { mode: "add", ...withState },
+        });
         break;
       case "edit":
-        navigate(`/survei/template/edit/${withState.id}`);
+        navigate(`${currentPath}/edit`, {
+          state: { mode: "edit", ...withState },
+        });
         break;
       case "detail":
-        navigate(`/survei/template/detail/${withState.id}`);
+        navigate(`${currentPath}/detail`, {
+          state: { mode: "detail", ...withState },
+        });
+        break;
+      case "preview":
+        navigate(`${currentPath}/preview`, {
+          state: { mode: "preview", ...withState },
+        });
         break;
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
         break;
     }
   };
+
+  const { mode } = location.state || { mode: "index" };
 
   return (
     <>
@@ -40,12 +53,35 @@ export default function Template_Survei() {
         <Route path="/" element={<Index onChangePage={handlePageChange} />} />
         <Route path="add" element={<Add onChangePage={handlePageChange} />} />
         <Route
-          path="edit/:id"
+          path="/"
+          element={
+            <ProtectedRoute isRole={true}>
+              {mode === "add" ? (
+                <Add onChangePage={handlePageChange} />
+              ) : mode === "edit" ? (
+                <Edit onChangePage={handlePageChange} />
+              ) : mode === "detail" ? (
+                <Detail onChangePage={handlePageChange} />
+              ) : mode === "preview" ? (
+                <Preview onChangePage={handlePageChange} />
+              ) : (
+                <Index onChangePage={handlePageChange} />
+              )}
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/add" element={<Add onChangePage={handlePageChange} />} />
+        <Route
+          path="/edit"
           element={<Edit onChangePage={handlePageChange} />}
         />
         <Route
-          path="detail/:id"
+          path="/detail"
           element={<Detail onChangePage={handlePageChange} />}
+        />
+        <Route
+          path="/preview"
+          element={<Preview onChangePage={handlePageChange} />}
         />
       </Routes>
     </>

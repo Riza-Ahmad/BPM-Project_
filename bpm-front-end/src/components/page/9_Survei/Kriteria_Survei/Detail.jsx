@@ -66,39 +66,32 @@ export default function Detail({ onChangePage }) {
               ]}
             />
           </div>
-          <div className={isMobile ? "m-0" : "m-3"}>
-            <div
-              className={
-                isMobile
-                  ? "shadow p-4 m-2 mt-0 bg-white rounded"
-                  : "shadow p-5 m-5 mt-0 bg-white rounded"
-              }>
-              <div className="bg-white p-4 rounded">
-                <div className="row">
-                  <div className="col-12 mb-4">
-                    <h5>Nama Kriteria</h5>
-                    <p>{detailData.ksr_nama}</p>
-                  </div>
-                  <div className="col-md-6">
-                    <h5>Dibuat Oleh</h5>
-                    <p>{detailData.ksr_created_by}</p>
-                    <h5>Tanggal Dibuat</h5>
-                    <p>{detailData.ksr_created_date}</p>
-                  </div>
-                  <div className="col-md-6">
-                    <h5>Dimodifikasi Oleh</h5>
-                    <p>{detailData.ksr_modif_by || "-"}</p>
-                    <h5>Tanggal Dimodifikasi</h5>
-                    <p>{detailData.ksr_modif_date || "-"}</p>
-                  </div>
+          <div className={isMobile ? "p-2 m-2" : "p-3 m-5"}>
+            <div className="bg-white p-4 rounded">
+              <div className="row">
+                <div className="col-12 mb-4">
+                  <h5>Nama Kriteria</h5>
+                  <p>{detailData.ksr_nama}</p>
                 </div>
-                <div className="mt-4">
-                  <Button
-                    classType="secondary"
-                    label="Kembali"
-                    onClick={() => onChangePage("index")}
-                  />
+                <div className="col-md-6">
+                  <h5>Dibuat Oleh</h5>
+                  <p>{detailData.ksr_created_by}</p>
+                  <h5>Tanggal Dibuat</h5>
+                  <p>{detailData.ksr_created_date}</p>
                 </div>
+                <div className="col-md-6">
+                  <h5>Dimodifikasi Oleh</h5>
+                  <p>{detailData.ksr_modif_by || "-"}</p>
+                  <h5>Tanggal Dimodifikasi</h5>
+                  <p>{detailData.ksr_modif_date || "-"}</p>
+                </div>
+              </div>
+              <div className="mt-4">
+                <Button
+                  classType="danger"
+                  label="Kembali"
+                  onClick={() => onChangePage("index")}
+                />
               </div>
             </div>
           </div>
