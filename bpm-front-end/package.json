@@ -16,7 +16,6 @@
     "@tinymce/tinymce-react": "^5.1.1",
     "bootstrap": "^5.3.3",
     "chart.js": "^4.4.7",
-    "chart.js": "^4.4.7",
     "date-fns": "^4.1.0",
     "gapi-script": "^1.2.0",
     "jodit-react": "^4.1.2",
