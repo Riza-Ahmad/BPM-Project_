@@ -1,160 +1,220 @@
-import Swal from "sweetalert2";
-import React, { useEffect, useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import PageTitleNav from "../../../part/PageTitleNav";
 import InputField from "../../../part/InputField";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
 import Dropdown from "../../../part/Dropdown";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import SweetAlert from "../../../util/SweetAlert";
 import { API_LINK } from "../../../util/Constants";
+import { useFetch } from "../../../util/useFetch";
+import Loading from "../../../part/Loading";
 
 export default function Add({ onChangePage }) {
+  const navigate = useNavigate();
   const title = "Tambah Pertanyaan";
   const breadcrumbs = [
-    { label: "Daftar Pertanyaan", href: "/survei/pertanyaan" },
+    { label: "Pertanyaan Survei", href: "/survei/pertanyaan" },
     { label: "Tambah Pertanyaan", href: "/survei/pertanyaan/add" },
   ];
-  const [isPertanyaanUmumYes, setPertanyaanUmumYes] = useState(false);
-  const [pertanyaan, setPertanyaan] = useState("");
-  const [kriteriaSurvei, setKriteriaSurvei] = useState([]);
-  const [skalaPenilaian, setSkalaPenilaian] = useState([]);
-  const [responden, setResponden] = useState("");
-  const [isHeader, setIsHeader] = useState(false);
-  const [isStatus, setIsStatus] = useState(1);
-  const [isGeneral, setIsGeneral] = useState("");
-  const [createdBy, setCreatedBy] = useState("");
-  const [selectedKriteriaSurvei, setSelectedKriteriaSurvei] = useState("");
-  const [selectedSkalaPenilaian, setSelectedSkalaPenilaian] = useState("");
 
-  const handlePertanyaanUmumChange = (value) => {
-    setIsGeneral(value);
+  const [formData, setFormData] = useState({
+    pertanyaan: "",
+    ksrId: "",
+    skpId: "",
+    responden: [],
+  });
+
+  const [ksrOptions, setKsrOptions] = useState([]);
+  const [skpOptions, setSkpOptions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const pertanyaanRef = useRef();
+  const kriteriaSurveiRef = useRef();
+  const skalaPenilaianRef = useRef();
+  const respondenRef = useRef();
+
+  const fetchKriteria = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await useFetch(
+        `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`,
+        {
+          p1: "Aktif",
+          p2: "",
+          p3: "namaKri ASC",
+          p4: 10,
+          p5: 1,
+        },
+        "POST"
+      );
+
+      // Debugging: Cek struktur response
+      console.log("API Response:", result);
+
+      if (result === "ERROR" || !result?.length) {
+        setKsrOptions([]);
+        return;
+      }
+
+      // Konversi value ke number dan validasi
+      setKsrOptions(
+        result.map((item) => ({
+          value: item.idKri,
+          Text: item.namaKri,
+        }))
+      );
+
+      // Debugging: Cek hasil konversi
+      console.log("Ksr Options:", ksrOptions);
+    } catch (err) {
+      setError(`Gagal mengambil kriteria: ${err.message}`);
+      setKsrOptions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchSkalaPenilaian = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const skpResponse = await useFetch(
+        `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
+        {},
+        "POST"
+      );
+
+      if (skpResponse && Array.isArray(skpResponse)) {
+        // Filter hanya yang memiliki skp_status 'Aktif'
+        const filteredSkp = skpResponse.filter(
+          (item) => item.skp_status === "Aktif"
+        );
+
+        setSkpOptions(
+          filteredSkp.map((item) => ({
+            value: item.skp_id,
+            Text: item.skp_skala + " (" + item.skp_deskripsi + ")",
+          }))
+        );
+      }
+    } catch (error) {
+      setError("Gagal mengambil data Skala Penilaian: " + error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    const fetchDataSkala = async () => {
-      try {
-        const response = await fetch(
-          `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({}),
-          }
-        );
+    fetchKriteria();
+    fetchSkalaPenilaian();
+  }, []);
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
 
-        const result = await response.json();
+  const handleSubmit = async () => {
+    // Validasi form ref
+    const isPertanyaanValid = pertanyaanRef.current?.validate();
+    const isKriteriaValid = kriteriaSurveiRef.current?.validate();
+    const isSkalaValid = skalaPenilaianRef.current?.validate();
 
-        const formattedData = result.map((item) => ({
-          Value: item.skp_id,
-          Text: item.skp_tipe,
-        }));
-        setSkalaPenilaian(formattedData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    const fetchDataKriteria = async () => {
-      try {
-        const response = await fetch(
-          `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({}),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-
-        const formattedData = result.map((item) => ({
-          Value: item.ksr_id,
-          Text: item.ksr_nama,
-        }));
-
-        setKriteriaSurvei(formattedData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchDataSkala();
-    fetchDataKriteria();
-  }, [API_LINK]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const data = {
-      pertanyaan,
-      isHeader: isHeader ? 1 : 0,
-      isGeneral,
-      isStatus,
-      createdBy,
-      selectedKriteriaSurvei,
-      selectedSkalaPenilaian,
-    };
+    // Focus ke field yang invalid
+    if (!isPertanyaanValid) {
+      pertanyaanRef.current?.focus();
+      return;
+    }
+    if (!isKriteriaValid) {
+      kriteriaSurveiRef.current?.focus();
+      return;
+    }
+    if (!isSkalaValid) {
+      skalaPenilaianRef.current?.focus();
+      return;
+    }
 
     try {
-      const response = await fetch(
+      // Konversi responden ke array jika belum
+      const respondenArray = Array.isArray(formData.responden)
+        ? formData.responden
+        : [formData.responden];
+
+      // Siapkan payload sesuai struktur backend
+      const payload = {
+        data: {
+          pertanyaan: formData.pertanyaan,
+          ksrId: parseInt(formData.ksrId, 10),
+          skpId: parseInt(formData.skpId, 10),
+          responden: Array.isArray(formData.responden)
+            ? formData.responden
+            : [formData.responden],
+        },
+      };
+
+      // Log payload to ensure it's correct
+      console.log("Payload:", payload);
+
+      // Kirim ke API
+      const result = await useFetch(
         `${API_LINK}/MasterPertanyaan/CreatePertanyaan`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        }
+        payload
       );
 
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      // Log the result to inspect it
+      console.log("API Result:", result);
+
+      // Pastikan result bukan null atau undefined
+      if (!result || result === "ERROR") {
+        throw new Error("Gagal menyimpan pertanyaan");
       }
 
-      const result = await response.json();
-      console.log("Hasil dari server:", result);
-
-      Swal.fire({
-        title: "Berhasil!",
-        text: "Pertanyaan berhasil dibuat.",
-        icon: "success",
-        confirmButtonText: "OK",
-      }).then(() => onChangePage("index"));
+      // Handle response
+      if (result.status === "success") {
+        SweetAlert(
+          "Berhasil!",
+          `Pertanyaan berhasil dibuat dengan ID: ${result.pty_id}`,
+          "success",
+          "OK"
+        ).then(() => navigate("/pertanyaan"));
+      } else {
+        throw new Error(result.error_message || "Terjadi kesalahan server");
+      }
     } catch (error) {
-      console.error("Error:", error);
-      Swal.fire({
-        title: "Error",
-        text: `Terjadi kesalahan: ${error.message}`,
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      console.error("Submit Error:", error);
+      SweetAlert(
+        "Gagal!",
+        error.message || "Terjadi kesalahan saat menyimpan",
+        "error",
+        "OK"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleCancel = () => {
-    Swal.fire({
-      title: "Yakin?",
-      text: "Perubahan belum disimpan, apakah Anda yakin ingin membatalkan?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Ya, batalkan",
-      cancelButtonText: "Tidak",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        onChangePage("index");
-      }
+    SweetAlert(
+      "Yakin?",
+      "Perubahan belum disimpan, yakin batal?",
+      "warning",
+      "Ya, batalkan",
+      "Tidak"
+    ).then((result) => {
+      if (result) onChangePage("index");
     });
   };
+
+  if (loading) return <Loading />;
+  if (error) return <p className="text-danger text-center mt-4">{error}</p>;
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -167,122 +227,74 @@ export default function Add({ onChangePage }) {
               onClick={() => onChangePage("index")}
             />
           </div>
-
           <div className="shadow p-5 m-5 mt-0 bg-white rounded">
             <HeaderForm label="Formulir Pertanyaan" />
-
-            <form onSubmit={handleSubmit}>
-              {/* Checkbox Header */}
-              <div className="row">
-                <div className="col-lg-12">
-                  <label>
-                    <strong>Header</strong>
-                  </label>
-                  <div className="form-check">
-                    <input
-                      type="checkbox"
-                      className="form-check-input"
-                      onChange={(e) => setIsHeader(e.target.checked)}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Pertanyaan Umum */}
-              <div className="row">
-                <label style={{ fontWeight: "bold" }}>
-                  Pertanyaan Umum <span style={{ color: "red" }}>*</span>
-                </label>
-                <div className="custom-radio-dropdown">
-                  <div className="radio-item">
-                    <input
-                      type="radio"
-                      id="tidak"
-                      name="pertanyaanUmum"
-                      value={0}
-                      required
-                      onChange={(e) => {
-                        handlePertanyaanUmumChange(e.target.value);
-                        setPertanyaanUmumYes(false);
-                      }}
-                    />
-                    <label htmlFor="tidak">Tidak</label>
-                  </div>
-                  <div className="radio-item">
-                    <input
-                      type="radio"
-                      id="ya"
-                      name="pertanyaanUmum"
-                      value={1}
-                      required
-                      onChange={(e) => {
-                        handlePertanyaanUmumChange(e.target.value);
-                        setPertanyaanUmumYes(true);
-                      }}
-                    />
-                    <label htmlFor="ya">Ya</label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Input Pertanyaan */}
-              <div className="row">
-                <div className="col-lg-12 col-md-6">
-                  <InputField
-                    label="Pertanyaan"
-                    value={pertanyaan}
-                    onChange={(e) => setPertanyaan(e.target.value)}
-                    isRequired={true}
-                  />
-                </div>
-
-                <div className="col-lg-12 col-md-6">
-                  <Dropdown
-                    arrData={kriteriaSurvei}
-                    label="Kriteria Survei"
-                    isRequired={true}
-                    onChange={(e) => setSelectedKriteriaSurvei(e.target.value)}
-                    value={selectedKriteriaSurvei}
-                    type="pilih"
-                    forInput="kriteriaSurvei"
-                    disabled={isPertanyaanUmumYes}
-                  />
-                </div>
-
-                <div className="col-lg-12 col-md-6">
-                  <Dropdown
-                    arrData={skalaPenilaian}
-                    label="Skala Penilaian"
-                    isRequired={true}
-                    onChange={(e) => setSelectedSkalaPenilaian(e.target.value)}
-                    value={selectedSkalaPenilaian}
-                    type="pilih"
-                    forInput="skalaPenilaian"
-                    disabled={isPertanyaanUmumYes}
-                  />
-                </div>
-              </div>
-
-              <div className="d-flex justify-content-between align-items-center mt-4">
-                <div className="flex-grow-1 m-2">
-                  <Button
-                    classType="primary"
-                    type="submit"
-                    label="Simpan"
-                    width="100%"
-                  />
-                </div>
-                <div className="flex-grow-1 m-2">
-                  <Button
-                    classType="danger"
-                    type="button"
-                    label="Batal"
-                    width="100%"
-                    onClick={handleCancel}
-                  />
-                </div>
-              </div>
-            </form>
+            <InputField
+              ref={pertanyaanRef}
+              id="pertanyaan"
+              label="Pertanyaan"
+              value={formData.pertanyaan}
+              onChange={handleChange}
+              name="pertanyaan"
+              isRequired
+              maxLength={255}
+              type="text"
+            />
+            <Dropdown
+              ref={kriteriaSurveiRef}
+              label="Kriteria Survei"
+              arrData={ksrOptions}
+              value={formData.ksrId}
+              onChange={handleChange}
+              name="ksrId"
+              isRequired={true}
+              type="pilih"
+            />
+            <Dropdown
+              ref={skalaPenilaianRef}
+              label="Skala Penilaian"
+              arrData={skpOptions}
+              value={formData.skpId}
+              onChange={handleChange}
+              name="skpId"
+              isRequired={true}
+              type="pilih"
+            />
+            <Dropdown
+              ref={respondenRef}
+              arrData={[
+                {
+                  value: "Dosen dan Instruktur",
+                  Text: "Dosen dan Instruktur",
+                },
+                { value: "Tenaga Pendidik", Text: "Tenaga Pendidik" },
+                { value: "Mitra Kerjasama", Text: "Mitra Kerjasama" },
+              ]}
+              label="Responden"
+              isRequired
+              onChange={handleChange}
+              value={formData.responden}
+              name="responden"
+              type="pilih"
+              placeholder="Pilih Responden"
+            />
+            <div className="d-flex justify-content-between align-items-center mt-4 gap-3">
+              <Button
+                classType="primary"
+                type="button"
+                label="Simpan"
+                width="100%"
+                disabled={loading}
+                onClick={handleSubmit}
+              />
+              <Button
+                classType="danger"
+                type="button"
+                label="Batal"
+                width="100%"
+                onClick={handleCancel}
+              />
+            </div>
           </div>
         </div>
       </main>

@@ -50,11 +50,11 @@ export default function Survei({ onChangePage }) {
               label="Tambah Data"
               onClick={() => onChangePage("add")}
             />
-            <div className="row mt-4 col-12">
-              <div className="col-md-11">
+            <div className="row mt-5 col-12">
+              <div className="col-lg-11 col-md-6">
                 <SearchField />
               </div>
-              <div className="col-md-1">
+              <div className="col-lg-1 col-md-6">
                 <Filter />
               </div>
             </div>
