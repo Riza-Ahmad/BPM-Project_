@@ -70,6 +70,8 @@ const KriteriaSurvei = lazy(() =>
   import("../page/9_Survei/Kriteria_Survei/Root")
 );
 const SkalaSurvei = lazy(() => import("../page/9_Survei/Skala_Penilaian/Root"));
+const Survei = lazy(() => import("../page/9_Survei/Survei/Root"));
+
 const NotFound = lazy(() => import("../page/not-found/Index"));
 
 // Define route list
@@ -205,6 +207,11 @@ const routeList = [
   {
     path: "/survei/skala/*",
     element: <SkalaSurvei />,
+    protected: true,
+  },
+  {
+    path: "/survei/survei/*",
+    element: <Survei />,
   },
   {
     path: "*",

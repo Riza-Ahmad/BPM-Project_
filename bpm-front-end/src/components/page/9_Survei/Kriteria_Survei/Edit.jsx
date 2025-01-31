@@ -11,54 +11,47 @@ export default function Edit({ onChangePage }) {
   const { id } = useParams();
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
-  const [editFormData, setEditFormData] = useState({
-    ksr_id: "",
-    ksr_nama: "",
-    ksr_status: "1",
-    ksr_created_by: "",
-    ksr_created_date: "",
-    ksr_modif_by: "Admin",
-    ksr_modif_date: new Date().toISOString(),
+  const [formData, setFormData] = useState({
+    idKdo: idData,
+    namaKri: "",
   });
+  const namaKriRef = useRef();
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(
-          `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurveiById`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ksr_id: id }),
-          }
-        );
+    const fetchDokumenById = async () => {
+      const body = {
+        idData: idData,
+      };
+      setLoading(true);
+      const result = await useFetch(
+        `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurveiById`,
+        body,
+        "POST"
+      );
 
-        if (!response.ok) throw new Error("Gagal mengambil data untuk di-edit");
-
-        const result = await response.json();
-        const [selectedData] = result;
-
-        setEditFormData((prevState) => ({
-          ...prevState,
-          ksr_id: selectedData.ksr_id,
-          ksr_nama: selectedData.ksr_nama,
-          ksr_created_by: selectedData.ksr_created_by,
-          ksr_created_date: selectedData.ksr_created_date,
-        }));
-      } catch (error) {
-        console.error("Error fetching data for edit:", error);
-        Swal.fire(
-          "Error",
-          "Terjadi kesalahan saat memuat data untuk di-edit.",
-          "error"
-        );
-      } finally {
-        setLoading(false);
+      if (result === "ERROR" || result === null || result.length === 0) {
+        setFormData(null);
+      } else {
+        console.log(result);
+        const arrResult = Object.values(result);
+        setFormData({
+          idKdo: idData,
+          namaKri: arrResult[0].namaKri,
+        });
       }
+
+      setLoading(false);
     };
 
-    fetchData();
-  }, [id]);
+    fetchDokumenById();
+  }, [idData]);
 
   const handleSaveEdit = async () => {
     try {
