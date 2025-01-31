@@ -7,7 +7,6 @@ import Button from "../../../part/Button";
 import { API_LINK } from "../../../util/Constants";
 import Modal from "../../../part/Modal";
 import Filter from "../../../part/Filter";
-import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../../../util/useIsMobile";
 import Swal from "sweetalert2";
 
