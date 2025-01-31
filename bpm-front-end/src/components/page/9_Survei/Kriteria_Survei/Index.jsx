@@ -5,7 +5,6 @@ import Paging from "../../../part/Paging";
 import PageTitleNav from "../../../part/PageTitleNav";
 import Button from "../../../part/Button";
 import Filter from "../../../part/Filter";
-import SearchField from "../../../part/SearchField";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 
@@ -18,6 +17,7 @@ export default function KriteriaSurvei({ onChangePage }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [filterYear, setFilterYear] = useState("");
+
   useEffect(() => {
     fetchKriteria();
   }, []);
@@ -96,55 +96,6 @@ export default function KriteriaSurvei({ onChangePage }) {
   if (loading) {
     return <div>Loading...</div>;
   }
-  const handleToggle = async (id) => {
-    const parameters = { p1: id, p2: "Admin" };
-
-    // Konfirmasi toggle
-    const confirm = await Swal.fire({
-      title: "Konfirmasi",
-      text: "Apakah Anda yakin ingin mengubah status data ini?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Ya",
-      cancelButtonText: "Batal",
-    });
-
-    if (confirm.isConfirmed) {
-      try {
-        const response = await fetch(
-          `${API_LINK}/MasterKriteriaSurvei/DeleteKriteriaSurvei`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(parameters),
-          }
-        );
-
-        if (!response.ok) throw new Error("Gagal mengubah status data.");
-
-        // Ambil respons dari server (jika server mengembalikan data terbaru)
-        const updatedItem = await response.json();
-
-        // Perbarui state `data`
-        setData((prevData) =>
-          prevData.map((item) =>
-            item.ksr_id === id ? { ...item, ...updatedItem } : item
-          )
-        );
-
-        Swal.fire("Berhasil", "Status data berhasil diubah.", "success");
-      } catch (err) {
-        console.error("Error:", err);
-        Swal.fire(
-          "Gagal",
-          "Terjadi kesalahan saat mengubah status data.",
-          "error"
-        );
-      }
-    } else {
-      Swal.fire("Batal", "Aksi dibatalkan.", "info");
-    }
-  };
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -176,8 +127,6 @@ export default function KriteriaSurvei({ onChangePage }) {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="form-control"
                 />
-                <SearchField
-                  onChange={(e) => setSearchTerm(e.target.value)}></SearchField>
               </div>
               <div className="col-lg-4 col-md-6">
                 <Filter>
@@ -189,7 +138,8 @@ export default function KriteriaSurvei({ onChangePage }) {
                       id="filter-status"
                       className="form-select"
                       value={filterStatus}
-                      onChange={(e) => setFilterStatus(e.target.value)}>
+                      onChange={(e) => setFilterStatus(e.target.value)}
+                    >
                       <option value="">Semua Status</option>
                       <option value="1">Aktif</option>
                       <option value="0">Tidak Aktif</option>
@@ -204,7 +154,8 @@ export default function KriteriaSurvei({ onChangePage }) {
                       id="filter-year"
                       className="form-select"
                       value={filterYear}
-                      onChange={(e) => setFilterYear(e.target.value)}>
+                      onChange={(e) => setFilterYear(e.target.value)}
+                    >
                       <option value="">Semua Tahun</option>
                       {getAvailableYears().map((year) => (
                         <option key={year} value={year.toString()}>
@@ -216,7 +167,8 @@ export default function KriteriaSurvei({ onChangePage }) {
 
                   <button
                     className="btn btn-secondary mt-3"
-                    onClick={resetFilter}>
+                    onClick={resetFilter}
+                  >
                     Reset Filter
                   </button>
                 </Filter>
@@ -230,7 +182,8 @@ export default function KriteriaSurvei({ onChangePage }) {
             isMobile
               ? "table-container bg-white p-2 m-2 mt-0 rounded"
               : "table-container bg-white p-3 m-5 mt-0 rounded"
-          }>
+          }
+        >
           <Table
             arrHeader={["No", "Nama Kriteria"]}
             data={currentData.map((item, index) => ({
@@ -240,10 +193,9 @@ export default function KriteriaSurvei({ onChangePage }) {
 
               "Nama Kriteria": item.ksr_nama,
             }))}
-            actions={["Edit", "Detail", "Toggle"]}
+            actions={["Edit", "Detail"]}
             onEdit={(id) => onChangePage("edit", { id: id.idData })}
             onDetail={(id) => onChangePage("detail", { id: id.idData })}
-            onToggle={(item) => handleToggle(item.Key)}
           />
           <Paging
             pageSize={pageSize}

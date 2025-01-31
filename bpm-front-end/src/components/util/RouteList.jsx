@@ -79,10 +79,23 @@ const PeraturanEksternal = lazy(() =>
 const InstrumenAps = lazy(() =>
   import("../page/10_Peraturan/ms_instrumenAps/Root")
 );
+
+//SURVEI
 const KriteriaSurvei = lazy(() =>
   import("../page/9_Survei/Kriteria_Survei/Root")
 );
 const SkalaSurvei = lazy(() => import("../page/9_Survei/Skala_Penilaian/Root"));
+const Pertanyaan_Survei = lazy(() =>
+  import("../page/9_Survei/Pertanyaan_Survei/Root")
+);
+const Template_Survei = lazy(() =>
+  import("../page/9_Survei/Template_Survei/Root")
+);
+const Survei = lazy(() => import("../page/9_Survei/Survei/Root"));
+const Daftar_Survei = lazy(() => import("../page/9_Survei/Daftar_Survei/Root"));
+const Dashboard_Survei = lazy(() =>
+  import("../page/9_Survei/Dashboard_Survei/Root")
+);
 const NotFound = lazy(() => import("../page/not-found/Index"));
 
 // Define route list
@@ -240,6 +253,7 @@ const routeList = [
     element: <InstrumenAps />,
     protected: true,
   },
+
   {
     path: "/survei/kriteria/*",
     element: <KriteriaSurvei />,
@@ -248,6 +262,32 @@ const routeList = [
   {
     path: "/survei/skala/*",
     element: <SkalaSurvei />,
+    protected: true,
+  },
+  {
+    path: "/survei/pertanyaan/*",
+    element: <Pertanyaan_Survei />,
+    protected: true,
+  },
+  {
+    path: "/survei/template/*",
+    element: <Template_Survei />,
+    protected: true,
+  },
+  {
+    path: "/survei/*",
+    element: <Survei />,
+    protected: true,
+  },
+  {
+    path: "/survei/daftar/*",
+    element: <Daftar_Survei />,
+    protected: true,
+  },
+  {
+    path: "/survei/dashboard_survei/*",
+    element: <Dashboard_Survei />,
+    protected: true,
   },
   {
     path: "*",

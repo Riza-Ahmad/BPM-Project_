@@ -1,11 +1,30 @@
 import React from "react";
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Tooltip, Legend } from "chart.js";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
 import { Pie, Line, Bar } from "react-chartjs-2";
 import PageTitleNav from "../../../part/PageTitleNav";
 import { useIsMobile } from "../../../util/useIsMobile";
 
 // Registrasi elemen dan skala yang diperlukan oleh Chart.js
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Tooltip,
+  Legend
+);
 
 export default function Dashboard_Survei({ onChangePage }) {
   const isMobile = useIsMobile();

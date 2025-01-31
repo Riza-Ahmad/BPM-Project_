@@ -13,59 +13,8 @@ export default function Add({ onChangePage }) {
     ksr_created_by: "Admin",
     ksr_created_date: new Date().toISOString(),
   });
-  const validateForm = () => {
-    const errors = [];
-    if (!formData.ksr_nama || formData.ksr_nama.trim() === "") {
-      errors.push("Nama Kriteria tidak boleh kosong.");
-    }
-    return errors;
-  };
-  const isNameDuplicate = async (name) => {
-    try {
-      const response = await fetch(
-        `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ page: 1, pageSize: 100 }),
-        }
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-        return result.some(
-          (item) => item.ksr_nama.toLowerCase() === name.toLowerCase()
-        );
-      } else {
-        throw new Error("Gagal memeriksa duplikasi nama.");
-      }
-    } catch (error) {
-      console.error("Error checking duplicate:", error);
-      return false; // Jika ada error, anggap tidak duplikat (default)
-    }
-  };
 
   const handleAddKriteria = async () => {
-    const errors = validateForm();
-
-    if (errors.length > 0) {
-      Swal.fire({
-        icon: "warning",
-        title: "Gagal Menambah Kriteria Survei",
-        html: errors.map((err) => `<p>${err}</p>`).join(""),
-      });
-      return;
-    }
-
-    const isDuplicate = await isNameDuplicate(formData.ksr_nama);
-    if (isDuplicate) {
-      Swal.fire({
-        icon: "warning",
-        title: "Gagal Menambah Kriteria Survei",
-        text: "Nama Kriteria sudah digunakan. Silakan Masukan Nama Kriteria yang lain.",
-      });
-      return;
-    }
     try {
       const response = await fetch(
         `${API_LINK}/MasterKriteriaSurvei/CreateKriteriaSurvei`,
@@ -111,7 +60,8 @@ export default function Add({ onChangePage }) {
                 isMobile
                   ? "shadow p-4 m-2 mt-0 bg-white rounded"
                   : "shadow p-5 m-5 mt-0 bg-white rounded"
-              }>
+              }
+            >
               <div className="row">
                 <InputField
                   label="Nama Kriteria"

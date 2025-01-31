@@ -101,42 +101,32 @@ export default function Edit({ onChangePage }) {
               ]}
             />
           </div>
-          <div className={isMobile ? "m-0" : "m-3"}>
-            <div
-              className={
-                isMobile
-                  ? "shadow p-4 m-2 mt-0 bg-white rounded"
-                  : "shadow p-5 m-5 mt-0 bg-white rounded"
-              }>
-              <div className="row">
-                <InputField
-                  label="Nama Kriteria"
-                  value={editFormData.ksr_nama}
-                  onChange={(e) =>
-                    setEditFormData({
-                      ...editFormData,
-                      ksr_nama: e.target.value,
-                    })
-                  }
-                  isRequired={true}
-                />
-                <div className="mt-4 d-flex justify-content-between">
-                  <div className="me-2" style={{ flex: 1 }}>
-                    <Button
-                      classType="primary"
-                      label="Simpan"
-                      onClick={handleSaveEdit}
-                      width="100%"
-                    />
-                  </div>
-                  <div className="ms-2" style={{ flex: 1 }}>
-                    <Button
-                      classType="danger"
-                      label="Batal"
-                      onClick={() => onChangePage("index")}
-                      width="100%"
-                    />
-                  </div>
+          <div className={isMobile ? "p-2 m-2" : "p-3 m-5"}>
+            <div className="bg-white p-4 rounded">
+              <InputField
+                label="Nama Kriteria"
+                value={editFormData.ksr_nama}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, ksr_nama: e.target.value })
+                }
+                isRequired={true}
+              />
+              <div className="mt-4 d-flex justify-content-between">
+                <div className="me-2" style={{ flex: 1 }}>
+                  <Button
+                    classType="primary"
+                    label="Simpan"
+                    onClick={handleSaveEdit}
+                    width="100%"
+                  />
+                </div>
+                <div className="ms-2" style={{ flex: 1 }}>
+                  <Button
+                    classType="danger"
+                    label="Batal"
+                    onClick={() => onChangePage("index")}
+                    width="100%"
+                  />
                 </div>
               </div>
             </div>
