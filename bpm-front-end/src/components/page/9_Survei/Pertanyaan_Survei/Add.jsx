@@ -1,299 +1,222 @@
-import React, { useState, useRef, useEffect } from "react";
-import PageTitleNav from "../../../part/PageTitleNav";
-import InputField from "../../../part/InputField";
-import HeaderForm from "../../../part/HeaderText";
-import Button from "../../../part/Button";
-import Dropdown from "../../../part/Dropdown";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
-import SweetAlert from "../../../util/SweetAlert";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { API_LINK } from "../../../util/Constants";
-import { useFetch } from "../../../util/useFetch";
+import { useIsMobile } from "../../../util/useIsMobile";
+import PageTitleNav from "../../../part/PageTitleNav";
+import Button from "../../../part/Button";
+import Swal from "sweetalert2";
+import DetailData from "../../../part/DetailData";
+import HeaderForm from "../../../part/HeaderText";
 import Loading from "../../../part/Loading";
+import { useFetch } from "../../../util/useFetch";
 
-export default function Add({ onChangePage }) {
+// Format tanggal untuk Indonesia
+const formatTanggal = (tanggal) => {
+  if (!tanggal) return "-";
+  return new Date(tanggal).toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
+
+export default function Detail() {
   const navigate = useNavigate();
-  const title = "Tambah Pertanyaan";
-  const breadcrumbs = [
-    { label: "Pertanyaan Survei", href: "/survei/pertanyaan" },
-    { label: "Tambah Pertanyaan", href: "/survei/pertanyaan/add" },
-  ];
-
-  const [formData, setFormData] = useState({
+  const { detailId } = useParams();
+  const isMobile = useIsMobile();
+  const [detailData, setDetailData] = useState({
     pertanyaan: "",
+    tipe: "",
+    status: "",
+    createdBy: "",
+    createdDate: "",
+    modifiedBy: "",
+    modifiedDate: "",
     ksrId: "",
     skpId: "",
-    responden: [],
+    kriteriaNama: "",
+    skalaTipe: "",
   });
-
   const [ksrOptions, setKsrOptions] = useState([]);
   const [skpOptions, setSkpOptions] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const pertanyaanRef = useRef();
-  const kriteriaSurveiRef = useRef();
-  const skalaPenilaianRef = useRef();
-  const respondenRef = useRef();
-
-  const fetchKriteria = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await useFetch(
-        `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`,
-        {
-          p1: "Aktif",
-          p2: "",
-          p3: "namaKri ASC",
-          p4: 10,
-          p5: 1,
-        },
-        "POST"
-      );
-
-      // Debugging: Cek struktur response
-      console.log("API Response:", result);
-
-      if (result === "ERROR" || !result?.length) {
-        setKsrOptions([]);
-        return;
-      }
-
-      // Konversi value ke number dan validasi
-      setKsrOptions(
-        result.map((item) => ({
-          value: item.idKri,
-          Text: item.namaKri,
-        }))
-      );
-
-      // Debugging: Cek hasil konversi
-      console.log("Ksr Options:", ksrOptions);
-    } catch (err) {
-      setError(`Gagal mengambil kriteria: ${err.message}`);
-      setKsrOptions([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchSkalaPenilaian = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const skpResponse = await useFetch(
-        `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
-        {},
-        "POST"
-      );
-
-      if (skpResponse && Array.isArray(skpResponse)) {
-        // Filter hanya yang memiliki skp_status 'Aktif'
-        const filteredSkp = skpResponse.filter(
-          (item) => item.skp_status === "Aktif"
-        );
-
-        setSkpOptions(
-          filteredSkp.map((item) => ({
-            value: item.skp_id,
-            Text: item.skp_skala + " (" + item.skp_deskripsi + ")",
-          }))
-        );
-      }
-    } catch (error) {
-      setError("Gagal mengambil data Skala Penilaian: " + error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Fetch Kriteria data
   useEffect(() => {
+    const fetchKriteria = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await useFetch(
+          `${API_LINK}/MasterPertanyaan/GetAllKriteriaSurveiAktif`,
+          {},
+          "POST"
+        );
+        setKsrOptions(data);
+      } catch (err) {
+        setError("Gagal mengambil data Kriteria: " + err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchKriteria();
+  }, []);
+
+  // Fetch Skala Penilaian data
+  useEffect(() => {
+    const fetchSkalaPenilaian = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const skpResponse = await useFetch(
+          `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
+          {},
+          "POST"
+        );
+        if (skpResponse && Array.isArray(skpResponse)) {
+          const filteredSkp = skpResponse.filter(
+            (item) => item.skp_status === "Aktif"
+          );
+          setSkpOptions(
+            filteredSkp.map((item) => ({
+              value: item.skp_id,
+              Text: item.skp_skala + " (" + item.skp_deskripsi + ")",
+            }))
+          );
+        }
+      } catch (error) {
+        setError("Gagal mengambil data Skala Penilaian: " + error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchSkalaPenilaian();
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
+  // Fetch Detail Pertanyaan
+  useEffect(() => {
+    const fetchDetail = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `${API_LINK}/MasterPertanyaan/GetDataPertanyaanById`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ p1: detailId }),
+          }
+        );
 
-  const handleSubmit = async () => {
-    // Validasi form ref
-    const isPertanyaanValid = pertanyaanRef.current?.validate();
-    const isKriteriaValid = kriteriaSurveiRef.current?.validate();
-    const isSkalaValid = skalaPenilaianRef.current?.validate();
+        if (!response.ok) {
+          throw new Error("Gagal mengambil data detail");
+        }
 
-    // Focus ke field yang invalid
-    if (!isPertanyaanValid) {
-      pertanyaanRef.current?.focus();
-      return;
-    }
-    if (!isKriteriaValid) {
-      kriteriaSurveiRef.current?.focus();
-      return;
-    }
-    if (!isSkalaValid) {
-      skalaPenilaianRef.current?.focus();
-      return;
-    }
+        const result = await response.json();
+        if (result && result[0]) {
+          const fetchedKriteriaNama =
+            ksrOptions.find((item) => item.ksr_id === result[0].ksrId)
+              ?.ksr_nama || "-";
 
-    try {
-      // Konversi responden ke array jika belum
-      const respondenArray = Array.isArray(formData.responden)
-        ? formData.responden
-        : [formData.responden];
+          const fetchedSkalaTipe =
+            skpOptions.find((item) => item.skp_id === result[0].skpId)
+              ?.skp_skala || "-";
 
-      // Siapkan payload sesuai struktur backend
-      const payload = {
-        data: {
-          pertanyaan: formData.pertanyaan,
-          ksrId: parseInt(formData.ksrId, 10),
-          skpId: parseInt(formData.skpId, 10),
-          responden: Array.isArray(formData.responden)
-            ? formData.responden
-            : [formData.responden],
-        },
-      };
-
-      // Log payload to ensure it's correct
-      console.log("Payload:", payload);
-
-      // Kirim ke API
-      const result = await useFetch(
-        `${API_LINK}/MasterPertanyaan/CreatePertanyaan`,
-        payload
-      );
-
-      // Log the result to inspect it
-      console.log("API Result:", result);
-
-      // Pastikan result bukan null atau undefined
-      if (!result || result === "ERROR") {
-        throw new Error("Gagal menyimpan pertanyaan");
+          setDetailData({
+            ...result[0],
+            kriteriaNama: fetchedKriteriaNama,
+            skalaTipe: fetchedSkalaTipe,
+          });
+        } else {
+          throw new Error("Data tidak ditemukan");
+        }
+      } catch (error) {
+        console.error("Error fetching detail:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Terjadi Kesalahan",
+          text: "Gagal mengambil data detail",
+        });
+        navigate("/survei/pertanyaan");
+      } finally {
+        setLoading(false);
       }
+    };
 
-      // Handle response
-      if (result.status === "success") {
-        SweetAlert(
-          "Berhasil!",
-          `Pertanyaan berhasil dibuat dengan ID: ${result.pty_id}`,
-          "success",
-          "OK"
-        ).then(() => navigate("/pertanyaan"));
-      } else {
-        throw new Error(result.error_message || "Terjadi kesalahan server");
-      }
-    } catch (error) {
-      console.error("Submit Error:", error);
-      SweetAlert(
-        "Gagal!",
-        error.message || "Terjadi kesalahan saat menyimpan",
-        "error",
-        "OK"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchDetail();
+  }, [detailId, ksrOptions, skpOptions, navigate]);
 
-  const handleCancel = () => {
-    SweetAlert(
-      "Yakin?",
-      "Perubahan belum disimpan, yakin batal?",
-      "warning",
-      "Ya, batalkan",
-      "Tidak"
-    ).then((result) => {
-      if (result) onChangePage("index");
-    });
-  };
+  // Komponen untuk menampilkan kolom kiri detail
+  const KolomKiriDetail = () => (
+    <div className="col-lg-6 col-md-6">
+      <DetailData label="Pertanyaan" isi={detailData.pertanyaan || "-"} />
+      <DetailData label="Tipe" isi={detailData.tipe || "-"} />
+      <DetailData
+        label="Status"
+        isi={detailData.status === 0 ? "Tidak Aktif" : "Aktif"}
+      />
+      <DetailData label="Dibuat Oleh" isi={detailData.createdBy || "-"} />
+      <DetailData
+        label="Tanggal Dibuat"
+        isi={formatTanggal(detailData.createdDate)}
+      />
+      <DetailData label="Kriteria" isi={detailData.kriteriaNama || "-"} />
+    </div>
+  );
 
+  // Komponen untuk menampilkan kolom kanan detail
+  const KolomKananDetail = () => (
+    <div className="col-lg-6 col-md-6">
+      <DetailData
+        label="Dimodifikasi Oleh"
+        isi={detailData.modifiedBy || "-"}
+      />
+      <DetailData
+        label="Tanggal Dimodifikasi"
+        isi={formatTanggal(detailData.modifiedDate)}
+      />
+      <DetailData label="Skala Tipe" isi={detailData.skalaTipe || "-"} />
+    </div>
+  );
+
+  // Tampilkan loading jika data sedang dimuat
   if (loading) return <Loading />;
-  if (error) return <p className="text-danger text-center mt-4">{error}</p>;
 
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          <div className="m-3">
-            <PageTitleNav
-              title={title}
-              breadcrumbs={breadcrumbs}
-              onClick={() => onChangePage("index")}
-            />
-          </div>
-          <div className="shadow p-5 m-5 mt-0 bg-white rounded">
-            <HeaderForm label="Formulir Pertanyaan" />
-            <InputField
-              ref={pertanyaanRef}
-              id="pertanyaan"
-              label="Pertanyaan"
-              value={formData.pertanyaan}
-              onChange={handleChange}
-              name="pertanyaan"
-              isRequired
-              maxLength={255}
-              type="text"
-            />
-            <Dropdown
-              ref={kriteriaSurveiRef}
-              label="Kriteria Survei"
-              arrData={ksrOptions}
-              value={formData.ksrId}
-              onChange={handleChange}
-              name="ksrId"
-              isRequired={true}
-              type="pilih"
-            />
-            <Dropdown
-              ref={skalaPenilaianRef}
-              label="Skala Penilaian"
-              arrData={skpOptions}
-              value={formData.skpId}
-              onChange={handleChange}
-              name="skpId"
-              isRequired={true}
-              type="pilih"
-            />
-            <Dropdown
-              ref={respondenRef}
-              arrData={[
-                {
-                  value: "Dosen dan Instruktur",
-                  Text: "Dosen dan Instruktur",
-                },
-                { value: "Tenaga Pendidik", Text: "Tenaga Pendidik" },
-                { value: "Mitra Kerjasama", Text: "Mitra Kerjasama" },
-              ]}
-              label="Responden"
-              isRequired
-              onChange={handleChange}
-              value={formData.responden}
-              name="responden"
-              type="pilih"
-              placeholder="Pilih Responden"
-            />
-            <div className="d-flex justify-content-between align-items-center mt-4 gap-3">
-              <Button
-                classType="primary"
-                type="button"
-                label="Simpan"
-                width="100%"
-                disabled={loading}
-                onClick={handleSubmit}
-              />
-              <Button
-                classType="danger"
-                type="button"
-                label="Batal"
-                width="100%"
-                onClick={handleCancel}
-              />
+          {/* Navigasi dan Judul */}
+          <PageTitleNav
+            title="Detail Pertanyaan Survei"
+            breadcrumbs={[
+              { label: "Pertanyaan Survei", href: "/survei/pertanyaan" },
+              { label: "Detail Pertanyaan Survei" },
+            ]}
+            onClick={() => navigate("/survei/pertanyaan")}
+          />
+
+          {/* Kartu Detail */}
+          <div className="shadow p-5 mt-4 bg-white rounded">
+            <HeaderForm label="Detail Pertanyaan Survei" />
+
+            {/* Konten Detail */}
+            <div className="row">
+              <KolomKiriDetail />
+              <KolomKananDetail />
+            </div>
+
+            {/* Tombol Aksi */}
+            <div className="d-flex justify-content-between align-items-center">
+              <div className="flex-grow-1 m-2">
+                <Button
+                  width="100%"
+                  label="Kembali"
+                  classType="danger"
+                  onClick={() => navigate("/survei/pertanyaan")}
+                />
+              </div>
             </div>
           </div>
         </div>

@@ -10,7 +10,7 @@ import SearchField from "../../../part/SearchField";
 import Swal from "sweetalert2";
 import { matchPath, useNavigate } from "react-router-dom";
 import { useIsMobile } from "../../../util/useIsMobile";
-import { API_LINK } from "../../../util/Constants";
+import { API_LINK, TEMPLATE_LINK } from "../../../util/Constants";
 import * as XLSX from "xlsx";
 import { useFetch } from "../../../util/useFetch";
 
@@ -492,11 +492,11 @@ export default function Pertanyaan_Survei({ onChangePage }) {
               }))}
               actions={(row) =>
                 row.Status
-                  ? ["Toggle", "Detail", "Edit"]
-                  : ["Toggle", "Detail", "Edit"]
+                  ? ["Detail", "Edit", "Toggle"]
+                  : ["Detail", "Edit", "Toggle"]
               }
               onDetail={(item) =>
-                onChangePage("detail", { idPertanyaan: item.Key })
+                onChangePage("detail", { detailId: item.Key })
               }
               onEdit={(item) =>
                 onChangePage("edit", { idPertanyaan: item.Key })
@@ -565,7 +565,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
               style={{ color: "blue", textDecoration: "underline" }}
               onClick={(e) => {
                 e.preventDefault(); // Mencegah navigasi default
-                const templateDokumen = "Template_Kuesioner.xlsx"; // Ganti dengan data dinamis Anda
+                const templateDokumen = "Template_Survei.xlsx"; // Ganti dengan data dinamis Anda
                 const url = TEMPLATE_LINK + templateDokumen;
 
                 // Memanggil API
