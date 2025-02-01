@@ -66,7 +66,7 @@ export default function Add({ onChangePage }) {
           "POST"
         );
 
-        setAuditee(data);
+          setAuditee(data);
       } catch (err) {
         setError("Gagal mengambil data: " + err);
       } finally {
