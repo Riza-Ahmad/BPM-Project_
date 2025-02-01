@@ -22,7 +22,7 @@ export default function Add({ onChangePage }) {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  
   const [formData, setFormData] = useState({
     kriteria: "",
     pertanyaan: "",

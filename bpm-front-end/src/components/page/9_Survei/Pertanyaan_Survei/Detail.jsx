@@ -1,179 +1,150 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { API_LINK } from "../../../util/Constants";
+import { useIsMobile } from "../../../util/useIsMobile";
 import PageTitleNav from "../../../part/PageTitleNav";
+import Button from "../../../part/Button";
+import Swal from "sweetalert2";
 import DetailData from "../../../part/DetailData";
 import HeaderForm from "../../../part/HeaderText";
 import Loading from "../../../part/Loading";
-import { API_LINK } from "../../../util/Constants";
-import { useIsMobile } from "../../../util/useIsMobile";
-import { FaCodeBranch, FaSkyatlas } from "react-icons/fa";
 
-export default function Detail({ onChangePage }) {
-  const title = "Detail Pertanyaan";
-  const breadcrumbs = [
-    { label: "Pertanyaan Survei", href: "/survei/pertanyaan" },
-    { label: "Detail Pertanyaan" },
-  ];
-  const isMobile = useIsMobile();
-  const location = useLocation();
+// Format tanggal untuk Indonesia
+const formatTanggal = (tanggal) => {
+  if (!tanggal) return "-";
+  return new Date(tanggal).toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
+
+export default function DetailPertanyaan() {
   const navigate = useNavigate();
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [formData, setFormData] = useState({
+  const { detailId } = useParams();
+  const isMobile = useIsMobile();
+  const [detailData, setDetailData] = useState({
     pertanyaan: "",
-    kriteria: "",
-    skala: "",
+    tipe: "",
     status: "",
     createdBy: "",
     createdDate: "",
     modifiedBy: "",
     modifiedDate: "",
+    ksrId: "",
+    skpId: "",
+    kriteriaNama: "",
+    skalaTipe: "",
   });
+  const [loading, setLoading] = useState(true);
 
-  // Fetch data function
-  const fetchData = async () => {
-    try {
-      const response = await fetch(
-        `${API_LINK}/MasterPertanyaan/GetPertanyaanById`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ id: location.state.idPertanyaan }),
-        }
-      );
-
-      const data = await response.json();
-      console.log("API Response Data:", data); // Hanya di sini yang perlu ada log
-
-      if (data && data.length > 0) {
-        const pertanyaan = data[0];
-        setFormData({
-          pertanyaan: pertanyaan.pty_pertanyaan || "Tidak tersedia",
-          kriteria: pertanyaan.kriteria_nama || "Tidak tersedia",
-          skala: pertanyaan.skala_tipe || "Tidak tersedia",
-          status: pertanyaan.pty_status === 1 ? "Aktif" : "Tidak Aktif",
-          createdBy: pertanyaan.pty_created_by || "Tidak tersedia",
-          createdDate: pertanyaan.pty_created_date
-            ? new Date(pertanyaan.pty_created_date).toLocaleDateString(
-                "id-ID",
-                {
-                  weekday: "long",
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                }
-              )
-            : "-",
-          modifiedBy: pertanyaan.pty_modif_by || "-",
-          modifiedDate: pertanyaan.pty_modif_date
-            ? new Date(pertanyaan.pty_modif_date).toLocaleDateString("id-ID", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })
-            : "-",
-        });
-      } else {
-        setError("Pertanyaan data tidak ditemukan.");
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      setError("Gagal mengambil data pertanyaan.");
-    } finally {
-      setLoading(false); // Pastikan loading selesai setelah data diambil atau error
-    }
-  };
-
-  // Use effect to fetch data on mount
   useEffect(() => {
-    console.log(formData);
-    fetchData();
-  }, []);
+    const fetchDetail = async () => {
+      try {
+        const response = await fetch(
+          `${API_LINK}/MasterPertanyaan/GetDataPertanyaanById`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ p1: detailId }),
+          }
+        );
 
-  if (loading) return <Loading />; // Menunggu data
-  if (error)
-    return (
-      <div className="d-flex justify-content-center align-items-center min-vh-100">
-        <div>
-          <p>{error}</p>
-          <button
-            className="btn btn-primary"
-            onClick={() => navigate("/survei/pertanyaan")}
-          >
-            Kembali ke Pertanyaan
-          </button>
-        </div>
-      </div>
-    );
+        if (!response.ok) {
+          throw new Error("Gagal mengambil data detail");
+        }
+
+        const result = await response.json();
+        if (result && result[0]) {
+          setDetailData(result[0]);
+        } else {
+          throw new Error("Data tidak ditemukan");
+        }
+      } catch (error) {
+        console.error("Error fetching detail:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Terjadi Kesalahan",
+          text: "Gagal mengambil data detail",
+        });
+        navigate("/survei/pertanyaan");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDetail();
+  }, [detailId, navigate]);
+
+  // Komponen untuk menampilkan kolom kiri detail
+  const KolomKiriDetail = () => (
+    <div className="col-lg-6 col-md-6">
+      <DetailData label="Pertanyaan" isi={detailData.pertanyaan || "-"} />
+      <DetailData label="Tipe" isi={detailData.tipe || "-"} />
+      <DetailData
+        label="Status"
+        isi={detailData.status === 0 ? "Tidak Aktif" : "Aktif"}
+      />
+      <DetailData label="Dibuat Oleh" isi={detailData.createdBy || "-"} />
+      <DetailData
+        label="Tanggal Dibuat"
+        isi={formatTanggal(detailData.createdDate)}
+      />
+      <DetailData label="Kriteria" isi={detailData.kriteriaNama || "-"} />
+    </div>
+  );
+
+  // Komponen untuk menampilkan kolom kanan detail
+  const KolomKananDetail = () => (
+    <div className="col-lg-6 col-md-6">
+      <DetailData
+        label="Dimodifikasi Oleh"
+        isi={detailData.modifiedBy || "-"}
+      />
+      <DetailData
+        label="Tanggal Dimodifikasi"
+        isi={formatTanggal(detailData.modifiedDate)}
+      />
+      <DetailData label="Skala Tipe" isi={detailData.skalaTipe || "-"} />
+    </div>
+  );
+
+  // Tampilkan loading jika data sedang dimuat
+  if (loading) return <Loading />;
 
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          <div className={isMobile ? "m-0" : "m-3"}>
-            <PageTitleNav
-              title={title}
-              breadcrumbs={breadcrumbs}
-              onClick={() => onChangePage("index")}
-            />
-          </div>
-          <div
-            className={
-              isMobile
-                ? "shadow p-4 m-2 mt-0 bg-white rounded"
-                : "shadow p-5 m-5 mt-0 bg-white rounded"
-            }
-          >
-            <HeaderForm label="Detail Pertanyaan" />
+          {/* Navigasi dan Judul */}
+          <PageTitleNav
+            title="Detail Pertanyaan Survei"
+            breadcrumbs={[
+              { label: "Pertanyaan Survei", href: "/survei/pertanyaan" },
+              { label: "Detail Pertanyaan Survei" },
+            ]}
+            onClick={() => navigate("/survei/pertanyaan")}
+          />
+
+          {/* Kartu Detail */}
+          <div className="shadow p-5 mt-4 bg-white rounded">
+            <HeaderForm label="Detail Pertanyaan Survei" />
+
+            {/* Konten Detail */}
             <div className="row">
-              <div className="col-lg-6 col-md-6">
-                <DetailData
-                  label="Pertanyaan"
-                  isi={formData.pertanyaan}
-                  id="pertanyaan"
-                />
-                <DetailData
-                  label="Kriteria Survei"
-                  isi={formData.kriteria}
-                  id="kriteria"
-                />
-                <DetailData
-                  label="Skala Penilaian"
-                  isi={formData.skala}
-                  id="skala"
-                />
-              </div>
-              <div className="col-lg-6 col-md-6">
-                <DetailData label="Status" isi={formData.status} id="status" />
-                <DetailData
-                  label="Dibuat Oleh"
-                  isi={formData.createdBy}
-                  id="createdBy"
-                />
-                <DetailData
-                  label="Dibuat Tanggal"
-                  isi={formData.createdDate}
-                  id="createdDate"
-                />
-              </div>
+              <KolomKiriDetail />
+              <KolomKananDetail />
             </div>
-            <div className="row">
-              <div className="col-lg-6 col-md-6">
-                <DetailData
-                  label="Dimodifikasi Oleh"
-                  isi={formData.modifiedBy}
-                  id="modifiedBy"
-                />
-              </div>
-              <div className="col-lg-6 col-md-6">
-                <DetailData
-                  label="Dimodifikasi Tanggal"
-                  isi={formData.modifiedDate}
-                  id="modifiedDate"
+
+            {/* Tombol Aksi */}
+            <div className="d-flex justify-content-between align-items-center">
+              <div className="flex-grow-1 m-2">
+                <Button
+                  width="100%"
+                  label="Kembali"
+                  classType="danger"
+                  onClick={() => navigate("/survei/pertanyaan")}
                 />
               </div>
             </div>

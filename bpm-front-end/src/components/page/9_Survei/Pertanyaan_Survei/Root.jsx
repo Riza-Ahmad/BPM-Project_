@@ -5,6 +5,7 @@ import Index from "./Index";
 import Add from "./Add";
 import Edit from "./Edit";
 import Detail from "./Detail";
+import Swal from "sweetalert2";
 
 export default function Pertanyaan_Survei() {
   const navigate = useNavigate();
@@ -28,9 +29,18 @@ export default function Pertanyaan_Survei() {
         });
         break;
       case "detail":
-        navigate(`${currentPath}`, {
-          state: { mode: "detail", ...withState },
-        });
+        const { detailId } = withState;
+        if (detailId) {
+          navigate(`${currentPath}/detail/${detailId}`, {
+            state: { mode: "detail", detailId },
+          });
+        } else {
+          Swal.fire(
+            "Error",
+            "ID tidak valid atau tidak ditemukan untuk detail.",
+            "error"
+          );
+        }
         break;
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
@@ -66,7 +76,7 @@ export default function Pertanyaan_Survei() {
           element={<Edit onChangePage={handlePageChange} />}
         />
         <Route
-          path="/detail"
+          path="/detail:detailId"
           element={<Detail onChangePage={handlePageChange} />}
         />
       </Routes>

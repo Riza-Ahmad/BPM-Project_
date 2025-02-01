@@ -31,6 +31,10 @@ export default function Detail() {
     createdDate: "",
     modifiedBy: "",
     modifiedDate: "",
+    ksrId: "",
+    skpId: "",
+    kriteriaNama: "",
+    skalaTipe: "",
   });
   const [loading, setLoading] = useState(true);
 
@@ -52,7 +56,12 @@ export default function Detail() {
 
         const result = await response.json();
         if (result && result[0]) {
-          setDetailData(result[0]);
+          setDetailData({
+            ...result[0],
+            status: result[0].pty_status === 0 ? "Tidak Aktif" : "Aktif", // Assuming status mapping
+            createdDate: formatTanggal(result[0].pty_created_date),
+            modifiedDate: formatTanggal(result[0].pty_modif_date),
+          });
         } else {
           throw new Error("Data tidak ditemukan");
         }
@@ -75,16 +84,10 @@ export default function Detail() {
   // Komponen untuk menampilkan kolom kiri detail
   const KolomKiriDetail = () => (
     <div className="col-lg-6 col-md-6">
-      <DetailData label="Nama Kriteria" isi={detailData.namaKri || "-"} />
-      <DetailData
-        label="Status"
-        isi={detailData.status === 0 ? "Tidak Aktif" : "Aktif"}
-      />
+      <DetailData label="Nama Kriteria" isi={detailData.kriteriaNama || "-"} />
+      <DetailData label="Status" isi={detailData.status || "-"} />
       <DetailData label="Dibuat Oleh" isi={detailData.createdBy || "-"} />
-      <DetailData
-        label="Tanggal Dibuat"
-        isi={formatTanggal(detailData.createdDate)}
-      />
+      <DetailData label="Tanggal Dibuat" isi={detailData.createdDate} />
     </div>
   );
 
@@ -95,10 +98,10 @@ export default function Detail() {
         label="Dimodifikasi Oleh"
         isi={detailData.modifiedBy || "-"}
       />
-      <DetailData
-        label="Tanggal Dimodifikasi"
-        isi={formatTanggal(detailData.modifiedDate)}
-      />
+      <DetailData label="Tanggal Dimodifikasi" isi={detailData.modifiedDate} />
+      <DetailData label="ID Kriteria" isi={detailData.ksrId || "-"} />
+      <DetailData label="ID Skala Penilaian" isi={detailData.skpId || "-"} />
+      <DetailData label="Tipe Skala" isi={detailData.skalaTipe || "-"} />
     </div>
   );
 
