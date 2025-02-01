@@ -1,53 +1,43 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { API_LINK } from "../../../util/Constants";
-import { useIsMobile } from "../../../util/useIsMobile";
+import React, { useState, useRef, useEffect } from "react";
 import PageTitleNav from "../../../part/PageTitleNav";
-import Button from "../../../part/Button";
-import Swal from "sweetalert2";
-import DetailData from "../../../part/DetailData";
+import TextArea from "../../../part/TextArea";
 import HeaderForm from "../../../part/HeaderText";
-import Loading from "../../../part/Loading";
+import Button from "../../../part/Button";
+import Dropdown from "../../../part/Dropdown";
+import CheckBox from "../../../part/CheckBox";
+import { useNavigate } from "react-router-dom";
+import SweetAlert from "../../../util/SweetAlert";
+import { API_LINK } from "../../../util/Constants";
 import { useFetch } from "../../../util/useFetch";
+import Loading from "../../../part/Loading";
 
-// Format tanggal untuk Indonesia
-const formatTanggal = (tanggal) => {
-  if (!tanggal) return "-";
-  return new Date(tanggal).toLocaleDateString("id-ID", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-};
-
-export default function Detail() {
+export default function Add({ onChangePage }) {
   const navigate = useNavigate();
-  const { detailId } = useParams();
-  const isMobile = useIsMobile();
-  const [detailData, setDetailData] = useState({
+  const title = "Tambah Pertanyaan";
+  const breadcrumbs = [
+    { label: "Pertanyaan Survei", href: "/survei/pertanyaan" },
+    { label: "Tambah Pertanyaan", href: "/survei/pertanyaan/add" },
+  ];
+
+  const [formData, setFormData] = useState({
     pertanyaan: "",
-    tipe: "",
-    status: "",
-    createdBy: "",
-    createdDate: "",
-    modifiedBy: "",
-    modifiedDate: "",
     ksrId: "",
     skpId: "",
-    kriteriaNama: "",
-    skalaTipe: "",
+    responden: [],
   });
+
   const [ksrOptions, setKsrOptions] = useState([]);
   const [skpOptions, setSkpOptions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const pertanyaanRef = useRef();
+  const kriteriaSurveiRef = useRef();
+  const skalaPenilaianRef = useRef();
+  const respondenRef = useRef();
 
-  // Fetch Kriteria data
   useEffect(() => {
     const fetchKriteria = async () => {
       setLoading(true);
-      setError(null);
       try {
         const data = await useFetch(
           `${API_LINK}/MasterPertanyaan/GetAllKriteriaSurveiAktif`,
@@ -56,7 +46,7 @@ export default function Detail() {
         );
         setKsrOptions(data);
       } catch (err) {
-        setError("Gagal mengambil data Kriteria: " + err.message);
+        setError("Gagal mengambil data: " + err.message);
       } finally {
         setLoading(false);
       }
@@ -64,7 +54,6 @@ export default function Detail() {
     fetchKriteria();
   }, []);
 
-  // Fetch Skala Penilaian data
   useEffect(() => {
     const fetchSkalaPenilaian = async () => {
       setLoading(true);
@@ -95,128 +84,179 @@ export default function Detail() {
     fetchSkalaPenilaian();
   }, []);
 
-  // Fetch Detail Pertanyaan
-  useEffect(() => {
-    const fetchDetail = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `${API_LINK}/MasterPertanyaan/GetDataPertanyaanById`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ p1: detailId }),
-          }
-        );
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
 
-        if (!response.ok) {
-          throw new Error("Gagal mengambil data detail");
-        }
+    if (type === "checkbox") {
+      setFormData((prevFormData) => {
+        const updatedResponden = prevFormData.responden || [];
+        const newResponden = checked
+          ? [...updatedResponden, value] // Add if checked
+          : updatedResponden.filter((item) => item !== value); // Remove if unchecked
 
-        const result = await response.json();
-        if (result && result[0]) {
-          const fetchedKriteriaNama =
-            ksrOptions.find((item) => item.ksr_id === result[0].ksrId)
-              ?.ksr_nama || "-";
+        return { ...prevFormData, responden: newResponden };
+      });
+    } else {
+      setFormData((prevFormData) => ({ ...prevFormData, [name]: value }));
+    }
+  };
 
-          const fetchedSkalaTipe =
-            skpOptions.find((item) => item.skp_id === result[0].skpId)
-              ?.skp_skala || "-";
+  const handleSubmit = async () => {
+    const isPertanyaanValid = pertanyaanRef.current?.validate();
+    const isKriteriaValid = kriteriaSurveiRef.current?.validate();
+    const isSkalaValid = skalaPenilaianRef.current?.validate();
 
-          setDetailData({
-            ...result[0],
-            kriteriaNama: fetchedKriteriaNama,
-            skalaTipe: fetchedSkalaTipe,
-          });
-        } else {
-          throw new Error("Data tidak ditemukan");
-        }
-      } catch (error) {
-        console.error("Error fetching detail:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Terjadi Kesalahan",
-          text: "Gagal mengambil data detail",
-        });
-        navigate("/survei/pertanyaan");
-      } finally {
-        setLoading(false);
+    if (!isPertanyaanValid) {
+      pertanyaanRef.current?.focus();
+      return;
+    }
+    if (!isKriteriaValid) {
+      kriteriaSurveiRef.current?.focus();
+      return;
+    }
+    if (!isSkalaValid) {
+      skalaPenilaianRef.current?.focus();
+      return;
+    }
+
+    try {
+      const payload = {
+        pertanyaan: formData.pertanyaan,
+        ksrId: parseInt(formData.ksrId, 10),
+        skpId: parseInt(formData.skpId, 10),
+        responden: formData.responden || [], // Ensure that 'responden' is always an array
+      };
+
+      console.log("Payload:", payload);
+
+      const result = await useFetch(
+        `${API_LINK}/MasterPertanyaan/CreatePertanyaan`,
+        payload
+      );
+
+      console.log("API Result:", result);
+
+      if (!result || result === "ERROR") {
+        throw new Error("Gagal menyimpan pertanyaan");
       }
-    };
 
-    fetchDetail();
-  }, [detailId, ksrOptions, skpOptions, navigate]);
+      if (result.status === "success") {
+        SweetAlert(
+          "Berhasil!",
+          "Pertanyaan berhasil dibuat dengan ID: ${result.pty_id}",
+          "success",
+          "OK"
+        );
+        navigate("/survei/pertanyaan");
+      } else {
+        throw new Error(result.error_message || "Terjadi kesalahan server");
+      }
+    } catch (error) {
+      console.error("Submit Error:", error);
+      SweetAlert(
+        "Gagal!",
+        error.message || "Terjadi kesalahan saat menyimpan",
+        "error",
+        "OK"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Komponen untuk menampilkan kolom kiri detail
-  const KolomKiriDetail = () => (
-    <div className="col-lg-6 col-md-6">
-      <DetailData label="Pertanyaan" isi={detailData.pertanyaan || "-"} />
-      <DetailData label="Tipe" isi={detailData.tipe || "-"} />
-      <DetailData
-        label="Status"
-        isi={detailData.status === 0 ? "Tidak Aktif" : "Aktif"}
-      />
-      <DetailData label="Dibuat Oleh" isi={detailData.createdBy || "-"} />
-      <DetailData
-        label="Tanggal Dibuat"
-        isi={formatTanggal(detailData.createdDate)}
-      />
-      <DetailData label="Kriteria" isi={detailData.kriteriaNama || "-"} />
-    </div>
-  );
+  const handleCancel = () => {
+    SweetAlert(
+      "Yakin?",
+      "Perubahan belum disimpan, yakin batal?",
+      "warning",
+      "Ya, batalkan",
+      "Tidak"
+    ).then((result) => {
+      if (result) onChangePage("index");
+    });
+  };
 
-  // Komponen untuk menampilkan kolom kanan detail
-  const KolomKananDetail = () => (
-    <div className="col-lg-6 col-md-6">
-      <DetailData
-        label="Dimodifikasi Oleh"
-        isi={detailData.modifiedBy || "-"}
-      />
-      <DetailData
-        label="Tanggal Dimodifikasi"
-        isi={formatTanggal(detailData.modifiedDate)}
-      />
-      <DetailData label="Skala Tipe" isi={detailData.skalaTipe || "-"} />
-    </div>
-  );
-
-  // Tampilkan loading jika data sedang dimuat
   if (loading) return <Loading />;
+  if (error) return <p className="text-danger text-center mt-4">{error}</p>;
 
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          {/* Navigasi dan Judul */}
-          <PageTitleNav
-            title="Detail Pertanyaan Survei"
-            breadcrumbs={[
-              { label: "Pertanyaan Survei", href: "/survei/pertanyaan" },
-              { label: "Detail Pertanyaan Survei" },
-            ]}
-            onClick={() => navigate("/survei/pertanyaan")}
-          />
-
-          {/* Kartu Detail */}
-          <div className="shadow p-5 mt-4 bg-white rounded">
-            <HeaderForm label="Detail Pertanyaan Survei" />
-
-            {/* Konten Detail */}
-            <div className="row">
-              <KolomKiriDetail />
-              <KolomKananDetail />
+          <div className="m-3">
+            <PageTitleNav
+              title={title}
+              breadcrumbs={breadcrumbs}
+              onClick={() => onChangePage("index")}
+            />
+          </div>
+          <div className="shadow p-5 m-5 mt-0 bg-white rounded">
+            <HeaderForm label="Formulir Pertanyaan" />
+            <div className="mb-4">
+              <Dropdown
+                ref={kriteriaSurveiRef}
+                label="Kriteria Survei"
+                arrData={ksrOptions}
+                value={formData.ksrId}
+                onChange={handleChange}
+                name="ksrId"
+                isRequired={true}
+                type="pilih"
+              />
             </div>
-
-            {/* Tombol Aksi */}
-            <div className="d-flex justify-content-between align-items-center">
-              <div className="flex-grow-1 m-2">
-                <Button
-                  width="100%"
-                  label="Kembali"
-                  classType="danger"
-                  onClick={() => navigate("/survei/pertanyaan")}
-                />
-              </div>
+            <div className="mb-4">
+              <TextArea
+                ref={pertanyaanRef}
+                label="Pertanyaan"
+                value={formData.pertanyaan || ""}
+                name="pertanyaan"
+                onChange={handleChange}
+                isRequired={true}
+              />
+            </div>
+            <div className="mb-4">
+              <Dropdown
+                ref={skalaPenilaianRef}
+                label="Skala Penilaian"
+                arrData={skpOptions}
+                value={formData.skpId}
+                onChange={handleChange}
+                name="skpId"
+                isRequired={true}
+                type="pilih"
+              />
+            </div>
+            <div className="mb-5">
+              <CheckBox
+                arrData={[
+                  { Value: 0, Text: "Dosen dan Instruktur" },
+                  { Value: 1, Text: "Tenaga Pendidik" },
+                  { Value: 2, Text: "Mitra Kerjasama" },
+                ]}
+                label="Responden"
+                name="responden"
+                isRequired={true}
+                values={formData.responden || []}
+                onChange={handleChange}
+                col="col-4"
+              />
+            </div>
+            <div className="d-flex justify-content-between align-items-center mt-4 gap-3">
+              <Button
+                classType="primary"
+                type="button"
+                label="Simpan"
+                width="100%"
+                disabled={loading}
+                onClick={handleSubmit}
+              />
+              <Button
+                classType="danger"
+                type="button"
+                label="Batal"
+                width="100%"
+                onClick={handleCancel}
+              />
             </div>
           </div>
         </div>

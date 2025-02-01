@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 import DetailData from "../../../part/DetailData";
 import HeaderForm from "../../../part/HeaderText";
 import Loading from "../../../part/Loading";
+import { useFetch } from "../../../util/useFetch";
 
 // Format tanggal untuk Indonesia
 const formatTanggal = (tanggal) => {
@@ -20,7 +21,7 @@ const formatTanggal = (tanggal) => {
   });
 };
 
-export default function DetailPertanyaan() {
+export default function Detail() {
   const navigate = useNavigate();
   const { detailId } = useParams();
   const isMobile = useIsMobile();
@@ -37,10 +38,67 @@ export default function DetailPertanyaan() {
     kriteriaNama: "",
     skalaTipe: "",
   });
+  const [ksrOptions, setKsrOptions] = useState([]);
+  const [skpOptions, setSkpOptions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // Fetch Kriteria data
+  useEffect(() => {
+    const fetchKriteria = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await useFetch(
+          `${API_LINK}/MasterPertanyaan/GetAllKriteriaSurveiAktif`,
+          {},
+          "POST"
+        );
+        setKsrOptions(data);
+      } catch (err) {
+        setError("Gagal mengambil data Kriteria: " + err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchKriteria();
+  }, []);
+
+  // Fetch Skala Penilaian data
+  useEffect(() => {
+    const fetchSkalaPenilaian = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const skpResponse = await useFetch(
+          `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
+          {},
+          "POST"
+        );
+        if (skpResponse && Array.isArray(skpResponse)) {
+          const filteredSkp = skpResponse.filter(
+            (item) => item.skp_status === "Aktif"
+          );
+          setSkpOptions(
+            filteredSkp.map((item) => ({
+              value: item.skp_id,
+              Text: item.skp_skala + " (" + item.skp_deskripsi + ")",
+            }))
+          );
+        }
+      } catch (error) {
+        setError("Gagal mengambil data Skala Penilaian: " + error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSkalaPenilaian();
+  }, []);
+
+  // Fetch Detail Pertanyaan
   useEffect(() => {
     const fetchDetail = async () => {
+      setLoading(true);
       try {
         const response = await fetch(
           `${API_LINK}/MasterPertanyaan/GetDataPertanyaanById`,
@@ -57,7 +115,19 @@ export default function DetailPertanyaan() {
 
         const result = await response.json();
         if (result && result[0]) {
-          setDetailData(result[0]);
+          const fetchedKriteriaNama =
+            ksrOptions.find((item) => item.ksr_id === result[0].ksrId)
+              ?.ksr_nama || "-";
+
+          const fetchedSkalaTipe =
+            skpOptions.find((item) => item.skp_id === result[0].skpId)
+              ?.skp_skala || "-";
+
+          setDetailData({
+            ...result[0],
+            kriteriaNama: fetchedKriteriaNama,
+            skalaTipe: fetchedSkalaTipe,
+          });
         } else {
           throw new Error("Data tidak ditemukan");
         }
@@ -75,7 +145,7 @@ export default function DetailPertanyaan() {
     };
 
     fetchDetail();
-  }, [detailId, navigate]);
+  }, [detailId, ksrOptions, skpOptions, navigate]);
 
   // Komponen untuk menampilkan kolom kiri detail
   const KolomKiriDetail = () => (
