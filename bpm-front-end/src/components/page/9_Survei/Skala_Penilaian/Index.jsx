@@ -13,8 +13,8 @@ import { API_LINK } from "../../../util/Constants";
 import Swal from "sweetalert2";
 
 const endpoints = {
-  get: `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
-  delete: `${API_LINK}/SkalaPenilaian/DeleteSkalaPenilaian`,
+  get: `${API_LINK}/MasterSkalaPenilaian/GetSkalaPenilaian`,
+  delete: `${API_LINK}/MasterSkalaPenilaian/DeleteSkalaPenilaian`,
 };
 
 const config = {

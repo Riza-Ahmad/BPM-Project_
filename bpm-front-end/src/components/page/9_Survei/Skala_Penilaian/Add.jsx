@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageTitleNav from "../../../part/PageTitleNav";
 import HeaderForm from "../../../part/HeaderText";
@@ -111,7 +110,7 @@ export default function Add({ onChangePage }) {
       };
 
       const response = await useFetch(
-        `${API_LINK}/SkalaPenilaian/CreateSkalaPenilaian`,
+        `${API_LINK}/MasterSkalaPenilaian/CreateSkalaPenilaian`,
         payload,
         "POST"
       );
@@ -155,8 +154,7 @@ export default function Add({ onChangePage }) {
                 isMobile
                   ? "shadow p-4 m-2 mt-0 bg-white rounded"
                   : "shadow p-5 m-5 mt-0 bg-white rounded"
-              }
-            >
+              }>
               <HeaderForm label="Tambah Skala Penilaian" />
 
               <DropDown
@@ -277,8 +275,7 @@ export default function Add({ onChangePage }) {
                             marginRight: "15px",
                             display: "inline-flex",
                             alignItems: "center",
-                          }}
-                        >
+                          }}>
                           <input
                             type="radio"
                             name="preview"
@@ -332,8 +329,7 @@ export default function Add({ onChangePage }) {
                       marginTop: "10px",
                       color: "#555",
                       fontStyle: "italic",
-                    }}
-                  >
+                    }}>
                     {formData.name
                       ? formData.descriptions[Number(formData.name) - 1] ||
                         "Deskripsi belum diisi."
@@ -388,8 +384,7 @@ export default function Add({ onChangePage }) {
                             marginRight: "15px",
                             display: "inline-flex",
                             alignItems: "center",
-                          }}
-                        >
+                          }}>
                           <input
                             type="checkbox"
                             value={value}
@@ -456,8 +451,7 @@ export default function Add({ onChangePage }) {
                       marginTop: "10px",
                       color: "#555",
                       fontStyle: "italic",
-                    }}
-                  >
+                    }}>
                     {formData.checkedValues?.length > 0
                       ? `Nilai dipilih: ${formData.checkedValues.join(", ")}`
                       : "Tidak ada nilai yang dipilih."}
