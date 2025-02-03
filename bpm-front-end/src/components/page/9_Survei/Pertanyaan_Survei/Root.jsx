@@ -1,6 +1,5 @@
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import ScrollToTop from "../../../part/ScrollToTop";
-import ProtectedRoute from "../../../util/ProtectedRoute";
 import Index from "./Index";
 import Add from "./Add";
 import Edit from "./Edit";
@@ -19,14 +18,23 @@ export default function Pertanyaan_Survei() {
         navigate(`${currentPath}`, { state: { mode: "index", ...withState } });
         break;
       case "add":
-        navigate(`${currentPath}`, {
+        navigate(`${currentPath}/add`, {
           state: { mode: "add", ...withState },
         });
         break;
       case "edit":
-        navigate(`${currentPath}`, {
-          state: { mode: "edit", ...withState },
-        });
+        const { id } = withState;
+        if (id) {
+          navigate(`${currentPath}/edit/${id}`, {
+            state: { mode: "edit", id },
+          });
+        } else {
+          Swal.fire(
+            "Error",
+            "ID tidak valid atau tidak ditemukan untuk edit.",
+            "error"
+          );
+        }
         break;
       case "detail":
         const { detailId } = withState;
@@ -57,26 +65,24 @@ export default function Pertanyaan_Survei() {
         <Route
           path="/"
           element={
-            <ProtectedRoute isRole={true}>
-              {mode === "add" ? (
-                <Add onChangePage={handlePageChange} />
-              ) : mode === "edit" ? (
-                <Edit onChangePage={handlePageChange} />
-              ) : mode === "detail" ? (
-                <Detail onChangePage={handlePageChange} />
-              ) : (
-                <Index onChangePage={handlePageChange} />
-              )}
-            </ProtectedRoute>
+            mode === "add" ? (
+              <Add onChangePage={handlePageChange} />
+            ) : mode === "edit" ? (
+              <Edit onChangePage={handlePageChange} />
+            ) : mode === "detail" ? (
+              <Detail onChangePage={handlePageChange} />
+            ) : (
+              <Index onChangePage={handlePageChange} />
+            )
           }
         />
         <Route path="add" element={<Add onChangePage={handlePageChange} />} />
         <Route
-          path="/edit"
+          path="edit/:id"
           element={<Edit onChangePage={handlePageChange} />}
         />
         <Route
-          path="/detail:detailId"
+          path="detail/:detailId"
           element={<Detail onChangePage={handlePageChange} />}
         />
       </Routes>

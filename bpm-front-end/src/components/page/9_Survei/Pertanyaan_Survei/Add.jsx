@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import PageTitleNav from "../../../part/PageTitleNav";
+import InputField from "../../../part/InputField";
 import TextArea from "../../../part/TextArea";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
@@ -91,8 +92,8 @@ export default function Add({ onChangePage }) {
       setFormData((prevFormData) => {
         const updatedResponden = prevFormData.responden || [];
         const newResponden = checked
-          ? [...updatedResponden, value] // Add if checked
-          : updatedResponden.filter((item) => item !== value); // Remove if unchecked
+          ? [...updatedResponden, value] // Tambahkan jika di-check
+          : updatedResponden.filter((item) => item !== value); // Hapus jika di-uncheck
 
         return { ...prevFormData, responden: newResponden };
       });
@@ -124,32 +125,24 @@ export default function Add({ onChangePage }) {
         pertanyaan: formData.pertanyaan,
         ksrId: parseInt(formData.ksrId, 10),
         skpId: parseInt(formData.skpId, 10),
-        responden: formData.responden || [], // Ensure that 'responden' is always an array
+        responden: formData.responden || [],
       };
 
       console.log("Payload:", payload);
 
       const result = await useFetch(
         `${API_LINK}/MasterPertanyaan/CreatePertanyaan`,
-        payload
+        payload,
+        "POST"
       );
 
       console.log("API Result:", result);
 
-      if (!result || result === "ERROR") {
-        throw new Error("Gagal menyimpan pertanyaan");
-      }
-
-      if (result.status === "success") {
-        SweetAlert(
-          "Berhasil!",
-          "Pertanyaan berhasil dibuat dengan ID: ${result.pty_id}",
-          "success",
-          "OK"
-        );
-        navigate("/survei/pertanyaan");
+      if (result === "ERROR") {
+        throw new Error("Terjadi kesalahan server");
       } else {
-        throw new Error(result.error_message || "Terjadi kesalahan server");
+        SweetAlert("Berhasil!", "Pertanyaan berhasil dibuat", "success", "OK");
+        navigate("/survei/pertanyaan");
       }
     } catch (error) {
       console.error("Submit Error:", error);
@@ -172,7 +165,7 @@ export default function Add({ onChangePage }) {
       "Ya, batalkan",
       "Tidak"
     ).then((result) => {
-      if (result) onChangePage("index");
+      if (result) navigate("/survei/pertanyaan");
     });
   };
 
@@ -205,13 +198,15 @@ export default function Add({ onChangePage }) {
               />
             </div>
             <div className="mb-4">
-              <TextArea
+              <InputField
                 ref={pertanyaanRef}
                 label="Pertanyaan"
                 value={formData.pertanyaan || ""}
                 name="pertanyaan"
                 onChange={handleChange}
                 isRequired={true}
+                type="text"
+                placeholder="Masukkan pertanyaan survei"
               />
             </div>
             <div className="mb-4">

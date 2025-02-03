@@ -83,6 +83,7 @@ export default function Edit() {
                 { label: "Kriteria Survei", href: "/survei/kriteria" },
                 { label: "Edit", href: `/survei/kriteria/edit/${id}` },
               ]}
+              onClick={() => navigate("/survei/kriteria")}
             />
           </div>
           <div className={isMobile ? "m-0" : "m-3"}>
