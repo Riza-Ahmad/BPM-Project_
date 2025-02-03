@@ -10,7 +10,6 @@ import HeaderForm from "../../../part/HeaderText";
 import Loading from "../../../part/Loading";
 import { useFetch } from "../../../util/useFetch";
 
-// Format tanggal untuk Indonesia
 const formatTanggal = (tanggal) => {
   if (!tanggal) return "-";
   return new Date(tanggal).toLocaleDateString("id-ID", {
@@ -25,108 +24,50 @@ export default function Detail() {
   const navigate = useNavigate();
   const { detailId } = useParams();
   const isMobile = useIsMobile();
-  const [detailData, setDetailData] = useState({
-    pertanyaan: "",
-    tipe: "",
-    status: "",
-    createdBy: "",
-    createdDate: "",
-    modifiedBy: "",
-    modifiedDate: "",
-    ksrId: "",
-    skpId: "",
-    kriteriaNama: "",
-    skalaTipe: "",
-  });
-  const [ksrOptions, setKsrOptions] = useState([]);
-  const [skpOptions, setSkpOptions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [detailData, setDetailData] = useState({
+    pty_pertanyaan: "",
+    pty_status: "",
+    pty_created_by: "",
+    pty_created_date: "",
+    pty_modif_by: "",
+    pty_modif_date: "",
+    ksr_id: "",
+    skp_id: "",
+    ksr_nama: "",
+    skp_tipe: "",
+    skp_skala: "",
+    skp_deskripsi: "",
+  });
   const [error, setError] = useState(null);
 
-  // Fetch Kriteria data
-  useEffect(() => {
-    const fetchKriteria = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await useFetch(
-          `${API_LINK}/MasterPertanyaan/GetAllKriteriaSurveiAktif`,
-          {},
-          "POST"
-        );
-        setKsrOptions(data);
-      } catch (err) {
-        setError("Gagal mengambil data Kriteria: " + err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchKriteria();
-  }, []);
-
-  // Fetch Skala Penilaian data
-  useEffect(() => {
-    const fetchSkalaPenilaian = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const skpResponse = await useFetch(
-          `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
-          {},
-          "POST"
-        );
-        if (skpResponse && Array.isArray(skpResponse)) {
-          const filteredSkp = skpResponse.filter(
-            (item) => item.skp_status === "Aktif"
-          );
-          setSkpOptions(
-            filteredSkp.map((item) => ({
-              value: item.skp_id,
-              Text: item.skp_skala + " (" + item.skp_deskripsi + ")",
-            }))
-          );
-        }
-      } catch (error) {
-        setError("Gagal mengambil data Skala Penilaian: " + error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSkalaPenilaian();
-  }, []);
-
-  // Fetch Detail Pertanyaan
   useEffect(() => {
     const fetchDetail = async () => {
       setLoading(true);
       try {
-        const response = await fetch(
+        const result = await useFetch(
           `${API_LINK}/MasterPertanyaan/GetDataPertanyaanById`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ p1: detailId }),
-          }
+          { p1: detailId },
+          "POST"
         );
 
-        if (!response.ok) {
-          throw new Error("Gagal mengambil data detail");
-        }
+        console.log("Hasil Fetch:", result); // Debugging
 
-        const result = await response.json();
         if (result && result[0]) {
-          const fetchedKriteriaNama =
-            ksrOptions.find((item) => item.ksr_id === result[0].ksrId)
-              ?.ksr_nama || "-";
-
-          const fetchedSkalaTipe =
-            skpOptions.find((item) => item.skp_id === result[0].skpId)
-              ?.skp_skala || "-";
-
           setDetailData({
-            ...result[0],
-            kriteriaNama: fetchedKriteriaNama,
-            skalaTipe: fetchedSkalaTipe,
+            pty_pertanyaan: result[0].pty_pertanyaan || "-",
+            pty_status:
+              result[0].pty_status === "Aktif" ? "Aktif" : "Tidak Aktif",
+            pty_created_by: result[0].pty_created_by || "-",
+            pty_created_date: formatTanggal(result[0].pty_created_date),
+            pty_modif_by: result[0].pty_modif_by || "-",
+            pty_modif_date: formatTanggal(result[0].pty_modif_date),
+            ksr_id: result[0].ksr_id || "-",
+            skp_id: result[0].skp_id || "-",
+            ksr_nama: result[0].ksr_nama || "-",
+            skp_tipe: result[0].skp_tipe || "-",
+            skp_skala: result[0].skp_skala || "-",
+            skp_deskripsi: result[0].skp_deskripsi || "-",
           });
         } else {
           throw new Error("Data tidak ditemukan");
@@ -144,50 +85,40 @@ export default function Detail() {
       }
     };
 
-    fetchDetail();
-  }, [detailId, ksrOptions, skpOptions, navigate]);
+    if (detailId) {
+      fetchDetail();
+    }
+  }, [detailId, navigate]);
 
-  // Komponen untuk menampilkan kolom kiri detail
   const KolomKiriDetail = () => (
     <div className="col-lg-6 col-md-6">
-      <DetailData label="Pertanyaan" isi={detailData.pertanyaan || "-"} />
-      <DetailData label="Tipe" isi={detailData.tipe || "-"} />
-      <DetailData
-        label="Status"
-        isi={detailData.status === 0 ? "Tidak Aktif" : "Aktif"}
-      />
-      <DetailData label="Dibuat Oleh" isi={detailData.createdBy || "-"} />
-      <DetailData
-        label="Tanggal Dibuat"
-        isi={formatTanggal(detailData.createdDate)}
-      />
-      <DetailData label="Kriteria" isi={detailData.kriteriaNama || "-"} />
+      <DetailData label="Pertanyaan" isi={detailData.pty_pertanyaan} />
+      <DetailData label="Status" isi={detailData.pty_status} />
+      <DetailData label="Dibuat Oleh" isi={detailData.pty_created_by} />
+      <DetailData label="Tanggal Dibuat" isi={detailData.pty_created_date} />
+      <DetailData label="Kriteria" isi={detailData.ksr_nama} />
     </div>
   );
 
-  // Komponen untuk menampilkan kolom kanan detail
   const KolomKananDetail = () => (
     <div className="col-lg-6 col-md-6">
-      <DetailData
-        label="Dimodifikasi Oleh"
-        isi={detailData.modifiedBy || "-"}
-      />
+      <DetailData label="Dimodifikasi Oleh" isi={detailData.pty_modif_by} />
       <DetailData
         label="Tanggal Dimodifikasi"
-        isi={formatTanggal(detailData.modifiedDate)}
+        isi={detailData.pty_modif_date}
       />
-      <DetailData label="Skala Tipe" isi={detailData.skalaTipe || "-"} />
+      <DetailData label="Skala Tipe" isi={detailData.skp_tipe} />
+      <DetailData label="Skala Skala" isi={detailData.skp_skala} />
+      <DetailData label="Deskripsi Skala" isi={detailData.skp_deskripsi} />
     </div>
   );
 
-  // Tampilkan loading jika data sedang dimuat
   if (loading) return <Loading />;
 
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          {/* Navigasi dan Judul */}
           <PageTitleNav
             title="Detail Pertanyaan Survei"
             breadcrumbs={[
@@ -196,18 +127,12 @@ export default function Detail() {
             ]}
             onClick={() => navigate("/survei/pertanyaan")}
           />
-
-          {/* Kartu Detail */}
           <div className="shadow p-5 mt-4 bg-white rounded">
             <HeaderForm label="Detail Pertanyaan Survei" />
-
-            {/* Konten Detail */}
             <div className="row">
               <KolomKiriDetail />
               <KolomKananDetail />
             </div>
-
-            {/* Tombol Aksi */}
             <div className="d-flex justify-content-between align-items-center">
               <div className="flex-grow-1 m-2">
                 <Button
