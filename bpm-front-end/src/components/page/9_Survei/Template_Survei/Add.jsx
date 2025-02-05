@@ -4,6 +4,7 @@ import PageTitleNav from "../../../part/PageTitleNav";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
 import Dropdown from "../../../part/Dropdown";
+import CheckBox from "../../../part/CheckBox";
 import InputField from "../../../part/InputField";
 import SweetAlert from "../../../util/SweetAlert";
 import { useIsMobile } from "../../../util/useIsMobile";
@@ -18,6 +19,7 @@ export default function AddTemplateSurvei() {
     namaTemplate: "",
     ksrId: "",
     skpId: "",
+    responden: [],
   });
 
   const [ksrOptions, setKsrOptions] = useState([]);
@@ -95,13 +97,24 @@ export default function AddTemplateSurvei() {
     fetchSkalaPenilaian();
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
+ const handleChange = (e) => {
+   const { name, value, type, checked } = e.target;
+   console.log("Checkbox Change:", name, value, checked);
+   console.log("Responden Saat Ini:", formData.responden);
+
+   if (type === "checkbox") {
+     setFormData((prevFormData) => {
+       const updatedResponden = prevFormData.responden || [];
+       const newResponden = checked
+         ? [...updatedResponden, value] // Tambahkan jika di-check
+         : updatedResponden.filter((item) => item !== value); // Hapus jika di-uncheck
+
+       return { ...prevFormData, responden: newResponden };
+     });
+   } else {
+     setFormData((prevFormData) => ({ ...prevFormData, [name]: value }));
+   }
+ };
 
   const handleSubmit = async () => {
     const isNamaTemplateValid = namaTemplateRef.current?.validate();
@@ -120,6 +133,7 @@ export default function AddTemplateSurvei() {
     try {
       const payload = {
         p1: formData.namaTemplate,
+        p2: formData.responden || [],
       };
 
       // Mengirimkan request untuk membuat template survei
@@ -129,20 +143,21 @@ export default function AddTemplateSurvei() {
         "POST"
       );
 
-      // Pastikan response berisi templateId yang baru dibuat
+      // Pastikan response berhasil dan tidak mengandung error
       if (response === "ERROR") {
         throw new Error("Gagal menambah template survei.");
       }
 
-      const { templateId } = response;
-
+      // Jika berhasil, tampilkan pesan sukses
       SweetAlert(
         "Berhasil!",
         "Template survei berhasil ditambahkan.",
         "success",
         "OK"
       ).then(() => {
-        navigate("/survei/template"); // Pindah ke halaman daftar template survei
+        // Kamu bisa langsung mengarahkan ke halaman daftar template atau tetap di halaman yang sama
+        // Misalnya, kalau ingin tetap di halaman yang sama tanpa pindah ke halaman daftar template
+        // navigate("/survei/template"); // Ini bisa dibatalkan atau diganti jika tidak diperlukan
       });
     } catch (error) {
       console.error("Error submitting template survei:", error);
@@ -183,26 +198,26 @@ export default function AddTemplateSurvei() {
                 type="text"
                 maxChar="100"
               />
-              {/* <Dropdown
-                ref={ksrDropdownRef}
-                label="Kriteria Survei"
-                arrData={ksrOptions}
-                value={formData.ksrId}
-                onChange={handleChange}
-                forInput="ksrId"
-                isRequired={true}
-                type="pilih"
-              />
-              <Dropdown
-                ref={skpDropdownRef}
-                label="Skala Penilaian"
-                arrData={skpOptions}
-                value={formData.skpId}
-                onChange={handleChange}
-                forInput="skpId"
-                isRequired={true}
-                type="pilih"
-              /> */}
+              <div className="mb-3">
+                <CheckBox
+                  arrData={[
+                    {
+                      Value: 0,
+                      Text: "Dosen dan Instruktur",
+                    },
+                    { Value: 1, Text: "Tenaga Pendidik" },
+                    { Value: 2, Text: "Mitra Kerjasama" },
+                  ]}
+                  label="Responden"
+                  name="responden"
+                  isRequired={true}
+                  values={formData.responden || []}
+                  onChange={handleChange}
+                  col="col-4"
+                />
+              </div>
+
+             
               <div className="d-flex justify-content-between align-items-center">
                 <div className="flex-grow-1 m-2">
                   <Button

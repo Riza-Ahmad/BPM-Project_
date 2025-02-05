@@ -12,8 +12,8 @@ import Cookies from "js-cookie";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 const arrSort = [
-  { Value: "[namaKri] ASC", Text: "Nama Kriteria [↑]" },
-  { Value: "[namaKri] DESC", Text: "Nama Kriteria [↓]" },
+  { Value: "[namaKri] ASC", Text: "Terbaru" },
+  { Value: "[namaKri] DESC", Text: "Terlama" },
 ];
 const arrStatus = [
   { Value: "Aktif", Text: "Aktif" },
