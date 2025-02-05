@@ -93,23 +93,23 @@ export default function Detail() {
   const KolomKiriDetail = () => (
     <div className="col-lg-6 col-md-6">
       <DetailData label="Pertanyaan" isi={detailData.pty_pertanyaan} />
+      <DetailData label="Kriteria" isi={detailData.ksr_nama} />
       <DetailData label="Status" isi={detailData.pty_status} />
       <DetailData label="Dibuat Oleh" isi={detailData.pty_created_by} />
       <DetailData label="Tanggal Dibuat" isi={detailData.pty_created_date} />
-      <DetailData label="Kriteria" isi={detailData.ksr_nama} />
     </div>
   );
 
   const KolomKananDetail = () => (
     <div className="col-lg-6 col-md-6">
+      <DetailData label="Skala Tipe" isi={detailData.skp_tipe} />
+      <DetailData label="Skala Skala" isi={detailData.skp_skala} />
+      <DetailData label="Deskripsi Skala" isi={detailData.skp_deskripsi} />
       <DetailData label="Dimodifikasi Oleh" isi={detailData.pty_modif_by} />
       <DetailData
         label="Tanggal Dimodifikasi"
         isi={detailData.pty_modif_date}
       />
-      <DetailData label="Skala Tipe" isi={detailData.skp_tipe} />
-      <DetailData label="Skala Skala" isi={detailData.skp_skala} />
-      <DetailData label="Deskripsi Skala" isi={detailData.skp_deskripsi} />
     </div>
   );
 

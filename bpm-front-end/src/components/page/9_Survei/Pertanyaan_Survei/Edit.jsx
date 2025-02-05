@@ -284,11 +284,11 @@ export default function Edit({ onChangePage }) {
               <CheckBox
                 arrData={[
                   {
-                    Value: "Dosen dan Instruktur",
+                    Value: 0,
                     Text: "Dosen dan Instruktur",
                   },
-                  { Value: "Tenaga Pendidik", Text: "Tenaga Pendidik" },
-                  { Value: "Mitra Kerjasama", Text: "Mitra Kerjasama" },
+                  { Value: 1, Text: "Tenaga Pendidik" },
+                  { Value: 2, Text: "Mitra Kerjasama" },
                 ]}
                 label="Responden"
                 name="responden"
