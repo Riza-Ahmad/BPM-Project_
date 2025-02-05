@@ -1,4 +1,4 @@
-import React, { useEffect,useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import PageTitleNav from "../../../part/PageTitleNav";
 import HeaderForm from "../../../part/HeaderText";
@@ -7,11 +7,16 @@ import Dropdown from "../../../part/Dropdown";
 import CheckBox from "../../../part/CheckBox";
 import InputField from "../../../part/InputField";
 import SweetAlert from "../../../util/SweetAlert";
+import { useFetch } from "../../../util/useFetch";
+import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 
 export default function AddTemplateSurvei() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   const [formData, setFormData] = useState({
     namaTemplate: "",
     ksrId: "",
@@ -114,7 +119,7 @@ export default function AddTemplateSurvei() {
     // Validasi nama template
     const isNamaTemplateValid = namaTemplateRef.current?.validate();
     // Validasi CheckBox (pastikan minimal satu responden dipilih)
-    const isRespondenValid = formData.respondenTemplate.length > 0;
+    // const isRespondenValid = formData.respondenTemplate.length > 0;
 
     if (!isNamaTemplateValid) {
       SweetAlert("Error", "Harap lengkapi nama template.", "error", "OK");
