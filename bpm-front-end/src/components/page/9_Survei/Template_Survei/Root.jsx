@@ -24,9 +24,18 @@ export default function Template_Survei() {
         });
         break;
       case "edit":
-        navigate(`${currentPath}/edit`, {
-          state: { mode: "edit", ...withState },
-        });
+        const { id } = withState;
+        if (id) {
+          navigate(`${currentPath}/edit/${id}`, {
+            state: { mode: "edit", id },
+          });
+        } else {
+          Swal.fire(
+            "Error",
+            "ID tidak valid atau tidak ditemukan untuk edit.",
+            "error"
+          );
+        }
         break;
       case "detail":
         navigate(`${currentPath}`, { state: { mode: "detail", ...withState } });
@@ -68,7 +77,7 @@ export default function Template_Survei() {
         />
         <Route path="/add" element={<Add onChangePage={handlePageChange} />} />
         <Route
-          path="/edit/:idData"
+          path="/edit/:id"
           element={<Edit onChangePage={handlePageChange} />}
         />
         <Route

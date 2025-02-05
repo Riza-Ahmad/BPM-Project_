@@ -11,6 +11,8 @@ import EditAnalisaTemuan from "./EditAnalisaTemuan";
 import DetailAnalisaTemuan from "./DetailAnalisaTemuan";
 import EditMonitoring from "./EditMonitoring";
 import DetailMonitoring from "./DetailMonitoring";
+import EditVerifikasi from "./EditVerifikasi";
+import DetailVerifikasi from "./DetailVerifikasi";
 
 export default function bankPertanyaan() {
   const navigate = useNavigate();
@@ -67,6 +69,18 @@ export default function bankPertanyaan() {
         });
         break;
 
+      case "editVerifikasi":
+        navigate(`${currentPath}`, {
+          state: { mode: "editVerifikasi", ...withState },
+        });
+        break;
+
+      case "detailVerifikasi":
+        navigate(`${currentPath}`, {
+          state: { mode: "detailVerifikasi", ...withState },
+        });
+        break;
+
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
         break;
@@ -102,6 +116,10 @@ export default function bankPertanyaan() {
                 <EditMonitoring onChangePage={handlePageChange} />
               ) : mode === "detailMonitoring" ? (
                 <DetailMonitoring onChangePage={handlePageChange} />
+              ) : mode === "editVerifikasi" ? (
+                <EditVerifikasi onChangePage={handlePageChange} />
+              ) : mode === "detailVerifikasi" ? (
+                <DetailVerifikasi onChangePage={handlePageChange} />
               ) : (
                 <Index onChangePage={handlePageChange} />
               )}

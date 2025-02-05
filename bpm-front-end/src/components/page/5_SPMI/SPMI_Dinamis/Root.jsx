@@ -74,7 +74,7 @@ export default function SPMI_Dinamis() {
           }
         />
         <Route
-          path="/pelaksanaan"
+          path="/peningkatan"
           element={
             <ProtectedRoute>
               <IndexPelaksanaan onChangePage={handlePageChange}  />

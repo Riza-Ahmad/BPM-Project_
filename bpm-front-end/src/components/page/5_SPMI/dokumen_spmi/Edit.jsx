@@ -79,10 +79,8 @@ export default function Edit({ onChangePage }) {
           idKdo: 4,
           judulDok: dokumenArray[0].judulDok,
           nomorDok: dokumenArray[0].noDok,
-          tanggalDok: moment(dokumenArray[0].tanggalDok).format("YYYY-MM-DD"),
-          kadaluarsaDok: moment(dokumenArray[0].kadaluarsaDok).format(
-            "YYYY-MM-DD"
-          ),
+          tanggalDok: dokumenArray[0].tglDok || "",
+          kadaluarsaDok: dokumenArray[0].expDok || "",
           fileDok: dokumenArray[0].fileDok,
           jenisDok: dokumenArray[0].jenisDok,
           createdBy: dokumenArray[0].createdBy,
@@ -118,16 +116,24 @@ export default function Edit({ onChangePage }) {
       kadaluarsaDokRef.current?.focus();
       return;
     }
-    console.log("masuk sini 2");
     if (!isJenisDokValid) {
       jenisDokRef.current?.focus();
       return;
     }
 
-    // console.log("Successfully submited!");
-    // console.log(dokData);
+    const startDate = new Date(tanggalDokRef.current.value);
+    const endDate = new Date(kadaluarsaDokRef.current.value);
 
-    // SweetAlert("Berhasil!", "Data berhasil ditambahkan.", "success", "OK");
+    if (startDate >= endDate) {
+      SweetAlert(
+        "Gagal!",
+        "Tanggal kadaluwarsa harus lebih dari tanggal berlaku dokumen.",
+        "error",
+        "OK"
+      );
+      return;
+    }
+
     try {
       const dokData = {
         idDok: idData,
@@ -162,116 +168,125 @@ export default function Edit({ onChangePage }) {
     }
   };
 
+  console.log(formData);
+
   if (loading) return <Loading />;
 
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          {/* Breadcrumbs and Page Title */}
-          <div className="p-3">
-            <PageTitleNav
-              title={title}
-              breadcrumbs={breadcrumbs}
-              onClick={() =>
-                onChangePage("index", {
-                  idMenu: idMenu,
-                })
-              }
-            />
-          </div>
-          <div className={isMobile ? "m-0" : "m-3"}>
-            {/* Main Content Section */}
-            <div
-              className={
-                isMobile
-                  ? "shadow p-4 m-2 mt-0 bg-white rounded"
-                  : "shadow p-5 m-5 mt-0 bg-white rounded"
-              }
-            >
-              {" "}
-              <HeaderForm label="Formulir Dokumen" />
-              <InputField
-                ref={nomorDokRef}
-                label="Nomor Dokumen"
-                value={formData.nomorDok}
-                onChange={handleChange}
-                isRequired={true}
-                name="nomorDok"
-                type="text"
-                maxChar="50"
-                isDisabled={true}
+          <div className="container mb-3">
+            <div className="p-3">
+              <PageTitleNav
+                title={title}
+                breadcrumbs={breadcrumbs}
+                onClick={() =>
+                  onChangePage("index", {
+                    idMenu: idMenu,
+                  })
+                }
               />
-              <div className="row">
-                <div className="col-lg-6 col-md-6 ">
-                  <InputField
-                    ref={judulDokRef}
-                    label="Judul Dokumen"
-                    value={formData.judulDok}
-                    onChange={handleChange}
-                    isRequired={true}
-                    name="judulDok"
-                    type="text"
-                    maxChar="100"
-                  />
+            </div>
+            <div className={isMobile ? "m-0" : "m-3"}>
+              {/* Main Content Section */}
+              <div
+                className={
+                  isMobile
+                    ? "shadow p-4 m-2 mt-0 bg-white rounded"
+                    : "shadow p-5 m-5 mt-0 bg-white rounded"
+                }
+              >
+                {" "}
+                <HeaderForm label="Formulir Dokumen" />
+                <InputField
+                  ref={nomorDokRef}
+                  label="Nomor Dokumen"
+                  value={formData.nomorDok || ""}
+                  onChange={handleChange}
+                  isRequired={true}
+                  name="nomorDok"
+                  type="text"
+                  maxChar="50"
+                  isDisabled={true}
+                />
+                <div className="row">
+                  <div className="col-lg-6 col-md-6 ">
+                    <InputField
+                      ref={judulDokRef}
+                      label="Judul Dokumen"
+                      value={formData.judulDok || ""}
+                      onChange={handleChange}
+                      isRequired={true}
+                      name="judulDok"
+                      type="text"
+                      maxChar="100"
+                    />
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <InputField
+                      ref={tanggalDokRef}
+                      label="Tanggal Berlaku"
+                      value={
+                        formData.tanggalDok
+                          ? formData.tanggalDok.toString().split("T")[0]
+                          : null
+                      }
+                      onChange={handleChange}
+                      isRequired={true}
+                      name="tanggalDok"
+                      type="date"
+                    />
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <DropDown
+                      arrData={arrData}
+                      type="pilih"
+                      label="Jenis Dokumen"
+                      forInput="jenisDok"
+                      isRequired={true}
+                      onChange={handleChange}
+                      value={formData.jenisDok}
+                      ref={jenisDokRef}
+                    />
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <InputField
+                      ref={kadaluarsaDokRef}
+                      label="Tanggal Kadaluwarsa"
+                      value={formData.kadaluarsaDok
+                        ? formData.kadaluarsaDok.toString().split("T")[0]
+                        : null}
+                      onChange={handleChange}
+                      isRequired={true}
+                      name="kadaluarsaDok"
+                      type="date"
+                    />
+                  </div>
                 </div>
-                <div className="col-lg-6 col-md-6">
-                  <InputField
-                    ref={tanggalDokRef}
-                    label="Tanggal Berlaku"
-                    value={formData.tanggalDok}
-                    onChange={handleChange}
-                    isRequired={true}
-                    name="tanggalDok"
-                    type="date"
-                  />
-                </div>
-                <div className="col-lg-6 col-md-6">
-                  <DropDown
-                    arrData={arrData}
-                    type="pilih"
-                    label="Jenis Dokumen"
-                    forInput="jenisDok"
-                    isRequired={true}
-                    onChange={handleChange}
-                    value={formData.jenisDok}
-                    ref={jenisDokRef}
-                  />
-                </div>
-                <div className="col-lg-6 col-md-6">
-                  <InputField
-                    ref={kadaluarsaDokRef}
-                    label="Tanggal Kadaluarsa"
-                    value={formData.kadaluarsaDok}
-                    onChange={handleChange}
-                    isRequired={true}
-                    name="kadaluarsaDok"
-                    type="date"
-                  />
-                </div>
-              </div>
-              <div className="d-flex justify-content-between align-items-center">
-                <div className="flex-grow-1 m-2">
-                  <Button
-                    classType="primary"
-                    type="submit"
-                    label="Simpan"
-                    width="100%"
-                    onClick={handleSubmit}
-                  />
-                </div>
-                <div className="flex-grow-1 m-2">
-                  <Button
-                    classType="danger"
-                    type="button"
-                    label="Batal"
-                    width="100%"
-                    onClick={() =>
-                      onChangePage("index", {
-                        idMenu: idMenu,
-                      })
-                    }
-                  />
+                <div className="d-flex justify-content-between align-items-center">
+                  <div className="flex-grow-1 m-2">
+                    <Button
+                      classType="primary"
+                      type="submit"
+                      label="Simpan"
+                      width="100%"
+                      onClick={handleSubmit}
+                    />
+                  </div>
+                  <div className="flex-grow-1 m-2">
+                    <Button
+                      classType="danger"
+                      type="button"
+                      label="Batal"
+                      width="100%"
+                      onClick={() =>
+                        onChangePage("index", {
+                          idMenu: idMenu,
+                        })
+                      }
+                    />
+                  </div>
                 </div>
               </div>
             </div>

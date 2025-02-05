@@ -12,6 +12,7 @@ import HeaderText from "../../../part/HeaderText";
 import PageTitleNav from "../../../part/PageTitleNav";
 import DetailData from "../../../part/DetailData";
 import SweetAlert from "../../../util/SweetAlert";
+import Button from "../../../part/Button";
 
 const breadcrumbs = [{ label: "Evaluasi" }, { label: "Audit Mutu Internal" }];
 
@@ -40,6 +41,9 @@ export default function Index({ onChangePage }) {
     setPageCurrent(page);
   };
 
+  const [temuanBelum, setTemuanBelum] = useState(0);
+  const [temuanClose, setTemuanClose] = useState(0);
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -52,7 +56,6 @@ export default function Index({ onChangePage }) {
         }
       );
 
-      console.log(result);
       if (result === "ERROR" || result === null || result.length === 0) {
         setFilteredData([]);
         setTotalData(0);
@@ -60,6 +63,17 @@ export default function Index({ onChangePage }) {
         const arrResult = Object.values(result);
         setFilteredData(arrResult);
         setTotalData(arrResult[0].totalData);
+
+        const closedCount = arrResult.filter(
+          (data) => data.statusTemuan === "Closed"
+        ).length;
+
+        const belumCount = arrResult.filter(
+          (data) => data.statusTemuan !== "Closed"
+        ).length;
+
+        setTemuanClose(closedCount);
+        setTemuanBelum(belumCount);
       }
     } catch (err) {
       setError("Gagal mengambil data: " + err);
@@ -112,7 +126,7 @@ export default function Index({ onChangePage }) {
           if (response === "ERROR")
             throw new Error("Gagal kirim Self Assessment");
 
-          SweetAlert("Berhasil", pesan + "Berhasil difinalkan", "success");
+          SweetAlert("Berhasil", pesan + " Berhasil difinalkan", "success");
 
           fetchData();
         } catch (err) {
@@ -128,6 +142,50 @@ export default function Index({ onChangePage }) {
           " belum diisi, harap lakukan pengecekan dan lengkapi terlebih dahulu",
         "warning"
       );
+    }
+  };
+
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(
+        `${API_LINK}/ExportExcel/GenerateExcelFromTemplate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "*/*",
+          },
+          body: JSON.stringify({ id: idData }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to download file: ${response.statusText}`);
+      }
+
+      // Konversi response ke Blob
+      const blob = await response.blob();
+
+      const contentDisposition = response.headers.get("content-disposition");
+
+      const fileName = contentDisposition
+        ? contentDisposition
+            .split("filename=")[1]
+            ?.split(";")[0]
+            ?.replace(/"/g, "")
+        : "download.xlsx"; // Default jika nama file tidak ditemukan
+
+      // Buat URL dari Blob dan trigger download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = decodeURIComponent(fileName); // Gunakan nama file dari server
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading file:", error);
     }
   };
 
@@ -217,17 +275,23 @@ export default function Index({ onChangePage }) {
                               : "-"
                           }
                         />
-                        <DetailData label="Jumlah Terselesaikan" isi="-" />
+                        <DetailData
+                          label="Jumlah Terselesaikan"
+                          isi={temuanClose}
+                        />
                       </div>
                       <div className="col-4">
                         <DetailData
                           label="Waktu Awal"
                           isi={filteredData[0]?.waktuAwal + " WIB"}
                         />
-                        <DetailData label="Jumlah Temuan" isi="-" />
+                        <DetailData
+                          label="Jumlah Temuan"
+                          isi={filteredData[0]?.jumlahTemuan}
+                        />
                         <DetailData
                           label="Jumlah Belum Terselesaikan"
-                          isi="-"
+                          isi={temuanBelum}
                         />
                       </div>
                       <div className="col-4">
@@ -247,6 +311,18 @@ export default function Index({ onChangePage }) {
                 <Loading />
               ) : (
                 <div>
+                  <div className="row">
+                    <div className="p-3">
+                      <Button
+                        iconName="download"
+                        classType="success"
+                        type="submit"
+                        label="Ekspor Temuan"
+                        width="15rem"
+                        onClick={handleDownload}
+                      />
+                    </div>
+                  </div>
                   <Table
                     arrHeader={[
                       "No",
@@ -299,6 +375,16 @@ export default function Index({ onChangePage }) {
                           } else {
                             return ["Detail"]; // Default return if the condition is not met
                           }
+                        case "Analisa Temuan (Draft)":
+                          if (
+                            item.kadep === activeUser ||
+                            item.pic1 === activeUser ||
+                            item.pic2 === activeUser
+                          ) {
+                            return ["Edit"];
+                          } else {
+                            return ["Detail"]; // Default return if the condition is not met
+                          }
                         case "Menunggu Monitoring":
                           if (
                             item.idAuditor === activeUser ||
@@ -309,12 +395,22 @@ export default function Index({ onChangePage }) {
                             return ["Detail"]; // Default return if the condition is not met
                           }
 
+                        case "Menunggu Verifikasi":
+                          if (role === "ROL01") {
+                            return ["Edit"];
+                          } else {
+                            return ["Detail"];
+                          }
+
                         default:
                           return ["Detail"];
                       }
                     }}
                     onEdit={(item) => {
-                      if (item.Status === "Belum Terselesaikan") {
+                      if (
+                        item.Status === "Belum Terselesaikan" ||
+                        item.Status === "Analisa Temuan (Draft)"
+                      ) {
                         onChangePage("editAnalisaTemuan", {
                           idData: item.Key,
                           instrumen: item.instrumen,
@@ -323,6 +419,13 @@ export default function Index({ onChangePage }) {
                         });
                       } else if (item.Status === "Menunggu Monitoring") {
                         onChangePage("editMonitoring", {
+                          idData: item.Key,
+                          instrumen: item.instrumen,
+                          breadcrumbs: breadcrumbs,
+                          idAnalisa: idData,
+                        });
+                      } else if (item.Status === "Menunggu Verifikasi") {
+                        onChangePage("editVerifikasi", {
                           idData: item.Key,
                           instrumen: item.instrumen,
                           breadcrumbs: breadcrumbs,
@@ -340,6 +443,13 @@ export default function Index({ onChangePage }) {
                         });
                       } else if (item.Status === "Menunggu Verifikasi") {
                         onChangePage("detailMonitoring", {
+                          idData: item.Key,
+                          instrumen: item.instrumen,
+                          breadcrumbs: breadcrumbs,
+                          idAnalisa: idData,
+                        });
+                      } else if (item.Status === "Closed") {
+                        onChangePage("detailVerifikasi", {
                           idData: item.Key,
                           instrumen: item.instrumen,
                           breadcrumbs: breadcrumbs,

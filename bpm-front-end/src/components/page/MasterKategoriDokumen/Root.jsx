@@ -10,7 +10,7 @@ export default function MasterKategoriDokumen() {
   // Handler for page navigation
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
-      case "index":
+      case "read":
         navigate(`${currentPath}`, { state: withState });
         break;
 

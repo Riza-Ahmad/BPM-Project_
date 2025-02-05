@@ -191,9 +191,24 @@ export default function Edit({ onChangePage }) {
       jenisIKT: jenisIKTValue,
     };
 
-    console.log("Data to send:", dataToSend);
-
     try {
+      const paData = {
+        pertanyaan: formData.pertanyaan,
+        namaKri: formData.kriteria,
+        id: idData,
+      };
+
+      const result = await useFetch(
+        `${API_LINK}/MasterBankPertanyaanAudit/CheckBankPertanyaanAudit`,
+        paData,
+        "POST"
+      );
+
+      if (result.length > 0) {
+        SweetAlert("Gagal!", "Data Pertanyaan sudah ada", "error", "OK");
+        return;
+      }
+
       const createResponse = await useFetch(
         `${API_LINK}/MasterBankPertanyaanAudit/EditBankPertanyaanAudit`,
         dataToSend,

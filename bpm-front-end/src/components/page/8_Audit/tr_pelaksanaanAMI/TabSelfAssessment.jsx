@@ -8,6 +8,14 @@ import RadioButton from "../../../part/RadioButton.jsx";
 import FileUpload from "../../../part/FileUploadMulti.jsx";
 import DetailData from "../../../part/DetailData.jsx";
 
+const arrKategori = [
+  { Value: "Ketidaksesuaian (Observasi)", Text: "Ketidaksesuaian (Observasi)" },
+  { Value: "Ketidaksesuaian (Minor)", Text: "Ketidaksesuaian (Minor)" },
+  { Value: "Ketidaksesuaian (Major)", Text: "Ketidaksesuaian (Major)" },
+  { Value: "Kesesuaian (Memenuhi)", Text: "Kesesuaian (Memenuhi)" },
+  { Value: "Kesesuaian (Melampaui)", Text: "Kesesuaian (Melampaui)" },
+];
+
 const arrJawaban = [
   { Value: "Ya", Text: "Ya" },
   { Value: "Tidak", Text: "Tidak" },
@@ -37,9 +45,10 @@ const TabSelfAssessment = ({
     if (!isInitialized && pertanyaan.length > 0) {
       const initialFormData = pertanyaan.reduce((acc, item) => {
         acc[item.idPertanyaanSA] = {
-          jawaban: item.jawaban || "Ya",
+          jawaban: item.jawaban || "",
           jawabanLanjutan: decodeHtml(item.jawabanLanjutan) || "",
           dokumenBerkas: item.berkasDokumen ? [item.berkasDokumen] : [],
+          kategoriTemuan: item.kategoriTemuan || "",
         };
         return acc;
       }, {});
@@ -231,7 +240,6 @@ const TabSelfAssessment = ({
                                       newFiles
                                     )
                                   }
-                                  isRequired="true"
                                   mode={mode === "editSA" ? "aktif" : "tidak"}
                                 />
                               ) : (
@@ -251,7 +259,7 @@ const TabSelfAssessment = ({
                               <div style={{ marginBottom: "10px" }}>
                                 <RadioButton
                                   label="Jawaban"
-                                  name={`options-${item.idPertanyaanSA}`}
+                                  name={`jawaban-${item.idPertanyaanSA}`}
                                   arrData={arrJawaban}
                                   value={
                                     formData[item.idPertanyaanSA]?.jawaban || ""
@@ -264,6 +272,33 @@ const TabSelfAssessment = ({
                                     )
                                   }
                                   isRequired={true}
+                                  col="col-12"
+                                />
+                              </div>
+
+                              <div
+                                style={{
+                                  marginBottom: "10px",
+                                  maxWidth: "15rem",
+                                }}
+                              >
+                                <RadioButton
+                                  label="Kategori Temuan"
+                                  name={`kategori-${item.idPertanyaanSA}`}
+                                  arrData={arrKategori}
+                                  value={
+                                    formData[item.idPertanyaanSA]
+                                      ?.kategoriTemuan || ""
+                                  }
+                                  onChange={(e) =>
+                                    handleInputChange(
+                                      item.idPertanyaanSA,
+                                      "kategoriTemuan",
+                                      e.target.value
+                                    )
+                                  }
+                                  isRequired={true}
+                                  col="col-12"
                                 />
                               </div>
                             </>
@@ -275,6 +310,14 @@ const TabSelfAssessment = ({
                                 label="Jawaban"
                                 isi={
                                   formData[item.idPertanyaanSA]?.jawaban || ""
+                                }
+                                colorIsi="text-black mb-4"
+                              />
+
+                              <DetailData
+                                label="Temuan"
+                                isi={
+                                  formData[item.idPertanyaanSA]?.kategoriTemuan
                                 }
                                 colorIsi="text-black mb-4"
                               />

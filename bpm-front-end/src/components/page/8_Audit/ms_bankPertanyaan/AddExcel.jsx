@@ -14,7 +14,15 @@ import { useFetch } from "../../../util/useFetch";
 const template = "/template/Template_BankPertanyaan.xlsx";
 const templateIso = "/template/Template_BankPertanyaanISO.xlsx";
 
-// Definisikan parsedData sebagai variabel global
+// Definisikan struktur header yang diharapkan
+const expectedHeaders = [
+  "ID Kriteria", // Kolom 1
+  "Pertanyaan", // Kolom 2
+  "Dokumen Pendukung", // Kolom 3
+  "Dokumen Pendukung", // Kolom 4
+  "Jenis IKT?", // Kolom 5
+];
+
 let parsedData = [];
 
 export default function Add({ onChangePage }) {
@@ -27,7 +35,12 @@ export default function Add({ onChangePage }) {
 
   const handleFileChange = (file) => {
     if (!file) {
-      console.error("File tidak ditemukan");
+      SweetAlert(
+        "Error",
+        "File tidak ditemukan. Silakan pilih file.",
+        "error",
+        "OK"
+      );
       return;
     }
 
@@ -40,53 +53,128 @@ export default function Add({ onChangePage }) {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: "array" });
 
-        // Ambil sheet pertama
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
 
         if (!worksheet) {
-          console.error("Sheet tidak ditemukan dalam file Excel.");
+          SweetAlert(
+            "Error",
+            "Sheet tidak ditemukan dalam file Excel.",
+            "error",
+            "OK"
+          ).then(() => {
+            window.location.reload();
+          });
           return;
         }
 
-        // Konversi sheet ke JSON
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-        if (!jsonData || jsonData.length <= 1) {
-          console.error("Data di dalam sheet kosong atau tidak valid.");
+        if (!jsonData || jsonData.length < 2) {
+          SweetAlert(
+            "Error",
+            "File Excel kosong atau tidak valid.",
+            "error",
+            "OK"
+          ).then(() => {
+            window.location.reload();
+          });
           return;
         }
 
+        // Validasi header
+        const fileHeaders = jsonData[1];
+        const isValidTemplate = expectedHeaders.every(
+          (header, index) => header === fileHeaders[index]
+        );
+
+        if (!isValidTemplate) {
+          SweetAlert(
+            "Error",
+            "File tidak sesuai dengan template. Pastikan Anda menggunakan template yang benar.",
+            "error",
+            "OK"
+          ).then(() => {
+            window.location.reload();
+          });
+          return;
+        }
+
+        // Validasi data per baris
+        const isValidRow = (row) => {
+          return (
+            row.length >= expectedHeaders.length && // Jumlah kolom sesuai
+            row[0] && // Kriteria tidak boleh kosong
+            row[1] // Pertanyaan tidak boleh kosong
+          );
+        };
+
         parsedData = jsonData
+          .slice(2)
           .map((row, index) => {
-            if (index > 1 && row[0] && row[1]) {
-              return {
-                kriteria: row[0] || "",
-                pertanyaan: row[1] || "",
-                pertanyaanLanjutan: row[2] === 1 ? row[3] || "" : "",
-                butuhDokumen: row[2] === 1 ? "Ya" : "Tidak",
-                jenisIKT: row[4] === 1 ? "Ya" : "Tidak",
-                bagianAuditee: [],
-              };
+            if (!isValidRow(row)) {
+              SweetAlert(
+                "Error",
+                `Data tidak valid pada baris ${
+                  index + 2
+                }. Pastikan semua kolom terisi dengan benar.`,
+                "error",
+                "OK"
+              ).then(() => {
+                window.location.reload();
+              });
+              return null; // Jika baris tidak valid, return null
             }
+            return {
+              kriteria: row[0] || "",
+              pertanyaan: row[1] || "",
+              pertanyaanLanjutan: row[2] === 1 ? row[3] || "" : "",
+              butuhDokumen: row[2] === 1 ? "Ya" : "Tidak",
+              jenisIKT: row[4] === 1 ? "Ya" : "Tidak",
+              bagianAuditee: [],
+            };
           })
           .filter(Boolean);
+
+        if (parsedData.length === 0) {
+          SweetAlert(
+            "Error",
+            "Tidak ada data yang valid untuk diproses.",
+            "error",
+            "OK"
+          ).then(() => {
+            window.location.reload();
+          });
+          return;
+        }
 
         console.log("Parsed Data:", parsedData);
       } catch (error) {
         console.error("Error saat membaca file Excel:", error.message);
+        SweetAlert("Error", "Gagal membaca file Excel.", "error", "OK");
       }
     };
 
     reader.onerror = (error) => {
       console.error("Error membaca file:", error.message);
+      SweetAlert(
+        "Error",
+        "Gagal membaca file. Silakan coba lagi.",
+        "error",
+        "OK"
+      ).then(() => {
+        window.location.reload();
+      });
     };
 
     reader.readAsArrayBuffer(file);
   };
 
   const handleSubmit = async () => {
-    console.log("Submit Data:", parsedData);
+    if (parsedData.length === 0) {
+      SweetAlert("Error", "Tidak ada data untuk disimpan.", "error", "OK");
+      return;
+    }
 
     setLoading(true);
 
@@ -111,12 +199,11 @@ export default function Add({ onChangePage }) {
           "error",
           "OK"
         );
-
-        break; // Hentikan proses jika ada error
-      } finally {
-        setLoading(false);
+        break;
       }
     }
+
+    setLoading(false);
 
     SweetAlert(
       "Berhasil!",
@@ -128,11 +215,11 @@ export default function Add({ onChangePage }) {
 
   if (loading) return <Loading />;
   if (error) return <p>{error}</p>;
+
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          {/* Breadcrumbs and Page Title */}
           <div className="p-3">
             <PageTitleNav
               title={title}
@@ -141,7 +228,6 @@ export default function Add({ onChangePage }) {
             />
           </div>
           <div className={isMobile ? "m-0" : "m-3"}>
-            {/* Main Content Section */}
             <div
               className={
                 isMobile

@@ -18,6 +18,8 @@ export default function Detail({ onChangePage }) {
   const [error, setError] = useState(null);
 
   const location = useLocation();
+  const currentPath = location.pathname;
+  const rootPath = currentPath.split("/")[2];
   const navigate = useNavigate();
   const idMenu = location.state?.idMenu;
   const idData = location.state?.idData;
@@ -93,38 +95,24 @@ export default function Detail({ onChangePage }) {
     let newTitleHeader = "";
     let newBreadcrumbs = [];
 
-    if (idMenu === 39) {
+    if (rootPath === "dokumen") {
       newTitle = "Detail Peraturan";
-      newTitleHeader = "Formulir Kebijakan Peraturan";
+      newTitleHeader = "Formulir Dokumen Peraturan";
       newBreadcrumbs = [
         {
           label: "Peraturan",
-          href: "/peraturan/kebijakan",
+          href: "/peraturan/dokumen",
         },
         {
-          label: "Kebijakan Peraturan",
-          href: "/peraturan/kebijakan",
+          label: "dokumen Peraturan",
+          href: "/peraturan/dokumen",
         },
         {
-          label: "Detail Kebijakan Peraturan",
+          label: "Detail dokumen Peraturan",
           href: "",
         },
       ];
-    } else if (idMenu === 40) {
-      newTitle = "Detail Peraturan Eksternal";
-      newTitleHeader = "Formulir Peraturan Eksternal";
-      newBreadcrumbs = [
-        {
-          label: "Peraturan",
-          href: "/peraturan/eksternal",
-        },
-        {
-          label: "Peraturan Eksternal",
-          href: "/peraturan/eksternal",
-        },
-        { label: "Detail Peraturan Eksternal", href: "" },
-      ];
-    } else if (idMenu === 41) {
+    } else if (rootPath === "aps") {
       newTitle = "Detail Instrumen APS";
       newTitleHeader = "Formulir Instrumen APS";
       newBreadcrumbs = [

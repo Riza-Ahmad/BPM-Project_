@@ -75,6 +75,26 @@ export default function Edit({ onChangePage }) {
         idDok: idData,
         namaKri: namaKriRef.current.value,
       };
+
+      const result = await useFetch(
+        `${API_LINK}/MasterKriteria/CheckKriteriaExistEdit`,
+        {
+          param1: namaKriRef.current.value,
+          param2: idData,
+        },
+        "POST"
+      );
+
+      if (result.length > 0) {
+        SweetAlert(
+          "Gagal!",
+          "Data kriteria sudah ada",
+          "error",
+          "OK"
+        );
+        return;
+      }
+
       const createResponse = await useFetch(
         `${API_LINK}/MasterKriteria/EditKriteria`,
         dokData,

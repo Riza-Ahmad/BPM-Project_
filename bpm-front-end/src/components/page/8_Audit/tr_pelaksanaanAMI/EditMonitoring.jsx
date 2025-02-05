@@ -65,8 +65,6 @@ export default function EditMonitoring({ onChangePage }) {
           id: idData,
         }
       );
-
-      console.log(result);
       if (result === "ERROR" || result === null || result.length === 0) {
         setFilteredData([]);
       } else {
@@ -137,6 +135,13 @@ export default function EditMonitoring({ onChangePage }) {
   const monitoringRef = useRef();
 
   const handleSubmit = async () => {
+    const isMonitor = monitoringRef.current?.validate();
+
+    if (!isMonitor) {
+      monitoringRef.current?.focus();
+      return;
+    }
+
     setLoading(true);
     try {
       const createResponse = await useFetch(

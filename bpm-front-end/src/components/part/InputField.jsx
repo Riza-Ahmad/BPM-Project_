@@ -25,7 +25,15 @@ const InputField = forwardRef(function InputField(
       setError(false);
     },
     validate() {
-      if (isRequired && !value.trim()) {
+      /**
+       * Changed for handling non text input
+       */
+      if (type === "text") {
+        if (isRequired && !value.trim()) {
+          setError(true);
+          return false;
+        }
+      } else if (isRequired && (value === null || value === undefined || value === '')) {
         setError(true);
         return false;
       }
@@ -72,7 +80,17 @@ const InputField = forwardRef(function InputField(
         value={value} // nilai dikendalikan oleh induk
         onChange={handleChange} // event perubahan dikendalikan oleh induk
         onBlur={() => {
-          if (isRequired && !value.trim()) setError(true);
+          /**
+           * Changed for handling non text input
+           */
+          if (type === "text") {
+            if (isRequired && !value.trim()) {
+              setError(true);
+            }
+          } else if (isRequired && (value === null || value === undefined || value === '')) {
+            setError(true);
+          }
+          setError(false);
         }}
         maxLength={maxChar}
         {...props}
