@@ -36,7 +36,7 @@ export default function Add({ onChangePage }) {
   const isNameDuplicate = async (name) => {
     try {
       const response = await fetch(
-        `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`,
+        `${API_LINK}/MasterKriteriaSurvei/GetAllDataKriteriaSurvei`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -65,13 +65,15 @@ export default function Add({ onChangePage }) {
       ksr_namaRef.current?.focus();
       return;
     }
+
     const isDuplicate = await isNameDuplicate(formData.ksr_nama);
     if (isDuplicate) {
-      SweetAlert({
-        icon: "warning",
-        title: "Gagal Menambah Kriteria Survei",
-        text: "Nama Kriteria sudah digunakan. Silakan Masukan Nama Kriteria yang lain.",
-      });
+      SweetAlert(
+        "Gagal Menambahkan Nama Kriteria",
+        "Nama Kriteria sudah digunakan. Pilih Nama Kriteria Lain",
+        "warning",
+        "OK"
+      );
       return;
     }
     try {
@@ -116,8 +118,7 @@ export default function Add({ onChangePage }) {
                 isMobile
                   ? "shadow p-4 m-2 mt-0 bg-white rounded"
                   : "shadow p-5 m-5 mt-0 bg-white rounded"
-              }
-            >
+              }>
               <div className="row">
                 <InputField
                   ref={ksr_namaRef}

@@ -13,16 +13,16 @@ export default function AddTemplateSurvei() {
   const isMobile = useIsMobile();
   const [formData, setFormData] = useState({
     namaTemplate: "",
-    respondenTemplate: [], // Untuk menyimpan nilai responden yang dipilih
+    respondenTemplate: [], 
   });
 
   const namaTemplateRef = useRef();
 
   // Data statis untuk CheckBox
   const respondenOptions = [
-    { Value: 0, Text: "Dosen dan Instruktur" },
-    { Value: 1, Text: "Tenaga Pendidik" },
-    { Value: 2, Text: "Mitra Kerjasama" },
+    { Value: "Dosen dan Instruktur", Text: "Dosen dan Instruktur" },
+    { Value: "Tenaga Pendidik", Text: "Tenaga Pendidik" },
+    { Value: "Mitra Kerjasama", Text: "Mitra Kerjasama" },
   ];
 
   // Fungsi untuk menangani perubahan pada InputField dan CheckBox

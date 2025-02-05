@@ -55,6 +55,31 @@ export default function Add({ onChangePage }) {
     return !Object.values(newErrors).some((error) => error);
   };
 
+  const isNameDuplicate = async (name) => {
+    try {
+      const response = await fetch(
+        `${API_LINK}/SkalaPenilaian/GetAllDataKriteriaSurvei`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ page: 1, pageSize: 100 }),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        return result.some(
+          (item) => item.skp_tipe.toLowerCase() === name.toLowerCase()
+        );
+      } else {
+        throw new Error("Gagal memeriksa duplikasi nama.");
+      }
+    } catch (error) {
+      console.error("Error checking duplicate:", error);
+      return false; // Jika ada error, anggap tidak duplikat (default)
+    }
+  };
+
   const renderErrorMessage = (errorType) => {
     return errors[errorType] ? (
       <div className="text-danger mt-1" style={{ fontSize: "0.8rem" }}>
@@ -88,6 +113,17 @@ export default function Add({ onChangePage }) {
       await SweetAlert(
         "Peringatan!",
         "Harap lengkapi semua data yang diperlukan.",
+        "warning",
+        "OK"
+      );
+      return;
+    }
+
+    const isDuplicate = await isNameDuplicate(formData.ksr_nama);
+    if (isDuplicate) {
+      SweetAlert(
+        "Gagal Menambahkan Skala",
+        "Skala sudah ada. Pilih Nama Kriteria Lain",
         "warning",
         "OK"
       );
