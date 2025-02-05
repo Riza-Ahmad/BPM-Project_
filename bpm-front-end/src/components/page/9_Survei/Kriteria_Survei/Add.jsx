@@ -33,7 +33,7 @@ export default function Add({ onChangePage }) {
     }
     return errors;
   };
-  const isNameDuplicate = async (name) => {
+ const isNameDuplicate = async (name) => {
     try {
       const response = await fetch(
         `${API_LINK}/MasterKriteriaSurvei/GetAllDataKriteriaSurvei`,
@@ -55,8 +55,8 @@ export default function Add({ onChangePage }) {
     } catch (error) {
       console.error("Error checking duplicate:", error);
       return false; // Jika ada error, anggap tidak duplikat (default)
-    }
-  };
+    }
+  };
 
   const handleSubmit = async () => {
     const isNamaKriValid = ksr_namaRef.current?.validate();

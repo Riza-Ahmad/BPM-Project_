@@ -14,10 +14,10 @@ import Loading from "../../../part/Loading";
 
 export default function Add({ onChangePage }) {
   const navigate = useNavigate();
-  const title = "Tambah Pertanyaan";
+  const title = "Tambah Bank Pertanyaan Survei";
   const breadcrumbs = [
-    { label: "Pertanyaan Survei", href: "/survei/pertanyaan" },
-    { label: "Tambah Pertanyaan", href: "/survei/pertanyaan/add" },
+    { label: "Bank Pertanyaan Survei", href: "/survei/pertanyaan" },
+    { label: "Tambah Bank Pertanyaan Survei", href: "/survei/pertanyaan/add" },
   ];
 
   const [formData, setFormData] = useState({
@@ -87,6 +87,8 @@ export default function Add({ onChangePage }) {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    console.log("Checkbox Change:", name, value, checked);
+    console.log("Responden Saat Ini:", formData.responden);
 
     if (type === "checkbox") {
       setFormData((prevFormData) => {
@@ -180,11 +182,11 @@ export default function Add({ onChangePage }) {
             <PageTitleNav
               title={title}
               breadcrumbs={breadcrumbs}
-              onClick={() => onChangePage("index")}
+              onClick={() => navigate("/survei/pertanyaan")}
             />
           </div>
           <div className="shadow p-5 m-5 mt-0 bg-white rounded">
-            <HeaderForm label="Formulir Pertanyaan" />
+            <HeaderForm label="Formulir Bank Pertanyaan" />
             <div className="mb-4">
               <Dropdown
                 ref={kriteriaSurveiRef}
@@ -224,7 +226,10 @@ export default function Add({ onChangePage }) {
             <div className="mb-5">
               <CheckBox
                 arrData={[
-                  { Value: 0, Text: "Dosen dan Instruktur" },
+                  {
+                    Value: 0,
+                    Text: "Dosen dan Instruktur",
+                  },
                   { Value: 1, Text: "Tenaga Pendidik" },
                   { Value: 2, Text: "Mitra Kerjasama" },
                 ]}

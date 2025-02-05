@@ -12,11 +12,11 @@ import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { API_LINK, TEMPLATE_LINK } from "../../../util/Constants";
 import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 import { useFetch } from "../../../util/useFetch";
-import { id } from "date-fns/locale";
 
-const title = "Pertanyaan Survei";
-const breadcrumbs = [{ label: "Pertanyaan Survei" }];
+const title = "Bank Pertanyaan Survei";
+const breadcrumbs = [{ label: "Bank Pertanyaan Survei" }];
 
 export default function Pertanyaan_Survei({ onChangePage }) {
   // Konfigurasi paging dan state data
@@ -25,12 +25,21 @@ export default function Pertanyaan_Survei({ onChangePage }) {
   const [currentData, setCurrentData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // State untuk pencarian dan filter (client-side)
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState(""); // "" berarti semua status
   const [filterSort, setFilterSort] = useState("[pty_pertanyaan] DESC"); // default sorting
+  const [filterKriteria, setFilterKriteria] = useState(""); // Filter untuk Kriteria Survei, "" berarti semua
+  const [filterSkala, setFilterSkala] = useState(""); // Filter untuk Skala Penilaian, "" berarti semua
   const [filteredData, setFilteredData] = useState([]);
+
+  // State untuk opsi dropdown yang diambil dari API
+  const [ksrOptions, setKsrOptions] = useState([]);
+  const [skpOptions, setSkpOptions] = useState([]);
+  const [loadingFilter, setLoadingFilter] = useState(false);
+  const [errorFilter, setErrorFilter] = useState(null);
 
   const importModalRef = useRef(null);
   const navigate = useNavigate();
@@ -41,17 +50,18 @@ export default function Pertanyaan_Survei({ onChangePage }) {
   const indexOfFirstData = indexOfLastData - pageSize;
   // Jika ada pencarian atau filter, gunakan filteredData; jika tidak, gunakan currentData
   const dataToDisplay =
-    searchQuery || filterStatus || filterSort ? filteredData : currentData;
+    searchQuery || filterStatus || filterSort || filterKriteria || filterSkala
+      ? filteredData
+      : currentData;
   const currentDataPage = dataToDisplay.slice(
     indexOfFirstData,
     indexOfLastData
   );
 
-  // Fungsi untuk mengambil data dari API (SP akan mengembalikan data terurut berdasarkan pty_created_date DESC)
+  // Fungsi untuk mengambil data pertanyaan dari API
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      // Panggil API tanpa parameter (SP mengembalikan data sesuai urutan yang ada)
       const dataJson = await useFetch(
         `${API_LINK}/MasterPertanyaan/GetDataPertanyaan`,
         {},
@@ -74,12 +84,71 @@ export default function Pertanyaan_Survei({ onChangePage }) {
     }
   };
 
+  // Ambil data opsi Kriteria Survei dari API
+  useEffect(() => {
+    const fetchKriteria = async () => {
+      setLoading(true);
+      try {
+        const data = await useFetch(
+          `${API_LINK}/MasterPertanyaan/GetAllKriteriaSurveiAktif`,
+          {},
+          "POST"
+        );
+        if (data && Array.isArray(data)) {
+          // Mapping data agar sesuai dengan format Dropdown { Value, Text }
+          const mappedOptions = data.map((item) => ({
+            Value: item.ksr_id,
+            Text: item.ksr_nama,
+          }));
+          setKsrOptions(mappedOptions);
+        }
+      } catch (err) {
+        setErrorFilter("Gagal mengambil data: " + err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchKriteria();
+  }, []);
+
+  // Ambil data opsi Skala Penilaian dari API
+  useEffect(() => {
+    const fetchSkalaPenilaian = async () => {
+      setLoadingFilter(true);
+      setErrorFilter(null);
+      try {
+        const skpResponse = await useFetch(
+          `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
+          {},
+          "POST"
+        );
+        if (skpResponse && Array.isArray(skpResponse)) {
+          const filteredSkp = skpResponse.filter(
+            (item) => item.skp_status === "Aktif"
+          );
+          const mappedSkp = filteredSkp.map((item) => ({
+            Value: item.skp_id,
+            Text: item.skp_tipe,
+          }));
+          setSkpOptions(mappedSkp);
+        }
+      } catch (error) {
+        setErrorFilter(
+          "Gagal mengambil data Skala Penilaian: " + error.message
+        );
+      } finally {
+        setLoadingFilter(false);
+      }
+    };
+    fetchSkalaPenilaian();
+  }, []);
+
   // Panggil fetchData saat komponen dimount
   useEffect(() => {
     fetchData();
   }, []);
 
-  // Lakukan filter client-side berdasarkan searchQuery, filterStatus, dan filterSort
+  // Lakukan filter client-side berdasarkan searchQuery, filterStatus, filterSort, filterKriteria, dan filterSkala
   useEffect(() => {
     let data = [...currentData];
     // Filter berdasarkan pencarian di field pty_pertanyaan
@@ -93,6 +162,14 @@ export default function Pertanyaan_Survei({ onChangePage }) {
     if (filterStatus) {
       data = data.filter((item) => item.pty_status === filterStatus);
     }
+    // Filter berdasarkan Kriteria Survei jika dipilih
+    if (filterKriteria) {
+      data = data.filter((item) => item.ksr_nama === filterKriteria);
+    }
+    // Filter berdasarkan Skala Penilaian jika dipilih
+    if (filterSkala) {
+      data = data.filter((item) => item.skp_id === filterSkala);
+    }
     // Urutkan data berdasarkan filterSort
     if (filterSort === "[pty_created_date] ASC") {
       data.sort(
@@ -103,10 +180,16 @@ export default function Pertanyaan_Survei({ onChangePage }) {
         (a, b) => new Date(b.pty_created_date) - new Date(a.pty_created_date)
       );
     }
-
     setFilteredData(data);
     setPageCurrent(1); // Reset ke halaman pertama ketika filter berubah
-  }, [searchQuery, filterStatus, filterSort, currentData]);
+  }, [
+    searchQuery,
+    filterStatus,
+    filterSort,
+    filterKriteria,
+    filterSkala,
+    currentData,
+  ]);
 
   // Jika data berubah dan halaman saat ini melebihi total halaman, reset ke halaman pertama
   useEffect(() => {
@@ -116,6 +199,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
     }
   }, [dataToDisplay, pageCurrent, pageSize]);
 
+  // Fungsi export ke Excel
   // Fungsi export ke Excel
   const handleExportQuestions = () => {
     const dataToExport = dataToDisplay;
@@ -127,9 +211,168 @@ export default function Pertanyaan_Survei({ onChangePage }) {
       });
       return;
     }
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+
+    // Buat salinan data dan urutkan berdasarkan ID Pertanyaan (ascending)
+    const sortedDataQuestions = [...dataToExport].sort(
+      (a, b) => Number(a.pty_id) - Number(b.pty_id)
+    );
+
+    // ==========================
+    // 1. Sheet Data Pertanyaan
+    // ==========================
+    const headersQuestions = [
+      [
+        "ID Pertanyaan",
+        "Pertanyaan",
+        "ID Kriteria Survei",
+        "ID Skala Penilaian",
+        "Status",
+        "Dibuat Oleh",
+        "Tanggal Dibuat",
+        "Dimodifikasi Oleh",
+        "Tanggal Dimodifikasi",
+      ],
+    ];
+
+    const dataQuestions = sortedDataQuestions.map((item) => [
+      item.pty_id,
+      item.pty_pertanyaan,
+      item.krs_id,
+      item.skp_id,
+      item.pty_status,
+      item.pty_created_by,
+      item.pty_created_date,
+      item.pty_modif_by,
+      item.pty_modif_date,
+    ]);
+
+    const worksheetQuestions = XLSX.utils.aoa_to_sheet(headersQuestions);
+    XLSX.utils.sheet_add_aoa(worksheetQuestions, dataQuestions, {
+      origin: "A2",
+    });
+
+    // ==========================
+    // 2. Sheet Data Kriteria Survei
+    // ==========================
+    const headersKriteria = [["ID Kriteria", "Nama Kriteria"]];
+    // Gunakan Map untuk mendapatkan pasangan unik ID Kriteria dan Nama Kriteria
+    const uniqueKriteriaMap = new Map(
+      dataToExport.map((item) => [item.krs_id, item.krs_nama])
+    );
+    // Ubah ke array dan urutkan berdasarkan ID Kriteria (ascending)
+    const uniqueKriteria = Array.from(uniqueKriteriaMap.entries()).sort(
+      (a, b) => Number(a[0]) - Number(b[0])
+    );
+    const dataKriteria = uniqueKriteria.map(([id, nama]) => [id, nama]);
+
+    const worksheetKriteria = XLSX.utils.aoa_to_sheet(headersKriteria);
+    XLSX.utils.sheet_add_aoa(worksheetKriteria, dataKriteria, { origin: "A2" });
+
+    // ==========================
+    // 3. Sheet Data Skala Penilaian
+    // ==========================
+    const headersSkala = [["ID Skala", "Tipe Skala", "Deskripsi"]];
+    // Gunakan Map untuk mendapatkan pasangan unik ID Skala dan objek {tipe, deskripsi}
+    const uniqueSkalaMap = new Map(
+      dataToExport.map((item) => [
+        item.skp_id,
+        { tipe: item.skp_tipe, deskripsi: item.skp_deskripsi },
+      ])
+    );
+    // Ubah ke array dan urutkan berdasarkan ID Skala (ascending)
+    const uniqueSkala = Array.from(uniqueSkalaMap.entries()).sort(
+      (a, b) => Number(a[0]) - Number(b[0])
+    );
+    const dataSkala = uniqueSkala.map(([id, obj]) => [
+      id,
+      obj.tipe,
+      obj.deskripsi,
+    ]);
+
+    const worksheetSkala = XLSX.utils.aoa_to_sheet(headersSkala);
+    XLSX.utils.sheet_add_aoa(worksheetSkala, dataSkala, { origin: "A2" });
+
+    // ==========================
+    // Styling untuk Semua Sheet
+    // ==========================
+    const applyStyles = (worksheet, headers, data) => {
+      const range = XLSX.utils.decode_range(worksheet["!ref"]);
+
+      // Styling Header (Bold & Center)
+      for (let C = range.s.c; C <= range.e.c; C++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: 0, c: C });
+        if (worksheet[cellAddress]) {
+          worksheet[cellAddress].s = {
+            font: { bold: true },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {
+              top: { style: "thin" },
+              bottom: { style: "thin" },
+              left: { style: "thin" },
+              right: { style: "thin" },
+            },
+          };
+        }
+      }
+
+      // Styling Data (Border)
+      for (let R = range.s.r + 1; R <= range.e.r; R++) {
+        for (let C = range.s.c; C <= range.e.c; C++) {
+          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+          if (worksheet[cellAddress]) {
+            worksheet[cellAddress].s = {
+              border: {
+                top: { style: "thin" },
+                bottom: { style: "thin" },
+                left: { style: "thin" },
+                right: { style: "thin" },
+              },
+            };
+          }
+        }
+      }
+
+      // Auto Fit Column Width
+      const autoFitColumns = (ws, headers, data) => {
+        const colWidths = headers[0].map((header, index) => ({
+          wch:
+            Math.max(
+              header.length,
+              ...data.map((row) =>
+                row[index] ? row[index].toString().length : 0
+              )
+            ) + 2,
+        }));
+        ws["!cols"] = colWidths;
+      };
+
+      autoFitColumns(worksheet, headers, data);
+    };
+
+    applyStyles(worksheetQuestions, headersQuestions, dataQuestions);
+    applyStyles(worksheetKriteria, headersKriteria, dataKriteria);
+    applyStyles(worksheetSkala, headersSkala, dataSkala);
+
+    // ==========================
+    // Membuat Workbook & Menyimpan File
+    // ==========================
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Data Pertanyaan");
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheetQuestions,
+      "Data Pertanyaan"
+    );
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheetKriteria,
+      "Data Kriteria Survei"
+    );
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheetSkala,
+      "Data Skala Penilaian"
+    );
+
     XLSX.writeFile(workbook, "Pertanyaan_Eksport.xlsx");
   };
 
@@ -240,7 +483,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
     setPageCurrent(page > totalPage ? totalPage : page);
   };
 
-  // Handler untuk SearchField (pastikan komponen mengembalikan nilai string)
+  // Handler untuk SearchField
   const handleSearchChange = (value) => {
     setSearchQuery(value);
   };
@@ -255,7 +498,17 @@ export default function Pertanyaan_Survei({ onChangePage }) {
     setFilterSort(e.target.value);
   };
 
-  // Fungsi toggle status pertanyaan (misalnya untuk mengubah status aktif/tidak aktif)
+  // Handler untuk filter Kriteria Survei
+  const handleKriteriaFilterChange = (e) => {
+    setFilterKriteria(e.target.value);
+  };
+
+  // Handler untuk filter Skala Penilaian
+  const handleSkalaFilterChange = (e) => {
+    setFilterSkala(e.target.value);
+  };
+
+  // Fungsi toggle status pertanyaan
   const handleToggle = async (id) => {
     const parameters = { p1: id, p2: "Admin" };
     const confirm = await Swal.fire({
@@ -342,11 +595,11 @@ export default function Pertanyaan_Survei({ onChangePage }) {
                     arrData={[
                       {
                         Value: "[pty_created_date] ASC",
-                        Text: "Pertanyaan [↑]",
+                        Text: "Waktu Dibuat [↑]",
                       },
                       {
                         Value: "[pty_created_date] DESC",
-                        Text: "Pertanyaan [↓]",
+                        Text: "Waktu Dibuat [↓]",
                       },
                     ]}
                     defaultValue="[pty_created_date] DESC"
@@ -360,8 +613,22 @@ export default function Pertanyaan_Survei({ onChangePage }) {
                       { Value: "Aktif", Text: "Aktif" },
                       { Value: "Tidak Aktif", Text: "Tidak Aktif" },
                     ]}
-                    defaultValue="Aktif"
+                    defaultValue=""
                     onChange={handleStatusFilterChange}
+                  />
+                  <Dropdown
+                    label="Kriteria Survei"
+                    type="pilih"
+                    arrData={[{ Value: "", Text: "Semua" }, ...ksrOptions]}
+                    defaultValue=""
+                    onChange={handleKriteriaFilterChange}
+                  />
+                  <Dropdown
+                    label="Skala Penilaian"
+                    type="pilih"
+                    arrData={[{ Value: "", Text: "Semua" }, ...skpOptions]}
+                    defaultValue=""
+                    onChange={handleSkalaFilterChange}
                   />
                 </Filter>
               </div>
@@ -403,9 +670,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
                   onDetail={(item) =>
                     onChangePage("detail", { detailId: item.Key })
                   }
-                  onEdit={(item) =>
-                    onChangePage("edit", { id: item.Key })
-                  }
+                  onEdit={(item) => onChangePage("edit", { id: item.Key })}
                   onToggle={(item) => handleToggle(item.Key)}
                 />
                 <Paging

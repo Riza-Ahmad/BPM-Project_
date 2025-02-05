@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import PageTitleNav from "../../../part/PageTitleNav";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
+import Dropdown from "../../../part/Dropdown";
 import CheckBox from "../../../part/CheckBox";
 import InputField from "../../../part/InputField";
 import SweetAlert from "../../../util/SweetAlert";
@@ -13,38 +14,100 @@ export default function AddTemplateSurvei() {
   const isMobile = useIsMobile();
   const [formData, setFormData] = useState({
     namaTemplate: "",
-    respondenTemplate: [], 
+    ksrId: "",
+    skpId: "",
+    responden: [],
   });
 
   const namaTemplateRef = useRef();
 
-  // Data statis untuk CheckBox
-  const respondenOptions = [
-    { Value: "Dosen dan Instruktur", Text: "Dosen dan Instruktur" },
-    { Value: "Tenaga Pendidik", Text: "Tenaga Pendidik" },
-    { Value: "Mitra Kerjasama", Text: "Mitra Kerjasama" },
-  ];
+  const fetchKriteria = async () => {
+    setLoading(true);
+    setError(null);
 
-  // Fungsi untuk menangani perubahan pada InputField dan CheckBox
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    try {
+      const pageSize = 10; // Customize this according to your needs
+      const pageNumber = 1; // Customize this according to your needs
 
-    if (type === "checkbox") {
-      // Handle perubahan pada CheckBox
-      setFormData((prev) => {
-        const newValues = checked
-          ? [...prev.respondenTemplate, value] // Tambah nilai jika dicentang
-          : prev.respondenTemplate.filter((val) => val !== value); // Hapus nilai jika tidak dicentang
+      const result = await useFetch(
+        `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`,
+        {
+          p1: "Aktif",
+          p2: "",
+          p3: "namaKri ASC",
+          p4: pageSize,
+          p5: pageNumber,
+        },
+        "POST"
+      );
 
-        return { ...prev, respondenTemplate: newValues };
-      });
-    } else {
-      // Handle perubahan pada InputField
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      if (result === "ERROR" || !result || result.length === 0) {
+        setKsrOptions([]);
+      } else {
+        setKsrOptions(
+          result.map((item) => ({
+            value: item.idKri,
+            Text: item.namaKri,
+          }))
+        );
+      }
+    } catch (err) {
+      setError("Gagal mengambil data: " + err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Handle submit form
+  const fetchSkalaPenilaian = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const skpResponse = await useFetch(
+        `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
+        {},
+        "POST"
+      );
+
+      if (skpResponse && Array.isArray(skpResponse)) {
+        setSkpOptions(
+          skpResponse.map((item) => ({
+            value: item.skp_id,
+            Text: item.skp_skala + " (" + item.skp_deskripsi + ")",
+          }))
+        );
+      }
+    } catch (error) {
+      setError("Gagal mengambil data Skala Penilaian: " + error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchKriteria();
+    fetchSkalaPenilaian();
+  }, []);
+
+ const handleChange = (e) => {
+   const { name, value, type, checked } = e.target;
+   console.log("Checkbox Change:", name, value, checked);
+   console.log("Responden Saat Ini:", formData.responden);
+
+   if (type === "checkbox") {
+     setFormData((prevFormData) => {
+       const updatedResponden = prevFormData.responden || [];
+       const newResponden = checked
+         ? [...updatedResponden, value] // Tambahkan jika di-check
+         : updatedResponden.filter((item) => item !== value); // Hapus jika di-uncheck
+
+       return { ...prevFormData, responden: newResponden };
+     });
+   } else {
+     setFormData((prevFormData) => ({ ...prevFormData, [name]: value }));
+   }
+ };
+
   const handleSubmit = async () => {
     // Validasi InputField
     const isNamaTemplateValid = namaTemplateRef.current?.validate();
@@ -65,20 +128,32 @@ export default function AddTemplateSurvei() {
     try {
       // Payload untuk dikirim ke API
       const payload = {
-        namaTemplate: formData.namaTemplate,
-        respondenTemplate: formData.respondenTemplate, // Kirim data responden
+        p1: formData.namaTemplate,
+        p2: formData.responden || [],
       };
 
-      // Contoh: Mengirimkan request untuk membuat template survei
-      console.log("Payload yang dikirim:", payload);
+      // Mengirimkan request untuk membuat template survei
+      const response = await useFetch(
+        `${API_LINK}/TemplateSurvei/CreateTemplateSurvei`,
+        payload,
+        "POST"
+      );
 
+      // Pastikan response berhasil dan tidak mengandung error
+      if (response === "ERROR") {
+        throw new Error("Gagal menambah template survei.");
+      }
+
+      // Jika berhasil, tampilkan pesan sukses
       SweetAlert(
         "Berhasil!",
         "Template survei berhasil ditambahkan.",
         "success",
         "OK"
       ).then(() => {
-        navigate("/survei/template"); // Pindah ke halaman daftar template survei
+        // Kamu bisa langsung mengarahkan ke halaman daftar template atau tetap di halaman yang sama
+        // Misalnya, kalau ingin tetap di halaman yang sama tanpa pindah ke halaman daftar template
+        // navigate("/survei/template"); // Ini bisa dibatalkan atau diganti jika tidak diperlukan
       });
     } catch (error) {
       console.error("Error submitting template survei:", error);
@@ -119,17 +194,26 @@ export default function AddTemplateSurvei() {
                 type="text"
                 maxChar="100"
               />
-              {/* CheckBox untuk Responden */}
-              <CheckBox
-                arrData={respondenOptions} // Data statis untuk CheckBox
-                label="Responden"
-                name="responden"
-                isRequired={true}
-                values={formData.respondenTemplate} // Nilai yang dipilih
-                onChange={handleChange} // Handle perubahan
-                col="col-4"
-              />
-              {/* Tombol Simpan dan Batal */}
+              <div className="mb-3">
+                <CheckBox
+                  arrData={[
+                    {
+                      Value: 0,
+                      Text: "Dosen dan Instruktur",
+                    },
+                    { Value: 1, Text: "Tenaga Pendidik" },
+                    { Value: 2, Text: "Mitra Kerjasama" },
+                  ]}
+                  label="Responden"
+                  name="responden"
+                  isRequired={true}
+                  values={formData.responden || []}
+                  onChange={handleChange}
+                  col="col-4"
+                />
+              </div>
+
+             
               <div className="d-flex justify-content-between align-items-center">
                 <div className="flex-grow-1 m-2">
                   <Button

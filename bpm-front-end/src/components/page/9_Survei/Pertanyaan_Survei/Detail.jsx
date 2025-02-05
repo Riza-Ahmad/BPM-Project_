@@ -122,7 +122,7 @@ export default function Detail() {
           <PageTitleNav
             title="Detail Pertanyaan Survei"
             breadcrumbs={[
-              { label: "Pertanyaan Survei", href: "/survei/pertanyaan" },
+              { label: "Bank Pertanyaan Survei", href: "/survei/pertanyaan" },
               { label: "Detail Pertanyaan Survei" },
             ]}
             onClick={() => navigate("/survei/pertanyaan")}

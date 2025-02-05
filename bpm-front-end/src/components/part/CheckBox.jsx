@@ -17,7 +17,8 @@ const CheckBox = forwardRef(function CheckBox(
   ref
 ) {
   const [error, setError] = useState(false);
-
+  console.log("Jalan jalan");
+  console.log(values);
   // Expose reset, validate, and get value methods to the parent
   useImperativeHandle(ref, () => ({
     reset() {

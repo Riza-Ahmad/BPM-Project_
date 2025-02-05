@@ -16,10 +16,13 @@ export default function Edit({ onChangePage }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const title = "Edit Pertanyaan";
+  const title = "Edit Bank Pertanyaan Survei";
   const breadcrumbs = [
-    { label: "Pertanyaan Survei", href: "/survei/pertanyaan" },
-    { label: "Edit Pertanyaan", href: `/survei/pertanyaan/edit/${id}` },
+    { label: "Bank Pertanyaan Survei", href: "/survei/pertanyaan" },
+    {
+      label: "Edit Bank Pertanyaan Survei",
+      href: `/survei/pertanyaan/edit/${id}`,
+    },
   ];
 
   const [formData, setFormData] = useState({
@@ -48,39 +51,50 @@ export default function Edit({ onChangePage }) {
           "POST"
         );
 
+        const result1 = await useFetch(
+          `${API_LINK}/MasterPertanyaan/GetDataPertanyaanRespondenById`,
+          body,
+          "POST"
+        );
+
         console.log("API Response:", result); // Debug respons API
+        console.log("API ResponseResponden:", result1); // Debug respons API
+        const valuesArray = result1.map((item) => item.Value);
 
         if (!result || result === "ERROR" || result.length === 0) {
           Swal.fire("Error", "Data tidak ditemukan", "error");
           return;
         }
 
-        const { pty_pertanyaan, ksr_id, skp_id, dtl_responden } = result[0];
+        if (!result1 || result1 === "ERROR" || result1.length === 0) {
+          Swal.fire("Error", "Data tidak ditemukan", "error");
+          return;
+        }
 
-        console.log("dtl_responden (raw):", dtl_responden); // Debug sebelum parsing
+        const { pty_pertanyaan, ksr_id, skp_id } = result[0];
 
         let parsedResponden = [];
 
         // Pastikan dtl_responden tidak null atau kosong
-        if (dtl_responden) {
-          try {
-            const jsonArray = JSON.parse(dtl_responden);
-            parsedResponden = jsonArray.map((item) =>
-              parseInt(item.dtl_responden, 10)
-            );
-          } catch (error) {
-            console.error("Error parsing JSON dtl_responden:", error);
-          }
-        }
+        // if (dtl_responden) {
+        //   try {
+        //     const jsonArray = JSON.parse(dtl_responden);
+        //     parsedResponden = jsonArray.map((item) =>
+        //       parseInt(item.dtl_responden, 10)
+        //     );
+        //   } catch (error) {
+        //     console.error("Error parsing JSON dtl_responden:", error);
+        //   }
+        // }
 
-        console.log("dtl_responden (parsed):", parsedResponden); // Debug setelah parsing
+        // console.log("dtl_responden (parsed):", parsedResponden); // Debug setelah parsing
 
         setFormData({
           ptyId: id,
           pertanyaan: pty_pertanyaan,
           ksrId: ksr_id,
           skpId: skp_id,
-          responden: parsedResponden,
+          responden: valuesArray || [],
         });
       } catch (err) {
         Swal.fire("Error", "Gagal mengambil data: " + err.message, "error");
@@ -139,13 +153,14 @@ export default function Edit({ onChangePage }) {
       }
     };
     fetchSkalaPenilaian();
+    console.log(formData);
   }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
     if (type === "checkbox") {
-      const parsedValue = parseInt(value, 10); // Ensure the value is an integer
+      const parsedValue = value; // Ensure the value is an integer
 
       setFormData((prevFormData) => {
         const updatedResponden = checked
@@ -171,12 +186,15 @@ export default function Edit({ onChangePage }) {
         pertanyaan: formData.pertanyaan,
         ksrId: parseInt(formData.ksrId, 10),
         skpId: parseInt(formData.skpId, 10),
-        responden: formData.responden.map((r) => parseInt(r, 10)),
+        responden: formData.responden,
       };
 
+      console.log(formData);
+      console.log("Jalan");
+      console.log(payload);
       const result = await useFetch(
         `${API_LINK}/MasterPertanyaan/EditPertanyaan`,
-        payload,
+        formData,
         "POST"
       );
 
@@ -228,7 +246,7 @@ export default function Edit({ onChangePage }) {
             />
           </div>
           <div className="shadow p-5 m-5 mt-0 bg-white rounded">
-            <HeaderForm label="Formulir Pertanyaan" />
+            <HeaderForm label="Formulir Bank Pertanyaan" />
             <div className="mb-4">
               <Dropdown
                 label="Kriteria Survei"
@@ -265,26 +283,38 @@ export default function Edit({ onChangePage }) {
             <div className="mb-5">
               <CheckBox
                 arrData={[
-                  { Value: 0, Text: "Dosen dan Instruktur" },
-                  { Value: 1, Text: "Tenaga Pendidik" },
-                  { Value: 2, Text: "Mitra Kerjasama" },
+                  {
+                    Value: "Dosen dan Instruktur",
+                    Text: "Dosen dan Instruktur",
+                  },
+                  { Value: "Tenaga Pendidik", Text: "Tenaga Pendidik" },
+                  { Value: "Mitra Kerjasama", Text: "Mitra Kerjasama" },
                 ]}
                 label="Responden"
-                selectedValues={formData.responden || []}
-                onChange={handleChange}
                 name="responden"
+                isRequired={true}
+                values={formData.responden || []}
+                onChange={handleChange}
+                col="col-4"
               />
             </div>
-            <Button
-              onClick={handleSubmit}
-              label="Simpan"
-              className="btn-primary"
-            />
-            <Button
-              onClick={handleCancel}
-              label="Batal"
-              className="btn-danger ms-3"
-            />
+            <div className="d-flex justify-content-between align-items-center mt-4 gap-3">
+              <Button
+                classType="primary"
+                type="button"
+                label="Simpan"
+                width="100%"
+                disabled={loading}
+                onClick={handleSubmit}
+              />
+              <Button
+                classType="danger"
+                type="button"
+                label="Batal"
+                width="100%"
+                onClick={handleCancel}
+              />
+            </div>
           </div>
         </div>
       </main>
