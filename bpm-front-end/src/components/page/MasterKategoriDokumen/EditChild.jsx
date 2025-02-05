@@ -111,7 +111,7 @@ export default function EditChild({ onChangePage, breadcrumbs, idData }) {
         throw new Error("Gagal memperbarui data");
       } else {
         SweetAlert("Berhasil!", "Data berhasil diubah.", "success", "OK").then(
-          () => onChangePage("index")
+          () => onChangePage("read")
         );
       }
     } catch (error) {
@@ -129,7 +129,7 @@ export default function EditChild({ onChangePage, breadcrumbs, idData }) {
             <PageTitleNav
               title="Tambah Data"
               breadcrumbs={breadcrumbs}
-              onClick={() => onChangePage("index")}
+              onClick={() => onChangePage("read")}
             />
           </div>
           <div className={isMobile ? "m-0" : "m-3"}>
@@ -197,7 +197,7 @@ export default function EditChild({ onChangePage, breadcrumbs, idData }) {
                       type="button"
                       label="Batal"
                       width="100%"
-                      onClick={() => onChangePage("index")}
+                      onClick={() => onChangePage("read")}
                     />
                   </div>
                 </div>

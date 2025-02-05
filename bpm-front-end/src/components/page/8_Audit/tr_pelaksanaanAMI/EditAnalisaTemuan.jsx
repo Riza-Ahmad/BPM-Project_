@@ -6,7 +6,7 @@ import Button from "../../../part/Button";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import SweetAlert from "../../../util/SweetAlert";
 import { useIsMobile } from "../../../util/useIsMobile";
-import { API_LINK } from "../../../util/Constants";
+import { API_LINK, AUDIT_FILE_LINK } from "../../../util/Constants";
 import { useFetch } from "../../../util/useFetch";
 import TextArea from "../../../part/TextArea";
 import Loading from "../../../part/Loading";
@@ -15,6 +15,7 @@ import FileUploadMulti from "../../../part/FileUploadMulti";
 import Icon from "../../../part/Icon";
 import FileUpload from "../../../part/FileUpload";
 import { uploadFile } from "../../../util/UploadFile";
+import { decodeHtml } from "../../../util/DecodeHtml";
 
 export default function EditAnalisaTemuan({ onChangePage }) {
   const isMobile = useIsMobile();
@@ -65,6 +66,25 @@ export default function EditAnalisaTemuan({ onChangePage }) {
     fetchPertanyaan();
   }, [idData]);
 
+  useEffect(() => {
+    if (result && result.length > 0) {
+      setFormData({
+        id: idData,
+        problem: decodeHtml(result[0].problem || ""),
+        why1: result[0].why1 || "",
+        why2: result[0].why2 || "",
+        why3: result[0].why3 || "",
+        why4: result[0].why4 || "",
+        why5: result[0].why5 || "",
+        penyebab: decodeHtml(result[0].akarmasalah || ""),
+        perbaikan: decodeHtml(result[0].perbaikan || ""),
+        pencegahan: decodeHtml(result[0].pencegahan || ""),
+        deadline: result[0].TglRencanaTemuan?.split("T")[0] || "",
+        file: result[0].berkasPendukung || "",
+      });
+    }
+  }, [result, idData]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -96,7 +116,6 @@ export default function EditAnalisaTemuan({ onChangePage }) {
       problemRef,
       why1Ref,
       deadlineRef,
-      fileRef,
       penyebabRef,
       pencegahanRef,
       perbaikanRef,
@@ -110,17 +129,23 @@ export default function EditAnalisaTemuan({ onChangePage }) {
       }
     }
 
-    let uploadedFile = "";
+    let uploadedFile = formData.file || "";
+
     if (selectedFile) {
       const folderName = "Audit";
       const filePrefix = selectedFile.name
         .replace(/\.[^/.]+$/, "")
         .replace(/\s+/g, "_");
-      uploadedFile = await uploadFile(selectedFile, folderName, filePrefix);
+
+      const uploadResult = await uploadFile(
+        selectedFile,
+        folderName,
+        filePrefix
+      );
+      uploadedFile = uploadResult[0];
     }
 
-    const updatedData = { ...formData, file: uploadedFile[0] };
-    console.log(updatedData);
+    const updatedData = { ...formData, file: uploadedFile };
 
     setLoading(true);
     try {
@@ -357,6 +382,8 @@ export default function EditAnalisaTemuan({ onChangePage }) {
                         onChange={handleChange}
                         id="deadline"
                         type="date"
+                        min={new Date().toISOString().split("T")[0]}
+                        isRequired={true}
                       />
                     </div>
                     <div className="col-6">
@@ -366,7 +393,11 @@ export default function EditAnalisaTemuan({ onChangePage }) {
                         forInput="upload-file"
                         formatFile=".pdf, .xlsx, .zip, .word"
                         onChange={(file) => handleFileChange(file)}
-                        isRequired="true"
+                        hasExisting={
+                          formData.file
+                            ? `${AUDIT_FILE_LINK}${formData.file}`
+                            : undefined
+                        }
                       />
                     </div>
                   </div>
@@ -389,7 +420,12 @@ export default function EditAnalisaTemuan({ onChangePage }) {
                     type="button"
                     label="Batal"
                     width="100%"
-                    onClick={() => onChangePage("index")}
+                    onClick={() =>
+                      onChangePage("analisaTemuan", {
+                        idData: idAnalisa,
+                        breadcrumbs: location.state.breadcrumbs,
+                      })
+                    }
                   />
                 </div>
               </div>

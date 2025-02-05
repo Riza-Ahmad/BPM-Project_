@@ -93,22 +93,7 @@ const TextArea = React.forwardRef(
           config={{
             readonly: isDisabled,
             toolbarButtonSize: "middle",
-            buttons: [
-              "bold",
-              "italic",
-              "underline",
-              "strikethrough",
-              "|",
-              "ul",
-              "ol",
-              "outdent",
-              "indent",
-              "|",
-              "link",
-              "|",
-              "undo",
-              "redo",
-            ],
+
             toolbarSticky: false,
             placeholder: "Start typing here...",
           }}

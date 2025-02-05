@@ -175,8 +175,8 @@ export default function Edit({ onChangePage, breadcrumbs, idData }) {
         formData.foto2Kdo,
         formData.foto3Kdo,
       ];
-      const finalImagePaths = updated.map((status, index) =>
-        status === "updated" ? uploadedPaths.shift() : prevPaths[index]
+      const finalImagePaths = updated.map((status, read) =>
+        status === "updated" ? uploadedPaths.shift() : prevPaths[read]
       );
 
       // Construct the payload for the update request
@@ -205,7 +205,7 @@ export default function Edit({ onChangePage, breadcrumbs, idData }) {
 
       // Success notification
       await SweetAlert("Berhasil!", "Data berhasil diubah.", "success", "OK");
-      onChangePage("index");
+      onChangePage("read");
     } catch (error) {
       console.error("Error:", error.message);
       SweetAlert("Gagal!", error.message, "error", "OK");
@@ -221,7 +221,7 @@ export default function Edit({ onChangePage, breadcrumbs, idData }) {
             <PageTitleNav
               title="Edit Data"
               breadcrumbs={breadcrumbs}
-              onClick={() => onChangePage("index")}
+              onClick={() => onChangePage("read")}
             />
           </div>
           <div className={isMobile ? "m-0" : "m-3"}>
@@ -330,7 +330,7 @@ export default function Edit({ onChangePage, breadcrumbs, idData }) {
                       type="button"
                       label="Batal"
                       width="100%"
-                      onClick={() => onChangePage("index")}
+                      onClick={() => onChangePage("read")}
                     />
                   </div>
                 </div>
