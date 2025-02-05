@@ -89,47 +89,57 @@ export default function AddTemplateSurvei() {
     fetchSkalaPenilaian();
   }, []);
 
- const handleChange = (e) => {
-   const { name, value, type, checked } = e.target;
-   console.log("Checkbox Change:", name, value, checked);
-   console.log("Responden Saat Ini:", formData.responden);
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    console.log("Checkbox Change:", name, value, checked);
+    console.log("Responden Saat Ini:", formData.responden);
 
-   if (type === "checkbox") {
-     setFormData((prevFormData) => {
-       const updatedResponden = prevFormData.responden || [];
-       const newResponden = checked
-         ? [...updatedResponden, value] // Tambahkan jika di-check
-         : updatedResponden.filter((item) => item !== value); // Hapus jika di-uncheck
+    if (type === "checkbox") {
+      setFormData((prevFormData) => {
+        const updatedResponden = prevFormData.responden || [];
+        const newResponden = checked
+          ? [...updatedResponden, value] // Tambahkan jika di-check
+          : updatedResponden.filter((item) => item !== value); // Hapus jika di-uncheck
 
-       return { ...prevFormData, responden: newResponden };
-     });
-   } else {
-     setFormData((prevFormData) => ({ ...prevFormData, [name]: value }));
-   }
- };
+        return { ...prevFormData, responden: newResponden };
+      });
+    } else {
+      setFormData((prevFormData) => ({ ...prevFormData, [name]: value }));
+    }
+  };
+
+  const respondenRef = useRef();
 
   const handleSubmit = async () => {
-    // Validasi InputField
+    // Validasi nama template
     const isNamaTemplateValid = namaTemplateRef.current?.validate();
     // Validasi CheckBox (pastikan minimal satu responden dipilih)
     const isRespondenValid = formData.respondenTemplate.length > 0;
 
     if (!isNamaTemplateValid) {
-      SweetAlert("Error", "Nama template harus diisi.", "error", "OK");
-      namaTemplateRef.current?.focus(); // Fokus ke InputField jika tidak valid
+      SweetAlert("Error", "Harap lengkapi nama template.", "error", "OK");
+      namaTemplateRef.current?.focus();
       return;
     }
 
-    if (!isRespondenValid) {
-      SweetAlert("Error", "Pilih minimal satu responden.", "error", "OK");
+    // Validasi responden, pastikan ada setidaknya satu pilihan
+    if (formData.responden.length === 0) {
+      SweetAlert(
+        "Error",
+        "Harap pilih setidaknya satu responden.",
+        "error",
+        "OK"
+      );
+      respondenRef.current?.focus();
       return;
     }
 
+    // Jika semuanya valid, lanjutkan ke pengiriman data
     try {
       // Payload untuk dikirim ke API
       const payload = {
         p1: formData.namaTemplate,
-        p2: formData.responden || [],
+        p2: formData.responden || [], // Jika responden kosong, kirimkan array kosong
       };
 
       // Mengirimkan request untuk membuat template survei
@@ -139,7 +149,6 @@ export default function AddTemplateSurvei() {
         "POST"
       );
 
-      // Pastikan response berhasil dan tidak mengandung error
       if (response === "ERROR") {
         throw new Error("Gagal menambah template survei.");
       }
@@ -151,9 +160,7 @@ export default function AddTemplateSurvei() {
         "success",
         "OK"
       ).then(() => {
-        // Kamu bisa langsung mengarahkan ke halaman daftar template atau tetap di halaman yang sama
-        // Misalnya, kalau ingin tetap di halaman yang sama tanpa pindah ke halaman daftar template
-        // navigate("/survei/template"); // Ini bisa dibatalkan atau diganti jika tidak diperlukan
+        navigate("/survei/template");
       });
     } catch (error) {
       console.error("Error submitting template survei:", error);
@@ -196,6 +203,7 @@ export default function AddTemplateSurvei() {
               />
               <div className="mb-3">
                 <CheckBox
+                  ref={respondenRef}
                   arrData={[
                     {
                       Value: 0,
@@ -207,13 +215,13 @@ export default function AddTemplateSurvei() {
                   label="Responden"
                   name="responden"
                   isRequired={true}
+                  errorMessage="Harap pilih setidaknya satu responden."
                   values={formData.responden || []}
                   onChange={handleChange}
                   col="col-4"
                 />
               </div>
 
-             
               <div className="d-flex justify-content-between align-items-center">
                 <div className="flex-grow-1 m-2">
                   <Button

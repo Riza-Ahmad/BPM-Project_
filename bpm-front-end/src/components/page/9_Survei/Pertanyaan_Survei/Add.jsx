@@ -105,10 +105,15 @@ export default function Add({ onChangePage }) {
   };
 
   const handleSubmit = async () => {
+    // Validasi tiap field menggunakan ref
     const isPertanyaanValid = pertanyaanRef.current?.validate();
     const isKriteriaValid = kriteriaSurveiRef.current?.validate();
     const isSkalaValid = skalaPenilaianRef.current?.validate();
 
+    // Validasi responden
+    const isRespondenValid = formData.responden.length > 0;
+
+    // Cek validasi untuk setiap input
     if (!isPertanyaanValid) {
       pertanyaanRef.current?.focus();
       return;
@@ -122,6 +127,18 @@ export default function Add({ onChangePage }) {
       return;
     }
 
+    if (!isRespondenValid) {
+      SweetAlert(
+        "Gagal!",
+        "Harap pilih setidaknya satu responden.",
+        "error",
+        "OK"
+      );
+      respondenRef.current?.focus();
+      return;
+    }
+
+    // Jika semua validasi lulus, lanjutkan dengan pengiriman data
     try {
       const payload = {
         pertanyaan: formData.pertanyaan,
@@ -236,6 +253,7 @@ export default function Add({ onChangePage }) {
                 label="Responden"
                 name="responden"
                 isRequired={true}
+                errorMessage="Harap pilih setidaknya satu responden."
                 values={formData.responden || []}
                 onChange={handleChange}
                 col="col-4"
