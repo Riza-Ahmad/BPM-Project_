@@ -37,7 +37,7 @@ export default function Add({ onChangePage }) {
   const isNameDuplicate = async (name) => {
     try {
       const response = await fetch(
-        `${API_LINK}/MasterKriteria/GetAllDataKriteria`,
+        `${API_LINK}/MasterKriteriaSurvei/GetAllDataKriteriaSurvei`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
