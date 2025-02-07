@@ -14,7 +14,7 @@ import SearchField from "../../../part/SearchField";
 import Filter from "../../../part/Filter";
 import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
-import swal from "sweetalert2";
+import HeaderText from "../../../part/HeaderText";
 
 // Opsi sorting untuk pertanyaan di modal
 const arrSort = [
@@ -29,6 +29,8 @@ export default function EditTemplateSurvei() {
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
+  const idData = location.state?.idData;
+
 
   // Form data untuk template survei, termasuk properti pertanyaan
   const [formData, setFormData] = useState({
@@ -73,7 +75,6 @@ export default function EditTemplateSurvei() {
     document.body.style.overflow = showModal ? "hidden" : "auto";
   }, [showModal]);
 
-  // Fetch opsi Kriteria Survei (ksrOptions)
   const fetchKriteria = async () => {
     setLoading(true);
     setError(null);
@@ -133,48 +134,57 @@ export default function EditTemplateSurvei() {
     }
   };
 
-  // Fetch data template survei berdasarkan id (untuk mode edit)
-  const fetchTemplateSurvei = async () => {
-    setLoading(true);
-    try {
-      const body = { idData: id };
-      const result = await useFetch(
-        `${API_LINK}/TemplateSurvei/GetTemplateSurveiById`,
-        body,
-        "POST"
-      );
-      if (result === "ERROR" || !result || result.length === 0) {
-        SweetAlert("Error", "Data template tidak ditemukan", "error", "OK");
-        navigate("/survei/template");
-      } else {
-        const data = result[0];
-        setFormData({
-          namaTemplate: data.namaTemplate,
-          ksrId: data.ksrId,
-          skpId: data.skpId,
-          responden: data.responden ? data.responden.split(",") : [],
-          pertanyaan: data.pertanyaan
-            ? data.pertanyaan.split(",").map(Number)
-            : [],
-        });
-      }
-    } catch (err) {
-      setError("Gagal mengambil data template: " + err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    const fetchTemplateSurvei = async () => {
+      try {
+        const body = { idData: id };
+        console.log(body);
+        setLoading(true);
 
+        const result = await useFetch(
+          `${API_LINK}/TemplateSurvei/GetTemplateSurveiById`,
+          body,
+          "POST"
+        );
+              console.log("API Response:", result);
+
+        if (result === "ERROR" || !result || result.length === 0) {
+          SweetAlert("Error", "Data template tidak ditemukan", "error", "OK");
+          navigate("/survei/template");
+        } else {
+          const data = result[0];
+          setFormData({
+            namaTemplate: data.namaTemplate,
+            ksrId: data.ksrId,
+            skpId: data.skpId,
+            responden: data.responden ? data.responden.split(",") : [],
+            pertanyaan: data.pertanyaan
+              ? data.pertanyaan.split(",").map(Number)
+              : [],
+          });
+        }
+      } catch (err) {
+        setError("Gagal mengambil data template: " + err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTemplateSurvei();
+  }, [idData]);
+  // Fetch data template survei berdasarkan id (untuk mode edit)
+  
   // Fetch detail pertanyaan berdasarkan ID dari template
   const fetchPertanyaanDetail = async () => {
     if (formData.pertanyaan.length === 0) return;
     setLoading(true);
     try {
       const result = await useFetch(
-        `${API_LINK}/TemplateSurvei/GetPertanyaanByIds`,
+        `${API_LINK}/MasterPertanyaan/GetDataPertanyaanById`,
         { param: formData.pertanyaan },
         "POST"
       );
+      console.log("API ID",result)
+
       if (result === "ERROR" || !result || result.length === 0) {
         setPertanyaan([]);
       } else {
@@ -225,14 +235,11 @@ export default function EditTemplateSurvei() {
     }
   }, [searchKeyword, selectedSort, pageCurrent, showModal]);
 
-  // Panggil fetch opsi dan data template saat komponen mount
-  useEffect(() => {
-    fetchKriteria();
-    fetchSkalaPenilaian();
-    if (id) {
-      fetchTemplateSurvei();
-    }
-  }, [id]);
+  // // Panggil fetch opsi dan data template saat komponen mount
+  // useEffect(() => {
+  //   fetchKriteria();
+  //   fetchSkalaPenilaian();
+  // }, [id]);
 
   // Panggil fetch detail pertanyaan setiap kali formData.pertanyaan berubah
   useEffect(() => {
@@ -421,7 +428,6 @@ export default function EditTemplateSurvei() {
                 isRequired={true}
                 name="namaTemplate"
                 type="text"
-                maxChar="100"
               />
               {/* Opsi responden */}
               <div className="mb-3">
@@ -441,35 +447,6 @@ export default function EditTemplateSurvei() {
                   col="col-4"
                 />
               </div>
-              {/* Menampilkan pertanyaan yang sudah ditambahkan */}
-              <div className="border bg-white rounded mt-4 p-3">
-                <h5>Daftar Pertanyaan</h5>
-                <div className="mb-3">
-                  <Button
-                    classType="primary"
-                    type="button"
-                    label="Tambah Pertanyaan Dari Bank"
-                    onClick={handleOpenModal}
-                  />
-                </div>
-                {pertanyaan.length === 0 ? (
-                  <p>Belum ada pertanyaan yang ditambahkan.</p>
-                ) : (
-                  <Table
-                    arrHeader={["No", "Pertanyaan", "Keterangan", "Aksi"]}
-                    data={pertanyaan.map((item, index) => ({
-                      Key: item.id, // pastikan property id sesuai data
-                      No: index + 1,
-                      Pertanyaan: item.namaPertanyaan,
-                      Keterangan: item.keterangan || "",
-                      status: item.status,
-                    }))}
-                    actions={["Delete"]}
-                    onDelete={(item) => handleDeletePertanyaan(item.Key)}
-                  />
-                )}
-              </div>
-              {/* Tombol simpan utama */}
               <div className="d-flex justify-content-between align-items-center mt-4">
                 <div className="flex-grow-1 m-2">
                   <Button
@@ -490,6 +467,55 @@ export default function EditTemplateSurvei() {
                   />
                 </div>
               </div>
+              {/* Menampilkan pertanyaan yang sudah ditambahkan */}
+              <div className="border bg-white rounded mt-5">
+                <div
+                  className="ps-3"
+                  style={{
+                    backgroundColor: "#F3EFEF",
+                    padding: "0.1rem",
+                    borderColor: "gray",
+                  }}
+                >
+                  <HeaderText
+                    label="Daftar Pertanyaan"
+                    warna="#2654A1"
+                    ukuran="1.5rem"
+                    alignText="left"
+                    fontWeight="600"
+                    marginBottom="20px"
+                  />
+                </div>
+                <div className="p-3">
+                  <div className="row">
+                    <div className="col-3 mb-3">
+                      <Button
+                        classType="primary"
+                        type="button"
+                        label="Tambah Pertanyaan Dari Bank"
+                        onClick={handleOpenModal}
+                      />
+                    </div>
+                  </div>
+                </div>
+                {pertanyaan.length === 0 ? (
+                  <p>Belum ada pertanyaan yang ditambahkan.</p>
+                ) : (
+                  <Table
+                    arrHeader={["No", "Pertanyaan", "Keterangan", "Aksi"]}
+                    data={pertanyaan.map((item, index) => ({
+                      Key: item.id, // pastikan property id sesuai data
+                      No: index + 1,
+                      Pertanyaan: item.namaPertanyaan,
+                      Keterangan: item.keterangan || "",
+                      status: item.status,
+                    }))}
+                    actions={["Delete"]}
+                    onDelete={(item) => handleDeletePertanyaan(item.Key)}
+                  />
+                )}
+              </div>
+              {/* Tombol simpan utama */}
             </div>
           </div>
         </div>

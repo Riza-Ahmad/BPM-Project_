@@ -368,9 +368,9 @@ export default function Template_Survei({ onChangePage }) {
                     ? ["Detail", "Preview", "Toggle"] // Actions for 'Tidak Aktif' status
                     : [] // Default case if needed
               }
-              onEdit={(item) =>
-                onChangePage("edit", { state: { idData: item.Key } })
-              }
+              onEdit={(item) => {
+                onChangePage("edit", { id: item.Key });
+              }}
               onDelete={(item) => handleDelete(item.Key)}
               onFinal={(item) => handleFinal(item.Key)}
               onToggle={(item) => handleToggle(item.Key)}

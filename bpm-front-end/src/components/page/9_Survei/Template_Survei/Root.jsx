@@ -6,6 +6,7 @@ import Add from "./Add";
 import Edit from "./Edit";
 import Detail from "./Detail";
 import Preview from "./Preview";
+import Swal from "sweetalert2";
 
 export default function Template_Survei() {
   const navigate = useNavigate();
@@ -23,19 +24,14 @@ export default function Template_Survei() {
           state: { mode: "add", ...withState },
         });
         break;
+
       case "edit":
         const { id } = withState;
         if (id) {
           navigate(`${currentPath}/edit/${id}`, {
             state: { mode: "edit", id },
           });
-        } else {
-          Swal.fire(
-            "Error",
-            "ID tidak valid atau tidak ditemukan untuk edit.",
-            "error"
-          );
-        }
+        } 
         break;
       case "detail":
         navigate(`${currentPath}`, { state: { mode: "detail", ...withState } });

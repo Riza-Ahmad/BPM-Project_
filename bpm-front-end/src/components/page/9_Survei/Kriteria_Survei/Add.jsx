@@ -33,10 +33,10 @@ export default function Add({ onChangePage }) {
     }
     return errors;
   };
- const isNameDuplicate = async (name) => {
+  const isNameDuplicate = async (name) => {
     try {
       const response = await fetch(
-       `${API_LINK}/MasterKriteria/GetAllDataKriteria`,
+        `${API_LINK}/MasterKriteria/GetAllDataKriteria`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -55,8 +55,8 @@ export default function Add({ onChangePage }) {
     } catch (error) {
       console.error("Error checking duplicate:", error);
       return false; // Jika ada error, anggap tidak duplikat (default)
-    }
-  };
+    }
+  };
 
   const handleSubmit = async () => {
     const isNamaKriValid = ksr_namaRef.current?.validate();
@@ -65,16 +65,16 @@ export default function Add({ onChangePage }) {
       ksr_namaRef.current?.focus();
       return;
     }
-   const isDuplicate = await isNameDuplicate(formData.ksr_nama);
-   if (isDuplicate) {
-     SweetAlert(
-       "Gagal Menambahkan Nama Kriteria",
-       "Nama Kriteria sudah digunakan. Pilih Nama Kriteria Lain",
-       "warning",
-       "OK"
-     );
-     return;
-   }
+    const isDuplicate = await isNameDuplicate(formData.ksr_nama);
+    if (isDuplicate) {
+      SweetAlert(
+        "Gagal Menambahkan Nama Kriteria",
+        "Nama Kriteria sudah digunakan. Pilih Nama Kriteria Lain",
+        "warning",
+        "OK"
+      );
+      return;
+    }
     try {
       const kriData = {
         namaKri: ksr_namaRef.current.value,
