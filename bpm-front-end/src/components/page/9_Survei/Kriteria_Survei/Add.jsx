@@ -33,10 +33,11 @@ export default function Add({ onChangePage }) {
     }
     return errors;
   };
+
   const isNameDuplicate = async (name) => {
     try {
       const response = await fetch(
-        `${API_LINK}/MasterKriteria/GetAllDataKriteria`,
+        `${API_LINK}/MasterKriteriaSurvei/GetAllDataKriteriaSurvei`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -117,8 +118,7 @@ export default function Add({ onChangePage }) {
                 isMobile
                   ? "shadow p-4 m-2 mt-0 bg-white rounded"
                   : "shadow p-5 m-5 mt-0 bg-white rounded"
-              }
-            >
+              }>
               <div className="row">
                 <InputField
                   ref={ksr_namaRef}
