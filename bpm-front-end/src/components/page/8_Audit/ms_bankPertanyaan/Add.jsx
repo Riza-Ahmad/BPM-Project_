@@ -27,9 +27,9 @@ export default function Add({ onChangePage }) {
     kriteria: "",
     pertanyaan: "",
     pertanyaanLanjutan: "",
-    butuhDokumen: [],
-    jenisIKT: [],
-    bagianAuditee: [],
+    butuhDokumen: "",
+    jenisIKT: "",
+    bagianAuditee: "",
   });
 
   const [kriteria, setKriteria] = useState([]);
@@ -129,6 +129,27 @@ export default function Add({ onChangePage }) {
     };
 
     try {
+      const paData = {
+        pertanyaan: formData.pertanyaan,
+        namaKri: formData.kriteria,
+        id: "",
+      };
+
+      console.log(paData);
+
+      const result = await useFetch(
+        `${API_LINK}/MasterBankPertanyaanAudit/CheckBankPertanyaanAudit`,
+        paData,
+        "POST"
+      );
+
+      console.log(result);
+
+      if (result.length > 0) {
+        SweetAlert("Gagal!", "Data Pertanyaan sudah ada", "error", "OK");
+        return;
+      }
+
       const createResponse = await useFetch(
         `${API_LINK}/MasterBankPertanyaanAudit/CreateBankPertanyaanAudit`,
         dataToSend,
@@ -212,7 +233,7 @@ export default function Add({ onChangePage }) {
                 arrData={butuhDokumen}
                 label="Dokumen Pendukung"
                 name="butuhDokumen"
-                values={formData.butuhDokumen || []} // Set default selected values here
+                values={formData.butuhDokumen || ""} // Set default selected values here
                 onChange={handleChange}
                 col="col-12"
               />
@@ -230,7 +251,7 @@ export default function Add({ onChangePage }) {
                 arrData={jenisIKT}
                 label="Apakah berjenis IKT?"
                 name="jenisIKT"
-                values={formData.jenisIKT || []} // Set default selected values here
+                values={formData.jenisIKT || ""} // Set default selected values here
                 onChange={handleChange}
                 col="col-12"
               />

@@ -26,15 +26,6 @@ const formatDate = (dateString) => {
   );
 };
 
-const dataFilterSort = [
-  { Value: "[Judul Peraturan] asc", Text: "Judul Proposal [↑]" },
-  { Value: "[Judul Peraturan] desc", Text: "Judul Proposal [↓]" },
-];
-
-const statusFilterSort = [
-  { Value: "Aktif", Text: "Aktif" },
-  { Value: "Tidak Aktif", Text: "Tidak Aktif" },
-];
 const pageSize = 10;
 
 export default function Read({ onChangePage }) {
@@ -42,6 +33,8 @@ export default function Read({ onChangePage }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const location = useLocation();
+  const currentPath = location.pathname;
+  const rootPath = currentPath.split("/")[2];
   const idMenu = location.state?.idMenu;
   const idData = location.state?.idData;
   const [pageCurrent, setPageCurrent] = useState(1);
@@ -119,20 +112,14 @@ export default function Read({ onChangePage }) {
   ]);
 
   useEffect(() => {
-    if (idMenu === 39) {
+    if (rootPath === "dokumen") {
       title = "Riwayat Pengunduhan Dokumen Peraturan";
       breadcrumbs = [
-        { label: "Peraturan", href: "/peraturan/kebijakan" },
-        { label: "Dokumen Kebijakan Peraturan" },
+        { label: "Peraturan", href: "/peraturan/dokumen" },
+        { label: "Dokumen Peraturan" },
       ];
-    } else if (idMenu === 40) {
-      title = "Riwayat Riwayat Pengunduhan Dokumen Peraturan Eksternal";
-      breadcrumbs = [
-        { label: "Peraturan", href: "/peraturan/eksternal" },
-        { label: "Dokumen Kebijakan Eksternal" },
-      ];
-    } else if (idMenu === 41) {
-      title = "Riwayat Riwayat Pengunduhan Dokumen Instrumen APS";
+    } else if (rootPath === "aps") {
+      title = "Riwayat Pengunduhan Dokumen Instrumen APS";
       breadcrumbs = [
         { label: "Instrumen APS", href: "/peraturan/aps" },
         { label: "Dokumen Instrumen APS" },

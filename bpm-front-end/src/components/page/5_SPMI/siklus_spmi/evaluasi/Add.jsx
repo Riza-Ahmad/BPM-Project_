@@ -17,6 +17,7 @@ export default function Add({ onChangePage }) {
   const arrData = [
     { Value: "Controlled Copy", Text: "Controlled Copy" },
     { Value: "Uncontrolled Copy", Text: "Uncontrolled Copy" },
+    { Value: "Uncontrolled Copy", Text: "Uncontrolled Copy" },
   ];
 
   const handleChange = (e) => {
@@ -50,11 +51,17 @@ export default function Add({ onChangePage }) {
                   isRequired="true"
                   type="date"
                 />
+                <TextField
+                  label="Tanggal Berlaku"
+                  isRequired="true"
+                  type="date"
+                />
               </div>
               <div className="col-lg-6 col-md-6">
                 <DropDown
                   arrData={arrData}
                   type="pilih"
+                  label="Pilih Jenis Dokumen"
                   label="Pilih Jenis Dokumen"
                   forInput="dropdownExample"
                   isRequired={true}
@@ -64,7 +71,7 @@ export default function Add({ onChangePage }) {
               </div>
               <div className="col-lg-6 col-md-6">
                 <TextField
-                  label="Tanggal Kadaluarsa"
+                  label="Tanggal Kadaluwarsa"
                   isRequired="true"
                   type="date"
                 />

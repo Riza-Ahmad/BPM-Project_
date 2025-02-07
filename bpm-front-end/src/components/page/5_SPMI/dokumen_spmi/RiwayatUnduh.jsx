@@ -74,8 +74,8 @@ export default function RiwayatUnduh({ onChangePage }) {
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
-        <div className="container">
-          <div className="mb-3">
+        <div className="d-flex flex-column">
+          <div className="m-3 mb-0">
             <PageTitleNav
               title="Riwayat Unduhan"
               breadcrumbs={location.state?.breadcrumbs}
@@ -86,7 +86,13 @@ export default function RiwayatUnduh({ onChangePage }) {
               }
             />
           </div>
-          <div className={isMobile ? "m-0" : "p-3"}>
+          <div
+            className={
+              isMobile
+                ? "table-container bg-white p-1 m-1 mt-0 rounded"
+                : "table-container bg-white p-3 m-5 mt-0 rounded"
+            }
+          >
             <div className="table-container bg-white rounded">
               {loading ? (
                 <Loading />
@@ -106,7 +112,17 @@ export default function RiwayatUnduh({ onChangePage }) {
                     data={filteredData.map((item, index) => ({
                       Key: item.idUdo,
                       No: (pageCurrent - 1) * pageSize + index + 1,
-                      "Tanggal Unduh": format(new Date(item.tglUdo), "EEEE, dd MMMM yyyy HH:mm:ss"),
+                      "Tanggal Unduh": item.tglUdo
+                        ? new Date(item.tglUdo).toLocaleDateString("id-ID", {
+                            weekday: "long",
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                            hour: "numeric",
+                            minute: "numeric",
+                            second: "numeric",
+                          })
+                        : "-",
                       "Judul Dokumen": item.judulDok,
                       "Nama Berkas (File)": item.fileDok,
                       "Jenis Penyalinan": item.jenisDok,

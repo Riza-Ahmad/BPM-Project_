@@ -72,13 +72,13 @@ export default function Index() {
         body: JSON.stringify({ status: null }),
       });
 
-      if (!response.ok) throw new Error("Failed to fetch data");
+      if (!response.ok) throw new Error("Gagal mengambil data");
 
       const result = await response.json();
       setSkalaData(result);
     } catch (error) {
-      console.error("Fetch error:", error);
-      Swal.fire("Error", "Failed to fetch data", "error");
+      console.error("Kesalahan Fetch:", error);
+      Swal.fire("Kesalahan", "Gagal mengambil data", "error");
     } finally {
       setLoading(false);
     }
@@ -86,12 +86,12 @@ export default function Index() {
 
   const handleDelete = async (id) => {
     const result = await Swal.fire({
-      title: "Confirm Deletion",
-      text: "Are you sure you want to delete this item?",
+      title: "Konfirmasi Penghapusan",
+      text: "Apakah Anda yakin ingin menghapus item ini?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Delete",
-      cancelButtonText: "Cancel",
+      confirmButtonText: "Hapus",
+      cancelButtonText: "Batal",
     });
 
     if (!result.isConfirmed) return;
@@ -103,13 +103,13 @@ export default function Index() {
         body: JSON.stringify({ p1: id, p2: "Admin" }),
       });
 
-      if (!response.ok) throw new Error("Delete operation failed");
+      if (!response.ok) throw new Error("Operasi hapus gagal");
 
-      Swal.fire("Success", "Item deleted successfully", "success");
+      Swal.fire("Sukses", "Item berhasil dihapus", "success");
       fetchSkala();
     } catch (error) {
-      console.error("Delete error:", error);
-      Swal.fire("Error", "Failed to delete item", "error");
+      console.error("Kesalahan Hapus:", error);
+      Swal.fire("Kesalahan", "Gagal menghapus item", "error");
     }
   };
 

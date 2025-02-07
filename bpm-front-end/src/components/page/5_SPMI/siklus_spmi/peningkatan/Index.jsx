@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Button from "../../../../part/Button";
 import Gedung from "../../../../../assets/element/gedung-astra-biru.png";
 import Mahasiswa from "../../../../../assets/element/mahasiswa.png";
@@ -31,15 +31,33 @@ const data = [
     Key: 4,
     Aspek: "Standar Pengabdian kepada Masyarakat",
     Bukti: "Revisi prosedur pelaksanaan kegiatan pengabdian",
-  }
+  },
 ];
+
+const inisialisasiMenuData = {
+  idKdo: "",
+  idMen: "",
+  namaKdo: "",
+  deskripsiKdo: "",
+  images: [],
+  urutanKdo: "",
+  parentKdo: null,
+  statusKdo: "",
+  createdByKdo: "",
+  createdDateKdo: "",
+  modifByKdo: "",
+  modifDateKdo: "",
+};
 
 const images = [];
 
 export default function Index({ onChangePage }) {
+  const location = useLocation();
   const navigate = useNavigate();
   const detailModalRef = useRef();
   const [detail, setDetail] = useState("");
+    const [menuData, setMenuData] = useState(inisialisasiMenuData);
+  
 
   const handlePageNavigation = (page) => {
     setPageCurrent(page);
@@ -56,7 +74,28 @@ export default function Index({ onChangePage }) {
   const [pageSize] = useState(10);
   const [pageCurrent, setPageCurrent] = useState(1);
 
+  useEffect(() => {
+    const fetchKategori = async () => {
+      setLoading(true);
+      const result = await useFetch(
+        `${API_LINK}/MasterKategoriDokumen/GetDataKategoriDokumenById`,
+        { idKdo: location.state?.idMenu },
+        "POST"
+      );
 
+      if (result === "ERROR" || result === null || result.length === 0) {
+        setMenuData({});
+      } else {
+        setMenuData(result[0]);
+        setMenuData((prevData) => ({
+          ...prevData,
+          deskripsiKdo: decodeHtml(result[0].deskripsiKdo),
+        }));
+      }
+      setLoading(false);
+    };
+    fetchKategori();
+  }, [location.state?.idMenu]);
 
   // console.log(menuData);
   const title = "Peningkatan";
@@ -85,7 +124,7 @@ export default function Index({ onChangePage }) {
                     style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}
                   >
                     {title ? title : "Page Title"}
-                    </h1>
+                  </h1>
                 </div>
 
                 <nav className="ms-1">
@@ -162,7 +201,14 @@ export default function Index({ onChangePage }) {
                     "Aspek Peningkatan": item.Aspek,
                     "Bukti Peningkatan": item.Bukti,
                   }))}
-                  actions={["Detail", "Edit", "Print", "Delete", "PrintHistory", "UpdateHistory"]}
+                  actions={[
+                    "Detail",
+                    "Edit",
+                    "Print",
+                    "Delete",
+                    "PrintHistory",
+                    "UpdateHistory",
+                  ]}
                   onEdit={handleEdit}
                   onDetail={() => handleShowDetail()}
                   onPrint={() => console.log("printed")}
@@ -217,7 +263,7 @@ export default function Index({ onChangePage }) {
               <div className="col-lg-6 col-md-6">
                 <div className="mb-3">
                   <label className="form-label fw-bold mb-0">
-                    Tahun Kadaluarsa
+                    Tahun Kadaluwarsa
                   </label>
                   <br />
                   <p>2022/2023</p>

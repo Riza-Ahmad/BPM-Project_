@@ -19,8 +19,14 @@ const arrSort = [
 ];
 
 const arrStatus = [
-  { Value: "Aktif", Text: "Aktif" },
-  { Value: "Tidak Aktif", Text: "Tidak Aktif" },
+  { Value: "", Text: "Semua" },
+  { Value: "Self Assessment (Belum)", Text: "Self Assessment (Belum)" },
+  { Value: "Self Assessment (Draft)", Text: "Self Assessment (Draft)" },
+  { Value: "Self Assessment (Selesai)", Text: "Self Assessment (Selesai)" },
+  { Value: "Menunggu Analisa Temuan", Text: "Menunggu Analisa Temuan" },
+  { Value: "Monitoring", Text: "Monitoring" },
+  { Value: "Menunggu Verifikasi Akhir", Text: "Menunggu Verifikasi Akhir" },
+  { Value: "Selesai", Text: "Selesai" },
 ];
 
 const breadcrumbs = [{ label: "Evaluasi" }, { label: "Audit Mutu Internal" }];
@@ -61,6 +67,7 @@ export default function Index({ onChangePage }) {
           param4: pageCurrent,
           param5: selectedStatus,
           param6: activeUser,
+          param7: role,
         }
       );
 
@@ -86,36 +93,39 @@ export default function Index({ onChangePage }) {
   const handleFinal = async (idSA, idJadwal, status) => {
     let apiCheck = "";
     let apiFinal = "";
-    let pesan = "";
+    let pesan1 = "";
+    let pesan2 = "";
 
     if (status === "Self Assessment (Draft)") {
       apiCheck = "TransaksiSelfAssessment/CheckSelfAssesment";
       apiFinal = "TransaksiSelfAssessment/FinalSelfAssesment";
-      pesan = "Self Assessment";
+      pesan1 = "Self Assessment belum lengkap";
+      pesan2 = "Self Assesment";
     } else if (status === "Temuan (Draft)") {
       apiCheck = "TransaksiTemuan/CheckTemuan";
       apiFinal = "TransaksiTemuan/FinalTemuan";
-      pesan = "Temuan";
+      pesan1 =
+        "Kategori temuan yang memiliki ketidaksesuaian harus dilengkapi temuannya";
+      pesan2 = "Temuan";
     } else if (status === "Menunggu Analisa Temuan") {
       apiCheck = "TransaksiAnalisaTemuan/CheckAnalisaTemuan";
       apiFinal = "TransaksiAnalisaTemuan/FinalAnalisaTemuan";
-      pesan = "Analisa Temuan";
-    } else if (status === "Monitoring") {
-      apiCheck = "TransaksiMonitoring/CheckAllMonitoring";
-      apiFinal = "TransaksiMonitoring/FinalAllMonitoring";
-      pesan = "Monitoring";
+      pesan1 = "Analisa Temuan belum lengkap";
+      pesan2 = "Analisa Temuan";
     } else {
       return;
     }
+    setLoading(true);
     const response = await useFetch(`${API_LINK}/${apiCheck}`, {
       id: idSA,
     });
 
+    setLoading(false);
     if (response[0].hasil === true) {
       const confirm = await SweetAlert(
-        "Apakah Anda yakin ingin Finalkan " + pesan + " ini?",
+        "Apakah Anda yakin ingin Finalkan " + pesan2 + " ini?",
         "Data tidak akan bisa diubah jika " +
-          pesan +
+          pesan2 +
           " Audit Mutu Internal sudah difinalkan",
         "warning",
         "Ya, Finalkan",
@@ -125,30 +135,33 @@ export default function Index({ onChangePage }) {
       );
 
       if (confirm) {
+        setLoading(true);
         try {
           const response = await useFetch(
             `${API_LINK}/${apiFinal}`,
-            { id: idJadwal },
+            { id: idJadwal, id2: idSA },
             "POST"
           );
 
           if (response === "ERROR")
             throw new Error("Gagal kirim Self Assessment");
 
-          SweetAlert("Berhasil", pesan + "Berhasil difinalkan", "success");
+          SweetAlert("Berhasil", pesan2 + " Berhasil difinalkan", "success");
 
           fetchData();
         } catch (err) {
           console.error(err);
           SweetAlert("Gagal", "Terjadi kesalahan saat kirim jadwal", "error");
+        } finally {
+          setLoading(false);
         }
       }
     } else {
       SweetAlert(
         "Data belum lengkap",
         "Data " +
-          pesan +
-          " belum lengkap, harap lakukan pengecekan dan lengkapi terlebih dahulu",
+          pesan1 +
+          ". Harap lakukan pengecekan dan lengkapi terlebih dahulu",
         "warning"
       );
     }
@@ -249,6 +262,9 @@ export default function Index({ onChangePage }) {
                         ? "Belum Audit"
                         : "Ada Temuan",
 
+                    "Jumlah Temuan": item.isTemuan || "0",
+                    "Temuan Closed": item.totaltemuanClosed || "0",
+
                     Status: (() => {
                       switch (item.status) {
                         case "Self Assessment (Draft)":
@@ -257,6 +273,16 @@ export default function Index({ onChangePage }) {
                             item.idAuditor === activeUser
                           ) {
                             return "Self Assessment (Belum)";
+                          } else {
+                            return item.status;
+                          }
+                        case "Temuan (Draft)":
+                          if (
+                            item.kadep === activeUser ||
+                            item.pic1 === activeUser ||
+                            item.pic2 === activeUser
+                          ) {
+                            return "Self Assessment (Selesai)";
                           } else {
                             return item.status;
                           }
@@ -331,30 +357,13 @@ export default function Index({ onChangePage }) {
                           return ["Self Assessment", "Temuan"];
                         }
                       case "Monitoring":
-                        if (
-                          item.idAuditor === activeUser ||
-                          item.idLeadAuditor === activeUser
-                        ) {
-                          return [
-                            "Self Assessment",
-                            "Temuan",
-                            "AnalisaTemuan",
-                            "Send",
-                          ];
-                        } else {
-                          return ["Self Assessment", "Temuan", "AnalisaTemuan"];
-                        }
+                        return ["Self Assessment", "Temuan", "AnalisaTemuan"];
+
                       case "Menunggu Verifikasi Akhir":
-                        if (role === "ROL01") {
-                          return [
-                            "Self Assessment",
-                            "Temuan",
-                            "AnalisaTemuan",
-                            "Send",
-                          ];
-                        } else {
-                          return ["Self Assessment", "Temuan", "AnalisaTemuan"];
-                        }
+                        return ["Self Assessment", "Temuan", "AnalisaTemuan"];
+
+                      case "Selesai":
+                        return ["Self Assessment", "Temuan", "AnalisaTemuan"];
 
                       default:
                         return ["Self Assessment"];

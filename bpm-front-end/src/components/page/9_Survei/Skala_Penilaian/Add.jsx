@@ -41,9 +41,16 @@ export default function Add({ onChangePage }) {
       formData.skp_tipe === "RadioButton" ||
       formData.skp_tipe === "CheckBox"
     ) {
+      const trimmedDescriptions = formData.descriptions.map((desc) =>
+        desc.trim()
+      );
+      const hasDuplicates =
+        new Set(trimmedDescriptions).size !== trimmedDescriptions.length;
+
       newErrors.descriptions =
         formData.descriptions.length !== formData.scale ||
-        formData.descriptions.some((desc) => !desc.trim());
+        formData.descriptions.some((desc) => !desc.trim()) ||
+        hasDuplicates;
     }
 
     // Validate TextBox and TextArea
@@ -108,6 +115,31 @@ export default function Add({ onChangePage }) {
     }));
   };
 
+  const isScaleDuplicate = async (scale) => {
+    try {
+      const response = await fetch(
+        `${API_LINK}/SkalaPenilaian/GetAllSkalaPenilaianAktif`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ page: 1, pageSize: 100 }),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        return result.some(
+          (item) => item.scale.toLowerCase() === scale.toLowerCase()
+        );
+      } else {
+        throw new Error("Gagal memeriksa duplikasi skala.");
+      }
+    } catch (error) {
+      console.error("Error checking duplicate scale:", error);
+      return false; // Jika ada error, anggap tidak duplikat (default)
+    }
+  };
+
   const handleSave = async () => {
     if (!validateForm()) {
       await SweetAlert(
@@ -119,11 +151,12 @@ export default function Add({ onChangePage }) {
       return;
     }
 
-    const isDuplicate = await isNameDuplicate(formData.ksr_nama);
+    // Validasi duplikasi skala
+    const isDuplicate = await isScaleDuplicate(formData.scale);
     if (isDuplicate) {
-      SweetAlert(
-        "Gagal Menambahkan Skala",
-        "Skala sudah ada. Pilih Nama Kriteria Lain",
+      await SweetAlert(
+        "Peringatan!",
+        "Skala penilaian sudah ada. Silahkan membuat skala yang berbeda.",
         "warning",
         "OK"
       );

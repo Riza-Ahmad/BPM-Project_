@@ -17,6 +17,7 @@ import SearchField from "../../../part/SearchField";
 import Filter from "../../../part/Filter";
 import Paging from "../../../part/Paging";
 import DropDown from "../../../part/Dropdown";
+import TextArea from "../../../part/TextArea";
 
 const arrSort = [
   { Value: "namaKriteria ASC", Text: "Nama Kriteria [↑]" },
@@ -24,6 +25,8 @@ const arrSort = [
   { Value: "tanggalBuat ASC", Text: "Waktu Dibuat [↑]" },
   { Value: "tanggalBuat DESC", Text: "Waktu Dibuat [↓]" },
 ];
+
+const butuhDokumen = [{ Value: "Ya", Text: "Ya, Butuh dokumen pendukung" }];
 
 export default function Edit({ onChangePage }) {
   const isMobile = useIsMobile();
@@ -47,6 +50,7 @@ export default function Edit({ onChangePage }) {
   const [idPertanyaan, setIdPertanyaan] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
+  const [showModalBank, setShowModalBank] = useState(false);
   const [aksiIs, setAksiIs] = useState(false);
 
   const handleOpenModal = () => {
@@ -57,13 +61,13 @@ export default function Edit({ onChangePage }) {
     setShowModal(false);
   };
 
-  useEffect(() => {
-    if (showModal) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
-  }, [showModal]);
+  const handleOpenModalBank = () => {
+    setShowModalBank(true);
+  };
+
+  const handleCloseModalBank = () => {
+    setShowModalBank(false);
+  };
 
   const [kriteria, setKriteria] = useState();
 
@@ -278,6 +282,23 @@ export default function Edit({ onChangePage }) {
     }
 
     try {
+      const paData = {
+        instrumen: formData.nama,
+        id: idData,
+      };
+
+      console.log(paData);
+      const result = await useFetch(
+        `${API_LINK}/MasterInstrumenAudit/CheckInstrumenAudit`,
+        paData,
+        "POST"
+      );
+
+      if (result.length > 0) {
+        SweetAlert("Gagal!", "Data Instrumen sudah ada", "error", "OK");
+        return;
+      }
+
       const createResponse = await useFetch(
         `${API_LINK}/MasterInstrumenAudit/EditDataInstrumenAudit`,
         formData,
@@ -407,6 +428,73 @@ export default function Edit({ onChangePage }) {
     }
   };
 
+  const kriteriaRef = useRef();
+  const pertanyaanRef = useRef();
+
+  const [formPertanyaan, setFormPertanyaan] = useState({
+    kriteria: "",
+    pertanyaan: "",
+    pertanyaanLanjutan: "",
+    butuhDokumen: "",
+    jenisIKT: "",
+    bagianAuditee: "",
+    idInstrumen: idData,
+  });
+
+  const handleChangeBank = (e) => {
+    const { name, value } = e.target;
+
+    setFormPertanyaan((prevData) => {
+      const updatedData = {
+        ...prevData,
+        [name]: value,
+        bagianAuditee: formData.bagianAuditee,
+      };
+
+      // Reset pertanyaanLanjutan jika butuhDokumen kosong
+      if (name === "butuhDokumen" && value.length === 0) {
+        updatedData.pertanyaanLanjutan = ""; // Reset ke nilai default
+      }
+
+      return updatedData;
+    });
+  };
+
+  const handleSubmitBank = async () => {
+    const butuhDokumenValue = formPertanyaan.butuhDokumen[0] || "Tidak";
+    const jenisIKTValue = "Tidak";
+    const dataToSend = {
+      ...formPertanyaan,
+      butuhDokumen: butuhDokumenValue,
+      jenisIKT: jenisIKTValue,
+    };
+
+    try {
+      const createResponse = await useFetch(
+        `${API_LINK}/MasterInstrumenAudit/CreateBankPertanyaandiInstrumen`,
+        dataToSend,
+        "POST"
+      );
+
+      if (createResponse === "ERROR") {
+        throw new Error("Gagal menambah data");
+      } else {
+        SweetAlert(
+          "Berhasil!",
+          "Data berhasil ditambahkan.",
+          "success",
+          "OK"
+        ).then(() => {
+          handleCloseModal();
+          window.location.reload();
+        });
+      }
+    } catch (error) {
+      console.error("Error:", error.message);
+      SweetAlert("Gagal!", error.message, "error", "OK");
+    }
+    console.log(dataToSend);
+  };
   if (error) return <p>{error}</p>;
 
   return (
@@ -512,6 +600,19 @@ export default function Edit({ onChangePage }) {
                         style={{ minWidth: "15rem" }}
                       />
                     </div>
+                    <div className="col-3 mb-3">
+                      <Button
+                        iconName="add"
+                        classType="primary"
+                        type="submit"
+                        label="Tambah Pertanyaan"
+                        width="100%"
+                        onClick={() => {
+                          handleOpenModalBank();
+                        }}
+                        style={{ minWidth: "15rem" }}
+                      />
+                    </div>
                   </div>
 
                   <Table
@@ -551,15 +652,15 @@ export default function Edit({ onChangePage }) {
           </div>
         </div>
 
-        {showModal && (
+        {(showModal || showModalBank) && (
           <div
-            className="modal-backdrop fade show"
             style={{
               position: "fixed",
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
+
               backgroundColor: "rgba(0, 0, 0, 0.5)",
               zIndex: 1040,
             }}
@@ -578,7 +679,7 @@ export default function Edit({ onChangePage }) {
             <div className="modal-content">
               <div className="modal-header">
                 <h1 className="modal-title fs-5" id="staticBackdropLabel">
-                  Pilih Karyawan
+                  Pilih Pertanyaan
                 </h1>
                 <button
                   type="button"
@@ -678,6 +779,99 @@ export default function Edit({ onChangePage }) {
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          className={`modal fade ${showModalBank ? "show" : ""}`}
+          id="kadepModal"
+          tabIndex="-1"
+          aria-labelledby="exampleModalLabel"
+          aria-hidden={!showModalBank}
+          style={{
+            display: showModalBank ? "block" : "none",
+            zIndex: 1050,
+          }}
+        >
+          <div className="modal-xl modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h1 className="modal-title fs-5" id="staticBackdropLabel">
+                  Pilih Pertanyaan
+                </h1>
+                <button
+                  type="button"
+                  className="btn-close rounded-5"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                  onClick={handleCloseModalBank}
+                  style={{ color: "white", backgroundColor: "white" }}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="container-fluid">
+                  <DropDown
+                    ref={kriteriaRef}
+                    arrData={kriteria}
+                    label="Kriteria Pertanyaan"
+                    type="pilih"
+                    value={formPertanyaan.kriteria}
+                    name="kriteria"
+                    onChange={handleChangeBank}
+                    isRequired={true}
+                  />
+
+                  <TextArea
+                    ref={pertanyaanRef}
+                    label="Pertanyaan"
+                    value={formPertanyaan.pertanyaan || ""}
+                    name="pertanyaan"
+                    onChange={handleChangeBank}
+                    isRequired={true}
+                  />
+
+                  <CheckBox
+                    arrData={butuhDokumen}
+                    label="Dokumen Pendukung"
+                    name="butuhDokumen"
+                    values={formPertanyaan.butuhDokumen || ""} // Set default selected values here
+                    onChange={handleChangeBank}
+                    col="col-12"
+                  />
+
+                  {formPertanyaan.butuhDokumen &&
+                    formPertanyaan.butuhDokumen.length > 0 && (
+                      <TextArea
+                        value={formPertanyaan.pertanyaanLanjutan || ""}
+                        name="pertanyaanLanjutan"
+                        onChange={handleChangeBank}
+                        isRequired={true}
+                      />
+                    )}
+
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div className="flex-grow-1 m-2">
+                      <Button
+                        classType="primary"
+                        type="submit"
+                        label="Simpan"
+                        width="100%"
+                        onClick={handleSubmitBank}
+                      />
+                    </div>
+                    <div className="flex-grow-1 m-2">
+                      <Button
+                        classType="danger"
+                        type="button"
+                        label="Batal"
+                        width="100%"
+                        onClick={handleCloseModalBank}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

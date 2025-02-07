@@ -58,7 +58,6 @@ export default function DetailMonitoring({ onChangePage }) {
         }
       );
 
-      console.log(result);
       if (result === "ERROR" || result === null || result.length === 0) {
         setFilteredData([]);
       } else {

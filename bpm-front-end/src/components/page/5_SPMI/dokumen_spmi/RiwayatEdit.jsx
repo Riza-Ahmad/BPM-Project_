@@ -73,19 +73,21 @@ export default function RiwayatEdit({ onChangePage }) {
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
-        <div className="container">
-          <div className="mb-3">
+        <div className="d-flex flex-column">
+          <div className="m-3 mb-0">
             <PageTitleNav
               title="Riwayat Pembaruan"
               breadcrumbs={location.state?.breadcrumbs}
-              onClick={() =>
-                onChangePage("index", {
-                  idMenu: idMenu,
-                })
-              }
+              onClick={() => window.history.back()}
             />
           </div>
-          <div className={isMobile ? "m-0" : "p-3"}>
+          <div
+            className={
+              isMobile
+                ? "table-container bg-white p-1 m-1 mt-0 rounded"
+                : "table-container bg-white p-3 m-5 mt-0 rounded"
+            }
+          >
             <div className="table-container bg-white rounded">
               {loading ? (
                 <Loading />

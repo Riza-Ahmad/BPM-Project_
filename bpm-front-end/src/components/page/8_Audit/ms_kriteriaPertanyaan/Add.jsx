@@ -42,6 +42,22 @@ export default function Add({ onChangePage }) {
         namaKri: namaKriRef.current.value,
       };
 
+      const result = await useFetch(
+        `${API_LINK}/MasterKriteria/CheckKriteriaExist`,
+        kriData,
+        "POST"
+      );
+
+      if (result.length > 0) {
+        SweetAlert(
+          "Gagal!",
+          "Data kriteria sudah ada",
+          "error",
+          "OK"
+        );
+        return;
+      }
+
       const createResponse = await useFetch(
         `${API_LINK}/MasterKriteria/CreateDataKriteria`,
         kriData,
