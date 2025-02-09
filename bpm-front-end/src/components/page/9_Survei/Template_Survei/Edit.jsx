@@ -15,6 +15,8 @@ import Filter from "../../../part/Filter";
 import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
 import HeaderText from "../../../part/HeaderText";
+import { decodeHtml } from "../../../util/DecodeHtml";
+import { se } from "date-fns/locale";
 
 // Opsi sorting untuk pertanyaan di modal
 const arrSort = [
@@ -31,7 +33,6 @@ export default function EditTemplateSurvei() {
   const isMobile = useIsMobile();
   const idData = location.state?.idData;
 
-
   // Form data untuk template survei, termasuk properti pertanyaan
   const [formData, setFormData] = useState({
     namaTemplate: "",
@@ -43,6 +44,10 @@ export default function EditTemplateSurvei() {
 
   // Data detail pertanyaan yang sudah ditambahkan
   const [pertanyaan, setPertanyaan] = useState([]);
+  const [selectedKriteria, setSelectedKriteria] = useState("");
+  const [selectedSkala, setSelectedSkala] = useState("");
+  const [idPertanyaan, setIdPertanyaan] = useState("");
+  const [idEdit, setIdEdit] = useState("");
 
   // Opsi untuk Kriteria Survei (ksrOptions) dan Skala Penilaian (skpOptions)
   const [ksrOptions, setKsrOptions] = useState([]);
@@ -69,6 +74,10 @@ export default function EditTemplateSurvei() {
   // Fungsi untuk membuka dan menutup modal
   const handleOpenModal = () => setShowModal(true);
   const handleCloseModal = () => setShowModal(false);
+  const [aksiIs, setAksiIs] = useState(false);
+  const [isError, setIsError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentData, setCurrentData] = useState([]);
 
   // Mengatur scroll ketika modal terbuka
   useEffect(() => {
@@ -134,45 +143,6 @@ export default function EditTemplateSurvei() {
     }
   };
 
-  useEffect(() => {
-    const fetchTemplateSurvei = async () => {
-      try {
-        const body = { idData: id };
-        console.log(body);
-        setLoading(true);
-
-        const result = await useFetch(
-          `${API_LINK}/TemplateSurvei/GetTemplateSurveiById`,
-          body,
-          "POST"
-        );
-              console.log("API Response:", result);
-
-        if (result === "ERROR" || !result || result.length === 0) {
-          SweetAlert("Error", "Data template tidak ditemukan", "error", "OK");
-          navigate("/survei/template");
-        } else {
-          const data = result[0];
-          setFormData({
-            namaTemplate: data.namaTemplate,
-            ksrId: data.ksrId,
-            skpId: data.skpId,
-            responden: data.responden ? data.responden.split(",") : [],
-            pertanyaan: data.pertanyaan
-              ? data.pertanyaan.split(",").map(Number)
-              : [],
-          });
-        }
-      } catch (err) {
-        setError("Gagal mengambil data template: " + err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTemplateSurvei();
-  }, [idData]);
-  // Fetch data template survei berdasarkan id (untuk mode edit)
-  
   // Fetch detail pertanyaan berdasarkan ID dari template
   const fetchPertanyaanDetail = async () => {
     if (formData.pertanyaan.length === 0) return;
@@ -183,7 +153,7 @@ export default function EditTemplateSurvei() {
         { param: formData.pertanyaan },
         "POST"
       );
-      console.log("API ID",result)
+      console.log("API ID", result);
 
       if (result === "ERROR" || !result || result.length === 0) {
         setPertanyaan([]);
@@ -198,48 +168,80 @@ export default function EditTemplateSurvei() {
   };
 
   // Fetch data master pertanyaan survei untuk modal
-  const fetchPertanyaanBank = async () => {
-    setLoading(true);
+  const fetchData = async () => {
+    setIsLoading(true);
     try {
-      const result = await useFetch(
-        `${API_LINK}/MasterPertanyaanSurvei/GetDataBankPertanyaanSurvei`,
-        {
-          param1: searchKeyword,
-          param2: selectedSort,
-          param3: pageSize,
-          param4: pageCurrent,
-          // Tambahkan parameter lain jika diperlukan (misal status atau kriteria)
-        },
+      const dataJson = await useFetch(
+        `${API_LINK}/MasterPertanyaan/GetDataPertanyaan`,
+        {},
         "POST"
       );
-      if (result === "ERROR" || !result || result.length === 0) {
-        setFilteredData([]);
-        setTotalData(0);
+      console.log("Data Terambil:", dataJson);
+      if (dataJson === "ERROR") {
+        setIsError(true);
+        setCurrentData([]);
       } else {
-        const arrResult = Object.values(result);
-        setFilteredData(arrResult);
-        // Asumsikan totalData ada pada properti totalData di elemen pertama
-        setTotalData(arrResult[0].totalData || 0);
+        setCurrentData(dataJson || []);
+        setIsError(false);
       }
-    } catch (err) {
-      setError("Gagal mengambil data pertanyaan bank: " + err);
+    } catch (error) {
+      console.error("Error fetch data:", error);
+      setIsError(true);
+      setCurrentData([]);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   // Panggil fetch data untuk modal saat parameter berubah
   useEffect(() => {
-    if (showModal) {
-      fetchPertanyaanBank();
-    }
-  }, [searchKeyword, selectedSort, pageCurrent, showModal]);
+    fetchData();
+  }, []);
 
-  // // Panggil fetch opsi dan data template saat komponen mount
-  // useEffect(() => {
-  //   fetchKriteria();
-  //   fetchSkalaPenilaian();
-  // }, [id]);
+  const [isTemplateFetched, setIsTemplateFetched] = useState(false);
+
+  // GET TEMPLATE BY ID
+  // Fetch data template survei berdasarkan id (untuk mode edit)
+  useEffect(() => {
+    const fetchTemplateSurvei = async () => {
+      const body = { idData: id };
+      console.log(body);
+      setLoading(true);
+      try {
+        const result = await useFetch(
+          `${API_LINK}/TemplateSurvei/GetTemplateSurveiById`,
+          body,
+          "POST"
+        );
+        console.log("API Response:", result);
+
+        if (result === "ERROR" || result === null || result.length === 0) {
+          SweetAlert("Error", "Data template tidak ditemukan", "error", "OK");
+          navigate("/survei/template");
+        } else {
+          const data = result[0];
+          setFormData({
+            id: data.id,
+            namaTemplate: data.namaTemplate,
+            ksrId: data.ksrId,
+            skpId: data.skpId,
+            responden: data.responden ? data.responden.split(",") : [],
+            pertanyaan: data.pertanyaan
+              ? data.pertanyaan.split(",").map(Number)
+              : [],
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching template data:", err);
+        setError("Gagal mengambil data template: " + err);
+      } finally {
+        setLoading(false);
+        setIsTemplateFetched(true); // Menandai bahwa pengambilan data telah selesai
+      }
+    };
+
+    fetchTemplateSurvei();
+  }, [idData]);
 
   // Panggil fetch detail pertanyaan setiap kali formData.pertanyaan berubah
   useEffect(() => {
@@ -350,6 +352,48 @@ export default function EditTemplateSurvei() {
     } catch (err) {
       console.error("Error adding pertanyaan:", err);
       SweetAlert("Gagal!", err.message, "error", "OK");
+    }
+  };
+
+  const handleChoosePertanyaan = async (pertanyaanBaru) => {
+    const isDuplicate = pertanyaan.some(
+      (item) => item.idBank === pertanyaanBaru
+    );
+
+    if (isDuplicate) {
+      SweetAlert(
+        "Perhatian!",
+        "Pertanyaan yang dipilih sudah terdapat pada daftar. Silakan pilih pertanyaan yang lain.",
+        "info",
+        "OK"
+      );
+      return;
+    }
+
+    try {
+      // Kirim permintaan ke backend menggunakan useFetch
+      const createResponse = await useFetch(
+        `${API_LINK}/MasterInstrumenAudit/EditDataInstrumenAuditPertanyaan`,
+        { idEdit: idEdit, pertanyaanBaru: pertanyaanBaru }
+      );
+
+      // Tangani hasil dari useFetch
+      if (createResponse === "ERROR") {
+        throw new Error("Gagal menambah data");
+      }
+
+      SweetAlert(
+        "Berhasil!",
+        "Data berhasil diperbarui.",
+        "success",
+        "OK"
+      ).then(() => {
+        handleCloseModal(idData);
+        window.location.reload();
+      });
+    } catch (error) {
+      console.error("Error:", error.message); // Log kesalahan
+      SweetAlert("Gagal!", error.message, "error", "OK"); // Tampilkan kesalahan kepada pengguna
     }
   };
 
@@ -490,10 +534,15 @@ export default function EditTemplateSurvei() {
                   <div className="row">
                     <div className="col-3 mb-3">
                       <Button
+                        iconName="search"
                         classType="primary"
                         type="button"
                         label="Tambah Pertanyaan Dari Bank"
-                        onClick={handleOpenModal}
+                        onClick={() => {
+                          handleOpenModal();
+                          setAksiIs(false);
+                        }}
+                        style={{ minWidth: "15rem" }}
                       />
                     </div>
                   </div>
@@ -502,15 +551,35 @@ export default function EditTemplateSurvei() {
                   <p>Belum ada pertanyaan yang ditambahkan.</p>
                 ) : (
                   <Table
-                    arrHeader={["No", "Pertanyaan", "Keterangan", "Aksi"]}
+                    arrHeader={[
+                      "No",
+                      "Pertanyaan",
+                      "Kriteria Survei",
+                      "Skala Penilaian",
+                    ]}
                     data={pertanyaan.map((item, index) => ({
-                      Key: item.id, // pastikan property id sesuai data
+                      Key: item.pty_id ?? "Tidak Ada",
                       No: index + 1,
-                      Pertanyaan: item.namaPertanyaan,
-                      Keterangan: item.keterangan || "",
-                      status: item.status,
+                      Pertanyaan: (
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: decodeHtml(
+                              item.pty_pertanyaan ?? "Tidak Ada"
+                            ),
+                          }}
+                        />
+                      ),
+                      "Kriteria Survei": item.ksr_nama ?? "Tidak Ada",
+                      "Skala Penilaian": item.skp_id ?? "Tidak Ada",
+                      Status: item.pty_status === "Aktif",
                     }))}
-                    actions={["Delete"]}
+                    actions={["Edit", "Delete"]}
+                    onEdit={(item) => {
+                      handleOpenModal(item.Key); // Fungsi untuk membuka modal
+                      setAksiIs(true); // Jika Anda ingin memperbarui state `aksiIs`
+                      setIdPertanyaan(item.idPer);
+                      setIdEdit(item.Key);
+                    }}
                     onDelete={(item) => handleDeletePertanyaan(item.Key)}
                   />
                 )}
@@ -536,23 +605,31 @@ export default function EditTemplateSurvei() {
             />
             <div
               className={`modal fade ${showModal ? "show" : ""}`}
+              id="modalPertanyaan"
               tabIndex="-1"
+              aria-labelledby="modalPertanyaanLabel"
               aria-hidden={!showModal}
               style={{ display: showModal ? "block" : "none" }}
             >
               <div className="modal-xl modal-dialog modal-dialog-centered">
                 <div className="modal-content">
                   <div className="modal-header">
-                    <h5 className="modal-title">Pilih Pertanyaan</h5>
+                    <h1 className="modal-title fs-5" id="staticBackdropLabel">
+                      Pilih Pertanyaan
+                    </h1>
                     <button
                       type="button"
-                      className="btn-close"
+                      className="btn-close rounded-5"
+                      data-bs-dismiss="modal"
+                      aria-label="Close"
                       onClick={handleCloseModal}
+                      style={{ color: "white", backgroundColor: "white" }}
+                      id="modalClose"
                     ></button>
                   </div>
                   <div className="modal-body">
                     <div className="container-fluid">
-                      <div className="row mb-3">
+                      <div className="row">
                         <div className="col-lg-10">
                           <SearchField
                             onChange={(value) => setSearchKeyword(value)}
@@ -567,6 +644,24 @@ export default function EditTemplateSurvei() {
                               forInput="urutFilter"
                               onChange={(e) => setSelectedSort(e.target.value)}
                             />
+
+                            <Dropdown
+                              arrData={ksrOptions}
+                              label="Berdasarkan Kriteria Survei"
+                              value={selectedKriteria}
+                              forInput="kriteriaSurvei"
+                              onChange={(e) =>
+                                setSelectedKriteria(e.target.value)
+                              }
+                            />
+
+                            <Dropdown
+                              arrData={skpOptions}
+                              label="Berdasarkan Skala Penilaian"
+                              value={selectedSkala}
+                              forInput="skalaPenilaian"
+                              onChange={(e) => setSelectedSkala(e.target.value)}
+                            />
                           </Filter>
                         </div>
                       </div>
@@ -576,19 +671,35 @@ export default function EditTemplateSurvei() {
                     ) : (
                       <>
                         <Table
-                          arrHeader={["No", "Pertanyaan", "Keterangan"]}
+                          arrHeader={[
+                            "No",
+                            "Pertanyaan",
+                            "Kriteria Survei",
+                            "Skala Penilaian",
+                          ]}
                           data={filteredData.map((item, index) => ({
-                            Key: item.idBankPertanyaan, // sesuaikan dengan properti ID pada master pertanyaan
-                            No: (pageCurrent - 1) * pageSize + index + 1,
-                            Pertanyaan: item.pertanyaan,
-                            Keterangan: item.keterangan || "",
-                            status: item.status,
+                            Key: item.pty_id ?? "Tidak Ada",
+                            No: indexOfFirstData + index + 1,
+                            Pertanyaan: (
+                              <div
+                                dangerouslySetInnerHTML={{
+                                  __html: decodeHtml(
+                                    item.pty_pertanyaan ?? "Tidak Ada"
+                                  ),
+                                }}
+                              />
+                            ),
+                            "Kriteria Survei": item.ksr_nama ?? "Tidak Ada",
+                            "Skala Penilaian": item.skp_id ?? "Tidak Ada",
+                            Status: item.pty_status === "Aktif",
                           }))}
-                          // Aktifkan checkbox untuk multi-select
-                          enableCheckbox={true}
+                          actions={aksiIs ? ["Choose"] : ""}
+                          enableCheckbox={!aksiIs}
+                          aksiIs={aksiIs}
                           onSelect={(selectedKeys) =>
                             setTambahPertanyaan(selectedKeys)
                           }
+                          onChoose={(item) => handleChoosePertanyaan(item.Key)}
                         />
                         <div className="d-flex justify-content-between align-items-center mt-3">
                           <div className="m-2">
