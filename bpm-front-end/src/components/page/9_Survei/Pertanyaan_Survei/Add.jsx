@@ -61,7 +61,7 @@ export default function Add({ onChangePage }) {
       setError(null);
       try {
         const skpResponse = await useFetch(
-          `${API_LINK}/MasterSkalaPenilaian/GetSkalaPenilaian`,
+          `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
           {},
           "POST"
         );

@@ -15,6 +15,7 @@ import Filter from "../../../part/Filter";
 import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
 import HeaderText from "../../../part/HeaderText";
+import { decodeHtml } from "../../../util/DecodeHtml";
 
 // Opsi sorting untuk pertanyaan di modal
 const arrSort = [
@@ -31,14 +32,13 @@ export default function EditTemplateSurvei() {
   const isMobile = useIsMobile();
   const idData = location.state?.idData;
 
-
   // Form data untuk template survei, termasuk properti pertanyaan
   const [formData, setFormData] = useState({
     namaTemplate: "",
     ksrId: "",
     skpId: "",
     responden: [],
-    pertanyaan: [], // array berisi ID pertanyaan yang sudah ditambahkan
+    pertanyaan: [],
   });
 
   // Data detail pertanyaan yang sudah ditambahkan
@@ -146,7 +146,7 @@ export default function EditTemplateSurvei() {
           body,
           "POST"
         );
-              console.log("API Response:", result);
+        console.log("API Response:", result);
 
         if (result === "ERROR" || !result || result.length === 0) {
           SweetAlert("Error", "Data template tidak ditemukan", "error", "OK");
@@ -172,7 +172,7 @@ export default function EditTemplateSurvei() {
     fetchTemplateSurvei();
   }, [idData]);
   // Fetch data template survei berdasarkan id (untuk mode edit)
-  
+
   // Fetch detail pertanyaan berdasarkan ID dari template
   const fetchPertanyaanDetail = async () => {
     if (formData.pertanyaan.length === 0) return;
@@ -180,10 +180,9 @@ export default function EditTemplateSurvei() {
     try {
       const result = await useFetch(
         `${API_LINK}/MasterPertanyaan/GetDataPertanyaanById`,
-        { param: formData.pertanyaan },
-        "POST"
+        { param: formData.pertanyaan }
       );
-      console.log("API ID",result)
+      console.log("API ID", result);
 
       if (result === "ERROR" || !result || result.length === 0) {
         setPertanyaan([]);
@@ -202,7 +201,7 @@ export default function EditTemplateSurvei() {
     setLoading(true);
     try {
       const result = await useFetch(
-        `${API_LINK}/MasterPertanyaanSurvei/GetDataBankPertanyaanSurvei`,
+        `${API_LINK}/MasterPertanyaan/GetDataPertanyaan`,
         {
           param1: searchKeyword,
           param2: selectedSort,
@@ -236,10 +235,11 @@ export default function EditTemplateSurvei() {
   }, [searchKeyword, selectedSort, pageCurrent, showModal]);
 
   // // Panggil fetch opsi dan data template saat komponen mount
-  // useEffect(() => {
-  //   fetchKriteria();
-  //   fetchSkalaPenilaian();
-  // }, [id]);
+  useEffect(() => {
+    fetchKriteria();
+    console.log(fetchKriteria);
+    fetchSkalaPenilaian();
+  }, [id]);
 
   // Panggil fetch detail pertanyaan setiap kali formData.pertanyaan berubah
   useEffect(() => {
@@ -417,8 +417,7 @@ export default function EditTemplateSurvei() {
                 isMobile
                   ? "shadow p-4 m-2 mt-0 bg-white rounded"
                   : "shadow p-5 m-5 mt-0 bg-white rounded"
-              }
-            >
+              }>
               <HeaderForm label="Formulir Template Survei" />
               <InputField
                 ref={namaTemplateRef}
@@ -434,9 +433,9 @@ export default function EditTemplateSurvei() {
                 <CheckBox
                   ref={respondenRef}
                   arrData={[
-                    { Value: "0", Text: "Dosen dan Instruktur" },
-                    { Value: "1", Text: "Tenaga Pendidik" },
-                    { Value: "2", Text: "Mitra Kerjasama" },
+                    { Value: 0, Text: "Dosen dan Instruktur" },
+                    { Value: 1, Text: "Tenaga Pendidik" },
+                    { Value: 2, Text: "Mitra Kerjasama" },
                   ]}
                   label="Responden"
                   name="responden"
@@ -475,8 +474,7 @@ export default function EditTemplateSurvei() {
                     backgroundColor: "#F3EFEF",
                     padding: "0.1rem",
                     borderColor: "gray",
-                  }}
-                >
+                  }}>
                   <HeaderText
                     label="Daftar Pertanyaan"
                     warna="#2654A1"
@@ -497,25 +495,31 @@ export default function EditTemplateSurvei() {
                       />
                     </div>
                   </div>
-                </div>
-                {pertanyaan.length === 0 ? (
-                  <p>Belum ada pertanyaan yang ditambahkan.</p>
-                ) : (
                   <Table
-                    arrHeader={["No", "Pertanyaan", "Keterangan", "Aksi"]}
+                    arrHeader={["No", "Kriteria", "Pertanyaan", "Keterangan"]}
                     data={pertanyaan.map((item, index) => ({
-                      Key: item.id, // pastikan property id sesuai data
+                      Key: item.id,
+                      idPer: item.idBank, // pastikan property id sesuai data
                       No: index + 1,
-                      Pertanyaan: item.namaPertanyaan,
-                      Keterangan: item.keterangan || "",
-                      status: item.status,
+                      Kriteria: item.namaKri || console.log(item.ksr_nama),
+                      Pertanyaan: (
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: decodeHtml(item.pertanyaan || ""),
+                          }}
+                        />
+                      ),
+                      Tipe: item.tipeSka,
+                      Skala: item.skala,
                     }))}
                     actions={["Delete"]}
                     onDelete={(item) => handleDeletePertanyaan(item.Key)}
                   />
-                )}
+                </div>
+                {/* {pertanyaan.length === 0 ? (
+                    <p>Belum ada pertanyaan yang ditambahkan.</p>
+                  ) : ( */}
               </div>
-              {/* Tombol simpan utama */}
             </div>
           </div>
         </div>
@@ -538,8 +542,7 @@ export default function EditTemplateSurvei() {
               className={`modal fade ${showModal ? "show" : ""}`}
               tabIndex="-1"
               aria-hidden={!showModal}
-              style={{ display: showModal ? "block" : "none" }}
-            >
+              style={{ display: showModal ? "block" : "none" }}>
               <div className="modal-xl modal-dialog modal-dialog-centered">
                 <div className="modal-content">
                   <div className="modal-header">
@@ -547,8 +550,7 @@ export default function EditTemplateSurvei() {
                     <button
                       type="button"
                       className="btn-close"
-                      onClick={handleCloseModal}
-                    ></button>
+                      onClick={handleCloseModal}></button>
                   </div>
                   <div className="modal-body">
                     <div className="container-fluid">
@@ -576,12 +578,20 @@ export default function EditTemplateSurvei() {
                     ) : (
                       <>
                         <Table
-                          arrHeader={["No", "Pertanyaan", "Keterangan"]}
+                          arrHeader={[
+                            "No",
+                            "Kriteria",
+                            "Pertanyaan",
+                            "Tipe",
+                            "Skala",
+                          ]}
                           data={filteredData.map((item, index) => ({
-                            Key: item.idBankPertanyaan, // sesuaikan dengan properti ID pada master pertanyaan
+                            Key: item.id, // sesuaikan dengan properti ID pada master pertanyaan
                             No: (pageCurrent - 1) * pageSize + index + 1,
-                            Pertanyaan: item.pertanyaan,
-                            Keterangan: item.keterangan || "",
+                            Kriteria: item.ksr_nama,
+                            Pertanyaan: item.pty_pertanyaan,
+                            Tipe: item.skp_deskripsi,
+                            Skala: item.skp_skala,
                             status: item.status,
                           }))}
                           // Aktifkan checkbox untuk multi-select
