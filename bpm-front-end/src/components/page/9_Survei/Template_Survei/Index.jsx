@@ -90,6 +90,7 @@ export default function Template_Survei({ onChangePage }) {
   useEffect(() => {
     let filtered = [...data];
 
+    // Filter berdasarkan query pencarian di semua atribut
     if (searchQuery) {
       filtered = filtered.filter((item) =>
         Object.values(item)
@@ -379,7 +380,6 @@ export default function Template_Survei({ onChangePage }) {
                 onChangePage("preview", { idData: item.Key })
               }
             />
-
             <Paging
               pageSize={pageSize}
               pageCurrent={pageCurrent}

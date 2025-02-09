@@ -53,6 +53,8 @@ export default function Template_Survei() {
     <>
       <ScrollToTop />
       <Routes>
+        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
+        <Route path="add" element={<Add onChangePage={handlePageChange} />} />
         <Route
           path="/"
           element={

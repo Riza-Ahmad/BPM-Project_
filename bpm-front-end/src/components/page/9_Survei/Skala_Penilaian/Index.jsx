@@ -203,8 +203,7 @@ export default function Index() {
 
                   <button
                     className="btn btn-secondary mt-2"
-                    onClick={handleResetFilter}
-                  >
+                    onClick={handleResetFilter}>
                     Reset Filter
                   </button>
                 </Filter>
@@ -214,8 +213,7 @@ export default function Index() {
 
           <div
             className="table-container bg-white p-3 mt-0 rounded"
-            style={marginStyle}
-          >
+            style={marginStyle}>
             <Table
               arrHeader={tableHeaders}
               data={currentPageData.map((item, index) => ({

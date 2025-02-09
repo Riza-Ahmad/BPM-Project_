@@ -4,7 +4,7 @@ import ProtectedRoute from "../../../util/ProtectedRoute";
 import { ROOT_LINK } from "../../../util/Constants";
 import Index from "./Index";
 // import Add from "./Add";
-// import Edit from "./Edit";
+ import Edit from "./EditSurvei";
 // import Detail from "./Detail";
 
 export default function Daftar_Survei() {
@@ -21,9 +21,9 @@ export default function Daftar_Survei() {
       // case "add":
       //   navigate(`${currentPath}`, { state: { mode: "add", ...withState } });
       //   break;
-      // case "edit":
-      //   navigate(`${currentPath}`, { state: { mode: "edit", ...withState } });
-      //   break;
+      case "edit":
+        navigate(`${currentPath}`, { state: { mode: "edit", ...withState } });
+        break;
       // case "detail":
       //   navigate(`${currentPath}`, { state: { mode: "detail", ...withState } });
       //   break;

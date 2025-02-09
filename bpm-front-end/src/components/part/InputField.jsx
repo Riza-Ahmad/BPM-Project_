@@ -12,7 +12,7 @@ const InputField = forwardRef(function InputField(
     type = "text",
     maxChar,
     value,
-    onChange,
+    onChange, 
     ...props
   },
   ref

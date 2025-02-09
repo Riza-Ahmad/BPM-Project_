@@ -85,8 +85,7 @@ const CheckBox = forwardRef(function CheckBox(
               />
               <label
                 className="form-check-label"
-                htmlFor={`${name}-${data.Value}`}
-              >
+                htmlFor={`${name}-${data.Value}`}>
                 {data.Text}
               </label>
             </div>

@@ -163,8 +163,7 @@ export default function KriteriaSurvei({ onChangePage }) {
           </div>
           <div
             className={isMobile ? "p-2 m-2 mt-2 mb-0" : "p-3 m-5 mt-2 mb-0"}
-            style={{ marginLeft: "50px" }}
-          >
+            style={{ marginLeft: "50px" }}>
             <Button
               iconName="add"
               classType="primary"
