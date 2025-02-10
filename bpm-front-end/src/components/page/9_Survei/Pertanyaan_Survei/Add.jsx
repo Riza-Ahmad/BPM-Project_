@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import PageTitleNav from "../../../part/PageTitleNav";
 import InputField from "../../../part/InputField";
-import TextArea from "../../../part/TextArea";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
 import Dropdown from "../../../part/Dropdown";
@@ -202,83 +201,83 @@ export default function Add({ onChangePage }) {
               onClick={() => navigate("/survei/pertanyaan")}
             />
           </div>
-          <div className="shadow p-5 m-5 mt-0 bg-white rounded">
-            <HeaderForm label="Formulir Bank Pertanyaan" />
-            <div className="mb-4">
-              <Dropdown
-                ref={kriteriaSurveiRef}
-                label="Kriteria Survei"
-                arrData={ksrOptions}
-                value={formData.ksrId}
-                onChange={handleChange}
-                name="ksrId"
-                isRequired={true}
-                type="pilih"
-              />
-            </div>
-            <div className="mb-4">
-              <InputField
-                ref={pertanyaanRef}
-                label="Pertanyaan"
-                value={formData.pertanyaan || ""}
-                name="pertanyaan"
-                onChange={handleChange}
-                isRequired={true}
-                type="text"
-                placeholder="Masukkan pertanyaan survei"
-              />
-            </div>
-            <div className="mb-4">
-              <Dropdown
-                ref={skalaPenilaianRef}
-                label="Skala Penilaian"
-                arrData={skpOptions}
-                value={formData.skpId}
-                onChange={handleChange}
-                name="skpId"
-                isRequired={true}
-                type="pilih"
-              />
-            </div>
-            <div className="mb-5">
-              <CheckBox
-                arrData={[
-                  {
-                    Value: 0,
-                    Text: "Dosen dan Instruktur",
-                  },
-                  { Value: 1, Text: "Tenaga Pendidik" },
-                  { Value: 2, Text: "Mitra Kerjasama" },
-                ]}
-                label="Responden"
-                name="responden"
-                isRequired={true}
-                errorMessage="Harap pilih setidaknya satu responden."
-                values={formData.responden || []}
-                onChange={handleChange}
-                col="col-4"
-              />
-            </div>
-            <div className="d-flex justify-content-between align-items-center mt-4 gap-3">
-              <Button
-                classType="primary"
-                type="button"
-                label="Simpan"
-                width="100%"
-                disabled={loading}
-                onClick={handleSubmit}
-              />
-              <Button
-                classType="danger"
-                type="button"
-                label="Batal"
-                width="100%"
-                onClick={handleCancel}
-              />
+            <div className="shadow p-5 m-5 mt-0 bg-white rounded">
+              <HeaderForm label="Formulir Bank Pertanyaan" />
+              <div className="mb-4">
+                <Dropdown
+                  ref={kriteriaSurveiRef}
+                  label="Kriteria Survei"
+                  arrData={ksrOptions}
+                  value={formData.ksrId}
+                  onChange={handleChange}
+                  name="ksrId"
+                  isRequired={true}
+                  type="pilih"
+                />
+              </div>
+              <div className="mb-4">
+                <InputField
+                  ref={pertanyaanRef}
+                  label="Pertanyaan"
+                  value={formData.pertanyaan || ""}
+                  name="pertanyaan"
+                  onChange={handleChange}
+                  isRequired={true}
+                  type="text"
+                  placeholder="Masukkan pertanyaan survei"
+                />
+              </div>
+              <div className="mb-4">
+                <Dropdown
+                  ref={skalaPenilaianRef}
+                  label="Skala Penilaian"
+                  arrData={skpOptions}
+                  value={formData.skpId}
+                  onChange={handleChange}
+                  name="skpId"
+                  isRequired={true}
+                  type="pilih"
+                />
+              </div>
+              <div className="mb-5">
+                <CheckBox
+                  arrData={[
+                    {
+                      Value: 0,
+                      Text: "Dosen dan Instruktur",
+                    },
+                    { Value: 1, Text: "Tenaga Pendidik" },
+                    { Value: 2, Text: "Mitra Kerjasama" },
+                  ]}
+                  label="Responden"
+                  name="responden"
+                  isRequired={true}
+                  errorMessage="Harap pilih setidaknya satu responden."
+                  values={formData.responden || []}
+                  onChange={handleChange}
+                  col="col-4"
+                />
+              </div>
+              <div className="d-flex justify-content-between align-items-center mt-4 gap-3">
+                <Button
+                  classType="primary"
+                  type="button"
+                  label="Simpan"
+                  width="100%"
+                  disabled={loading}
+                  onClick={handleSubmit}
+                />
+                <Button
+                  classType="danger"
+                  type="button"
+                  label="Batal"
+                  width="100%"
+                  onClick={handleCancel}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      </main>
-    </div>
-  );
-}
+        </main>
+      </div>
+    );
+  }
