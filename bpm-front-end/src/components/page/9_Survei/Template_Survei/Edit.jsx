@@ -34,6 +34,7 @@ export default function EditTemplateSurvei() {
 
   // Form data untuk template survei, termasuk properti pertanyaan
   const [formData, setFormData] = useState({
+    idData: "",
     namaTemplate: "",
     ksrId: "",
     skpId: "",
@@ -65,6 +66,8 @@ export default function EditTemplateSurvei() {
   const [filteredData, setFilteredData] = useState([]);
   // Untuk penambahan multi pertanyaan (checkbox)
   const [tambahPertanyaan, setTambahPertanyaan] = useState([]);
+  const [isInstrumenFetched, setIsInstrumenFetched] = useState(false);
+  const [aksiIs, setAksiIs] = useState(false);
 
   // Fungsi untuk membuka dan menutup modal
   const handleOpenModal = () => setShowModal(true);
@@ -146,7 +149,7 @@ export default function EditTemplateSurvei() {
           body,
           "POST"
         );
-        console.log("API Response:", result);
+        console.log("API Response:", result[0]);
 
         if (result === "ERROR" || !result || result.length === 0) {
           SweetAlert("Error", "Data template tidak ditemukan", "error", "OK");
@@ -154,35 +157,41 @@ export default function EditTemplateSurvei() {
         } else {
           const data = result[0];
           setFormData({
+            idData: id,
             namaTemplate: data.namaTemplate,
             ksrId: data.ksrId,
             skpId: data.skpId,
             responden: data.responden ? data.responden.split(",") : [],
-            pertanyaan: data.pertanyaan
-              ? data.pertanyaan.split(",").map(Number)
-              : [],
+            pertanyaan: data.pertanyaan.split(",").map((id) => parseInt(id)),
           });
         }
       } catch (err) {
         setError("Gagal mengambil data template: " + err);
       } finally {
         setLoading(false);
+        setIsInstrumenFetched(true); // Mark as fetched
       }
     };
     fetchTemplateSurvei();
   }, [idData]);
   // Fetch data template survei berdasarkan id (untuk mode edit)
+  useEffect(() => {
+    if (isInstrumenFetched && formData.pertanyaan.length > 0) {
+      fetchPertanyaanDetail();
+    }
+  }, [isInstrumenFetched, formData.pertanyaan]);
 
   // Fetch detail pertanyaan berdasarkan ID dari template
   const fetchPertanyaanDetail = async () => {
-    if (formData.pertanyaan.length === 0) return;
+    console.log("awallll CC");
+    console.log(formData.pertanyaan);
     setLoading(true);
     try {
       const result = await useFetch(
         `${API_LINK}/MasterPertanyaan/GetDataPertanyaanById`,
         { param: formData.pertanyaan }
       );
-      console.log("API ID", result);
+      console.log("API ID CC", result);
 
       if (result === "ERROR" || !result || result.length === 0) {
         setPertanyaan([]);
@@ -201,7 +210,7 @@ export default function EditTemplateSurvei() {
     setLoading(true);
     try {
       const result = await useFetch(
-        `${API_LINK}/MasterPertanyaan/GetDataPertanyaan`,
+        `${API_LINK}/MasterPertanyaan/GetDataBankPertanyaanSurvei`,
         {
           param1: searchKeyword,
           param2: selectedSort,
@@ -211,12 +220,21 @@ export default function EditTemplateSurvei() {
         },
         "POST"
       );
+      console.log({
+        param1: searchKeyword,
+        param2: selectedSort,
+        param3: pageSize,
+        param4: pageCurrent,
+        // Tambahkan parameter lain jika diperlukan (misal status atau kriteria)
+      });
       if (result === "ERROR" || !result || result.length === 0) {
         setFilteredData([]);
         setTotalData(0);
       } else {
         const arrResult = Object.values(result);
         setFilteredData(arrResult);
+        console.log("jalan - jalannnn");
+        console.log(arrResult);
         // Asumsikan totalData ada pada properti totalData di elemen pertama
         setTotalData(arrResult[0].totalData || 0);
       }
@@ -242,9 +260,6 @@ export default function EditTemplateSurvei() {
   }, [id]);
 
   // Panggil fetch detail pertanyaan setiap kali formData.pertanyaan berubah
-  useEffect(() => {
-    fetchPertanyaanDetail();
-  }, [formData.pertanyaan]);
 
   // Handler perubahan input form
   const handleChange = (e) => {
@@ -313,17 +328,12 @@ export default function EditTemplateSurvei() {
   // Menambahkan pertanyaan yang dipilih (multi select) ke template survei
   const handleSubmitPertanyaan = async () => {
     if (tambahPertanyaan.length === 0) {
-      return SweetAlert(
-        "Informasi",
-        "Pilih setidaknya satu pertanyaan",
-        "info",
-        "OK"
-      );
+      return SweetAlert("Informasi", "Pilih satu pertanyaan", "info", "OK");
     }
     try {
       const payload = {
         idTemplate: id,
-        pertanyaan: tambahPertanyaan,
+        pertanyaan: tambahPertanyaan, // hanya berisi satu ID
       };
       const response = await useFetch(
         `${API_LINK}/TemplateSurvei/AddPertanyaanToTemplate`,
@@ -491,7 +501,10 @@ export default function EditTemplateSurvei() {
                         classType="primary"
                         type="button"
                         label="Tambah Pertanyaan Dari Bank"
-                        onClick={handleOpenModal}
+                        onClick={() => {
+                          handleOpenModal(); // Memanggil fungsi untuk membuka modal
+                          setAksiIs(false); // Mengubah nilai state `aksiIs`
+                        }}
                       />
                     </div>
                   </div>
@@ -586,20 +599,29 @@ export default function EditTemplateSurvei() {
                             "Skala",
                           ]}
                           data={filteredData.map((item, index) => ({
-                            Key: item.id, // sesuaikan dengan properti ID pada master pertanyaan
+                            Key: item.pty_id, // pastikan properti ID sesuai
                             No: (pageCurrent - 1) * pageSize + index + 1,
                             Kriteria: item.ksr_nama,
-                            Pertanyaan: item.pty_pertanyaan,
+                            Pertanyaan: (
+                              <div
+                                dangerouslySetInnerHTML={{
+                                  __html: decodeHtml(item.namaPertanyaan || ""),
+                                }}
+                              />
+                            ),
                             Tipe: item.skp_deskripsi,
                             Skala: item.skp_skala,
                             status: item.status,
                           }))}
-                          // Aktifkan checkbox untuk multi-select
-                          enableCheckbox={true}
-                          onSelect={(selectedKeys) =>
-                            setTambahPertanyaan(selectedKeys)
-                          }
+                          actions={aksiIs ? ["Choose"] : ""}
+                          enableCheckbox={!aksiIs}
+                          aksiIs={aksiIs}
+                          onSelect={(selectedKeys) => {
+                            setTambahPertanyaan(selectedKeys);
+                          }}
+                          onChoose={(item) => handleChoosePertanyaan(item.Key)}
                         />
+
                         <div className="d-flex justify-content-between align-items-center mt-3">
                           <div className="m-2">
                             <Paging
@@ -610,12 +632,14 @@ export default function EditTemplateSurvei() {
                             />
                           </div>
                           <div className="m-2">
-                            <Button
-                              classType="primary"
-                              type="button"
-                              label="Simpan Pertanyaan"
-                              onClick={handleSubmitPertanyaan}
-                            />
+                            {aksiIs === false && (
+                              <Button
+                                classType="primary"
+                                type="button"
+                                label="Simpan Pertanyaan"
+                                onClick={handleSubmitPertanyaan}
+                              />
+                            )}
                           </div>
                         </div>
                       </>

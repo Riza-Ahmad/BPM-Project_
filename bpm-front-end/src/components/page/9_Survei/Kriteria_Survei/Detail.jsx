@@ -81,13 +81,12 @@ export default function Detail() {
     fetchDetail();
   }, [detailId, navigate]);
 
-  // Komponen untuk menampilkan kolom kiri detail
-  const KolomKiriDetail = () => (
-    <div className="col-lg-6 col-md-6">
-      <DetailData label="Nama Kriteria" isi={detailData.kriteriaNama || "-"} />
-      <DetailData label="Status" isi={detailData.status || "-"} />
-      <DetailData label="Dibuat Oleh" isi={detailData.createdBy || "-"} />
-      <DetailData label="Tanggal Dibuat" isi={detailData.createdDate} />
+  const KolomKiriDetail = ({ detailData }) => (
+    <div>
+      <DetailData label="Nama Kriteria" isi={detailData?.namaKri || "-"} />
+      <DetailData label="Status" isi={detailData?.status || "-"} />
+      <DetailData label="Dibuat Oleh" isi={detailData?.createdBy || "-"} />
+      <DetailData label="Tanggal Dibuat" isi={detailData?.createdDate || "-"} />
     </div>
   );
 

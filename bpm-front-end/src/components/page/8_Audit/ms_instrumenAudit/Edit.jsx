@@ -198,15 +198,20 @@ export default function Edit({ onChangePage }) {
 
   const fetchData = async () => {
     setLoading(true);
+    console.log("awallll BB");
+    console.log(formData.pertanyaan);
     try {
       const result = await useFetch(
         `${API_LINK}/MasterInstrumenAudit/GetPertanyaanByIds`,
         { param: formData.pertanyaan }
       );
+      console.log("API ID BB", result);
 
       if (result === "ERROR" || result === null || result.length === 0) {
         setPertanyaan([]);
       } else {
+        console.log("awallll");
+        console.log(Object.values(result));
         const arrResult = Object.values(result);
         setPertanyaan(arrResult);
       }
@@ -516,8 +521,7 @@ export default function Edit({ onChangePage }) {
                 isMobile
                   ? "shadow p-4 m-2 mt-0 bg-white rounded"
                   : "shadow p-5 m-5 mt-0 bg-white rounded"
-              }
-            >
+              }>
               <HeaderForm label="Formulir Instrumen Audit" />
 
               <div className="border bg-white rounded mt-5 p-3">
@@ -573,8 +577,7 @@ export default function Edit({ onChangePage }) {
                     backgroundColor: "#F3EFEF",
                     padding: "0.1rem",
                     borderColor: "gray",
-                  }}
-                >
+                  }}>
                   <HeaderText
                     label="Daftar Pertanyaan"
                     warna="#2654A1"
@@ -688,8 +691,7 @@ export default function Edit({ onChangePage }) {
                   aria-label="Close"
                   onClick={handleCloseModal}
                   style={{ color: "white", backgroundColor: "white" }}
-                  id="kadepModalClose"
-                ></button>
+                  id="kadepModalClose"></button>
               </div>
               <div className="modal-body">
                 <div className="container-fluid">
@@ -793,8 +795,7 @@ export default function Edit({ onChangePage }) {
           style={{
             display: showModalBank ? "block" : "none",
             zIndex: 1050,
-          }}
-        >
+          }}>
           <div className="modal-xl modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
@@ -807,8 +808,7 @@ export default function Edit({ onChangePage }) {
                   data-bs-dismiss="modal"
                   aria-label="Close"
                   onClick={handleCloseModalBank}
-                  style={{ color: "white", backgroundColor: "white" }}
-                ></button>
+                  style={{ color: "white", backgroundColor: "white" }}></button>
               </div>
               <div className="modal-body">
                 <div className="container-fluid">
