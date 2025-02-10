@@ -205,10 +205,10 @@ export default function EditTemplateSurvei() {
   };
 
   // Fetch data master pertanyaan survei untuk modal
-  const fetchData = async () => {
+  const fetchPertanyaanBank = async () => {
     setIsLoading(true);
     try {
-      const result = await useFetch(
+      const dataJson = await useFetch(
         `${API_LINK}/MasterPertanyaan/GetDataPertanyaan`,
         {
           param1: searchKeyword,
@@ -468,7 +468,8 @@ export default function EditTemplateSurvei() {
                 isMobile
                   ? "shadow p-4 m-2 mt-0 bg-white rounded"
                   : "shadow p-5 m-5 mt-0 bg-white rounded"
-              }>
+              }
+            >
               <HeaderForm label="Formulir Template Survei" />
               <InputField
                 ref={namaTemplateRef}
@@ -525,7 +526,8 @@ export default function EditTemplateSurvei() {
                     backgroundColor: "#F3EFEF",
                     padding: "0.1rem",
                     borderColor: "gray",
-                  }}>
+                  }}
+                >
                   <HeaderText
                     label="Daftar Pertanyaan"
                     warna="#2654A1"
@@ -606,7 +608,8 @@ export default function EditTemplateSurvei() {
               tabIndex="-1"
               aria-labelledby="modalPertanyaanLabel"
               aria-hidden={!showModal}
-              style={{ display: showModal ? "block" : "none" }}>
+              style={{ display: showModal ? "block" : "none" }}
+            >
               <div className="modal-xl modal-dialog modal-dialog-centered">
                 <div className="modal-content">
                   <div className="modal-header">
@@ -616,7 +619,8 @@ export default function EditTemplateSurvei() {
                     <button
                       type="button"
                       className="btn-close"
-                      onClick={handleCloseModal}></button>
+                      onClick={handleCloseModal}
+                    ></button>
                   </div>
                   <div className="modal-body">
                     <div className="container-fluid">
