@@ -41,7 +41,7 @@ export default function Add({ onChangePage }) {
       try {
         setLoadingTemplate(true);
         const response = await fetch(
-          `${API_LINK}/TemplateSurvei/GetTemplateSurvei`,
+          `${API_LINK}/TransaksiSurvei/GetDataTemplateFinal`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
