@@ -44,7 +44,7 @@ export default function Akreditasi() {
       try {
         // Fetch data akreditasi institusi
         const responseInstitusi = await useFetch(
-          `${API_LINK}/MasterAkreditasi/GetAkreditasiInstitusi`,
+          `${API_LINK}/MasterAkreditasi/GetAkreditasiInstitusiLatest`,
           {},
           "POST"
         );
@@ -133,7 +133,7 @@ export default function Akreditasi() {
         },
       },
       legend: {
-        display: true,
+        display: false,
         // labels: {
         //   color: "rgb(255, 99, 132)",
         // },
@@ -246,6 +246,12 @@ export default function Akreditasi() {
                   />
                 </div>
               </div>
+            </div>
+            <div className="mt-5">
+              <p className="fs-6 fst-italic">
+                * Dokumen SK dan Sertifikat Akreditasi dapat diunduh pada menu
+                SPME / Dokumen SPME
+              </p>
             </div>
           </div>
         </div>

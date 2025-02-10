@@ -156,7 +156,7 @@ export default function Add({ onChangePage, breadcrumbs }) {
           "Data berhasil ditambahkan.",
           "success",
           "OK"
-        ).then(() => onChangePage("index"));
+        ).then(() => onChangePage("read"));
       }
     } catch (error) {
       console.error("Error:", error.message);
@@ -280,7 +280,7 @@ export default function Add({ onChangePage, breadcrumbs }) {
                       type="button"
                       label="Batal"
                       width="100%"
-                      onClick={() => onChangePage("index")}
+                      onClick={() => onChangePage("read")}
                     />
                   </div>
                 </div>

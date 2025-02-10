@@ -38,6 +38,8 @@ export default function Read({ onChangePage }) {
   const isMobile = useIsMobile();
   const [error, setError] = useState(null);
   const location = useLocation();
+  const currentPath = location.pathname;
+  const rootPath = currentPath.split("/")[2];
   const navigate = useNavigate();
   const idMenu = location.state?.idMenu;
   const [pageCurrent, setPageCurrent] = useState(1);
@@ -118,19 +120,13 @@ export default function Read({ onChangePage }) {
   ]);
 
   useEffect(() => {
-    if (idMenu === 38) {
+    if (rootPath === "dokumen") {
       title = "Dokumen Peraturan";
       breadcrumbs = [
-        { label: "Peraturan", href: "/peraturan/kebijakan" },
-        { label: "Dokumen Kebijakan Peraturan" },
+        { label: "Peraturan", href: "/peraturan/dokumen" },
+        { label: "Dokumen Peraturan" },
       ];
-    } else if (idMenu === 39) {
-      title = "Dokumen Peraturan Eksternal";
-      breadcrumbs = [
-        { label: "Peraturan", href: "/peraturan/eksternal" },
-        { label: "Dokumen Kebijakan Eksternal" },
-      ];
-    } else if (idMenu === 40) {
+    } else if (rootPath === "aps") {
       title = "Instrumen APS";
       breadcrumbs = [
         { label: "Instrumen APS", href: "/peraturan/aps" },

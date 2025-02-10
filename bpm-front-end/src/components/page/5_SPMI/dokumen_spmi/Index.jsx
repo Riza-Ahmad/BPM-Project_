@@ -338,7 +338,7 @@ export default function Index({ onChangePage }) {
         <div className="d-flex flex-column">
           <div className="p-3 m-5 mt-0 mb-0">
             <h1 style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}>
-              {title}
+              {"DOKUMEN " + title}
             </h1>
             <Breadcrumbs breadcrumbs={breadcrumbs} />
           </div>
@@ -498,25 +498,6 @@ export default function Index({ onChangePage }) {
               </div>
             )}
           </div>
-          {loading === true ? (
-            <Loading />
-          ) : (
-            <Document
-              file={DOKUMEN_LINK + filteredData[0]?.fileDok}
-              onLoadSuccess={onDocumentLoadSuccess}
-              // className="pdf-document"
-            >
-              {/* Render all pages */}
-              {Array.from(new Array(numPages), (el, index) => (
-                <Page
-                  key={`page_${index + 1}`}
-                  pageNumber={index + 1}
-                  renderAnnotationLayer={false} // Disable annotations
-                  renderTextLayer={false} // Disable text selection
-                />
-              ))}
-            </Document>
-          )}
         </div>
       </main>
 
@@ -633,7 +614,7 @@ export default function Index({ onChangePage }) {
             />
           }
         >
-          <div className="p-3 mt-0 bg-white rounded shadow">
+          <div className="p-3 mt-0 bg-white">
             <div style={{ width: "80vh", height: "70vh" }}>
               {loading == true ? (
                 <div
@@ -649,31 +630,31 @@ export default function Index({ onChangePage }) {
                   <SyncLoader color="#0d6efd" loading={true} />
                 </div>
               ) : (
-                // <embed
-                //   src={DOKUMEN_LINK + detail.fileDok}
-                //   type="application/pdf"
-                //   width="100%"
-                //   height="100%"
-                //   style={{
-                //     border: "none",
-                //   }}
-                // />
+                <embed
+                  src={DOKUMEN_LINK + detail.fileDok}
+                  type="application/pdf"
+                  width="100%"
+                  height="100%"
+                  style={{
+                    border: "none",
+                  }}
+                />
 
-                <Document
-                  file={DOKUMEN_LINK + detail.fileDok}
-                  onLoadSuccess={onDocumentLoadSuccess}
-                  // className="pdf-document"
-                >
-                  {/* Render all pages */}
-                  {Array.from(new Array(numPages), (el, index) => (
-                    <Page
-                      key={`page_${index + 1}`}
-                      pageNumber={index + 1}
-                      renderAnnotationLayer={false} // Disable annotations
-                      renderTextLayer={false} // Disable text selection
-                    />
-                  ))}
-                </Document>
+                // <Document
+                //   file={DOKUMEN_LINK + detail.fileDok}
+                //   onLoadSuccess={onDocumentLoadSuccess}
+                //   // className="pdf-document"
+                // >
+                //   {/* Render all pages */}
+                //   {Array.from(new Array(numPages), (el, index) => (
+                //     <Page
+                //       key={`page_${index + 1}`}
+                //       pageNumber={index + 1}
+                //       renderAnnotationLayer={false} // Disable annotations
+                //       renderTextLayer={false} // Disable text selection
+                //     />
+                //   ))}
+                // </Document>
               )}
             </div>
           </div>

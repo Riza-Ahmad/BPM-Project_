@@ -143,7 +143,7 @@ export default function Index({ onChangePage }) {
     });
   };
 
-  if (loading) return <Loading />;
+  if (error) return <p>{error}</p>;
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -184,43 +184,49 @@ export default function Index({ onChangePage }) {
               </div>
             </div>
             <div className="table-container bg-white rounded">
-              <Table
-                arrHeader={[
-                  "No",
-                  "Kode Prodi",
-                  "Nama Prodi",
-                  "Jenjang",
-                  "Nomor SK",
-                  "Tahun SK",
-                  "Peringkat",
-                  "Tanggal Kadaluwarsa",
-                ]}
-                data={filteredData.map((item, index) => ({
-                  Key: item.idAkr,
-                  No: (pageCurrent - 1) * pageSize + index + 1,
-                  "Kode Prodi": item.kodeAkr,
-                  "Nama Prodi": item.namaAkr,
-                  Jenjang: item.jenjangAkr,
-                  "Nomor SK": item.noAkr || "-",
-                  "Tahun SK": item.tahunAkr || "-",
-                  Peringkat: item.peringkatAkr || "-",
-                  "Tanggal Kadaluwarsa": item.expAkr
-                    ? moment(item.expAkr).format("YYYY-MM-DD")
-                    : "-",
-                }))}
-                aksiIs={role === "ROL01" ? true : false}
-                actions={["Detail", "Edit", "Delete"]}
-                onEdit={handleEdit}
-                onDetail={handleDetail}
-                onDelete={handleDelete}
-              />
+              {loading ? (
+                <Loading />
+              ) : (
+                <>
+                  <Table
+                    arrHeader={[
+                      "No",
+                      "Kode Prodi",
+                      "Nama Prodi",
+                      "Jenjang",
+                      "Nomor SK",
+                      "Tahun SK",
+                      "Peringkat",
+                      "Tanggal Kadaluwarsa",
+                    ]}
+                    data={filteredData.map((item, index) => ({
+                      Key: item.idAkr,
+                      No: (pageCurrent - 1) * pageSize + index + 1,
+                      "Kode Prodi": item.kodeAkr,
+                      "Nama Prodi": item.namaAkr,
+                      Jenjang: item.jenjangAkr,
+                      "Nomor SK": item.noAkr || "-",
+                      "Tahun SK": item.tahunAkr || "-",
+                      Peringkat: item.peringkatAkr || "-",
+                      "Tanggal Kadaluwarsa": item.expAkr
+                        ? moment(item.expAkr).format("YYYY-MM-DD")
+                        : "-",
+                    }))}
+                    aksiIs={role === "ROL01" ? true : false}
+                    actions={["Detail", "Edit", "Delete"]}
+                    onEdit={handleEdit}
+                    onDetail={handleDetail}
+                    onDelete={handleDelete}
+                  />
 
-              <Paging
-                pageSize={pageSize}
-                pageCurrent={pageCurrent}
-                totalData={totalData}
-                navigation={setPageCurrent}
-              />
+                  <Paging
+                    pageSize={pageSize}
+                    pageCurrent={pageCurrent}
+                    totalData={totalData}
+                    navigation={setPageCurrent}
+                  />
+                </>
+              )}
             </div>
           </div>
         </div>

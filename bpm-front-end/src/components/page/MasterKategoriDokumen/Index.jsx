@@ -163,7 +163,7 @@ export default function Index({ onChangePage }) {
             <PageTitleNav
               title={title}
               breadcrumbs={breadcrumbs}
-              onClick={() => onChangePage("index")}
+              // onClick={() => onChangePage("index")}
             />
           </div>
 

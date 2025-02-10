@@ -16,6 +16,7 @@ import DocUpload from "../../../part/DocUpload";
 import { useIsMobile } from "../../../util/useIsMobile";
 import SweetAlert from "../../../util/SweetAlert";
 import { decodeHtml } from "../../../util/DecodeHtml";
+import InputArea from "../../../part/InputArea";
 
 const arrData = [
   { Value: "Nasional", Text: "Nasional" },
@@ -185,11 +186,7 @@ export default function Add({ onChangePage }) {
               }
             >
               <HeaderForm
-                label={
-                  modew === "utama"
-                    ? "Formulir Indikator Utama"
-                    : "Formulir Indikator Tambahan"
-                }
+                label="Indikator Kinerja"
               />
               <div className="row mb-3">
                 <div className="col-lg-12 col-md-12">
@@ -200,7 +197,7 @@ export default function Add({ onChangePage }) {
                   />
                 </div>
                 <div className="col-lg-12 col-md-12">
-                  <TextArea
+                  <InputArea
                     ref={namaIkaRef}
                     label="Nama Indikator"
                     value={formData.namaIka}
@@ -209,6 +206,15 @@ export default function Add({ onChangePage }) {
                     }
                     isRequired={true}
                   />
+                  {/* <TextArea
+                    ref={namaIkaRef}
+                    label="Nama Indikator"
+                    value={formData.namaIka}
+                    onChange={(e) =>
+                      setFormData({ ...formData, namaIka: e.target.value })
+                    }
+                    isRequired={true}
+                  /> */}
                 </div>
                 <div className="col-lg-6 col-md-6">
                   <InputField

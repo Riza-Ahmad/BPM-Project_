@@ -389,7 +389,7 @@ export default function IndexPelaksanaan({ onChangePage, isIkuIkt }) {
       }
     });
   };
- 
+
   const handleDownload = async (item) => {
     const id = item.Key;
     if (!id) {
@@ -585,7 +585,7 @@ export default function IndexPelaksanaan({ onChangePage, isIkuIkt }) {
       <div className="d-flex flex-column min-vh-100">
         <main className="flex-grow-1 p-3" style={{ marginTop: "60px" }}>
           <div className="d-flex flex-column">
-            <div className="container mb-3">
+            <div className="px-5 mx-5">
               <ImagesCarousel images={menuData.images} />
               <div className="mt-5 mb-3">
                 <div className="d-flex justify-content-between align-items-center">
@@ -613,10 +613,13 @@ export default function IndexPelaksanaan({ onChangePage, isIkuIkt }) {
               <hr />
 
               <div className="mt-5">
-                <div className="nav nav-underline ms-2" style={{ overflowX: "auto" }} >
+                <div
+                  className="nav nav-underline ms-2"
+                  style={{ overflowX: "auto" }}
+                >
                   {renderTab(tabMenu)}
                 </div>
-                <div className="container p-3 mb-5 bg-white rounded shadow">
+                <div className="p-3 mb-5 bg-white rounded shadow">
                   <div className="row">
                     <div className="col-lg-2">{renderSide(sideMenu)}</div>
                     <div className="col">

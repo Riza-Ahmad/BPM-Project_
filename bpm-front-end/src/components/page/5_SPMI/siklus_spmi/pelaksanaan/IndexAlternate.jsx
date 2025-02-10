@@ -25,8 +25,12 @@ import DropDown from "../../../../part/Dropdown";
 import { decodeHtml } from "../../../../util/DecodeHtml";
 
 const arrSort = [
-  { Value: "[judulDok] ASC", Text: "Judul Dokumen [↑]" },
-  { Value: "[judulDok] DESC", Text: "Judul Dokumen [↓]" },
+  { Value: "[namaIka] ASC", Text: "Nama Indikator [↑]" },
+  { Value: "[namaIka] DESC", Text: "Nama Indikator [↓]" },
+];
+const arrTahun = [
+  { Value: "2024", Text: "2024" },
+  { Value: "2025", Text: "2025" },
 ];
 
 const arrStatus = [
@@ -492,7 +496,7 @@ export default function IndexAlternate({ onChangePage }) {
   const [loading, setLoading] = useState(true);
   const [menuData, setMenuData] = useState(inisialisasiMenuData);
   const [tabMenu, setTabMenu] = useState(inisialisasiSideMenuData);
-  const [sideMenu, setSideMenu] = useState(inisialisasiSideMenuData);
+  const [sideMenu, setSideMenu] = useState([]);
   const [activeTab, setActiveTab] = useState(0);
   const [activeSide, setActiveSide] = useState(null);
   const [error, setError] = useState("");
@@ -504,11 +508,12 @@ export default function IndexAlternate({ onChangePage }) {
   const [currentFilter, setCurrentFilter] = useState({
     param1: activeSide?.idSta || "",
     param2: "",
-    param3: "[namaIka] ASC",
+    param3: "[urutanIka] ASC",
     param4: pageSize,
     param5: pageCurrent,
     param6: "IKU",
   });
+  const [standarFilter, setStandarFilter] = useState(new Date().getFullYear());
 
   useEffect(() => {
     setCurrentFilter((prevFilter) => ({
@@ -516,13 +521,6 @@ export default function IndexAlternate({ onChangePage }) {
       param5: pageCurrent,
     }));
   }, [pageCurrent]);
-
-  const uniqueDokRefs = data
-    .filter(
-      (item, index, self) =>
-        index === self.findIndex((obj) => obj.dok_ref === item.dok_ref)
-    )
-    .sort((a, b) => a.dok_ref - b.dok_ref);
 
   useEffect(() => {
     if (selectedDokRef !== null) {
@@ -598,7 +596,7 @@ export default function IndexAlternate({ onChangePage }) {
       try {
         const result = await useFetch(
           `${API_LINK}/MasterStandar/GetDataStandarByTahun`,
-          { tahun: new Date().getFullYear() },
+          { tahun: standarFilter },
           "POST"
         );
 
@@ -621,7 +619,7 @@ export default function IndexAlternate({ onChangePage }) {
         const listMenu = CreateMenu(arrResult);
         console.log(listMenu);
         const depth = calculateDepth(listMenu);
-        console.log(depth);
+        // console.log(depth);
         const sideMenuTransformed = listMenu[0]?.children;
 
         // switch (depth) {
@@ -661,7 +659,7 @@ export default function IndexAlternate({ onChangePage }) {
     };
 
     fetchKategori();
-  }, [location.state?.idMenu]);
+  }, [standarFilter]);
 
   const fetchDokumen = async () => {
     setLoading(true);
@@ -710,7 +708,6 @@ export default function IndexAlternate({ onChangePage }) {
 
       return menuHierarchy;
     } catch (err) {
-      // console.error(err);
       return [];
     }
   };
@@ -739,7 +736,8 @@ export default function IndexAlternate({ onChangePage }) {
           } ${menu.children?.length > 0 ? "justify-content-between" : ""}`}
           style={{ cursor: "pointer" }}
         >
-          <span className="text-start"
+          <span
+            className="text-start"
             onClick={() => {
               if (menu.children?.length > 0) {
                 // Toggle submenu visibility for items with children
@@ -748,13 +746,6 @@ export default function IndexAlternate({ onChangePage }) {
                   ...prevFilter,
                   param1: menu.idSta,
                 }));
-                // setSideMenu((prevSideMenu) =>
-                //   prevSideMenu.map((item) =>
-                //     item.idSta === menu.idSta
-                //       ? { ...item, isExpanded: !item.isExpanded }
-                //       : item
-                //   )
-                // );
               } else {
                 // Set the clicked menu as active for items without children
                 setActiveSide(menu);
@@ -832,12 +823,12 @@ export default function IndexAlternate({ onChangePage }) {
       idData: item.Key,
       idSta: activeSide?.idSta || activeTab?.idSta,
       dataName: activeSide?.judulSta || activeTab?.judulSta,
-      modew: item.jenis === 'IKU' ? 'utama' : 'tambahan',
+      modew: item.jenis === "IKU" ? "utama" : "tambahan",
       breadcrumbs: breadcrumbs,
     });
   };
 
-  if (loading) return <Loading />;
+  // if (loading) return <Loading />;
 
   if (error) return <p className="text-center">{error}</p>;
 
@@ -909,11 +900,14 @@ export default function IndexAlternate({ onChangePage }) {
                     <div className="nav-item mx-0" key={index}>
                       <button
                         onClick={() => {
-                            console.log(index);
-                            setCurrentFilter((prev) => {return {
-                                ...prev, param6: index === 0 ? 'IKU' : 'IKT'
-                            }})
-                            setActiveTab(index);
+                          console.log(index);
+                          setCurrentFilter((prev) => {
+                            return {
+                              ...prev,
+                              param6: index === 0 ? "IKU" : "IKT",
+                            };
+                          });
+                          setActiveTab(index);
                         }}
                         className={`nav-link ${
                           activeTab === index ? " active " : ""
@@ -927,12 +921,14 @@ export default function IndexAlternate({ onChangePage }) {
               </div>
               <div className="shadow p-3 mb-5  bg-white rounded">
                 <div className="row">
-                  <div
-                    className="col-lg-3"
-                    style={{ overflowY: "auto", height: "65vh" }}
-                  >
-                    {renderSide(sideMenu)}
-                  </div>
+                  {sideMenu && (
+                    <div
+                      className="col-lg-3"
+                      style={{ overflowY: "auto", height: "65vh" }}
+                    >
+                      {renderSide(sideMenu)}
+                    </div>
+                  )}
                   <div className="col-lg">
                     <div className="text-center">
                       <h3
@@ -949,7 +945,7 @@ export default function IndexAlternate({ onChangePage }) {
                     <div className="table-container bg-white mt-0 rounded">
                       <div className={isMobile ? "mb-3" : "row"}>
                         <div className="d-flex flex-wrap align-items-center gap-1">
-                          {role === "ROL01" ? (
+                          {/* {role === "ROL01" ? (
                             <div>
                               <Button
                                 iconName="add"
@@ -999,7 +995,7 @@ export default function IndexAlternate({ onChangePage }) {
                             </div>
                           ) : (
                             ""
-                          )}
+                          )} */}
 
                           <div className="me-auto flex-grow-1 mt-3 me-3">
                             <SearchField
@@ -1020,29 +1016,24 @@ export default function IndexAlternate({ onChangePage }) {
                                 arrData={arrSort}
                                 label="Urut Berdasarkan"
                                 type="pilih"
-                                defaultValue="[judulDok] ASC"
+                                defaultValue="[namaIka] ASC"
                                 forInput="sortFilter"
                                 onChange={(e) =>
                                   setCurrentFilter((prevFilter) => {
                                     return {
                                       ...prevFilter,
-                                      param7: e.target.value,
+                                      param3: e.target.value,
                                     };
                                   })
                                 }
                               />
                               <DropDown
-                                // arrData={arrTahun}
-                                label="Tahun Dokumen"
+                                arrData={arrTahun}
+                                label="Tahun PPEPP"
                                 type="semua"
                                 forInput="yearFilter"
                                 onChange={(e) =>
-                                  setCurrentFilter((prevFilter) => {
-                                    return {
-                                      ...prevFilter,
-                                      param4: e.target.value,
-                                    };
-                                  })
+                                  setStandarFilter(e.target.value)
                                 }
                               />
                               <DropDown
@@ -1068,33 +1059,39 @@ export default function IndexAlternate({ onChangePage }) {
                         <Loading />
                       ) : (
                         <div>
-                            <Table
-                              arrHeader={["No", "Nama Indikator", "PIC"]}
-                              data={filteredData.map((item, index) => ({
-                                Key: item.idIka,
-                                No: (pageCurrent - 1) * pageSize + index + 1,
-                                "Nama Indikator":
-                                  decodeHtml(item.namaIka).replace(
-                                    /<\/?[^>]+(>|$)/g,
-                                    ""
-                                  ) || "-",
-                                PIC: item.picIka,
-                                jenis: item.jenisIka,
-                                status: item.status,
-                              }))}
-                              actions={(row) => {
-                                // Jika status "Tidak Aktif", hanya tampilkan Toggle
-                                if (row.status === "Tidak Aktif") {
-                                  return ["Toggle"];
-                                }
-                                // Jika status selain "Tidak Aktif", tampilkan semua actions
-                                return ["Detail", "Edit", "Toggle"];
-                              }}
-                              aksiIs={role === 'ROL01' ? true : false}
-                                onEdit={handleEdit}
-                                onDetail={handleDetail}
-                              //   onToggle={handleToggle}
-                            />
+                          <Table
+                            arrHeader={[
+                              "No",
+                              "Nama Indikator",
+                              "Target",
+                              "Aktual",
+                            ]}
+                            data={filteredData.map((item, index) => ({
+                              Key: item.idIka,
+                              No: (pageCurrent - 1) * pageSize + index + 1,
+                              "Nama Indikator":
+                                decodeHtml(item.namaIka).replace(
+                                  /<\/?[^>]+(>|$)/g,
+                                  ""
+                                ) || "-",
+                              Target: item.targetIka || "-",
+                              Aktual: item.aktualIka || "-",
+                              jenis: item.jenisIka,
+                              status: item.status,
+                            }))}
+                            actions={(row) => {
+                              // Jika status "Tidak Aktif", hanya tampilkan Toggle
+                              if (row.status === "Tidak Aktif") {
+                                return ["Toggle"];
+                              }
+                              // Jika status selain "Tidak Aktif", tampilkan semua actions
+                              return ["Detail", "Edit", "Toggle"];
+                            }}
+                            aksiIs={role === "ROL01" ? true : false}
+                            onEdit={handleEdit}
+                            onDetail={handleDetail}
+                            //   onToggle={handleToggle}
+                          />
                           <Paging
                             pageSize={pageSize}
                             pageCurrent={pageCurrent}

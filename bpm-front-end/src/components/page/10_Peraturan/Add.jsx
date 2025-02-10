@@ -21,6 +21,8 @@ let breadcrumbs = [];
 export default function Add({ onChangePage }) {
   const isMobile = useIsMobile();
   const location = useLocation();
+  const currentPath = location.pathname;
+  const rootPath = currentPath.split("/")[2];
   const idMenu = location.state?.idMenu;
   const [loading, setLoading] = useState(true); // New loading state
   const [selectedFile, setSelectedFile] = useState(null);
@@ -34,6 +36,7 @@ export default function Add({ onChangePage }) {
     jenisDokumen: "",
   });
 
+  console.log(rootPath);
   const handleFileChange = (file) => {
     setSelectedFile(file);
   };
@@ -47,29 +50,18 @@ export default function Add({ onChangePage }) {
   const fileDokumenRef = useRef();
 
   useEffect(() => {
-    if (idMenu === 39) {
-      title = "Kebijakan Peraturan";
-      titleHeader = "Formulir Kebijakan Peraturan";
+    if (rootPath === "dokumen") {
+      title = "Dokumen Peraturan";
+      titleHeader = "Formulir Dokumen Peraturan";
       breadcrumbs = [
-        { label: "Peraturan", href: "/peraturan/kebijakan" },
+        { label: "Peraturan", href: "/peraturan/dokumen" },
         {
-          label: "Kebijakan Peraturan",
-          href: "/peraturan/kebijakan",
+          label: "Dokumen Peraturan",
+          href: "/peraturan/dokumen",
         },
-        { label: "Tambah Kebijakan Peraturan" },
+        { label: "Tambah Dokumen Peraturan" },
       ];
-    } else if (idMenu === 40) {
-      title = "Peraturan Eksternal";
-      titleHeader = "Formulir Peraturan Eksternal";
-      breadcrumbs = [
-        { label: "Peraturan", href: "/peraturan/eksternal" },
-        {
-          label: "Peraturan Eksternal",
-          href: "/peraturan/eksternal",
-        },
-        { label: "Tambah Peraturan Eksternal" },
-      ];
-    } else if (idMenu === 41) {
+    } else if (rootPath === "aps") {
       title = "Instrumen APS";
       titleHeader = "Formulir Instrumen APS";
       breadcrumbs = [
@@ -83,7 +75,7 @@ export default function Add({ onChangePage }) {
     }
 
     setLoading(false);
-  }, [idMenu]);
+  }, [rootPath]);
 
   const handleSubmit = async () => {
     if (!judulDokumenRef.current?.validate()) {

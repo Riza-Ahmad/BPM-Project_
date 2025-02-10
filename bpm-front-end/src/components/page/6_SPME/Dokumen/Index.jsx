@@ -191,7 +191,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
             setActiveSide(null);
             setCurrentFilter((prevFilter) => ({
               ...prevFilter,
-              param1: '',
+              param1: "",
             }));
             break;
           case 2:
@@ -474,7 +474,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
     }
 
     return list.map(({ idKdo, namaKdo }, index) => (
-      <div className="nav-item mx-0" key={idKdo || index} >
+      <div className="nav-item mx-0" key={idKdo || index}>
         <button
           onClick={() => handleTabClick(idKdo, list[index])}
           className={`nav-link ${
@@ -599,13 +599,13 @@ export default function Index({ onChangePage, isIkuIkt }) {
       <div className="d-flex flex-column min-vh-100">
         <main className="flex-grow-1 p-3" style={{ marginTop: "60px" }}>
           <div className="d-flex flex-column">
-            <div className="container mb-3">
-              <div className="mt-5 mb-3">
+            <div className="p-3 m-5 mt-0 mb-0">
+              <div className="mb-3">
                 <div className="d-flex justify-content-between align-items-center">
                   <h1
                     style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}
                   >
-                    {menuData?.namaKdo ? menuData.namaKdo : "Page Title"}
+                    {menuData?.namaKdo ? menuData.namaKdo.toUpperCase() : "Page Title"}
                   </h1>
                 </div>
 
@@ -613,12 +613,20 @@ export default function Index({ onChangePage, isIkuIkt }) {
               </div>
 
               <div className="mt-5">
-                <div className="nav nav-underline ms-2" style={{ overflowX: "auto", maxWidth: 'cover' }} >
+                <div
+                  className="nav nav-underline ms-2"
+                  style={{ overflowX: "auto", maxWidth: "cover" }}
+                >
                   {renderTab(tabMenu)}
                 </div>
-                <div className="container p-3 mb-5 bg-white rounded shadow">
+                <div className="p-3 mb-5 bg-white rounded shadow">
                   <div className="row">
-                    <div className="col-lg-2" style={{ overflow: "auto", maxHeight: '800px' }}>{renderSide(sideMenu)}</div>
+                    <div
+                      className="col-lg-2"
+                      style={{ overflow: "auto", maxHeight: "800px" }}
+                    >
+                      {renderSide(sideMenu)}
+                    </div>
                     <div className="col">
                       <div className="text-center">
                         <h3
@@ -911,10 +919,9 @@ export default function Index({ onChangePage, isIkuIkt }) {
               />
             }
           >
-            <div className="p-3 mt-0 bg-white rounded shadow">
+            <div className="p-3 mt-0 bg-white">
               <div style={{ width: "80vh", height: "70vh" }}>
-                <canvas resource={DOKUMEN_LINK + detail.fileDok}></canvas>
-                {loading ? (
+                {loading == true ? (
                   <div
                     style={{
                       display: "flex",
@@ -936,8 +943,6 @@ export default function Index({ onChangePage, isIkuIkt }) {
                     style={{
                       border: "none",
                     }}
-                    onLoad={() => setLoading(true)}
-                    onLoadedData={() => setLoading(false)}
                   />
                 )}
               </div>

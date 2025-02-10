@@ -96,10 +96,10 @@ export default function Index({ onChangePage, isIkuIkt }) {
   const [currentFilter, setCurrentFilter] = useState({
     param1: activeSide?.idSta || "",
     param2: "",
-    param3: "[namaIka] ASC",
+    param3: "[urutanIka] ASC",
     param4: pageSize,
     param5: pageCurrent,
-    param6: '',
+    param6: "IKU",
   });
 
   useEffect(() => {
@@ -161,10 +161,8 @@ export default function Index({ onChangePage, isIkuIkt }) {
         console.log(depth);
         const sideMenuTransformed = listMenu[0]?.children;
 
-        // switch (depth) {
-        //   case 2:
         setTabMenu([]);
-        setActiveTab(null);
+        setActiveTab(0);
         setSideMenu(listMenu);
         setActiveSide(sideMenuTransformed[0]);
         setCurrentFilter((prevFilter) => ({
@@ -299,7 +297,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
       idData: item.Key,
       idSta: activeSide?.idSta || activeTab?.idSta,
       dataName: activeSide?.judulSta || activeTab?.judulSta,
-      modew: item.jenis === 'IKU' ? 'utama' : 'tambahan',
+      modew: item.jenis === "IKU" ? "utama" : "tambahan",
       breadcrumbs: breadcrumbs,
     });
   };
@@ -477,7 +475,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
     return sideMenu.map((menu) => (
       <div key={menu.idSta}>
         <div
-          className={`btn w-100 px-3 fw-medium py-1 mt-1 d-flex ${
+          className={`text-start btn w-100 px-3 fw-medium py-1 mt-1 d-flex ${
             activeSide?.idSta === menu.idSta
               ? "bg-primary text-white"
               : "bg-light text-dark"
@@ -578,7 +576,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
               </h1>
               <Breadcrumbs breadcrumbs={breadcrumbs} />
 
-              <div className="mt-4 mb-5">
+              {/* <div className="mt-4 mb-5">
                 {menuData.deskripsiKdo != "" ? (
                   <p
                     style={{ textAlign: "justify" }}
@@ -587,20 +585,43 @@ export default function Index({ onChangePage, isIkuIkt }) {
                 ) : (
                   "Lorem Ipsum dolor sit amet..."
                 )}
-              </div>
+              </div> */}
 
               <hr />
 
               <div className="mt-5">
-                <div className="nav nav-underline ms-2">
+                <div className="mt-1">
                   <div
-                    className="d-flex"
-                    style={{ overflow: "auto", maxWidth: "cover" }}
+                    className="nav nav-underline ms-2"
+                    style={{ overflowX: "auto" }}
                   >
-                    {renderTab(tabMenu)}
+                    {[
+                      "Indikator Kinerja Utama",
+                      "Indikator Kinerja Tambahan",
+                    ].map((label, index) => (
+                      <div className="nav-item mx-0" key={index}>
+                        <button
+                          onClick={() => {
+                            console.log(index);
+                            setCurrentFilter((prev) => {
+                              return {
+                                ...prev,
+                                param6: index === 0 ? "IKU" : "IKT",
+                              };
+                            });
+                            setActiveTab(index);
+                          }}
+                          className={`nav-link ${
+                            activeTab === index ? " active " : ""
+                          } text-dark px-3`}
+                        >
+                          {label}
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div className="p-3 mb-5 bg-white rounded shadow">
+                <div className="shadow p-3 mb-5  bg-white rounded">
                   <div className="row">
                     <div
                       className="col-lg-3"
@@ -697,7 +718,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
                                   arrData={arrSort}
                                   label="Urut Berdasarkan"
                                   type="pilih"
-                                  defaultValue="[judulDok] ASC"
+                                  defaultValue="[namaIka] ASC"
                                   forInput="sortFilter"
                                   onChange={(e) =>
                                     setCurrentFilter((prevFilter) => {
@@ -709,7 +730,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
                                   }
                                 />
                                 <DropDown
-                                  arrData={arrTahun}
+                                  // arrData={arrTahun}
                                   label="Tahun Dokumen"
                                   type="semua"
                                   forInput="yearFilter"
@@ -745,50 +766,33 @@ export default function Index({ onChangePage, isIkuIkt }) {
                           <Loading />
                         ) : (
                           <div>
-                            {role === "ROL01" ? (
-                              <Table
-                                arrHeader={["No", "Nama Indikator", "PIC"]}
-                                data={filteredData.map((item, index) => ({
-                                  Key: item.idIka,
-                                  No: (pageCurrent - 1) * pageSize + index + 1,
-                                  "Nama Indikator":
-                                    decodeHtml(item.namaIka).replace(
-                                      /<\/?[^>]+(>|$)/g,
-                                      ""
-                                    ) || "-",
-                                  PIC: item.picIka,
-                                  jenis: item.jenisIka,
-                                  status: item.status,
-                                }))}
-                                actions={(row) => {
-                                  // Jika status "Tidak Aktif", hanya tampilkan Toggle
-                                  if (row.status === "Tidak Aktif") {
-                                    return ["Toggle"];
-                                  }
-                                  // Jika status selain "Tidak Aktif", tampilkan semua actions
-                                  return ["Detail", "Edit", "Toggle"];
-                                }}
-                                onEdit={handleEdit}
-                                onDetail={handleDetail}
-                                onToggle={handleToggle}
-                              />
-                            ) : (
-                              <div className="row p-3 gap-3 mb-2">
-                                {filteredData.length > 0 ? (
-                                  filteredData.map((item) => (
-                                    <PdfPreviewDownload
-                                      key={item.id} // Pastikan setiap item memiliki `key` unik
-                                      judul={item.judulDok}
-                                      handleClick={() => handleDownload(item)}
-                                    />
-                                  ))
-                                ) : (
-                                  <p className="text-center">
-                                    No data available
-                                  </p>
-                                )}
-                              </div>
-                            )}
+                            <Table
+                              arrHeader={["No", "Nama Indikator"]}
+                              data={filteredData.map((item, index) => ({
+                                Key: item.idIka,
+                                No: (pageCurrent - 1) * pageSize + index + 1,
+                                "Nama Indikator":
+                                  decodeHtml(item.namaIka).replace(
+                                    /<\/?[^>]+(>|$)/g,
+                                    ""
+                                  ) || "-",
+                                //   PIC: item.picIka,
+                                jenis: item.jenisIka,
+                                status: item.status,
+                              }))}
+                              actions={(row) => {
+                                // Jika status "Tidak Aktif", hanya tampilkan Toggle
+                                if (row.status === "Tidak Aktif") {
+                                  return ["Toggle"];
+                                }
+                                // Jika status selain "Tidak Aktif", tampilkan semua actions
+                                return ["Detail", "Edit", "Toggle"];
+                              }}
+                              aksiIs={role === "ROL01" ? true : false}
+                              onEdit={handleEdit}
+                              onDetail={handleDetail}
+                              //   onToggle={handleToggle}
+                            />
                             <Paging
                               pageSize={pageSize}
                               pageCurrent={pageCurrent}

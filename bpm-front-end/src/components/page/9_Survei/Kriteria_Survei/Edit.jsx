@@ -50,9 +50,44 @@ export default function Edit() {
     fetchDokumenById();
   }, [id]);
 
-  // Handle save edit
+  // Cek apakah nama sudah ada di database
+  const isNameDuplicate = async (name) => {
+    try {
+      const response = await fetch(
+        `${API_LINK}/MasterKriteriaSurvei/GetAllDataKriteriaSurvei`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ page: 1, pageSize: 100 }),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        return result.some(
+          (item) => item.ksr_nama.toLowerCase() === name.toLowerCase()
+        );
+      } else {
+        throw new Error("Gagal memeriksa duplikasi nama.");
+      }
+    } catch (error) {
+      console.error("Error checking duplicate:", error);
+      return false; // Jika ada error, anggap tidak duplikat (default)
+    }
+  };
+
+  // Handle save edit dengan validasi duplikasi
   const handleSaveEdit = async () => {
     setLoading(true);
+
+    // Cek apakah nama sudah ada di database
+    const isDuplicate = await isNameDuplicate(formData.namaKri);
+    if (isDuplicate) {
+      Swal.fire("Peringatan", "Nama kriteria sudah ada!", "warning");
+      setLoading(false);
+      return;
+    }
+
     const result = await useFetch(
       `${API_LINK}/MasterKriteriaSurvei/EditKriteriaSurvei`,
       formData,
@@ -83,6 +118,7 @@ export default function Edit() {
                 { label: "Kriteria Survei", href: "/survei/kriteria" },
                 { label: "Edit", href: `/survei/kriteria/edit/${id}` },
               ]}
+              onClick={() => navigate("/survei/kriteria")}
             />
           </div>
           <div className={isMobile ? "m-0" : "m-3"}>

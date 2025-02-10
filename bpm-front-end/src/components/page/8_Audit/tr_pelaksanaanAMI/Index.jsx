@@ -19,8 +19,14 @@ const arrSort = [
 ];
 
 const arrStatus = [
-  { Value: "Aktif", Text: "Aktif" },
-  { Value: "Tidak Aktif", Text: "Tidak Aktif" },
+  { Value: "", Text: "Semua" },
+  { Value: "Self Assessment (Belum)", Text: "Self Assessment (Belum)" },
+  { Value: "Self Assessment (Draft)", Text: "Self Assessment (Draft)" },
+  { Value: "Self Assessment (Selesai)", Text: "Self Assessment (Selesai)" },
+  { Value: "Menunggu Analisa Temuan", Text: "Menunggu Analisa Temuan" },
+  { Value: "Monitoring", Text: "Monitoring" },
+  { Value: "Menunggu Verifikasi Akhir", Text: "Menunggu Verifikasi Akhir" },
+  { Value: "Selesai", Text: "Selesai" },
 ];
 
 const breadcrumbs = [{ label: "Evaluasi" }, { label: "Audit Mutu Internal" }];
@@ -61,6 +67,7 @@ export default function Index({ onChangePage }) {
           param4: pageCurrent,
           param5: selectedStatus,
           param6: activeUser,
+          param7: role,
         }
       );
 
@@ -98,23 +105,13 @@ export default function Index({ onChangePage }) {
       apiCheck = "TransaksiTemuan/CheckTemuan";
       apiFinal = "TransaksiTemuan/FinalTemuan";
       pesan1 =
-        "Kolom yang memiliki temuan harus diisi secara lengkap, termasuk saran dan kategori temuan";
+        "Kategori temuan yang memiliki ketidaksesuaian harus dilengkapi temuannya";
       pesan2 = "Temuan";
     } else if (status === "Menunggu Analisa Temuan") {
       apiCheck = "TransaksiAnalisaTemuan/CheckAnalisaTemuan";
       apiFinal = "TransaksiAnalisaTemuan/FinalAnalisaTemuan";
       pesan1 = "Analisa Temuan belum lengkap";
       pesan2 = "Analisa Temuan";
-    } else if (status === "Monitoring") {
-      apiCheck = "TransaksiMonitoring/CheckAllMonitoring";
-      apiFinal = "TransaksiMonitoring/FinalAllMonitoring";
-      pesan1 = "Monitoring belum lengkap";
-      pesan2 = "Monitoring";
-    } else if (status === "Menunggu Verifikasi Akhir") {
-      apiCheck = "TransaksiVerifikasi/CheckAllVerifikasi";
-      apiFinal = "TransaksiVerifikasi/FinalAllVerifikasi";
-      pesan1 = "Verifikasi belum lengkap";
-      pesan2 = "Verifikasi";
     } else {
       return;
     }
@@ -365,7 +362,7 @@ export default function Index({ onChangePage }) {
                       case "Menunggu Verifikasi Akhir":
                         return ["Self Assessment", "Temuan", "AnalisaTemuan"];
 
-                      case "Final":
+                      case "Selesai":
                         return ["Self Assessment", "Temuan", "AnalisaTemuan"];
 
                       default:

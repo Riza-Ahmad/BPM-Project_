@@ -21,19 +21,22 @@ export default function Add({ onChangePage }) {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [loadingTemplate, setLoadingTemplate] = useState(true);
   const checkBoxRef = useRef(null);
-  const [selectedValues, setSelectedValues] = useState([]);
+  const [selectedValues, setSelectedValues] = useState([]); // ✅ Pastikan ini array
 
   useEffect(() => {
     const fetchTemplate = async () => {
       try {
         setLoadingTemplate(true);
-        const response = await fetch(`${API_LINK}/TemplateSurvei/GetTemplateSurvei`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({}),
-        });
+        const response = await fetch(
+          `${API_LINK}/TemplateSurvei/GetTemplateSurvei`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({}),
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to fetch template data!");
@@ -54,6 +57,16 @@ export default function Add({ onChangePage }) {
 
     fetchTemplate();
   }, []);
+
+  const handleCheckBoxChange = (value, isChecked) => {
+    setSelectedValues((prevValues) => {
+      if (isChecked) {
+        return [...prevValues, value]; // Tambahkan jika dicentang
+      } else {
+        return prevValues.filter((item) => item !== value); // Hapus jika tidak dicentang
+      }
+    });
+  };
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -90,7 +103,7 @@ export default function Add({ onChangePage }) {
                 </div>
 
                 <div className="col-lg-6 col-md-6">
-                <Dropdown
+                  <Dropdown
                     arrData={[
                       { value: "", Text: "-- Pilih Template Survei --" },
                       ...templateOptions,
@@ -106,24 +119,22 @@ export default function Add({ onChangePage }) {
                     placeHolder="Masukkan Tanggal Akhir Survei"
                     type="date"
                   />
-
-                 
                 </div>
               </div>
 
+              {/* ✅ Perbaikan: Hanya satu onChange */}
               <CheckBox
                 ref={checkBoxRef}
                 arrData={[
-                  { Value: "option1", Text: "Mahasiswa" },
-                  { Value: "option2", Text: "Dosen" },
-                  { Value: "option3", Text: "Tenaga Pendidik" },
-                  { Value: "option4", Text: "Mitra Kerja Sama" },
+                  { Value: "Dosen", Text: "Dosen" },
+                  { Value: "Tenaga Pendidik", Text: "Tenaga Pendidik" },
+                  { Value: "Mitra Kerjasama", Text: "Mitra Kerjasama" },
                 ]}
                 label="Pilih Responden"
                 name="exampleCheckBox"
                 isRequired={true}
-                values={selectedValues}
-                onChange={setSelectedValues}
+                values={selectedValues} // ✅ Pastikan ini array
+                onChange={handleCheckBoxChange} // ✅ Fungsi perbaikan
                 errorMessage="Pilih setidaknya satu opsi sebelum melanjutkan."
               />
 

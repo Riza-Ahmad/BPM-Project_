@@ -116,7 +116,6 @@ export default function EditAnalisaTemuan({ onChangePage }) {
       problemRef,
       why1Ref,
       deadlineRef,
-      fileRef,
       penyebabRef,
       pencegahanRef,
       perbaikanRef,
@@ -384,6 +383,7 @@ export default function EditAnalisaTemuan({ onChangePage }) {
                         id="deadline"
                         type="date"
                         min={new Date().toISOString().split("T")[0]}
+                        isRequired={true}
                       />
                     </div>
                     <div className="col-6">
@@ -393,8 +393,11 @@ export default function EditAnalisaTemuan({ onChangePage }) {
                         forInput="upload-file"
                         formatFile=".pdf, .xlsx, .zip, .word"
                         onChange={(file) => handleFileChange(file)}
-                        isRequired="true"
-                        hasExisting={`${AUDIT_FILE_LINK}${formData.file}`}
+                        hasExisting={
+                          formData.file
+                            ? `${AUDIT_FILE_LINK}${formData.file}`
+                            : undefined
+                        }
                       />
                     </div>
                   </div>

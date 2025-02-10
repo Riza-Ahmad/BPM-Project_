@@ -86,22 +86,22 @@ export default function Detail({ onChangePage }) {
               <HeaderForm label="Data Indikator Kinerja" />
               <div className="row mb-3">
                 <div className="col-lg-12 col-md-12">
-                  <DetailData label="Nama Indikator" isi={decodeHtml( formData.namaIka)} />
+                  <DetailData label="Nama Indikator" isi={decodeHtml( formData.namaIka || "-")} />
                 </div>
                 <div className="col-lg-6 col-md-6">
-                  <DetailData label="Standar Nasional" isi={formData.staNasIka} />
+                  <DetailData label="Standar Nasional" isi={formData.staNamaNasIka || "-"} />
                 </div>
                 <div className="col-lg-6 col-md-6">
-                  <DetailData label="Standar PT" isi={formData.staPelIka} />
+                  <DetailData label="Standar PT" isi={formData.staNamaPelIka || "-"} />
                 </div>
                 <div className="col-lg-6 col-md-6">
-                  <DetailData label="Bagian IKU" isi={decodeHtml( formData.parentIka)} />
+                  <DetailData label="Bagian IKU" isi={decodeHtml( formData.parentNamaIka || "-")} />
                 </div>
                 <div className="col-lg-6 col-md-6">
                   <DetailData label="Jenis Indikator" isi={formData.jenisIka === 'IKU' ? 'Indikator Kinerja Utama' : 'Indikator Kinerja Tambahan'} />
                 </div>
                 <div className="col-lg-6 col-md-6">
-                  <DetailData label="PIC" isi={formData.picIka} />
+                  <DetailData label="PIC" isi={formData.picIka || "-"} />
                 </div>
                 <div className="col-lg-6 col-md-6">
                   <DetailData label="Target" isi={formData.targetIka || "-"} />

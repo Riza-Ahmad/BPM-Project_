@@ -49,6 +49,11 @@
   }
 
   .top-nav-item:hover {
+  /* .nav-item:hover {
+    background-color: #183667;
+    border-radius: 12px;
+  } */
+  .top-nav-item:hover {
     background-color: #183667;
     border-radius: 12px;
     font-weight: 600;

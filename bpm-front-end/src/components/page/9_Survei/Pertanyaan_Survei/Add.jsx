@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import PageTitleNav from "../../../part/PageTitleNav";
 import InputField from "../../../part/InputField";
+import TextArea from "../../../part/TextArea";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
 import Dropdown from "../../../part/Dropdown";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import CheckBox from "../../../part/CheckBox";
+import { useNavigate } from "react-router-dom";
 import SweetAlert from "../../../util/SweetAlert";
 import { API_LINK } from "../../../util/Constants";
 import { useFetch } from "../../../util/useFetch";
@@ -12,10 +14,10 @@ import Loading from "../../../part/Loading";
 
 export default function Add({ onChangePage }) {
   const navigate = useNavigate();
-  const title = "Tambah Pertanyaan";
+  const title = "Tambah Bank Pertanyaan Survei";
   const breadcrumbs = [
-    { label: "Pertanyaan Survei", href: "/survei/pertanyaan" },
-    { label: "Tambah Pertanyaan", href: "/survei/pertanyaan/add" },
+    { label: "Bank Pertanyaan Survei", href: "/survei/pertanyaan" },
+    { label: "Tambah Bank Pertanyaan Survei", href: "/survei/pertanyaan/add" },
   ];
 
   const [formData, setFormData] = useState({
@@ -29,106 +31,89 @@ export default function Add({ onChangePage }) {
   const [skpOptions, setSkpOptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
   const pertanyaanRef = useRef();
   const kriteriaSurveiRef = useRef();
   const skalaPenilaianRef = useRef();
   const respondenRef = useRef();
 
-  const fetchKriteria = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await useFetch(
-        `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`,
-        {
-          p1: "Aktif",
-          p2: "",
-          p3: "namaKri ASC",
-          p4: 10,
-          p5: 1,
-        },
-        "POST"
-      );
-
-      // Debugging: Cek struktur response
-      console.log("API Response:", result);
-
-      if (result === "ERROR" || !result?.length) {
-        setKsrOptions([]);
-        return;
-      }
-
-      // Konversi value ke number dan validasi
-      setKsrOptions(
-        result.map((item) => ({
-          value: item.idKri,
-          Text: item.namaKri,
-        }))
-      );
-
-      // Debugging: Cek hasil konversi
-      console.log("Ksr Options:", ksrOptions);
-    } catch (err) {
-      setError(`Gagal mengambil kriteria: ${err.message}`);
-      setKsrOptions([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchSkalaPenilaian = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const skpResponse = await useFetch(
-        `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
-        {},
-        "POST"
-      );
-
-      if (skpResponse && Array.isArray(skpResponse)) {
-        // Filter hanya yang memiliki skp_status 'Aktif'
-        const filteredSkp = skpResponse.filter(
-          (item) => item.skp_status === "Aktif"
+  useEffect(() => {
+    const fetchKriteria = async () => {
+      setLoading(true);
+      try {
+        const data = await useFetch(
+          `${API_LINK}/MasterPertanyaan/GetAllKriteriaSurveiAktif`,
+          {},
+          "POST"
         );
-
-        setSkpOptions(
-          filteredSkp.map((item) => ({
-            value: item.skp_id,
-            Text: item.skp_skala + " (" + item.skp_deskripsi + ")",
-          }))
-        );
+        setKsrOptions(data);
+      } catch (err) {
+        setError("Gagal mengambil data: " + err.message);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      setError("Gagal mengambil data Skala Penilaian: " + error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    fetchKriteria();
+  }, []);
 
   useEffect(() => {
-    fetchKriteria();
+    const fetchSkalaPenilaian = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const skpResponse = await useFetch(
+          `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
+          {},
+          "POST"
+        );
+        if (skpResponse && Array.isArray(skpResponse)) {
+          const filteredSkp = skpResponse.filter(
+            (item) => item.skp_status === "Aktif"
+          );
+          setSkpOptions(
+            filteredSkp.map((item) => ({
+              value: item.skp_id,
+              Text: item.skp_skala + " (" + item.skp_deskripsi + ")",
+            }))
+          );
+        }
+      } catch (error) {
+        setError("Gagal mengambil data Skala Penilaian: " + error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchSkalaPenilaian();
   }, []);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    const { name, value, type, checked } = e.target;
+    console.log("Checkbox Change:", name, value, checked);
+    console.log("Responden Saat Ini:", formData.responden);
+
+    if (type === "checkbox") {
+      setFormData((prevFormData) => {
+        const updatedResponden = prevFormData.responden || [];
+        const newResponden = checked
+          ? [...updatedResponden, value] // Tambahkan jika di-check
+          : updatedResponden.filter((item) => item !== value); // Hapus jika di-uncheck
+
+        return { ...prevFormData, responden: newResponden };
+      });
+    } else {
+      setFormData((prevFormData) => ({ ...prevFormData, [name]: value }));
+    }
   };
 
   const handleSubmit = async () => {
-    // Validasi form ref
+    // Validasi tiap field menggunakan ref
     const isPertanyaanValid = pertanyaanRef.current?.validate();
     const isKriteriaValid = kriteriaSurveiRef.current?.validate();
     const isSkalaValid = skalaPenilaianRef.current?.validate();
 
-    // Focus ke field yang invalid
+    // Validasi responden
+    const isRespondenValid = formData.responden.length > 0;
+
+    // Cek validasi untuk setiap input
     if (!isPertanyaanValid) {
       pertanyaanRef.current?.focus();
       return;
@@ -142,51 +127,41 @@ export default function Add({ onChangePage }) {
       return;
     }
 
-    try {
-      // Konversi responden ke array jika belum
-      const respondenArray = Array.isArray(formData.responden)
-        ? formData.responden
-        : [formData.responden];
+    if (!isRespondenValid) {
+      SweetAlert(
+        "Gagal!",
+        "Harap pilih setidaknya satu responden.",
+        "error",
+        "OK"
+      );
+      respondenRef.current?.focus();
+      return;
+    }
 
-      // Siapkan payload sesuai struktur backend
+    // Jika semua validasi lulus, lanjutkan dengan pengiriman data
+    try {
       const payload = {
-        data: {
-          pertanyaan: formData.pertanyaan,
-          ksrId: parseInt(formData.ksrId, 10),
-          skpId: parseInt(formData.skpId, 10),
-          responden: Array.isArray(formData.responden)
-            ? formData.responden
-            : [formData.responden],
-        },
+        pertanyaan: formData.pertanyaan,
+        ksrId: parseInt(formData.ksrId, 10),
+        skpId: parseInt(formData.skpId, 10),
+        responden: formData.responden || [],
       };
 
-      // Log payload to ensure it's correct
       console.log("Payload:", payload);
 
-      // Kirim ke API
       const result = await useFetch(
         `${API_LINK}/MasterPertanyaan/CreatePertanyaan`,
-        payload
+        payload,
+        "POST"
       );
 
-      // Log the result to inspect it
       console.log("API Result:", result);
 
-      // Pastikan result bukan null atau undefined
-      if (!result || result === "ERROR") {
-        throw new Error("Gagal menyimpan pertanyaan");
-      }
-
-      // Handle response
-      if (result.status === "success") {
-        SweetAlert(
-          "Berhasil!",
-          `Pertanyaan berhasil dibuat dengan ID: ${result.pty_id}`,
-          "success",
-          "OK"
-        ).then(() => navigate("/pertanyaan"));
+      if (result === "ERROR") {
+        throw new Error("Terjadi kesalahan server");
       } else {
-        throw new Error(result.error_message || "Terjadi kesalahan server");
+        SweetAlert("Berhasil!", "Pertanyaan berhasil dibuat", "success", "OK");
+        navigate("/survei/pertanyaan");
       }
     } catch (error) {
       console.error("Submit Error:", error);
@@ -209,7 +184,7 @@ export default function Add({ onChangePage }) {
       "Ya, batalkan",
       "Tidak"
     ).then((result) => {
-      if (result) onChangePage("index");
+      if (result) navigate("/survei/pertanyaan");
     });
   };
 
@@ -224,60 +199,66 @@ export default function Add({ onChangePage }) {
             <PageTitleNav
               title={title}
               breadcrumbs={breadcrumbs}
-              onClick={() => onChangePage("index")}
+              onClick={() => navigate("/survei/pertanyaan")}
             />
           </div>
           <div className="shadow p-5 m-5 mt-0 bg-white rounded">
-            <HeaderForm label="Formulir Pertanyaan" />
-            <InputField
-              ref={pertanyaanRef}
-              id="pertanyaan"
-              label="Pertanyaan"
-              value={formData.pertanyaan}
-              onChange={handleChange}
-              name="pertanyaan"
-              isRequired
-              maxLength={255}
-              type="text"
-            />
-            <Dropdown
-              ref={kriteriaSurveiRef}
-              label="Kriteria Survei"
-              arrData={ksrOptions}
-              value={formData.ksrId}
-              onChange={handleChange}
-              name="ksrId"
-              isRequired={true}
-              type="pilih"
-            />
-            <Dropdown
-              ref={skalaPenilaianRef}
-              label="Skala Penilaian"
-              arrData={skpOptions}
-              value={formData.skpId}
-              onChange={handleChange}
-              name="skpId"
-              isRequired={true}
-              type="pilih"
-            />
-            <Dropdown
-              ref={respondenRef}
-              arrData={[
-                {
-                  value: "Dosen dan Instruktur",
-                  Text: "Dosen dan Instruktur",
-                },
-                { value: "Tenaga Pendidik", Text: "Tenaga Pendidik" },
-                { value: "Mitra Kerjasama", Text: "Mitra Kerjasama" },
-              ]}
-              label="Responden"
-              isRequired
-              onChange={handleChange}
-              value={formData.responden}
-              name="responden"
-              type="pilih"
-              placeholder="Pilih Responden"
-            />
+            <HeaderForm label="Formulir Bank Pertanyaan" />
+            <div className="mb-4">
+              <Dropdown
+                ref={kriteriaSurveiRef}
+                label="Kriteria Survei"
+                arrData={ksrOptions}
+                value={formData.ksrId}
+                onChange={handleChange}
+                name="ksrId"
+                isRequired={true}
+                type="pilih"
+              />
+            </div>
+            <div className="mb-4">
+              <InputField
+                ref={pertanyaanRef}
+                label="Pertanyaan"
+                value={formData.pertanyaan || ""}
+                name="pertanyaan"
+                onChange={handleChange}
+                isRequired={true}
+                type="text"
+                placeholder="Masukkan pertanyaan survei"
+              />
+            </div>
+            <div className="mb-4">
+              <Dropdown
+                ref={skalaPenilaianRef}
+                label="Skala Penilaian"
+                arrData={skpOptions}
+                value={formData.skpId}
+                onChange={handleChange}
+                name="skpId"
+                isRequired={true}
+                type="pilih"
+              />
+            </div>
+            <div className="mb-5">
+              <CheckBox
+                arrData={[
+                  {
+                    Value: 0,
+                    Text: "Dosen dan Instruktur",
+                  },
+                  { Value: 1, Text: "Tenaga Pendidik" },
+                  { Value: 2, Text: "Mitra Kerjasama" },
+                ]}
+                label="Responden"
+                name="responden"
+                isRequired={true}
+                errorMessage="Harap pilih setidaknya satu responden."
+                values={formData.responden || []}
+                onChange={handleChange}
+                col="col-4"
+              />
+            </div>
             <div className="d-flex justify-content-between align-items-center mt-4 gap-3">
               <Button
                 classType="primary"

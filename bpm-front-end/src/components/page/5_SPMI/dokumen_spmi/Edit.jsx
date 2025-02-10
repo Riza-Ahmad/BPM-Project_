@@ -79,10 +79,8 @@ export default function Edit({ onChangePage }) {
           idKdo: 4,
           judulDok: dokumenArray[0].judulDok,
           nomorDok: dokumenArray[0].noDok,
-          tanggalDok: moment(dokumenArray[0].tanggalDok).format("YYYY-MM-DD"),
-          kadaluarsaDok: moment(dokumenArray[0].kadaluarsaDok).format(
-            "YYYY-MM-DD"
-          ),
+          tanggalDok: dokumenArray[0].tglDok || "",
+          kadaluarsaDok: dokumenArray[0].expDok || "",
           fileDok: dokumenArray[0].fileDok,
           jenisDok: dokumenArray[0].jenisDok,
           createdBy: dokumenArray[0].createdBy,
@@ -170,6 +168,8 @@ export default function Edit({ onChangePage }) {
     }
   };
 
+  console.log(formData);
+
   if (loading) return <Loading />;
 
   return (
@@ -202,7 +202,7 @@ export default function Edit({ onChangePage }) {
                 <InputField
                   ref={nomorDokRef}
                   label="Nomor Dokumen"
-                  value={formData.nomorDok || ''}
+                  value={formData.nomorDok || ""}
                   onChange={handleChange}
                   isRequired={true}
                   name="nomorDok"
@@ -215,7 +215,7 @@ export default function Edit({ onChangePage }) {
                     <InputField
                       ref={judulDokRef}
                       label="Judul Dokumen"
-                      value={formData.judulDok || ''}
+                      value={formData.judulDok || ""}
                       onChange={handleChange}
                       isRequired={true}
                       name="judulDok"
@@ -227,7 +227,11 @@ export default function Edit({ onChangePage }) {
                     <InputField
                       ref={tanggalDokRef}
                       label="Tanggal Berlaku"
-                      value={formData.tanggalDok || ''}
+                      value={
+                        formData.tanggalDok
+                          ? formData.tanggalDok.toString().split("T")[0]
+                          : null
+                      }
                       onChange={handleChange}
                       isRequired={true}
                       name="tanggalDok"
@@ -250,7 +254,9 @@ export default function Edit({ onChangePage }) {
                     <InputField
                       ref={kadaluarsaDokRef}
                       label="Tanggal Kadaluwarsa"
-                      value={formData.kadaluarsaDok || ''}
+                      value={formData.kadaluarsaDok
+                        ? formData.kadaluarsaDok.toString().split("T")[0]
+                        : null}
                       onChange={handleChange}
                       isRequired={true}
                       name="kadaluarsaDok"

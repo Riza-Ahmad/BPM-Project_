@@ -112,10 +112,17 @@ export default function RiwayatUnduh({ onChangePage }) {
                     data={filteredData.map((item, index) => ({
                       Key: item.idUdo,
                       No: (pageCurrent - 1) * pageSize + index + 1,
-                      "Tanggal Unduh": format(
-                        new Date(item.tglUdo),
-                        "EEEE, dd MMMM yyyy HH:mm:ss"
-                      ),
+                      "Tanggal Unduh": item.tglUdo
+                        ? new Date(item.tglUdo).toLocaleDateString("id-ID", {
+                            weekday: "long",
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                            hour: "numeric",
+                            minute: "numeric",
+                            second: "numeric",
+                          })
+                        : "-",
                       "Judul Dokumen": item.judulDok,
                       "Nama Berkas (File)": item.fileDok,
                       "Jenis Penyalinan": item.jenisDok,

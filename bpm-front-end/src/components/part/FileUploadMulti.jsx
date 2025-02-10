@@ -12,11 +12,10 @@ const UploadFileMulti = forwardRef(function UploadFileMulti(
     id,
     label = "",
     isRequired = false,
-    errorMsg = "Field ini wajib diisi.",
     onChange,
     initialFiles = [],
     maxSizeFile = 10 * 1024 * 1024,
-    allowedFormats = ".pdf,.docx",
+    formatFile = ".pdf,.docx",
     mode = "aktif",
     baseURL = "http://localhost:5187/Audit/",
   },
@@ -24,6 +23,7 @@ const UploadFileMulti = forwardRef(function UploadFileMulti(
 ) {
   const [files, setFiles] = useState([]);
   const [error, setError] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("Field ini wajib diisi");
   const inputRef = useRef();
 
   const isInitialFilesProcessed = useRef(false);
@@ -80,10 +80,11 @@ const UploadFileMulti = forwardRef(function UploadFileMulti(
   }));
 
   const handleFileChange = (event) => {
+    setError(false);
     const selectedFiles = Array.from(event.target.files);
 
     // Validasi format file
-    const allowedExtensions = allowedFormats
+    const allowedExtensions = formatFile
       .split(",")
       .map((ext) => ext.trim().replace(/^\./, "").toLowerCase());
     const invalidFiles = selectedFiles.filter(
@@ -91,9 +92,10 @@ const UploadFileMulti = forwardRef(function UploadFileMulti(
         !allowedExtensions.includes(file.name.split(".").pop().toLowerCase())
     );
     if (invalidFiles.length > 0) {
-      alert(
-        `File dengan format tidak diizinkan ditemukan. Format yang diizinkan: ${allowedFormats}`
+      setErrorMsg(
+        `Format file tidak diizinkan. Format yang diizinkan: ${allowedFormats}`
       );
+      setError(true);
       inputRef.current.value = ""; // Kosongkan input field
       return;
     }
@@ -103,11 +105,10 @@ const UploadFileMulti = forwardRef(function UploadFileMulti(
       (file) => file.size > maxSizeFile
     );
     if (oversizedFiles.length > 0) {
-      alert(
-        `File dengan ukuran melebihi ${
-          maxSizeFile / (1024 * 1024)
-        } MB ditemukan.`
+      setErrorMsg(
+        `Ukuran File tidak boleh melebihi ${maxSizeFile / (1024 * 1024)} MB.`
       );
+      setError(true);
       inputRef.current.value = ""; // Kosongkan input field
       return;
     }
@@ -221,7 +222,7 @@ const UploadFileMulti = forwardRef(function UploadFileMulti(
           name={id}
           ref={inputRef}
           className={`form-control mt-2 ${error ? "is-invalid" : ""}`}
-          accept={allowedFormats}
+          accept={formatFile}
           onChange={handleFileChange}
           multiple
         />

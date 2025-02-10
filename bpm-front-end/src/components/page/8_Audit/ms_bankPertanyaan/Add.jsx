@@ -22,7 +22,7 @@ export default function Add({ onChangePage }) {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  
   const [formData, setFormData] = useState({
     kriteria: "",
     pertanyaan: "",
@@ -66,7 +66,7 @@ export default function Add({ onChangePage }) {
           "POST"
         );
 
-        setAuditee(data);
+          setAuditee(data);
       } catch (err) {
         setError("Gagal mengambil data: " + err);
       } finally {

@@ -12,8 +12,8 @@ import Cookies from "js-cookie";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 const arrSort = [
-  { Value: "[namaKri] ASC", Text: "Nama Kriteria [↑]" },
-  { Value: "[namaKri] DESC", Text: "Nama Kriteria [↓]" },
+  { Value: "[namaKri] ASC", Text: "Terbaru" },
+  { Value: "[namaKri] DESC", Text: "Terlama" },
 ];
 const arrStatus = [
   { Value: "Aktif", Text: "Aktif" },
@@ -163,7 +163,8 @@ export default function KriteriaSurvei({ onChangePage }) {
           </div>
           <div
             className={isMobile ? "p-2 m-2 mt-2 mb-0" : "p-3 m-5 mt-2 mb-0"}
-            style={{ marginLeft: "50px" }}>
+            style={{ marginLeft: "50px" }}
+          >
             <Button
               iconName="add"
               classType="primary"
@@ -226,7 +227,8 @@ export default function KriteriaSurvei({ onChangePage }) {
             isMobile
               ? "table-container bg-white p-2 m-2 mt-0 rounded"
               : "table-container bg-white p-3 m-5 mt-0 rounded"
-          }>
+          }
+        >
           <Table
             arrHeader={["No", "Nama Kriteria"]}
             data={filteredData.map((item, index) => ({

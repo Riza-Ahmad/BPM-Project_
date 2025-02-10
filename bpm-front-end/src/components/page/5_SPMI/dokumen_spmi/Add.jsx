@@ -110,8 +110,8 @@ export default function Add({ onChangePage }) {
       }
 
       const dokData = {
-        idKdo: idData,
-        idMen: idMenu,
+        idKdo: idData ? idData : "",
+        idMen: idMenu ? idMenu : "",
         judulDok: judulDokRef.current.value,
         nomorDok: nomorDokRef.current.value,
         tanggalDok: tanggalDokRef.current.value,

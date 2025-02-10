@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 import PageTitleNav from "../../../part/PageTitleNav";
@@ -8,16 +8,15 @@ import Button from "../../../part/Button";
 import SweetAlert from "../../../util/SweetAlert";
 import { useFetch } from "../../../util/useFetch";
 
-export default function Add({ onChangePage }) {
+export default function Add() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const location = useLocation();
   const idMenu = location.state?.idMenu;
-  const [formData, setFormData] = useState({
-    ksr_nama: "",
-  });
+  const [formData, setFormData] = useState({ ksr_nama: "" });
 
   const ksr_namaRef = useRef();
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -33,10 +32,11 @@ export default function Add({ onChangePage }) {
     }
     return errors;
   };
+
   const isNameDuplicate = async (name) => {
     try {
       const response = await fetch(
-        `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`,
+        `${API_LINK}/MasterKriteriaSurvei/GetAllDataKriteriaSurvei`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -44,41 +44,39 @@ export default function Add({ onChangePage }) {
         }
       );
 
-      if (response.ok) {
-        const result = await response.json();
-        return result.some(
-          (item) => item.ksr_nama.toLowerCase() === name.toLowerCase()
-        );
-      } else {
+      if (!response.ok) {
         throw new Error("Gagal memeriksa duplikasi nama.");
       }
+
+      const result = await response.json();
+      return result.some(
+        (item) => item.ksr_nama.toLowerCase() === name.toLowerCase()
+      );
     } catch (error) {
       console.error("Error checking duplicate:", error);
-      return false; // Jika ada error, anggap tidak duplikat (default)
+      return false; // Jika terjadi error, asumsi tidak duplikat
     }
   };
 
   const handleSubmit = async () => {
-    const isNamaKriValid = ksr_namaRef.current?.validate();
-
-    if (!isNamaKriValid) {
+    if (!ksr_namaRef.current?.validate()) {
       ksr_namaRef.current?.focus();
       return;
     }
+
     const isDuplicate = await isNameDuplicate(formData.ksr_nama);
     if (isDuplicate) {
-      SweetAlert({
-        icon: "warning",
-        title: "Gagal Menambah Kriteria Survei",
-        text: "Nama Kriteria sudah digunakan. Silakan Masukan Nama Kriteria yang lain.",
-      });
+      SweetAlert(
+        "Gagal Menambahkan Nama Kriteria",
+        "Nama Kriteria sudah digunakan. Pilih Nama Kriteria lain.",
+        "warning",
+        "OK"
+      );
       return;
     }
-    try {
-      const kriData = {
-        namaKri: ksr_namaRef.current.value,
-      };
 
+    try {
+      const kriData = { namaKri: formData.ksr_nama };
       const createResponse = await useFetch(
         `${API_LINK}/MasterKriteriaSurvei/CreateKriteriaSurvei`,
         kriData,
@@ -87,10 +85,10 @@ export default function Add({ onChangePage }) {
 
       if (createResponse === "ERROR") {
         throw new Error("Gagal menambah data");
-      } else {
-        SweetAlert("Berhasil!", "Data berhasil ditambahkan.", "success", "OK");
-        navigate("/survei/kriteria");
       }
+
+      SweetAlert("Berhasil!", "Data berhasil ditambahkan.", "success", "OK");
+      navigate("/survei/kriteria");
     } catch (error) {
       console.error("Error:", error.message);
       SweetAlert("Gagal!", error.message, "error", "OK");
@@ -99,7 +97,7 @@ export default function Add({ onChangePage }) {
 
   return (
     <div className="d-flex flex-column min-vh-100">
-      <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
+      <main className="flex-grow-1 p-3">
         <div className="d-flex flex-column">
           <div className={isMobile ? "m-0 p-0" : "m-3 mb-0"}>
             <PageTitleNav
@@ -130,7 +128,6 @@ export default function Add({ onChangePage }) {
                   name="ksr_nama"
                 />
               </div>
-
               <div className="d-flex justify-content-between align-items-center">
                 <div className="m-2" style={{ flex: 1 }}>
                   <Button

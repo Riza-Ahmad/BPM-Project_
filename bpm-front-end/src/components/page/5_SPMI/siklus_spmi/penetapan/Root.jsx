@@ -15,6 +15,7 @@ import Read from "../../../MasterKategoriDokumen/Index";
 import Addkat from "../../../MasterKategoriDokumen/Add";
 import addKatChild from "../../../MasterKategoriDokumen/AddChild";
 import IndexAlternate from "./IndexAlternate";
+import IndexAlternate2 from "./IndexAlternate2";
 
 export default function Penetapan() {
   const navigate = useNavigate();
@@ -79,7 +80,7 @@ export default function Penetapan() {
               ) : mode === "read" ? (
                 <Read onChangePage={handlePageChange} />
               ) : (
-                <IndexAlternate onChangePage={handlePageChange} />
+                <IndexAlternate2 onChangePage={handlePageChange} />
               )}
             </ProtectedRoute>
           }

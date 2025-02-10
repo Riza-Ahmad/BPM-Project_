@@ -281,7 +281,7 @@ export default function Edit({ onChangePage }) {
                   : "shadow p-5 m-5 mt-0 bg-white rounded"
               }
             >
-              <HeaderForm label="Formulir Kriteria" />
+              <HeaderForm label="Formulir Bagian Auditee" />
               <InputField
                 ref={kodeBadRef}
                 label="Kode Bagian Auditee"

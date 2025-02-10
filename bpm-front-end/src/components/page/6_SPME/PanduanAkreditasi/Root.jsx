@@ -2,9 +2,10 @@ import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import ScrollToTop from "../../../part/ScrollToTop";
 import ProtectedRoute from "../../../util/ProtectedRoute";
 import { ROOT_LINK } from "../../../util/Constants";
-import Index from "../../5_SPMI/dokumen_spmi/Index";
-import Add from "../../5_SPMI/dokumen_spmi/Add";
-import Edit from "../AkreditasiProdi/Edit";
+import Index from "./Index";
+import Add from "./Add";
+
+import Edit from "./Edit";
 
 export default function PanduanAkreditasi() {
   const navigate = useNavigate();

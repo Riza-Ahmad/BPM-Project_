@@ -10,5 +10,6 @@ export const PERATURAN_FILE_LINK = "http://localhost:5187/Peraturan/";
 export const FILE_LINK = "http://localhost:5187/Tentang/";
 export const DOKUMEN_LINK = "http://localhost:5187/Dokumen/";
 export const AUDIT_FILE_LINK = "http://localhost:5187/Audit/";
+export const TEMPLATE_LINK = "http://localhost:5187/Template/";
 export const BASE_ROUTE = "";
 export const PAGE_SIZE = 10;

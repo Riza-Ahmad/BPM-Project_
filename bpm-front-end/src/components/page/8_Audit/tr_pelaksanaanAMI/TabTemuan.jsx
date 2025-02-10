@@ -242,7 +242,6 @@ const TabTemuan = ({
                                       e.target.value
                                     )
                                   }
-                                  isRequired={true}
                                 />
                               </div>
                             </>
@@ -252,13 +251,18 @@ const TabTemuan = ({
                             <>
                               <DetailData
                                 label="Temuan"
-                                isi={formData[item.idPertanyaanSA]?.namaTemuan}
+                                isi={
+                                  formData[item.idPertanyaanSA]?.namaTemuan ||
+                                  "-"
+                                }
                                 colorIsi="text-black mb-4"
                               />
 
                               <DetailData
                                 label="Saran"
-                                isi={formData[item.idPertanyaanSA]?.saran}
+                                isi={
+                                  formData[item.idPertanyaanSA]?.saran || "-"
+                                }
                                 colorIsi="text-black mb-4"
                               />
                             </>

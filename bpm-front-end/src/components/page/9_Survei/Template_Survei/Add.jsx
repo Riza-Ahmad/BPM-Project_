@@ -1,140 +1,76 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import PageTitleNav from "../../../part/PageTitleNav";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
-import Dropdown from "../../../part/Dropdown";
+import CheckBox from "../../../part/CheckBox";
 import InputField from "../../../part/InputField";
 import SweetAlert from "../../../util/SweetAlert";
-import { useIsMobile } from "../../../util/useIsMobile";
-import { API_LINK } from "../../../util/Constants";
 import { useFetch } from "../../../util/useFetch";
+import { API_LINK } from "../../../util/Constants";
+import { useIsMobile } from "../../../util/useIsMobile";
 
 export default function AddTemplateSurvei() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-
-  const [formData, setFormData] = useState({
-    namaTemplate: "",
-    ksrId: "",
-    skpId: "",
-  });
-
-  const [ksrOptions, setKsrOptions] = useState([]);
-  const [skpOptions, setSkpOptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const [formData, setFormData] = useState({
+    namaTemplate: "",
+    responden: [],
+  });
+
   const namaTemplateRef = useRef();
-
-  const fetchKriteria = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const pageSize = 10; // Customize this according to your needs
-      const pageNumber = 1; // Customize this according to your needs
-
-      const result = await useFetch(
-        `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`,
-        {
-          p1: "Aktif",
-          p2: "",
-          p3: "namaKri ASC",
-          p4: pageSize,
-          p5: pageNumber,
-        },
-        "POST"
-      );
-
-      if (result === "ERROR" || !result || result.length === 0) {
-        setKsrOptions([]);
-      } else {
-        setKsrOptions(
-          result.map((item) => ({
-            value: item.idKri,
-            Text: item.namaKri,
-          }))
-        );
-      }
-    } catch (err) {
-      setError("Gagal mengambil data: " + err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchSkalaPenilaian = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const skpResponse = await useFetch(
-        `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
-        {},
-        "POST"
-      );
-
-      if (skpResponse && Array.isArray(skpResponse)) {
-        setSkpOptions(
-          skpResponse.map((item) => ({
-            value: item.skp_id,
-            Text: item.skp_skala + " (" + item.skp_deskripsi + ")",
-          }))
-        );
-      }
-    } catch (error) {
-      setError("Gagal mengambil data Skala Penilaian: " + error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchKriteria();
-    fetchSkalaPenilaian();
-  }, []);
+  const respondenRef = useRef();
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    const { name, value, type, checked } = e.target;
+    if (type === "checkbox") {
+      setFormData((prev) => {
+        const updatedResponden = checked
+          ? [...prev.responden, value]
+          : prev.responden.filter((item) => item !== value);
+        return { ...prev, responden: updatedResponden };
+      });
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async () => {
-    const isNamaTemplateValid = namaTemplateRef.current?.validate();
+    if (!formData.namaTemplate.trim()) {
+      SweetAlert("Error", "Harap lengkapi nama template.", "error", "OK");
+      namaTemplateRef.current?.focus();
+      return;
+    }
 
-    if (!isNamaTemplateValid) {
+    if (formData.responden.length === 0) {
       SweetAlert(
         "Error",
-        "Harap lengkapi semua field yang diperlukan.",
+        "Harap pilih setidaknya satu responden.",
         "error",
         "OK"
       );
-      if (!isNamaTemplateValid) namaTemplateRef.current?.focus();
+      respondenRef.current?.focus();
       return;
     }
 
     try {
+      // Payload untuk dikirim ke API
       const payload = {
-        p1: formData.namaTemplate,
+        namaTemplate: formData.namaTemplate,
+        responden: formData.responden,
       };
 
-      // Mengirimkan request untuk membuat template survei
       const response = await useFetch(
         `${API_LINK}/TemplateSurvei/CreateTemplateSurvei`,
         payload,
         "POST"
       );
 
-      // Pastikan response berisi templateId yang baru dibuat
-      if (response === "ERROR") {
+      if (response === "ERROR")
         throw new Error("Gagal menambah template survei.");
-      }
-
-      const { templateId } = response;
 
       SweetAlert(
         "Berhasil!",
@@ -142,10 +78,9 @@ export default function AddTemplateSurvei() {
         "success",
         "OK"
       ).then(() => {
-        navigate("/survei/template"); // Pindah ke halaman daftar template survei
+        navigate("/survei/template");
       });
     } catch (error) {
-      console.error("Error submitting template survei:", error);
       SweetAlert("Gagal!", error.message, "error", "OK");
     }
   };
@@ -168,11 +103,12 @@ export default function AddTemplateSurvei() {
             <div
               className={
                 isMobile
-                  ? "shadow p-4 m-2 mt-0 bg-white rounded"
-                  : "shadow p-5 m-5 mt-0 bg-white rounded"
+                  ? "shadow p-4 m-2 bg-white rounded"
+                  : "shadow p-5 m-5 bg-white rounded"
               }
             >
               <HeaderForm label="Formulir Template Survei" />
+              {/* InputField untuk Nama Template */}
               <InputField
                 ref={namaTemplateRef}
                 label="Nama Template"
@@ -183,26 +119,22 @@ export default function AddTemplateSurvei() {
                 type="text"
                 maxChar="100"
               />
-              {/* <Dropdown
-                ref={ksrDropdownRef}
-                label="Kriteria Survei"
-                arrData={ksrOptions}
-                value={formData.ksrId}
-                onChange={handleChange}
-                forInput="ksrId"
-                isRequired={true}
-                type="pilih"
-              />
-              <Dropdown
-                ref={skpDropdownRef}
-                label="Skala Penilaian"
-                arrData={skpOptions}
-                value={formData.skpId}
-                onChange={handleChange}
-                forInput="skpId"
-                isRequired={true}
-                type="pilih"
-              /> */}
+              <div className="mb-3">
+                <CheckBox
+                  ref={respondenRef}
+                  arrData={[
+                    { Value: 0, Text: "Dosen dan Instruktur" },
+                    { Value: 1, Text: "Tenaga Pendidik" },
+                    { Value: 2, Text: "Mitra Kerjasama" },
+                  ]}
+                  label="Responden"
+                  name="responden"
+                  isRequired={true}
+                  values={formData.responden || []}
+                  onChange={handleChange}
+                  col="col-4"
+                />
+              </div>
               <div className="d-flex justify-content-between align-items-center">
                 <div className="flex-grow-1 m-2">
                   <Button

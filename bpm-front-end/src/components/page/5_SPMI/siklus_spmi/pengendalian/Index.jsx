@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import Button from "../../../../part/Button";
 import HeaderText from "../../../../part/HeaderText";
 import Gedung from "../../../../../assets/element/gedung-astra-biru.png";
@@ -9,7 +10,9 @@ import gedung from "../../../../../assets/element/gedung-astra.png";
 import Table from "../../../../part/Table";
 import Modal from "../../../../part/Modal";
 import Filter from "../../../../part/Filter";
+import Filter from "../../../../part/Filter";
 import pdf from "../../MI_PRG4_M4_P2_XXX.pdf";
+import { useIsMobile } from "../../../../util/useIsMobile";
 import { useIsMobile } from "../../../../util/useIsMobile";
 import { useLocation, useNavigate } from "react-router-dom";
 import SweetAlert from "../../../../util/SweetAlert";
@@ -484,6 +487,61 @@ export default function Index({ onChangePage }) {
       console.log("deleted");
     }
   };
+  const ModalRef = useRef();
+  const [detail, setDetail] = useState(null);
+  const [modalType, setModalType] = useState(""); // "add", "edit", "detail"
+  const [searchKeyword, setSearchKeyword] = useState(""); // Keyword pencarian
+  const isMobile = useIsMobile();
+  const [selectedDokRef, setSelectedDokRef] = useState(data[0] || null); // Set initial dok_ref based on the first item in data
+  const [sortedData, setSortedData] = useState(data);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const uniqueDokRefs = data
+    .filter(
+      (item, index, self) =>
+        index === self.findIndex((obj) => obj.dok_ref === item.dok_ref)
+    )
+    .sort((a, b) => a.dok_ref - b.dok_ref);
+
+  useEffect(() => {
+    if (selectedDokRef !== null) {
+      // Filter data by selected dok_ref and sort by dok_rev
+      const filteredData = data.filter(
+        (item) => item.dok_ref === selectedDokRef.dok_ref
+      );
+
+      let tempData = filteredData;
+
+      if (searchKeyword) {
+        tempData = tempData.filter((item) =>
+          item.dok_judul.toLowerCase().includes(searchKeyword.toLowerCase())
+        );
+      }
+
+      const sorted = tempData.sort(
+        (a, b) => a.dok_created_date - b.dok_created_date
+      );
+      if (JSON.stringify(sorted) !== JSON.stringify(sortedData)) {
+        setSortedData(sorted); // Update the sorted data only if it has changed
+      }
+    }
+  }, [selectedDokRef, data, sortedData]);
+
+  const handleDelete = async (id) => {
+    const confirm = await SweetAlert(
+      "Konfirmasi",
+      "Apakah Anda yakin ingin menghapus dokumen ini?",
+      "warning",
+      "Ya, Hapus",
+      null,
+      "",
+      true
+    );
+
+    if (confirm) {
+      console.log("deleted");
+    }
+  };
 
   const arrData = [
     { Value: "Controlled Copy", Text: "Controlled Copy" },
@@ -494,6 +552,14 @@ export default function Index({ onChangePage }) {
     setPageCurrent(page);
   };
 
+  const handleDocNav = (page) => {
+    setPageCurrent(page);
+  };
+
+  const handleOpenModal = (type, data = null) => {
+    setModalType(type);
+    setDetail(data);
+    ModalRef.current.open();
   const handleDocNav = (page) => {
     setPageCurrent(page);
   };
@@ -523,6 +589,7 @@ export default function Index({ onChangePage }) {
   return (
     <>
       <div className="d-flex flex-column min-vh-100">
+        <main className="flex-grow-1 p-3" style={{ marginTop: "60px" }}>
         <main className="flex-grow-1 p-3" style={{ marginTop: "60px" }}>
           <div className="d-flex flex-column">
             <div className="container mb-3">
@@ -575,8 +642,135 @@ export default function Index({ onChangePage }) {
                     ? textContent
                     : "Lorem Ipsum dolor sit amet..."}
                 </p>
+              <div className="mt-3 mb-5">
+                <p style={{ textAlign: "justify" }}>
+                  {textContent != ""
+                    ? textContent
+                    : "Lorem Ipsum dolor sit amet..."}
+                </p>
               </div>
 
+              <hr />
+
+              <div className="container shadow p-3 mt-5 mb-5 bg-white rounded">
+                <div className="row">
+                  <div className="col-lg-2 px-3">
+                    <div
+                      className="row"
+                      style={{ overflow: "auto", maxHeight: "500px" }}
+                    >
+                      {uniqueDokRefs.map((item) => (
+                        <button
+                          key={item.dok_ref}
+                          onClick={() => setSelectedDokRef(item)}
+                          className={`btn ${
+                            selectedDokRef.dok_ref === item.dok_ref
+                              ? "btn-primary"
+                              : ""
+                          } doc-item`}
+                        >
+                          {item.dok_ref_name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="col-lg-10">
+                    <div className="text-center">
+                      <h3
+                        style={{
+                          color: "#2654A1",
+                          margin: "0",
+                          fontWeight: "700",
+                        }}
+                      >
+                        {selectedDokRef.dok_ref_name}
+                      </h3>
+                    </div>
+                    <hr />
+                    <div className="table-container bg-white mt-0 rounded">
+                      <div className={isMobile ? "mb-3" : "row"}>
+                        <div className="col-12 d-flex flex-wrap align-items-center gap-1">
+                          <div className="">
+                            <Button
+                              iconName="add"
+                              classType="primary"
+                              label="Tambah Dokumen"
+                              onClick={() => onChangePage("add")}
+                            />
+                          </div>
+
+                          <div className="me-auto flex-grow-1 mt-3 me-3">
+                            <SearchField
+                              onChange={(value) => setSearchKeyword(value)}
+                            />
+                          </div>
+
+                          <div className="">
+                            <Filter>
+                              <div className="mb-3">
+                                <label htmlFor="yearPicker" className="mb-1">
+                                  Berdasarkan Tahun
+                                </label>
+                                <input
+                                  type="number"
+                                  className="form-control"
+                                  placeholder="Masukkan Tahun"
+                                  // value={selectedYear}
+                                  // onChange={(e) =>
+                                  //   setSelectedYear(e.target.value)
+                                  // }
+                                  min="2000"
+                                  max={new Date().getFullYear()}
+                                />
+                              </div>
+
+                              <Button
+                                classType="btn btn-secondary"
+                                title="Reset Filter"
+                                label="Reset"
+                                // onClick={resetFilter}
+                              />
+                            </Filter>
+                          </div>
+                        </div>
+                      </div>
+                      <Table
+                        arrHeader={["No", "Dokumen"]}
+                        headerToDataMap={{
+                          No: "No",
+                          Dokumen: "Dokumen",
+                        }}
+                        data={sortedData.map((item, index) => ({
+                          key: item.dok_id || index,
+                          No: indexOfFirstData + index + 1,
+                          Dokumen: item.dok_judul,
+                        }))}
+                        actions={[
+                          "Preview",
+                          "Detail",
+                          "Edit",
+                          "Print",
+                          "Delete",
+                          "PrintHistory",
+                          "UpdateHistory",
+                        ]}
+                        onPreview={(data) => {
+                          console.log("prev");
+                          const selected = sortedData.find(
+                            (item) => item.dok_id == data.key
+                          );
+                          handleOpenModal("preview", selected);
+                        }}
+                        onEdit={handleEdit}
+                        onDetail={(data) => {
+                          const selected = sortedData.find(
+                            (item) => item.dok_id == data.key
+                          );
+                          handleOpenModal("detail", selected);
+                        }}
+                        onPrint={() => console.log("printed")}
+                        onDelete={(item) => handleDelete(item.key)}
+                      />
               <hr />
 
               <div className="container shadow p-3 mt-5 mb-5 bg-white rounded">
@@ -708,6 +902,15 @@ export default function Index({ onChangePage }) {
                     </div>
                   </div>
                 </div>
+                      <Paging
+                        pageSize={pageSize}
+                        pageCurrent={pageCurrent}
+                        totalData={sortedData.length}
+                        navigation={handlePageNavigation}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -763,6 +966,39 @@ export default function Index({ onChangePage }) {
                   />
                 </div>
               </div>
+              <div className="row">
+                <div className="col-lg-6 col-md-6">
+                  <DetailData label="Dibuat Oleh" isi={detail.dok_created_by} />
+                  <DetailData
+                    label="Dibuat Tanggal"
+                    isi={new Date(detail.dok_created_date).toLocaleDateString(
+                      "id-ID",
+                      {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      }
+                    )}
+                  />
+                </div>
+                <div className="col-lg-6 col-md-6">
+                  <DetailData
+                    label="Dimodifikasi Oleh"
+                    isi={detail.dok_modif_by}
+                  />
+                  <DetailData
+                    label="Dimodifikasi Tanggal"
+                    isi={new Date(detail.dok_modif_date).toLocaleDateString(
+                      "id-ID",
+                      {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      }
+                    )}
+                  />
               <div className="row">
                 <div className="col-lg-6 col-md-6">
                   <DetailData label="Dibuat Oleh" isi={detail.dok_created_by} />

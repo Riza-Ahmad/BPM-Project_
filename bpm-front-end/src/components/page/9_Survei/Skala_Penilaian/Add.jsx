@@ -41,9 +41,16 @@ export default function Add({ onChangePage }) {
       formData.skp_tipe === "RadioButton" ||
       formData.skp_tipe === "CheckBox"
     ) {
+      const trimmedDescriptions = formData.descriptions.map((desc) =>
+        desc.trim()
+      );
+      const hasDuplicates =
+        new Set(trimmedDescriptions).size !== trimmedDescriptions.length;
+
       newErrors.descriptions =
         formData.descriptions.length !== formData.scale ||
-        formData.descriptions.some((desc) => !desc.trim());
+        formData.descriptions.some((desc) => !desc.trim()) ||
+        hasDuplicates;
     }
 
     // Validate TextBox and TextArea
@@ -53,6 +60,31 @@ export default function Add({ onChangePage }) {
 
     setErrors(newErrors);
     return !Object.values(newErrors).some((error) => error);
+  };
+
+  const isNameDuplicate = async (name) => {
+    try {
+      const response = await fetch(
+        `${API_LINK}/SkalaPenilaian/GetAllDataKriteriaSurvei`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ page: 1, pageSize: 100 }),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        return result.some(
+          (item) => item.skp_tipe.toLowerCase() === name.toLowerCase()
+        );
+      } else {
+        throw new Error("Gagal memeriksa duplikasi nama.");
+      }
+    } catch (error) {
+      console.error("Error checking duplicate:", error);
+      return false; // Jika ada error, anggap tidak duplikat (default)
+    }
   };
 
   const renderErrorMessage = (errorType) => {
@@ -83,11 +115,48 @@ export default function Add({ onChangePage }) {
     }));
   };
 
+  const isScaleDuplicate = async (scale) => {
+    try {
+      const response = await fetch(
+        `${API_LINK}/SkalaPenilaian/GetAllSkalaPenilaianAktif`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ page: 1, pageSize: 100 }),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        return result.some(
+          (item) => item.scale.toLowerCase() === scale.toLowerCase()
+        );
+      } else {
+        throw new Error("Gagal memeriksa duplikasi skala.");
+      }
+    } catch (error) {
+      console.error("Error checking duplicate scale:", error);
+      return false; // Jika ada error, anggap tidak duplikat (default)
+    }
+  };
+
   const handleSave = async () => {
     if (!validateForm()) {
       await SweetAlert(
         "Peringatan!",
         "Harap lengkapi semua data yang diperlukan.",
+        "warning",
+        "OK"
+      );
+      return;
+    }
+
+    // Validasi duplikasi skala
+    const isDuplicate = await isScaleDuplicate(formData.scale);
+    if (isDuplicate) {
+      await SweetAlert(
+        "Peringatan!",
+        "Skala penilaian sudah ada. Silahkan membuat skala yang berbeda.",
         "warning",
         "OK"
       );
@@ -110,7 +179,7 @@ export default function Add({ onChangePage }) {
       };
 
       const response = await useFetch(
-        `${API_LINK}/SkalaPenilaian/CreateSkalaPenilaian`,
+        `${API_LINK}/MasterSkalaPenilaian/CreateSkalaPenilaian`,
         payload,
         "POST"
       );

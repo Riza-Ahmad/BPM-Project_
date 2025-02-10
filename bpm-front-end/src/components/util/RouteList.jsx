@@ -38,12 +38,16 @@ const DokumenE = lazy(() => import("../page/6_SPME/Dokumen/Root"));
 const AkreditasiProdi = lazy(() =>
   import("../page/6_SPME/AkreditasiProdi/Root")
 );
+const AkreditasiInstitusi = lazy(() =>
+  import("../page/6_SPME/AkreditasiInstitusi/Root")
+);
 const Ringkasan = lazy(() => import("../page/6_SPME/RIngkasanAkreditasi/Root"));
 const PanduanAkreditasi = lazy(() =>
   import("../page/6_SPME/PanduanAkreditasi/Root")
 );
 const Standar = lazy(() => import("../page/7_IKU&IKT/Standar/Root"));
 const IKUIKT = lazy(() => import("../page/7_IKU&IKT/IKUIKT/Root"));
+const Capaian = lazy(() => import("../page/7_IKU&IKT/Capaian/Root"));
 const IndikatorKinerja = lazy(() =>
   import("../page/7_IKU&IKT/IndikatorKinerja/Root")
 );
@@ -73,9 +77,7 @@ const KategoriDokumen = lazy(() =>
 const Peraturan = lazy(() =>
   import("../page/10_Peraturan/ms_kebijakanPeraturan/Root")
 );
-const PeraturanEksternal = lazy(() =>
-  import("../page/10_Peraturan/ms_peraturanEksternal/Root")
-);
+
 const InstrumenAps = lazy(() =>
   import("../page/10_Peraturan/ms_instrumenAps/Root")
 );
@@ -154,16 +156,16 @@ const routeList = [
     element: <SPMI_Dinamis />,
     protected: true,
   },
-  // {
-  //   path: "/spmi/siklus/peningkatan/*",
-  //   element: <Peningkatan />,
-  //   protected: true,
-  // },
   {
-    path: "/spmi/siklus/pengendalian/*",
-    element: <Pengendalian />,
+    path: "/spmi/siklus/peningkatan/*",
+    element: <Peningkatan />,
     protected: true,
   },
+  // {
+  //   path: "/spmi/siklus/pengendalian/*",
+  //   element: <Pengendalian />,
+  //   protected: true,
+  // },
   // {
   //   path: "/spmi/siklus/evaluasi/*",
   //   element: <Evaluasi />,
@@ -219,6 +221,11 @@ const routeList = [
     protected: true,
   },
   {
+    path: "/spme/status/institusi/*",
+    element: <AkreditasiInstitusi />,
+    protected: true,
+  },
+  {
     path: "/spme/panduan/*",
     element: <PanduanAkreditasi />,
     protected: true,
@@ -230,22 +237,17 @@ const routeList = [
   },
   {
     path: "/iku/dashboard/*",
-    element: <Standar />,
+    element: <Capaian />,
     protected: true,
   },
   {
     path: "/iku/ikuikt/*",
-    element: <IKUIKT />,
+    element: <IndikatorKinerja />,
     protected: true,
   },
   {
-    path: "/peraturan/kebijakan/*",
+    path: "/peraturan/dokumen/*",
     element: <Peraturan />,
-    protected: true,
-  },
-  {
-    path: "/peraturan/eksternal/*",
-    element: <PeraturanEksternal />,
     protected: true,
   },
   {

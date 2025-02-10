@@ -598,18 +598,16 @@ export default function IndexAlternate({ onChangePage }) {
         }
 
         const arrResult = Object.values(result);
-        const firstResult = arrResult[0];
-
         const listMenu = CreateMenu(arrResult);
-        console.log(listMenu);
-        const depth = calculateDepth(listMenu);
-        console.log(depth);
-        const sideMenuTransformed = listMenu[0]?.children;
+        // console.log(listMenu);
+        // const depth = calculateDepth(listMenu);
+        // console.log(depth);
+        // const sideMenuTransformed = listMenu[0]?.children;
 
-        setTabMenu([]);
-        setActiveTab(null);
+        // setTabMenu([]);
+        // setActiveTab(null);
         setSideMenu(listMenu);
-        setActiveSide(listMenu[0]);
+        // setActiveSide(listMenu[0]);
       } catch (err) {
         console.error("Error fetching kategori:", err);
         setError("Gagal mengambil data: " + err.message);
