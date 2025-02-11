@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PageTitleNav from "../../../part/PageTitleNav";
 import InputField from "../../../part/InputField";
 import TextArea from "../../../part/TextArea";
@@ -25,6 +25,8 @@ export default function Add({ onChangePage }) {
   const [templateOptions, setTemplateOptions] = useState([]);
   const [selectedTemplate, setSelectedTemplate] = useState(""); // p1: tsu_id
   const [loadingTemplate, setLoadingTemplate] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // State untuk checkbox (responden)
   const [selectedValues, setSelectedValues] = useState([]);
@@ -34,7 +36,21 @@ export default function Add({ onChangePage }) {
 
   // State untuk memicu pemanggilan API (submit data)
   const [submitData, setSubmitData] = useState(null);
+  const [formData, setFormData] = useState({
+    templateSurvei: "",
+    tanggalAwal: "",
+    tanggalAkhir: "",
+    responden: [],
+    kataPembuka: "",
+    kataPenutup: "",
+  });
 
+  const templateSurveiRef = useRef();
+  const tanggalAwalRef = useRef();
+  const tanggalAkhirRef = useRef();
+  const respondenRef = useRef();
+  const kataPembukaRef = useRef();
+  const kataPenutupRef = useRef();
   // Ambil data template survei
   useEffect(() => {
     const fetchTemplate = async () => {
@@ -53,9 +69,10 @@ export default function Add({ onChangePage }) {
         }
         const data = await response.json();
         const formattedTemplate = data.map((item) => ({
-          value: item.tsu_id,
+          Value: item.tsu_id,
           Text: item.tsu_nama,
         }));
+        console.log(formattedTemplate);
         setTemplateOptions(formattedTemplate);
       } catch (error) {
         SweetAlert("Error", error.message, "error");
@@ -69,13 +86,31 @@ export default function Add({ onChangePage }) {
   // === Pilih salah satu opsi handler checkbox berikut ===
 
   // Opsi 1: Jika CheckBox mengirim 2 parameter: value dan isChecked
-  const handleCheckBoxChange = (value, isChecked) => {
-    setSelectedValues((prevValues) => {
-      if (isChecked) {
-        return [...prevValues, value];
-      } else {
-        return prevValues.filter((item) => item !== value);
-      }
+  const handleCheckBoxChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    console.log(value);
+    if (type === "checkbox") {
+      setFormData((prev) => {
+        const updatedResponden = checked
+          ? [...prev.responden, value]
+          : prev.responden.filter((item) => item !== value);
+        return { ...prev, responden: updatedResponden };
+      });
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    console.log(value);
+    setFormData((prevData) => {
+      const updatedData = {
+        ...prevData,
+        [name]: value,
+      };
+
+      return updatedData;
     });
   };
 
@@ -95,34 +130,67 @@ export default function Add({ onChangePage }) {
 
   // Logika handleSubmit untuk transaksi survei
   const handleSubmit = async () => {
-    // Validasi bahwa Template Survei telah dipilih
-    if (!selectedTemplate) {
-      SweetAlert("Error", "Harap pilih Template Survei.", "error");
+    if (!templateSurveiRef.current?.validate()) {
+      templateSurveiRef.current?.focus();
       return;
     }
-    // Validasi bahwa setidaknya satu checkbox responden telah dipilih
-    if (selectedValues.length === 0) {
-      SweetAlert("Error", "Harap pilih minimal satu responden.", "error");
+    if (!tanggalAwalRef.current?.validate()) {
+      tanggalAwalRef.current?.focus();
       return;
     }
-    // Validasi bahwa field "Dibuat Oleh" telah diisi
-    if (!dibuatOleh.trim()) {
-      SweetAlert("Error", "Harap isi field 'Dibuat Oleh'.", "error");
+    if (!tanggalAkhirRef.current?.validate()) {
+      tanggalAkhirRef.current?.focus();
+      return;
+    }
+    if (!respondenRef.current?.validate()) {
+      respondenRef.current?.focus();
+      return;
+    }
+    if (!kataPembukaRef.current?.validate()) {
+      kataPembukaRef.current?.focus();
+      return;
+    }
+    if (!kataPenutupRef.current?.validate()) {
+      kataPenutupRef.current?.focus();
       return;
     }
 
-    // p2: gabungan nilai dari checkbox responden
-    const respondenString = selectedValues.join(", ");
+    const startDate = new Date(`${tanggalAwalRef.current.value}`);
+    const endDate = new Date(`${tanggalAkhirRef.current.value}`);
 
-    // Persiapkan payload untuk stored procedure:
-    // p1: selectedTemplate (tsu_id), p2: respondenString (trs_responden_username),
-    // p3: dibuatOleh (trs_created_by)
-    setSubmitData({
-      p1: selectedTemplate,
-      p2: respondenString,
-      p3: dibuatOleh,
-      // p4 - p50 tidak digunakan
-    });
+    if (startDate >= endDate) {
+      SweetAlert(
+        "Gagal!",
+        "Tanggal dan waktu mulai harus lebih awal dari tanggal dan waktu selesai.",
+        "error",
+        "OK"
+      );
+      return;
+    }
+    setLoading(true);
+    try {
+      console.log(formData);
+      const createResponse = await useFetch(
+        `${API_LINK}/TransaksiSurvei/CreateTransaksiSurvei`,
+        formData,
+        "POST"
+      );
+      if (createResponse === "ERROR") {
+        throw new Error("Gagal menambah data transaksi survei.");
+      }
+
+      SweetAlert(
+        "Berhasil!",
+        "Jadwal kegiatan berhasil dibuat.",
+        "success",
+        "OK"
+      ).then(() => onChangePage("index"));
+    } catch (error) {
+      SweetAlert("Gagal!", error.message, "error", "OK");
+      setLoading(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // useEffect untuk memanggil API CreateTransaksiSurvei saat submitData terisi
@@ -156,6 +224,8 @@ export default function Add({ onChangePage }) {
     submitSurvey();
   }, [submitData, onChangePage]);
 
+  if (loading) return <Loading />;
+  if (error) return <p>{error}</p>;
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
@@ -177,48 +247,74 @@ export default function Add({ onChangePage }) {
               <div className="row">
                 <div className="col-lg-6 col-md-6">
                   <Dropdown
+                    ref={templateSurveiRef}
                     arrData={[
                       { value: "", Text: "-- Pilih Template Survei --" },
                       ...templateOptions,
                     ]}
                     label="Template Survei"
-                    value={selectedTemplate}
-                    onChange={(e) => setSelectedTemplate(e.target.value)}
+                    name="templateSurvei"
+                    value={formData.templateSurvei}
+                    onChange={handleChange}
                     isRequired={true}
                   />
                 </div>
                 <div className="col-lg-6 col-md-6">
-                  {/* Input Tanggal Awal */}
                   <InputField
+                    ref={tanggalAwalRef}
                     label="Tanggal Awal"
+                    value={formData.tanggalAwal}
+                    onChange={(e) =>
+                      setFormData({ ...formData, tanggalAwal: e.target.value })
+                    }
                     isRequired={true}
-                    placeHolder="Masukkan Tanggal Awal Survei"
                     type="date"
                   />
-                  {/* Input Tanggal Akhir */}
+
                   <InputField
+                    ref={tanggalAkhirRef}
                     label="Tanggal Akhir"
+                    value={formData.tanggalAkhir}
+                    onChange={(e) =>
+                      setFormData({ ...formData, tanggalAkhir: e.target.value })
+                    }
                     isRequired={true}
-                    placeHolder="Masukkan Tanggal Akhir Survei"
                     type="date"
                   />
                 </div>
               </div>
               <CheckBox
+                ref={respondenRef}
                 arrData={[
-                  { Value: "Dosen", Text: "Dosen" },
-                  { Value: "Tenaga Pendidik", Text: "Tenaga Pendidik" },
-                  { Value: "Mitra Kerjasama", Text: "Mitra Kerjasama" },
+                  { Value: "ROL09", Text: "Dosen" },
+                  { Value: "ROL03", Text: "Tenaga Pendidik" },
+                  { Value: "ROLXX", Text: "Mitra Kerjasama" },
                 ]}
                 label="Pilih Responden"
-                name="exampleCheckBox"
+                name="responden"
                 isRequired={true}
-                values={selectedValues}
+                values={formData.responden || []}
                 onChange={handleCheckBoxChange}
                 errorMessage="Pilih setidaknya satu opsi sebelum melanjutkan."
               />
-              <TextArea label="Kata Pembuka" />
-              <TextArea label="Kata Penutup" />
+              <TextArea
+                label="Kata Pembuka"
+                ref={kataPembukaRef}
+                value={formData.kataPembuka}
+                onChange={(e) =>
+                  setFormData({ ...formData, kataPembuka: e.target.value })
+                }
+                isRequired={true}
+              />
+              <TextArea
+                label="Kata Penutup"
+                ref={kataPenutupRef}
+                value={formData.kataPenutup}
+                onChange={(e) =>
+                  setFormData({ ...formData, kataPenutup: e.target.value })
+                }
+                isRequired={true}
+              />
               <div className="d-flex justify-content-between align-items-center">
                 <div className="flex-grow-1 m-2">
                   <Button

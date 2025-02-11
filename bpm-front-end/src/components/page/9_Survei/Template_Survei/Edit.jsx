@@ -71,7 +71,6 @@ export default function EditTemplateSurvei() {
   // Untuk penambahan multi pertanyaan (checkbox)
   const [tambahPertanyaan, setTambahPertanyaan] = useState([]);
   const [isInstrumenFetched, setIsInstrumenFetched] = useState(false);
-  const [aksiIs, setAksiIs] = useState(false);
 
   // Fungsi untuk membuka dan menutup modal
   const handleOpenModal = () => setShowModal(true);
@@ -241,8 +240,6 @@ export default function EditTemplateSurvei() {
       } else {
         const arrResult = Object.values(result);
         setFilteredData(arrResult);
-        console.log("jalan - jalannnn");
-        console.log(arrResult);
         // Asumsikan totalData ada pada properti totalData di elemen pertama
         setTotalData(arrResult[0].totalData || 0);
       }
@@ -312,12 +309,11 @@ export default function EditTemplateSurvei() {
         p1: id,
         p2: formData.namaTemplate,
         p3: formData.responden || [],
-        p4: formData.ksrId,
-        p5: formData.skpId,
-        p6: formData.pertanyaan,
+        p4: formData.pertanyaan,
       };
+      console.log("Payload:", payload);
       const response = await useFetch(
-        `${API_LINK}/TemplateSurvei/EditTemplateSurvei`,
+        `${API_LINK}/TemplateSurvei/UpdateTemplateSurvei`,
         payload,
         "POST"
       );
@@ -345,6 +341,8 @@ export default function EditTemplateSurvei() {
         idTemplate: id,
         pertanyaan: tambahPertanyaan, // hanya berisi satu ID
       };
+      console.log("jalan - jalaaaaan nih");
+      console.log(tambahPertanyaan);
       const response = await useFetch(
         `${API_LINK}/TemplateSurvei/AddPertanyaanToTemplate`,
         payload,
@@ -496,9 +494,12 @@ export default function EditTemplateSurvei() {
                 <CheckBox
                   ref={respondenRef}
                   arrData={[
-                    { Value: 0, Text: "Dosen dan Instruktur" },
-                    { Value: 1, Text: "Tenaga Pendidik" },
-                    { Value: 2, Text: "Mitra Kerjasama" },
+                    {
+                      Value: "Dosen dan Instruktur",
+                      Text: "Dosen dan Instruktur",
+                    },
+                    { Value: "Tenaga Pendidik", Text: "Tenaga Pendidik" },
+                    { Value: "Mitra Kerjasama", Text: "Mitra Kerjasama" },
                   ]}
                   label="Responden"
                   name="responden"

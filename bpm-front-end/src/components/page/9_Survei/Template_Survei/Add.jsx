@@ -26,6 +26,7 @@ export default function AddTemplateSurvei() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    console.log(value);
     if (type === "checkbox") {
       setFormData((prev) => {
         const updatedResponden = checked
@@ -105,7 +106,8 @@ export default function AddTemplateSurvei() {
                 isMobile
                   ? "shadow p-4 m-2 bg-white rounded"
                   : "shadow p-5 m-5 bg-white rounded"
-              }>
+              }
+            >
               <HeaderForm label="Formulir Template Survei" />
               {/* InputField untuk Nama Template */}
               <InputField

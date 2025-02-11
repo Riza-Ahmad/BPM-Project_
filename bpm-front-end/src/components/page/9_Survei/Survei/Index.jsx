@@ -97,8 +97,7 @@ export default function Survei({ onChangePage }) {
             />
           </div>
         </div>
-      </main>
-         
+      </main>  
     </div>
   );
 }

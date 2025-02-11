@@ -28,10 +28,6 @@ export default function Detail() {
   const [detailData, setDetailData] = useState({
     pty_pertanyaan: "",
     pty_status: "",
-    pty_created_by: "",
-    pty_created_date: "",
-    pty_modif_by: "",
-    pty_modif_date: "",
     ksr_id: "",
     skp_id: "",
     ksr_nama: "",
@@ -39,35 +35,34 @@ export default function Detail() {
     skp_skala: "",
     skp_deskripsi: "",
   });
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchDetail = async () => {
       setLoading(true);
       try {
+        // Kirim ID dalam format array JSON
+        const requestBody = JSON.stringify([detailId]);
+
         const result = await useFetch(
           `${API_LINK}/MasterPertanyaan/GetDataPertanyaanById`,
-          { p1: detailId },
+          requestBody,
           "POST"
         );
 
         console.log("Hasil Fetch:", result); // Debugging
 
-        if (result && result[0]) {
+        if (result && result.length > 0) {
+          const data = result[0];
+
           setDetailData({
-            pty_pertanyaan: result[0].pty_pertanyaan || "-",
-            pty_status:
-              result[0].pty_status === "Aktif" ? "Aktif" : "Tidak Aktif",
-            pty_created_by: result[0].pty_created_by || "-",
-            pty_created_date: formatTanggal(result[0].pty_created_date),
-            pty_modif_by: result[0].pty_modif_by || "-",
-            pty_modif_date: formatTanggal(result[0].pty_modif_date),
-            ksr_id: result[0].ksr_id || "-",
-            skp_id: result[0].skp_id || "-",
-            ksr_nama: result[0].ksr_nama || "-",
-            skp_tipe: result[0].skp_tipe || "-",
-            skp_skala: result[0].skp_skala || "-",
-            skp_deskripsi: result[0].skp_deskripsi || "-",
+            pty_pertanyaan: data.pertanyaan || "-",
+            pty_status: data.status || "-",
+            ksr_id: data.ksr_id || "-",
+            skp_id: data.skp_id || "-",
+            ksr_nama: data.namaKri || "-",
+            skp_tipe: data.tipeSka || "-",
+            skp_skala: data.skala || "-",
+            skp_deskripsi: data.deskSka || "-",
           });
         } else {
           throw new Error("Data tidak ditemukan");
@@ -90,29 +85,6 @@ export default function Detail() {
     }
   }, [detailId, navigate]);
 
-  const KolomKiriDetail = () => (
-    <div className="col-lg-6 col-md-6">
-      <DetailData label="Pertanyaan" isi={detailData.pty_pertanyaan} />
-      <DetailData label="Kriteria" isi={detailData.ksr_nama} />
-      <DetailData label="Status" isi={detailData.pty_status} />
-      <DetailData label="Dibuat Oleh" isi={detailData.pty_created_by} />
-      <DetailData label="Tanggal Dibuat" isi={detailData.pty_created_date} />
-    </div>
-  );
-
-  const KolomKananDetail = () => (
-    <div className="col-lg-6 col-md-6">
-      <DetailData label="Skala Tipe" isi={detailData.skp_tipe} />
-      <DetailData label="Skala Skala" isi={detailData.skp_skala} />
-      <DetailData label="Deskripsi Skala" isi={detailData.skp_deskripsi} />
-      <DetailData label="Dimodifikasi Oleh" isi={detailData.pty_modif_by} />
-      <DetailData
-        label="Tanggal Dimodifikasi"
-        isi={detailData.pty_modif_date}
-      />
-    </div>
-  );
-
   if (loading) return <Loading />;
 
   return (
@@ -130,8 +102,22 @@ export default function Detail() {
           <div className="shadow p-5 mt-4 bg-white rounded">
             <HeaderForm label="Detail Pertanyaan Survei" />
             <div className="row">
-              <KolomKiriDetail />
-              <KolomKananDetail />
+              <div className="col-lg-6 col-md-6">
+                <DetailData
+                  label="Pertanyaan"
+                  isi={detailData.pty_pertanyaan}
+                />
+                <DetailData label="Kriteria" isi={detailData.ksr_nama} />
+                <DetailData label="Status" isi={detailData.pty_status} />
+              </div>
+              <div className="col-lg-6 col-md-6">
+                <DetailData label="Skala Tipe" isi={detailData.skp_tipe} />
+                <DetailData label="Skala Skala" isi={detailData.skp_skala} />
+                <DetailData
+                  label="Deskripsi Skala"
+                  isi={detailData.skp_deskripsi}
+                />
+              </div>
             </div>
             <div className="d-flex justify-content-between align-items-center">
               <div className="flex-grow-1 m-2">

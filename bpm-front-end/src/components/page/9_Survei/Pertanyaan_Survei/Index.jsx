@@ -26,11 +26,12 @@ export default function Pertanyaan_Survei({ onChangePage }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // State untuk pencarian dan filter (client-side)
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState(""); // "" berarti semua status
-  const [filterSort, setFilterSort] = useState("[pty_pertanyaan] DESC"); // default sorting
+  const [filterSort, setFilterSort] = useState("[pty_created_date] DESC"); // default sorting
   const [filterKriteria, setFilterKriteria] = useState(""); // Filter untuk Kriteria Survei, "" berarti semua
   const [filterSkala, setFilterSkala] = useState(""); // Filter untuk Skala Penilaian, "" berarti semua
   const [filteredData, setFilteredData] = useState([]);
@@ -41,7 +42,13 @@ export default function Pertanyaan_Survei({ onChangePage }) {
   const [loadingFilter, setLoadingFilter] = useState(false);
   const [errorFilter, setErrorFilter] = useState(null);
 
+  // Ref untuk modal import dan modal export
   const importModalRef = useRef(null);
+  const exportModalRef = useRef(null); // untuk modal export
+
+  // State untuk pilihan kriteria pada modal export
+  const [exportKriteria, setExportKriteria] = useState("");
+
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -94,16 +101,9 @@ export default function Pertanyaan_Survei({ onChangePage }) {
           {},
           "POST"
         );
-        if (data && Array.isArray(data)) {
-          // Mapping data agar sesuai dengan format Dropdown { Value, Text }
-          const mappedOptions = data.map((item) => ({
-            Value: item.ksr_id,
-            Text: item.ksr_nama,
-          }));
-          setKsrOptions(mappedOptions);
-        }
+        setKsrOptions(data);
       } catch (err) {
-        setErrorFilter("Gagal mengambil data: " + err.message);
+        setError("Gagal mengambil data: " + err.message);
       } finally {
         setLoading(false);
       }
@@ -114,8 +114,8 @@ export default function Pertanyaan_Survei({ onChangePage }) {
   // Ambil data opsi Skala Penilaian dari API
   useEffect(() => {
     const fetchSkalaPenilaian = async () => {
-      setLoadingFilter(true);
-      setErrorFilter(null);
+      setLoading(true);
+      setError(null);
       try {
         const skpResponse = await useFetch(
           `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
@@ -126,18 +126,17 @@ export default function Pertanyaan_Survei({ onChangePage }) {
           const filteredSkp = skpResponse.filter(
             (item) => item.skp_status === "Aktif"
           );
-          const mappedSkp = filteredSkp.map((item) => ({
-            Value: item.skp_id,
-            Text: item.skp_tipe,
-          }));
-          setSkpOptions(mappedSkp);
+          setSkpOptions(
+            filteredSkp.map((item) => ({
+              value: item.skp_id,
+              Text: item.skp_skala + " (" + item.skp_deskripsi + ")",
+            }))
+          );
         }
       } catch (error) {
-        setErrorFilter(
-          "Gagal mengambil data Skala Penilaian: " + error.message
-        );
+        setError("Gagal mengambil data Skala Penilaian: " + error.message);
       } finally {
-        setLoadingFilter(false);
+        setLoading(false);
       }
     };
     fetchSkalaPenilaian();
@@ -199,20 +198,26 @@ export default function Pertanyaan_Survei({ onChangePage }) {
     }
   }, [dataToDisplay, pageCurrent, pageSize]);
 
-  // Fungsi export ke Excel
-  // Fungsi export ke Excel
-  const handleExportQuestions = () => {
-    const dataToExport = dataToDisplay;
+  // ===========================
+  // Fungsi export ke Excel (modifikasi export berdasarkan kriteria survei)
+  // ===========================
+  const handleExportQuestionsByCriteria = () => {
+    // Gunakan data yang sudah terfilter agar ekspor sesuai dengan filter yang aktif
+    const dataSource = dataToDisplay;
+    const dataToExport = exportKriteria
+      ? dataSource.filter((item) => item.ksr_nama === exportKriteria)
+      : dataSource;
+
     if (dataToExport.length === 0) {
       Swal.fire({
         icon: "warning",
         title: "Data Kosong",
-        text: "Tidak ada data untuk diekspor.",
+        text: "Tidak ada data untuk diekspor untuk kriteria yang dipilih.",
       });
       return;
     }
 
-    // Buat salinan data dan urutkan berdasarkan ID Pertanyaan (ascending)
+    // Sort data berdasarkan ID Pertanyaan (ascending)
     const sortedDataQuestions = [...dataToExport].sort(
       (a, b) => Number(a.pty_id) - Number(b.pty_id)
     );
@@ -255,11 +260,9 @@ export default function Pertanyaan_Survei({ onChangePage }) {
     // 2. Sheet Data Kriteria Survei
     // ==========================
     const headersKriteria = [["ID Kriteria", "Nama Kriteria"]];
-    // Gunakan Map untuk mendapatkan pasangan unik ID Kriteria dan Nama Kriteria
     const uniqueKriteriaMap = new Map(
-      dataToExport.map((item) => [item.krs_id, item.krs_nama])
+      dataToExport.map((item) => [item.krs_id, item.ksr_nama])
     );
-    // Ubah ke array dan urutkan berdasarkan ID Kriteria (ascending)
     const uniqueKriteria = Array.from(uniqueKriteriaMap.entries()).sort(
       (a, b) => Number(a[0]) - Number(b[0])
     );
@@ -272,14 +275,12 @@ export default function Pertanyaan_Survei({ onChangePage }) {
     // 3. Sheet Data Skala Penilaian
     // ==========================
     const headersSkala = [["ID Skala", "Tipe Skala", "Deskripsi"]];
-    // Gunakan Map untuk mendapatkan pasangan unik ID Skala dan objek {tipe, deskripsi}
     const uniqueSkalaMap = new Map(
       dataToExport.map((item) => [
         item.skp_id,
         { tipe: item.skp_tipe, deskripsi: item.skp_deskripsi },
       ])
     );
-    // Ubah ke array dan urutkan berdasarkan ID Skala (ascending)
     const uniqueSkala = Array.from(uniqueSkalaMap.entries()).sort(
       (a, b) => Number(a[0]) - Number(b[0])
     );
@@ -374,6 +375,9 @@ export default function Pertanyaan_Survei({ onChangePage }) {
     );
 
     XLSX.writeFile(workbook, "Pertanyaan_Eksport.xlsx");
+
+    // Setelah selesai, tutup modal export
+    exportModalRef.current.close();
   };
 
   // Variabel global untuk parsedData (data impor)
@@ -570,11 +574,12 @@ export default function Pertanyaan_Survei({ onChangePage }) {
                 label="Import Pertanyaan"
                 onClick={() => importModalRef.current.open()}
               />
+              {/* Tombol export membuka modal export */}
               <Button
                 iconName="file-download"
                 classType="success"
                 label="Export Pertanyaan"
-                onClick={handleExportQuestions}
+                onClick={() => exportModalRef.current.open()}
               />
             </div>
             <div className="row mt-5">
@@ -769,6 +774,59 @@ export default function Pertanyaan_Survei({ onChangePage }) {
             }}
             name="import-file"
             className="form-control"
+          />
+        </div>
+      </Modal>
+
+      {/* EXPORT MODAL */}
+      <Modal
+        ref={exportModalRef}
+        title="Export Pertanyaan"
+        size="medium"
+        Button1={
+          <Button
+            classType="primary"
+            label="Export"
+            type="submit"
+            style={{
+              width: "200px",
+              height: "40px",
+              fontSize: "15px",
+              margin: "10px 0",
+            }}
+            onClick={handleExportQuestionsByCriteria}
+          />
+        }
+        Button2={
+          <Button
+            classType="danger"
+            label="Batal"
+            style={{
+              width: "200px",
+              height: "40px",
+              fontSize: "15px",
+              margin: "10px 0",
+            }}
+            onClick={() => exportModalRef.current.close()}
+          />
+        }
+      >
+        <div
+          className="form-group"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+            width: "100%",
+          }}
+        >
+          <label>Pilih Kriteria Survei untuk mengekspor pertanyaan:</label>
+          <Dropdown
+            label="Kriteria Survei"
+            type="pilih"
+            arrData={[{ Value: "", Text: "Semua" }, ...ksrOptions]}
+            defaultValue=""
+            onChange={(e) => setExportKriteria(e.target.value)}
           />
         </div>
       </Modal>

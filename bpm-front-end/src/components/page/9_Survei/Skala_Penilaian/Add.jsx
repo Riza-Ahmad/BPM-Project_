@@ -179,7 +179,7 @@ export default function Add({ onChangePage }) {
       };
 
       const response = await useFetch(
-        `${API_LINK}/MasterSkalaPenilaian/CreateSkalaPenilaian`,
+        `${API_LINK}/SkalaPenilaian/CreateSkalaPenilaian`,
         payload,
         "POST"
       );
