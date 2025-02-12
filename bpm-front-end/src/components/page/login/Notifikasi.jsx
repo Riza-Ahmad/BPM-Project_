@@ -146,15 +146,19 @@ export default function Notifikasi() {
                 />
 
                 <Text
-                  isi={new Date(item.tanggalNotifikasi).toLocaleDateString(
-                    "id-ID",
-                    {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    }
-                  )} // Data dari API
+                  isi={
+                    new Date(item.tanggalNotifikasi).toLocaleDateString(
+                      "id-ID",
+                      {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      }
+                    ) +
+                    " Oleh " +
+                    item.AsalNotifikasi
+                  } // Data dari API
                   ukuran="0.8rem"
                   warna="#575050"
                   alignText="left"

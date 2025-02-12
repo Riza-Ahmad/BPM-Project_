@@ -1,4 +1,4 @@
-import { forwardRef, useState, useImperativeHandle } from "react";
+import { forwardRef, useState, useImperativeHandle, useRef } from "react";
 
 const CheckBox = forwardRef(function CheckBox(
   {
@@ -17,6 +17,7 @@ const CheckBox = forwardRef(function CheckBox(
   ref
 ) {
   const [error, setError] = useState(false);
+  const inputRef = useRef("");
 
   // Expose reset, validate, and get value methods to the parent
   useImperativeHandle(ref, () => ({
@@ -33,6 +34,9 @@ const CheckBox = forwardRef(function CheckBox(
     },
     get value() {
       return values;
+    },
+    focus() {
+      inputRef.current.focus();
     },
   }));
 
@@ -68,6 +72,7 @@ const CheckBox = forwardRef(function CheckBox(
           <div className={col} key={data.Value}>
             <div className="form-check">
               <input
+                ref={inputRef}
                 className={`form-check-input ${error ? "is-invalid" : ""}`}
                 type="checkbox"
                 id={`${name}-${data.Value}`}
@@ -80,8 +85,7 @@ const CheckBox = forwardRef(function CheckBox(
               />
               <label
                 className="form-check-label"
-                htmlFor={`${name}-${data.Value}`}
-              >
+                htmlFor={`${name}-${data.Value}`}>
                 {data.Text}
               </label>
             </div>

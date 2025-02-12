@@ -50,6 +50,7 @@ export default function Skala_Penilaian() {
           );
         }
         break;
+
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
         break;

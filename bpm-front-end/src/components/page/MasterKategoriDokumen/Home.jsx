@@ -6,7 +6,7 @@ import Edit from "./Edit";
 import EditChild from "./EditChild";
 
 export default function Home() {
-  const [pageMode, setPageMode] = useState("index");
+  const [pageMode, setPageMode] = useState("read");
   const [dataID, setDataID] = useState("");
   const [breadcrumbs, setBreadcrumbs] = useState([
     { label: "SPMI" },
@@ -15,13 +15,13 @@ export default function Home() {
 
   function getPageMode() {
     switch (pageMode) {
-      case "index":
+      case "read":
         return <Index onChangePage={handleSetPageMode} />;
-      case "add":
+      case "addKat":
         return (
           <Add onChangePage={handleSetPageMode} breadcrumbs={breadcrumbs} />
         );
-      case "addChild":
+      case "addKatChild":
         return (
           <AddChild onChangePage={handleSetPageMode} breadcrumbs={breadcrumbs} />
         );

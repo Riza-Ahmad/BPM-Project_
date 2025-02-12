@@ -1,15 +1,41 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 import PageTitleNav from "../../../part/PageTitleNav";
 import Button from "../../../part/Button";
 import Swal from "sweetalert2";
+import DetailData from "../../../part/DetailData";
+import HeaderForm from "../../../part/HeaderText";
+import Loading from "../../../part/Loading";
 
-export default function Detail({ onChangePage }) {
-  const { id } = useParams();
+// Format tanggal untuk Indonesia
+const formatTanggal = (tanggal) => {
+  if (!tanggal) return "-";
+  return new Date(tanggal).toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
+
+export default function Detail() {
+  const navigate = useNavigate();
+  const { detailId } = useParams();
   const isMobile = useIsMobile();
-  const [detailData, setDetailData] = useState(null);
+  const [detailData, setDetailData] = useState({
+    namaKri: "",
+    status: "",
+    createdBy: "",
+    createdDate: "",
+    modifiedBy: "",
+    modifiedDate: "",
+    ksrId: "",
+    skpId: "",
+    kriteriaNama: "",
+    skalaTipe: "",
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,7 +46,7 @@ export default function Detail({ onChangePage }) {
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ksr_id: id }),
+            body: JSON.stringify({ p1: detailId }),
           }
         );
 
@@ -29,68 +55,90 @@ export default function Detail({ onChangePage }) {
         }
 
         const result = await response.json();
-        setDetailData(result[0]);
+        if (result && result[0]) {
+          setDetailData({
+            ...result[0],
+            status: result[0].pty_status === 0 ? "Tidak Aktif" : "Aktif", // Assuming status mapping
+            createdDate: formatTanggal(result[0].pty_created_date),
+            modifiedDate: formatTanggal(result[0].pty_modif_date),
+          });
+        } else {
+          throw new Error("Data tidak ditemukan");
+        }
       } catch (error) {
         console.error("Error fetching detail:", error);
         Swal.fire({
           icon: "error",
-          title: "Error",
+          title: "Terjadi Kesalahan",
           text: "Gagal mengambil data detail",
         });
+        navigate("/survei/kriteria");
       } finally {
         setLoading(false);
       }
     };
 
     fetchDetail();
-  }, [id]);
+  }, [detailId, navigate]);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  const KolomKiriDetail = ({ detailData }) => (
+    <div>
+      <DetailData label="Nama Kriteria" isi={detailData?.namaKri || "-"} />
+      <DetailData label="Status" isi={detailData?.status || "-"} />
+      <DetailData label="Dibuat Oleh" isi={detailData?.createdBy || "-"} />
+      <DetailData label="Tanggal Dibuat" isi={detailData?.createdDate || "-"} />
+    </div>
+  );
 
-  if (!detailData) {
-    return <div>Data tidak ditemukan</div>;
-  }
+  // Komponen untuk menampilkan kolom kanan detail
+  const KolomKananDetail = () => (
+    <div className="col-lg-6 col-md-6">
+      <DetailData
+        label="Dimodifikasi Oleh"
+        isi={detailData.modifiedBy || "-"}
+      />
+      <DetailData label="Tanggal Dimodifikasi" isi={detailData.modifiedDate} />
+      <DetailData label="ID Kriteria" isi={detailData.ksrId || "-"} />
+      <DetailData label="ID Skala Penilaian" isi={detailData.skpId || "-"} />
+      <DetailData label="Tipe Skala" isi={detailData.skalaTipe || "-"} />
+    </div>
+  );
+
+  // Tampilkan loading jika data sedang dimuat
+  if (loading) return <Loading />;
 
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          <div className={isMobile ? "m-0 p-0" : "m-3 mb-0"}>
-            <PageTitleNav
-              title="Detail Kriteria Survei"
-              breadcrumbs={[
-                { label: "Kriteria Survei", href: "/survei/kriteria" },
-                { label: "Detail", href: `/survei/kriteria/detail/${id}` },
-              ]}
-            />
-          </div>
-          <div className={isMobile ? "p-2 m-2" : "p-3 m-5"}>
-            <div className="bg-white p-4 rounded">
-              <div className="row">
-                <div className="col-12 mb-4">
-                  <h5>Nama Kriteria</h5>
-                  <p>{detailData.ksr_nama}</p>
-                </div>
-                <div className="col-md-6">
-                  <h5>Dibuat Oleh</h5>
-                  <p>{detailData.ksr_created_by}</p>
-                  <h5>Tanggal Dibuat</h5>
-                  <p>{detailData.ksr_created_date}</p>
-                </div>
-                <div className="col-md-6">
-                  <h5>Dimodifikasi Oleh</h5>
-                  <p>{detailData.ksr_modif_by || "-"}</p>
-                  <h5>Tanggal Dimodifikasi</h5>
-                  <p>{detailData.ksr_modif_date || "-"}</p>
-                </div>
-              </div>
-              <div className="mt-4">
+          {/* Navigasi dan Judul */}
+          <PageTitleNav
+            title="Detail Kriteria Survei"
+            breadcrumbs={[
+              { label: "Kriteria Survei", href: "/survei/kriteria" },
+              { label: "Detail Kriteria Survei" },
+            ]}
+            onClick={() => navigate("/survei/kriteria")}
+          />
+
+          {/* Kartu Detail */}
+          <div className="shadow p-5 mt-4 bg-white rounded">
+            <HeaderForm label="Detail Kriteria Survei" />
+
+            {/* Konten Detail */}
+            <div className="row">
+              <KolomKiriDetail />
+              <KolomKananDetail />
+            </div>
+
+            {/* Tombol Aksi */}
+            <div className="d-flex justify-content-between align-items-center">
+              <div className="flex-grow-1 m-2">
                 <Button
-                  classType="danger"
+                  width="100%"
                   label="Kembali"
-                  onClick={() => onChangePage("index")}
+                  classType="danger"
+                  onClick={() => navigate("/survei/kriteria")}
                 />
               </div>
             </div>

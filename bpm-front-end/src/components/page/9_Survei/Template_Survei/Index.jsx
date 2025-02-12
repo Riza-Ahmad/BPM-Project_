@@ -10,6 +10,7 @@ import Filter from "../../../part/Filter";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { useNavigate } from "react-router-dom";
+import { useFetch } from "../../../util/useFetch";
 
 export default function Template_Survei({ onChangePage }) {
   const [pageSize] = useState(10);
@@ -34,36 +35,33 @@ export default function Template_Survei({ onChangePage }) {
   const fetchTemplateSurvei = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
+      // Panggil useFetch yang sudah disesuaikan
+      const result = await useFetch(
         `${API_LINK}/TemplateSurvei/GetTemplateSurvei`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({}),
-        }
+        {},
+        "POST"
       );
 
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      // Jika result error, tampilkan pesan error
+      if (result === "ERROR") {
+        throw new Error("Gagal mengambil data template survei!");
       }
-
-      const result = await response.json();
 
       if (!result || !Array.isArray(result)) {
         throw new Error("Data template survei tidak valid.");
       }
 
       const filteredTemplates = result.filter(
-        (item) => item.tsu_status === 0 || item.tsu_status === 1
+        (item) => item.tsu_status === "Draft" || item.tsu_status === "Final"
       );
 
       const formattedTemplates = filteredTemplates.map((item) => ({
         id: item.tsu_id,
         name: item.tsu_nama,
         finalDate: item.tsu_modif_date
-          ? new Date(item.tsu_modif_date).toISOString(2)
+          ? new Date(item.tsu_modif_date).toISOString() // Perbaiki bagian ini tanpa parameter
           : "-",
-        status: item.tsu_status,
+        status: item.tsu_status, // Status sudah dalam format "Draft" atau "Final"
       }));
 
       setData(formattedTemplates);
@@ -77,7 +75,6 @@ export default function Template_Survei({ onChangePage }) {
       });
     } finally {
       setLoading(false);
-      5;
     }
   };
 
@@ -93,6 +90,7 @@ export default function Template_Survei({ onChangePage }) {
   useEffect(() => {
     let filtered = [...data];
 
+    // Filter berdasarkan query pencarian di semua atribut
     if (searchQuery) {
       filtered = filtered.filter((item) =>
         Object.values(item)
@@ -198,7 +196,7 @@ export default function Template_Survei({ onChangePage }) {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ p1: id, p2: "Admin" }),
+            body: JSON.stringify({ p1: id }),
           }
         );
 
@@ -281,7 +279,7 @@ export default function Template_Survei({ onChangePage }) {
               iconName="add"
               classType="primary"
               label="Tambah Template"
-              onClick={() => navigate("/survei/template/add")}
+              onClick={() => onChangePage("add", {})}
             />
 
             <div className="row mt-5">
@@ -359,35 +357,29 @@ export default function Template_Survei({ onChangePage }) {
                   item.finalDate === "-"
                     ? "-"
                     : new Date(item.finalDate).toLocaleDateString(),
-                Status:
-                  item.status === 0
-                    ? "Draft"
-                    : item.status === 1
-                    ? "Final"
-                    : "Tidak Aktif", // Add the 'Tidak Aktif' status
+                Status: item.status, // Directly using the string status
               }))}
               actions={
                 (item) =>
                   item.Status === "Draft"
                     ? ["Detail", "Edit", "Delete", "Preview", "Final"]
                     : item.Status === "Final"
-                    ? ["Detail", "Preview", "Toggle"] // Add action for 'Final' status
-                    : ["Detail", "Preview", "Toggle"] // Add action for 'Tidak Aktif' status
+                    ? ["Detail", "Preview", "Toggle"] // Actions for 'Final' status
+                    : item.Status === "Tidak Aktif"
+                    ? ["Detail", "Preview", "Toggle"] // Actions for 'Tidak Aktif' status
+                    : [] // Default case if needed
               }
-              onEdit={(item) =>
-                onChangePage("edit", { state: { idData: item.Key } })
-              }
-              onDetail={(item) =>
-                onChangePage("detail", { state: { idTemplate: item.Key } })
-              }
+              onEdit={(item) => {
+                onChangePage("edit", { idData: item.Key });
+              }}
               onDelete={(item) => handleDelete(item.Key)}
               onFinal={(item) => handleFinal(item.Key)}
               onToggle={(item) => handleToggle(item.Key)}
+              onDetail={(item) => onChangePage("detail", { idData: item.Key })}
               onPreview={(item) =>
-                onChangePage("preview", { state: { idTemplate: item.Key } })
+                onChangePage("preview", { idData: item.Key })
               }
             />
-
             <Paging
               pageSize={pageSize}
               pageCurrent={pageCurrent}

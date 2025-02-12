@@ -1,145 +1,557 @@
 import React from "react";
+import { useState, useRef, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import PageTitleNav from "../../../part/PageTitleNav";
-import TextField from "../../../part/TextField";
 import HeaderForm from "../../../part/HeaderText";
+import InputField from "../../../part/InputField";
+import FileUpload from "../../../part/FileUpload";
 import Button from "../../../part/Button";
 import DropDown from "../../../part/Dropdown";
+import { useFetch } from "../../../util/useFetch";
+import { uploadFile } from "../../../util/UploadFile";
+import { API_LINK } from "../../../util/Constants";
 import DocUpload from "../../../part/DocUpload";
+import { useIsMobile } from "../../../util/useIsMobile";
+import SweetAlert from "../../../util/SweetAlert";
+import Loading from "../../../part/Loading";
+import InputFieldLov from "../../../part/InputFieldLov";
+import SearchField from "../../../part/SearchField";
+import Filter from "../../../part/Filter";
+import Cookies from "js-cookie";
+import Table from "../../../part/Table";
+import Paging from "../../../part/Paging";
+import { DOKUMEN_LINK } from "../../../util/Constants";
+
+const arrSort = [
+  { Value: "[judulDok] ASC", Text: "Judul Dokumen [↑]" },
+  { Value: "[judulDok] DESC", Text: "Judul Dokumen [↓]" },
+];
+
+const arrStatus = [
+  { Value: "Aktif", Text: "Aktif" },
+  { Value: "Tidak Aktif", Text: "Tidak Aktif" },
+];
 
 export default function Edit({ onChangePage }) {
-  const title = "Edit Dokumen";
+  const activeUser = Cookies.get("activeUser");
+  let role = ""; // Jika undefined, gunakan nilai default
+  let roleNama = "";
+  let namaPengguna = "";
+  if (activeUser) {
+    role = JSON.parse(activeUser).RoleID.slice(0, 5);
+    roleNama = JSON.parse(activeUser).Role;
+    namaPengguna = JSON.parse(activeUser).Nama;
+  }
+  const title = "Edit Data";
   const breadcrumbs = [
     { label: "SPME" },
     { label: "Status Akreditasi" },
     { label: "Program Studi" },
-    { label: "Edit" },
   ];
-  const arrData = [
-    { Value: "Controlled Copy", Text: "Controlled Copy" },
-    { Value: "Uncontrolled Copy", Text: "Uncontrolled Copy" },
-  ];
-  const arrAkre = [
-    { Value: "Unggul", Text: "Unggul" },
-    { Value: "Baik Sekali", Text: "Baik Sekali" },
-    { Value: "Baik", Text: "Baik" },
-    { Value: "A", Text: "A" },
-    { Value: "B", Text: "B" },
-    { Value: "C", Text: "C" },
-    { Value: "Belum Terakreditasi", Text: "Belum Terakreditasi" },
-  ];
+  const isMobile = useIsMobile();
+  const [loading, setLoading] = useState(true);
+  const [loading2, setLoading2] = useState(true);
 
-  const arrProdi = [
-    {value: "Manajemen Informatika (MI)", Text: "Manajemen Informatika (MI)"},
-    {value: "Mekratonika (MK)", Text: "Mekratonika (MK)"},
-    {value: "Teknik Pembuatan Peralatan Perkakas Produksi (P4)", Text: "Teknik Pembuatan Peralatan Perkakas Produksi (P4)"},
-    {value: "Teknik Produksi dan Proses Manufaktur (TPPM)", Text: "Teknik Produksi dan Proses Manufaktur (TPPM)"},
-    {value: "Mesin Otomotif (MO)", Text: "Mesin Otomotif (MO)"},
-    {value: "Teknologi Konstruksi Bangunan Gedung (TKBG)", Text: "Teknologi Konstruksi Bangunan Gedung (TKBG)"},
-    {value: "Teknologi Rekayasa Logistik (TRL)", Text: "Teknologi Rekayasa Logistik (TRL)"},
-    {value: "Teknologi Rekayasa Perangkat Lunak (TRPL)", Text: "Teknologi Rekayasa Perangkat Lunak (TRPL)"},
-  ];
+  const location = useLocation();
+  const idMenu = location.state?.idMenu;
+  const idData = location.state?.idData;
+  console.log(idMenu);
+  console.log(idData);
+
+  const [pageSize] = useState(10);
+  const [pageCurrent, setPageCurrent] = useState(1);
+  const [totalData, setTotalData] = useState(0);
+  const [filteredData, setFilteredData] = useState([]);
+  const [error, setError] = useState(null);
+
+  const [currentFilter, setCurrentFilter] = useState({
+    param1: 50,
+    param2: "Aktif",
+    param3: "",
+    param4: "",
+    param5: pageSize,
+    param6: pageCurrent,
+    param7: "[judulDok] ASC",
+  });
+
+  useEffect(() => {
+    setCurrentFilter((prevFilter) => ({
+      ...prevFilter,
+      param6: pageCurrent,
+    }));
+  }, [pageCurrent]);
+
+  const [displayLov, setDisplayLov] = useState({
+    fileSkAkr: "",
+    fileSertifAkr: "",
+  });
+
+  const [formData, setFormData] = useState({
+    kodeAkr: "",
+    namaAkr: "",
+    jenjangAkr: "",
+    wilayahAkr: "",
+    peringkatAkr: "",
+    nomorSKAkr: "",
+    berlakuAkr: "",
+    kadaluarsaAkr: "",
+    fileSkAkr: "",
+    fileSertifAkr: "",
+    judulDokSertifAkr: "",
+    jenisDokSertifAkr: "",
+  });
+
+  const [fileSK, setFileSK] = useState(null);
+  const [fileSertif, setFileSertif] = useState(null);
+
+  const kodeAkrRef = useRef();
+  const namaAkrRef = useRef();
+  const jenjangAkrRef = useRef();
+  const wilayahAkrRef = useRef();
+  const peringkatAkrRef = useRef();
+  const nomorSKAkrRef = useRef();
+  const berlakuAkrRef = useRef();
+  const kadaluarsaAkrRef = useRef();
+  const judulDokSKAkrRef = useRef();
+  const jenisDokSKAkrRef = useRef();
+  const judulDokSertifAkrRef = useRef();
+  const jenisDokSertifAkrRef = useRef();
+  const fileSertifAkrRef = useRef();
+  const fileSKAkrRef = useRef();
+
+  const activeModalFor = useRef();
+
+  const handleChoose = (e) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      [activeModalFor.current]: e.Key,
+    }));
+    setDisplayLov((prevData) => ({
+      ...prevData,
+      [activeModalFor.current]: e["Judul Dokumen"],
+    }));
+    console.log(e);
+    document.getElementById("dokModalClose").click();
+  };
+
+  useEffect(() => {
+    const fetchAkreProdi = async () => {
+      setLoading(true);
+      try {
+        const result = await useFetch(
+          `${API_LINK}/MasterAkreditasi/GetAkreditasiProdiById`,
+          { idData: idData },
+          "POST"
+        );
+
+        if (result === "ERROR" || result === null || result.length === 0) {
+        } else {
+          const arrRe = Object.values(result);
+          const obj = arrRe[0];
+          setFormData({
+            kodeAkr: obj.kodeAkr,
+            namaAkr: obj.namaAkr,
+            jenjangAkr: obj.jenjangAkr,
+            wilayahAkr: obj.wilayahAkr,
+            peringkatAkr: obj.peringkatAkr,
+            nomorSKAkr: obj.noAkr,
+            berlakuAkr: obj.tahunAkr,
+            kadaluarsaAkr: obj.expAkr,
+            judulDokSKAkr: obj.judulSkAkr,
+            fileSkAkr: obj.fileSkAkr,
+            judulDokSertifAkr: obj.judulSertifAkr,
+            fileSertifAkr: obj.fileSertifAkr,
+          });
+        }
+      } catch (err) {
+        setError("Gagal mengambil data: " + err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAkreProdi();
+  }, [location.state?.idData]);
+
+  useEffect(() => {
+    const fetchDokumen = async () => {
+      setLoading2(true);
+      try {
+        const result = await useFetch(
+          `${API_LINK}/MasterDokumen/GetDataDokumenByMenu`,
+          currentFilter,
+          "POST"
+        );
+        console.log(currentFilter);
+
+        if (result === "ERROR" || result === null || result.length === 0) {
+          setFilteredData([]);
+          setTotalData(0);
+        } else {
+          const dokumenArray = Object.values(result);
+          setFilteredData(dokumenArray);
+          setTotalData(dokumenArray[0].TotalCount);
+        }
+      } catch (err) {
+        setError("Gagal mengambil data: " + err);
+      } finally {
+        setLoading2(false);
+      }
+    };
+    fetchDokumen();
+  }, [currentFilter]);
 
   const handleChange = (e) => {
-    console.log("Selected Value:", e.target.value);
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
+
+  const handleSubmit = async () => {
+    // e.preventDefault();
+
+    const isKodeAkrValid = kodeAkrRef.current?.validate();
+    const isNamaAkrValid = namaAkrRef.current?.validate();
+    const isJenjangAkrValid = jenjangAkrRef.current?.validate();
+    const isPeringkatAkrValid = peringkatAkrRef.current?.validate();
+    const isNomorSKAkrValid = nomorSKAkrRef.current?.validate();
+    const isBerlakuAkrValid = berlakuAkrRef.current?.validate();
+    const isKadaluarsaAkrValid = kadaluarsaAkrRef.current?.validate();
+
+    if (!isKodeAkrValid) {
+      kodeAkrRef.current?.focus();
+      return;
+    }
+    if (!isNamaAkrValid) {
+      namaAkrRef.current?.focus();
+      return;
+    }
+    if (!isJenjangAkrValid) {
+      jenjangAkrRef.current?.focus();
+      return;
+    }
+    console.log("Mau ini");
+    if (!isPeringkatAkrValid) {
+      peringkatAkrRef.current?.focus();
+      return;
+    }
+    if (!isNomorSKAkrValid) {
+      nomorSKAkrRef.current?.focus();
+      return;
+    }
+    if (!isBerlakuAkrValid) {
+      berlakuAkrRef.current?.focus();
+      return;
+    }
+    if (!isKadaluarsaAkrValid) {
+      kadaluarsaAkrRef.current?.focus();
+      return;
+    }
+
+    try {
+      const AkreData = {
+        idAkr: idData,
+        kodeAkr: formData.kodeAkr,
+        namaAkr: formData.namaAkr,
+        jenjangAkr: formData.jenjangAkr,
+        wilayahAkr: "",
+        nomorSKAkr: formData.nomorSKAkr ? formData.nomorSKAkr : "",
+        tahunAkr: formData.berlakuAkr
+          ? new Date(formData.berlakuAkr).getFullYear()
+          : "",
+        peringkatAkr: formData.peringkatAkr ? formData.peringkatAkr : "",
+        kadaluarsaAkr: formData.kadaluarsaAkr ? formData.kadaluarsaAkr : "",
+        SKAkr: displayLov.fileSkAkr ? displayLov.fileSkAkr : "",
+        SertifAkr: displayLov.fileSertifAkr ? displayLov.fileSertifAkr : "",
+      };
+
+      console.log(AkreData);
+
+      const createResponse = await useFetch(
+        `${API_LINK}/MasterAkreditasi/EditDataAkreditasi`,
+        AkreData,
+        "POST"
+      );
+
+      if (createResponse === "ERROR") {
+        throw new Error("Gagal memperbarui data");
+      } else {
+        SweetAlert(
+          "Berhasil!",
+          "Data berhasil ditambahkan.",
+          "success",
+          "OK"
+        ).then(() =>
+          onChangePage("index", {
+            idMenu: idMenu,
+          })
+        );
+      }
+    } catch (error) {
+      console.error("Error:", error.message);
+      SweetAlert("Gagal!", error.message, "error", "OK");
+    }
+  };
+
+  if (loading) return <Loading />;
 
   return (
     <div className="d-flex flex-column min-vh-100">
-      <main className="flex-grow-1 mb-5" style={{ marginTop: "80px" }}>
+      <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
           <div className="container mb-3">
-            {/* Breadcrumbs and Page Title */}
-            <div className="mt-4">
+            <div className="p-3">
               <PageTitleNav
                 title={title}
                 breadcrumbs={breadcrumbs}
                 onClick={() => onChangePage("index")}
               />
             </div>
-
-            {/* Main Content Section */}
-            <div className="shadow p-5 mt-0 bg-white rounded">
-              <HeaderForm label={"Formulir "+title} />
-              <div className="row">
-                <TextField label="Judul Dokumen " isRequired={true} />
-              </div>
-              <div className="row">
-                <div className="col-lg-6 col-md-6 ">
-                  <TextField label="Nomor Induk Dokumen" isRequired="true" />
-                </div>
-                <div className="col-lg-6 col-md-6">
-                  <TextField
-                    label="Tanggal Berlaku"
-                    isRequired="true"
-                    type="date"
-                  />
-                </div>
-                <div className="col-lg-6 col-md-6">
-                  <DropDown
-                    arrData={arrData}
-                    type="pilih"
-                    label="Jenis Dokumen"
-                    forInput="dropdownExample"
-                    isRequired={true}
-                    onChange={handleChange}
-                    errorMessage="" // Add an error message if needed
-                  />
-                </div>
-                <div className="col-lg-6 col-md-6">
-                  <TextField
-                    label="Tanggal Kadaluarsa"
-                    isRequired="true"
-                    type="date"
-                  />
-                </div>
-                <div className="col-lg-6 col-md-6">
-                  <DropDown
-                    arrData={arrProdi}
-                    type="pilih"
-                    label="Pilih Program Studi"
-                    forInput="dropdownExample"
-                    isRequired={true}
-                    onChange={handleChange}
-                    errorMessage="" // Add an error message if needed
-                  />
-                </div>
-                <div className="col-lg-6 col-md-6">
-                  <DropDown
-                    arrData={arrAkre}
-                    type="pilih"
-                    label="Tingkat Akreditasi"
-                    forInput="dropdownExample"
-                    isRequired={true}
-                    onChange={handleChange}
-                    errorMessage="" // Add an error message if needed
-                  />
+            <div
+              className={
+                isMobile
+                  ? "shadow p-4 m-2 mt-0 bg-white rounded"
+                  : "shadow p-5 m-5 mt-0 bg-white rounded"
+              }
+            >
+              <div>
+                <HeaderForm label="Formulir Akreditasi" />
+                <div className="row mb-3">
+                  <div className="col-lg-6 col-md-6 ">
+                    <InputField
+                      ref={kodeAkrRef}
+                      label="Kode Prodi"
+                      value={formData.kodeAkr || "-"}
+                      onChange={handleChange}
+                      isRequired={true}
+                      name="kodeAkr"
+                      type="text"
+                      maxChar="10"
+                    />
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <InputField
+                      ref={namaAkrRef}
+                      label="Nama Prodi"
+                      value={formData.namaAkr || "-"}
+                      onChange={handleChange}
+                      isRequired={true}
+                      name="namaAkr"
+                      type="text"
+                      maxChar="100"
+                    />
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <InputField
+                      ref={jenjangAkrRef}
+                      label="Jenjang"
+                      value={formData.jenjangAkr || "-"}
+                      onChange={handleChange}
+                      isRequired={true}
+                      name="jenjangAkr"
+                      type="text"
+                      maxChar="20"
+                    />
+                  </div>
                 </div>
               </div>
-
-              <div className="row">
-                <DocUpload
-                  label="Dokumen"
-                  forInput="document"
-                  isRequired={true}
-                />
-              </div>
-
-              <div className="d-flex justify-content-between align-items-center mt-4">
-                <div className="flex-grow-1 m-2">
-                  <Button
-                    classType="primary"
-                    type="submit"
-                    label="Simpan"
-                    width="100%"
-                  />
+              <div>
+                <div className="row mb-3">
+                  <div className="col-lg-6 col-md-6">
+                    <InputField
+                      ref={peringkatAkrRef}
+                      label="Peringkat"
+                      value={formData.peringkatAkr || "-"}
+                      onChange={handleChange}
+                      isRequired={false}
+                      name="peringkatAkr"
+                      type="text"
+                      maxChar="20"
+                    />
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <InputField
+                      ref={nomorSKAkrRef}
+                      label="Nomor SK"
+                      value={formData.nomorSKAkr || "-"}
+                      onChange={handleChange}
+                      isRequired={false}
+                      name="nomorSKAkr"
+                      type="text"
+                      maxChar="20"
+                    />
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <InputField
+                      ref={berlakuAkrRef}
+                      label="Tahun SK"
+                      value={formData.berlakuAkr ? formData.berlakuAkr : null}
+                      onChange={handleChange}
+                      isRequired={false}
+                      name="berlakuAkr"
+                      type="number"
+                    />
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <InputField
+                      ref={kadaluarsaAkrRef}
+                      label="Tanggal Kadaluwarsa SK"
+                      value={
+                        formData.kadaluarsaAkr
+                          ? formData.kadaluarsaAkr.toString().split("T")[0]
+                          : null
+                      }
+                      onChange={handleChange}
+                      isRequired={false}
+                      name="kadaluarsaAkr"
+                      type="date"
+                    />
+                  </div>
+                  <div className="col-lg-12 col-md-12">
+                    <InputFieldLov
+                      ref={fileSKAkrRef}
+                      id="fileSkAkr"
+                      label="Dokumen SK"
+                      placeholder="PIlih Dokumen"
+                      isRequired={false}
+                      modalTarget="#dokModal"
+                      value={displayLov.fileSkAkr}
+                      onChange={handleChange}
+                      onClick={() => (activeModalFor.current = "fileSkAkr")}
+                    />
+                  </div>
+                  <div className="col-lg-12 col-md-12">
+                    <InputFieldLov
+                      ref={fileSertifAkrRef}
+                      id="fileSertifAkr"
+                      label="Dokumen Sertifikat"
+                      placeholder="PIlih Dokumen"
+                      isRequired={false}
+                      modalTarget="#dokModal"
+                      value={displayLov.fileSertifAkr}
+                      onChange={handleChange}
+                      onClick={() => (activeModalFor.current = "fileSertifAkr")}
+                    />
+                  </div>
                 </div>
-                <div className="flex-grow-1 m-2">
-                  <Button
-                    classType="danger"
-                    type="button"
-                    label="Batal"
-                    width="100%"
-                  />
+              </div>
+              <div className="row">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div className="flex-grow-1 m-2">
+                    <Button
+                      classType="primary"
+                      type="submit"
+                      label="Submit"
+                      width="100%"
+                      onClick={handleSubmit}
+                    />
+                  </div>
+                  <div className="flex-grow-1 m-2">
+                    <Button
+                      classType="danger"
+                      type="button"
+                      label="Batal"
+                      width="100%"
+                      onClick={() =>
+                        onChangePage("index", {
+                          idMenu: idMenu,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="modal fade"
+          id="dokModal"
+          tabIndex="-1"
+          aria-labelledby="exampleModalLabel"
+          aria-hidden="true"
+        >
+          <div className="modal-xl modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h1 className="modal-title fs-5" id="staticBackdropLabel">
+                  Pilih Dokumen
+                </h1>
+                <button
+                  type="button"
+                  className="btn-close rounded-5"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                  style={{ color: "white", backgroundColor: "white" }}
+                  id="dokModalClose"
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="container-fluid">
+                  <div className="row">
+                    <div className="col-lg-10">
+                      <SearchField
+                        onChange={(e) =>
+                          setCurrentFilter((prevFilter) => {
+                            return {
+                              ...prevFilter,
+                              param3: e,
+                            };
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="col-lg-2">
+                      <Filter>
+                        <DropDown
+                          arrData={arrSort}
+                          label="Urut Berdasarkan"
+                          type="pilih"
+                          defaultValue="[judulDok] ASC"
+                          forInput="sortFilter"
+                          onChange={(e) =>
+                            setCurrentFilter((prevFilter) => {
+                              return {
+                                ...prevFilter,
+                                param7: e.target.value,
+                              };
+                            })
+                          }
+                        />
+                      </Filter>
+                    </div>
+                  </div>
+                </div>
+                <div className="table-container bg-white rounded">
+                  {loading2 ? (
+                    <Loading />
+                  ) : (
+                    <div>
+                      {role === "ROL01" ? (
+                        <Table
+                          arrHeader={["No", "Judul Dokumen"]}
+                          data={filteredData.map((item, index) => ({
+                            Key: item.idDok,
+                            No: (pageCurrent - 1) * pageSize + index + 1,
+                            "Judul Dokumen": item.judulDok,
+                            status: item.status,
+                          }))}
+                          actions={["Choose"]}
+                          onChoose={handleChoose}
+                        />
+                      ) : (
+                        ""
+                      )}
+                      <Paging
+                        pageSize={pageSize}
+                        pageCurrent={pageCurrent}
+                        totalData={totalData}
+                        navigation={setPageCurrent}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

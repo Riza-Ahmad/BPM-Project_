@@ -225,6 +225,17 @@ export default function Table({
             onClick={() => onAnalisaTemuan(id)}
           />
         );
+      case "Choose":
+        return (
+          <button
+            className="btn btn-primary px-3"
+            title="Pilih"
+            onClick={() => onChoose(id)}
+          >
+            <span style={{ fontWeight: 600 }}>PILIH</span>
+            
+          </button>
+        );
       default:
         return null;
     }
@@ -234,8 +245,7 @@ export default function Table({
     <div className="table-responsive">
       <table
         className="table table-hover table-striped table-bordered"
-        style={{ borderCollapse: "collapse", minWidth: "1000px" }}
-      >
+        style={{ borderCollapse: "collapse", minWidth: "1000px" }}>
         <thead>
           <tr>
             {enableCheckbox && (
@@ -246,8 +256,7 @@ export default function Table({
                   color: "#fff",
                   maxWidth: "70px",
                   minWidth: "50px",
-                }}
-              >
+                }}>
                 <input
                   type="checkbox"
                   checked={
@@ -266,8 +275,7 @@ export default function Table({
                   color: "#fff",
                   maxWidth: index === 0 ? "70px" : "none",
                   minWidth: index === 0 ? "50px" : "none",
-                }}
-              >
+                }}>
                 {header}
               </th>
             ))}
@@ -278,8 +286,7 @@ export default function Table({
                   backgroundColor: "#2654A1",
                   color: "#fff",
                   width: "250px",
-                }}
-              >
+                }}>
                 Aksi
               </th>
             )}
@@ -305,16 +312,14 @@ export default function Table({
                     key={`cell-${rowIndex}-${colIndex}`}
                     className={`align-middle ${
                       column === "No" ? "text-center" : "text-start"
-                    }`}
-                  >
+                    }`}>
                     {/* Periksa apakah kolom ini harus memiliki hyperlink */}
                     {linkColumns.includes(column) && row[column] ? (
                       <a
                         href={`${FILE_LINK}${row[column]}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-primary text-decoration-underline"
-                      >
+                        className="text-primary text-decoration-underline">
                         {row[column]}
                       </a>
                     ) : (
@@ -325,21 +330,18 @@ export default function Table({
                 {aksiIs && ( // Render kolom aksi hanya jika aksiIs adalah false
                   <td
                     className="text-center align-middle"
-                    style={{ minWidth: "5rem" }}
-                  >
+                    style={{ minWidth: "5rem" }}>
                     {typeof actions === "function"
                       ? actions(row).map((action, actionIndex) => (
                           <React.Fragment
-                            key={`${action}-${row.Key || rowIndex}`}
-                          >
+                            key={`${action}-${row.Key || rowIndex}`}>
                             {generateActionButton(action, row, row.status)}
                           </React.Fragment>
                         ))
                       : Array.isArray(actions) && actions.length > 0
                       ? actions.map((action, actionIndex) => (
                           <React.Fragment
-                            key={`${action}-${row.Key || rowIndex}`}
-                          >
+                            key={`${action}-${row.Key || rowIndex}`}>
                             {generateActionButton(action, row, row.status)}
                           </React.Fragment>
                         ))

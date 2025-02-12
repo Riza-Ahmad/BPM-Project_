@@ -203,7 +203,7 @@ export default function Index({ onChangePage }) {
                     setCurrentFilter((prevFilter) => {
                       return {
                         ...prevFilter,
-                        param3: e,
+                        param2: e,
                       };
                     })
                   }

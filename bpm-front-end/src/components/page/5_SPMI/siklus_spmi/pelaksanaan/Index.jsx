@@ -908,7 +908,7 @@ export default function Index({ onChangePage }) {
                     )}
                   />
                   <DetailData
-                    label="Tanggal Kadaluarsa"
+                    label="Tanggal Kadaluwarsa"
                     isi={new Date(detail.dok_tgl_akhir).toLocaleDateString(
                       "id-ID",
                       {

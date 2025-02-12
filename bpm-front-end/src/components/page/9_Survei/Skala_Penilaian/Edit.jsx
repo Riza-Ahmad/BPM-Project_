@@ -4,11 +4,13 @@ import PageTitleNav from "../../../part/PageTitleNav";
 import HeaderForm from "../../../part/HeaderText";
 import DropDown from "../../../part/Dropdown";
 import Button from "../../../part/Button";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
+import { useFetch } from "../../../util/useFetch";
 
 export default function Edit({ onChangePage }) {
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { key } = useParams();
   const [formData, setFormData] = useState({
@@ -29,20 +31,24 @@ export default function Edit({ onChangePage }) {
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const response = await fetch(
-          `${API_LINK}/SkalaPenilaian/GetDataSkalaPenilaianById`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ param1: key }),
-          }
+      const result = await useFetch(
+        `${API_LINK}/SkalaPenilaian/GetDataSkalaPenilaianById`,
+        { formData: key }
+      );
+
+      console.log("Response from GetDataSkalaPenilaianById:", result); // Debug log
+
+      if (result === "ERROR") {
+        SweetAlert(
+          "Error",
+          "Terjadi kesalahan saat mengambil data.",
+          "error",
+          "OK"
         );
+        return;
+      }
 
-        if (!response.ok) throw new Error("Gagal mengambil data");
-
-        const result = await response.json();
-
+      try {
         if (!Array.isArray(result) || result.length === 0) {
           throw new Error("Respons tidak memiliki data yang valid.");
         }
@@ -70,7 +76,7 @@ export default function Edit({ onChangePage }) {
           ...convertedData,
         });
       } catch (err) {
-        console.error("Fetch error:", err);
+        console.error("Data processing error:", err);
         SweetAlert("Error", err.message, "error", "OK");
       }
     };
@@ -80,60 +86,69 @@ export default function Edit({ onChangePage }) {
 
   const convertDataOnTypeChange = (oldType, newType, currentData) => {
     const { scale, descriptions, checkedValues, name } = currentData;
-  
+
     switch (newType) {
       case "RadioButton":
       case "CheckBox":
         const newScale = Math.min(Math.max(scale || 1, 1), 10);
-        
+
         // Strictly trim descriptions to new scale
         const newDescriptions = descriptions.slice(0, newScale);
-  
+
         // Validate no empty descriptions
         const hasEmptyDescription = newDescriptions.some(
           (desc, index) => index < newScale && !desc.trim()
         );
-  
+
         if (hasEmptyDescription) {
           SweetAlert(
-            "Peringatan!", 
-            "Harap lengkapi semua deskripsi untuk skala baru.", 
-            "warning", 
+            "Peringatan!",
+            "Harap lengkapi semua deskripsi untuk skala baru.",
+            "warning",
             "OK"
           );
           return null;
         }
-  
+
         return {
           scale: newScale,
           descriptions: newDescriptions,
-          checkedValues: newType === "CheckBox" 
-            ? (checkedValues || []).filter(v => v <= newScale)
-            : [],
-          name: newType === "RadioButton" 
-            ? (name && parseInt(name) <= newScale ? name : "") 
-            : "",
+          checkedValues:
+            newType === "CheckBox"
+              ? (checkedValues || []).filter((v) => v <= newScale)
+              : [],
+          name:
+            newType === "RadioButton"
+              ? name && parseInt(name) <= newScale
+                ? name
+                : ""
+              : "",
         };
-  
+
       case "TextArea":
       case "TextBox":
         const combinedDescription = descriptions
-          .filter(desc => desc.trim() !== '')
+          .filter((desc) => desc.trim() !== "")
           .join(", ")
           .trim();
-  
+
         if (!combinedDescription) {
-          SweetAlert("Peringatan!", "Harap lengkapi deskripsi sebelum mengubah tipe.", "warning", "OK");
+          SweetAlert(
+            "Peringatan!",
+            "Harap lengkapi deskripsi sebelum mengubah tipe.",
+            "warning",
+            "OK"
+          );
           return null;
         }
-  
+
         return {
           scale: 1,
           descriptions: [combinedDescription],
           checkedValues: [],
           name: "",
         };
-  
+
       default:
         return currentData;
     }
@@ -224,16 +239,19 @@ export default function Edit({ onChangePage }) {
   const handleSubmit = async () => {
     try {
       if (!validateForm()) return;
-  
+
       // Potong deskripsi sesuai skala baru
-      const trimmedDescriptions = formData.descriptions.slice(0, formData.scale);
-  
+      const trimmedDescriptions = formData.descriptions.slice(
+        0,
+        formData.scale
+      );
+
+      // Data yang akan dikirim ke API
       const skalaPenilaianData = {
-        skp_id: key,
-        skp_skala: formData.scale.toString(),
-        skp_deskripsi: trimmedDescriptions.join(","), // Hanya simpan deskripsi sesuai skala
-        skp_tipe: formData.skp_tipe,
-        skp_modif_by: "Admin",
+        skp_id: key, // ID skala penilaian
+        skp_skala: formData.scale.toString(), // Skala penilaian
+        skp_deskripsi: trimmedDescriptions.join(","), // Deskripsi dipotong sesuai skala
+        skp_tipe: formData.skp_tipe, // Tipe penilaian
         skp_additional_data: JSON.stringify({
           ...(formData.skp_tipe === "RadioButton"
             ? { name: formData.name }
@@ -243,27 +261,27 @@ export default function Edit({ onChangePage }) {
             : {}),
         }),
       };
-  
-      const response = await fetch(
+
+      console.log("Data to send:", skalaPenilaianData); // Debug log sebelum pengiriman
+
+      // Pemanggilan useFetch dengan data yang disesuaikan
+      const response = await useFetch(
         `${API_LINK}/SkalaPenilaian/UpdateSkalaPenilaian`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(skalaPenilaianData),
-        }
+        skalaPenilaianData, // Kirim langsung objek data
+        "POST"
       );
-  
-      if (!response.ok) throw new Error("Gagal menyimpan data");
-  
-      const result = await response.json();
-  
+
+      console.log("Response from UpdateSkalaPenilaian:", response); // Debug log respons
+
+      if (response === "ERROR") throw new Error("Gagal menyimpan data");
+
       await SweetAlert(
         "Berhasil!",
         "Data berhasil diperbarui.",
         "success",
         "OK"
       );
-      onChangePage("index");
+      navigate("/survei/skala");
     } catch (error) {
       console.error("Update error:", error);
       SweetAlert(
@@ -279,7 +297,9 @@ export default function Edit({ onChangePage }) {
   const renderScaleInput = () => (
     <div style={{ marginBottom: "20px" }}>
       <label>
-        <strong>Skala *</strong>
+        <strong>
+          Skala <span style={{ color: "red" }}>*</span>
+        </strong>
       </label>
       <input
         type="number"
@@ -302,7 +322,9 @@ export default function Edit({ onChangePage }) {
   const renderDescriptionInputs = () => (
     <div>
       <label>
-        <strong>Deskripsi Nilai *</strong>
+        <strong>
+          Deskripsi Nilai <span style={{ color: "red" }}>*</span>
+        </strong>
       </label>
       {Array.from({ length: formData.scale }, (_, i) => (
         <div key={i} style={{ marginBottom: "10px" }}>
@@ -335,7 +357,9 @@ export default function Edit({ onChangePage }) {
             {renderScaleInput()}
             <div style={{ marginBottom: "20px" }}>
               <label>
-                <strong>Preview</strong>
+                <strong>
+                  Preview <span style={{ color: "red" }}>*</span>
+                </strong>
               </label>
               <div style={{ marginTop: "10px" }}>
                 {Array.from({ length: formData.scale }, (_, i) => i + 1).map(
@@ -374,7 +398,9 @@ export default function Edit({ onChangePage }) {
             {renderScaleInput()}
             <div style={{ marginBottom: "20px" }}>
               <label>
-                <strong>Preview</strong>
+                <strong>
+                  Preview <span style={{ color: "red" }}>*</span>
+                </strong>
               </label>
               <div style={{ marginTop: "10px" }}>
                 {Array.from({ length: formData.scale }, (_, i) => i + 1).map(
@@ -416,7 +442,9 @@ export default function Edit({ onChangePage }) {
           <div style={{ marginTop: "20px" }}>
             <div>
               <label>
-                <strong>Preview *</strong>
+                <strong>
+                  Preview <span style={{ color: "red" }}>*</span>
+                </strong>
               </label>
               <textarea
                 rows={formData.skp_tipe === "TextArea" ? "4" : "1"}
@@ -474,21 +502,23 @@ export default function Edit({ onChangePage }) {
 
             {renderTypeSpecificInputs()}
 
-            <div className="d-flex justify-content-between mt-4">
-              <Button
-                classType="primary"
-                type="button"
-                label="Simpan"
-                onClick={handleSubmit}
-                width="100%"
-              />
-              <Button
-                classType="danger"
-                type="button"
-                label="Batal"
-                onClick={() => onChangePage("index")}
-                width="100%"
-              />
+            <div className="d-flex justify-content-between align-items-center mt-4">
+              <div className="flex-grow-1 m-2">
+                <Button
+                  width="100%"
+                  label="Simpan"
+                  classType="primary"
+                  onClick={handleSubmit}
+                />
+              </div>
+              <div className="flex-grow-1 m-2">
+                <Button
+                  width="100%"
+                  label="Batal"
+                  classType="danger"
+                  onClick={() => navigate("/survei/skala")}
+                />
+              </div>
             </div>
           </div>
         </div>

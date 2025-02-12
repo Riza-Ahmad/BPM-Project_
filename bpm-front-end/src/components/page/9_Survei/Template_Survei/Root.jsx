@@ -6,6 +6,7 @@ import Add from "./Add";
 import Edit from "./Edit";
 import Detail from "./Detail";
 import Preview from "./Preview";
+import Swal from "sweetalert2";
 
 export default function Template_Survei() {
   const navigate = useNavigate();
@@ -19,22 +20,22 @@ export default function Template_Survei() {
         navigate(`${currentPath}`, { state: { mode: "index", ...withState } });
         break;
       case "add":
-        navigate(`${currentPath}/add`, {
+        navigate(`${currentPath}`, {
           state: { mode: "add", ...withState },
         });
         break;
       case "edit":
-        navigate(`${currentPath}/edit`, {
+        navigate(`${currentPath}`, {
           state: { mode: "edit", ...withState },
         });
         break;
       case "detail":
-        navigate(`${currentPath}/detail`, {
+        navigate(`${currentPath}`, {
           state: { mode: "detail", ...withState },
         });
         break;
       case "preview":
-        navigate(`${currentPath}/preview`, {
+        navigate(`${currentPath}`, {
           state: { mode: "preview", ...withState },
         });
         break;
@@ -67,19 +68,6 @@ export default function Template_Survei() {
               )}
             </ProtectedRoute>
           }
-        />
-        <Route path="/add" element={<Add onChangePage={handlePageChange} />} />
-        <Route
-          path="/edit"
-          element={<Edit onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/detail"
-          element={<Detail onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/preview"
-          element={<Preview onChangePage={handlePageChange} />}
         />
       </Routes>
     </>

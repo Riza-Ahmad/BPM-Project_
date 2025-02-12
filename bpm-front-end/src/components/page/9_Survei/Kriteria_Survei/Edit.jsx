@@ -1,87 +1,106 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
+import { useFetch } from "../../../util/useFetch";
 import PageTitleNav from "../../../part/PageTitleNav";
 import InputField from "../../../part/InputField";
 import Button from "../../../part/Button";
 import Swal from "sweetalert2";
 
-export default function Edit({ onChangePage }) {
+export default function Edit() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
-  const [editFormData, setEditFormData] = useState({
-    ksr_id: "",
-    ksr_nama: "",
-    ksr_status: "1",
-    ksr_created_by: "",
-    ksr_created_date: "",
-    ksr_modif_by: "Admin",
-    ksr_modif_date: new Date().toISOString(),
+  const [formData, setFormData] = useState({
+    idKdo: id,
+    namaKri: "",
   });
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  // Fetch initial data
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(
-          `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurveiById`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ksr_id: id }),
-          }
-        );
+    const fetchDokumenById = async () => {
+      setLoading(true);
+      const body = { id: id };
+      const result = await useFetch(
+        `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurveiById`,
+        body,
+        "POST"
+      );
 
-        if (!response.ok) throw new Error("Gagal mengambil data untuk di-edit");
-
-        const result = await response.json();
-        const [selectedData] = result;
-
-        setEditFormData((prevState) => ({
-          ...prevState,
-          ksr_id: selectedData.ksr_id,
-          ksr_nama: selectedData.ksr_nama,
-          ksr_created_by: selectedData.ksr_created_by,
-          ksr_created_date: selectedData.ksr_created_date,
-        }));
-      } catch (error) {
-        console.error("Error fetching data for edit:", error);
-        Swal.fire(
-          "Error",
-          "Terjadi kesalahan saat memuat data untuk di-edit.",
-          "error"
-        );
-      } finally {
-        setLoading(false);
+      if (result === "ERROR" || result === null || result.length === 0) {
+        Swal.fire("Error", "Data tidak ditemukan", "error");
+      } else {
+        const { namaKri } = result[0];
+        setFormData({ idKdo: id, namaKri });
       }
+
+      setLoading(false);
     };
 
-    fetchData();
+    fetchDokumenById();
   }, [id]);
 
-  const handleSaveEdit = async () => {
+  // Cek apakah nama sudah ada di database
+  const isNameDuplicate = async (name) => {
     try {
       const response = await fetch(
-        `${API_LINK}/MasterKriteriaSurvei/EditKriteriaSurvei`,
+        `${API_LINK}/MasterKriteriaSurvei/GetAllDataKriteriaSurvei`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(editFormData),
+          body: JSON.stringify({ page: 1, pageSize: 100 }),
         }
       );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Gagal menyimpan perubahan");
+      if (response.ok) {
+        const result = await response.json();
+        return result.some(
+          (item) => item.ksr_nama.toLowerCase() === name.toLowerCase()
+        );
+      } else {
+        throw new Error("Gagal memeriksa duplikasi nama.");
       }
-
-      Swal.fire("Success", "Data berhasil diperbarui!", "success");
-      onChangePage("index");
     } catch (error) {
-      console.error("Error saving edit:", error);
-      Swal.fire("Error", error.message, "error");
+      console.error("Error checking duplicate:", error);
+      return false; // Jika ada error, anggap tidak duplikat (default)
     }
+  };
+
+  // Handle save edit dengan validasi duplikasi
+  const handleSaveEdit = async () => {
+    setLoading(true);
+
+    // Cek apakah nama sudah ada di database
+    const isDuplicate = await isNameDuplicate(formData.namaKri);
+    if (isDuplicate) {
+      Swal.fire("Peringatan", "Nama kriteria sudah ada!", "warning");
+      setLoading(false);
+      return;
+    }
+
+    const result = await useFetch(
+      `${API_LINK}/MasterKriteriaSurvei/EditKriteriaSurvei`,
+      formData,
+      "POST"
+    );
+
+    if (result === "ERROR") {
+      Swal.fire("Error", "Gagal menyimpan perubahan", "error");
+    } else {
+      Swal.fire("Success", "Data berhasil diperbarui!", "success");
+      navigate("/survei/kriteria");
+    }
+    setLoading(false);
   };
 
   if (loading) {
@@ -99,34 +118,41 @@ export default function Edit({ onChangePage }) {
                 { label: "Kriteria Survei", href: "/survei/kriteria" },
                 { label: "Edit", href: `/survei/kriteria/edit/${id}` },
               ]}
+              onClick={() => navigate("/survei/kriteria")}
             />
           </div>
-          <div className={isMobile ? "p-2 m-2" : "p-3 m-5"}>
-            <div className="bg-white p-4 rounded">
-              <InputField
-                label="Nama Kriteria"
-                value={editFormData.ksr_nama}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, ksr_nama: e.target.value })
-                }
-                isRequired={true}
-              />
-              <div className="mt-4 d-flex justify-content-between">
-                <div className="me-2" style={{ flex: 1 }}>
-                  <Button
-                    classType="primary"
-                    label="Simpan"
-                    onClick={handleSaveEdit}
-                    width="100%"
-                  />
-                </div>
-                <div className="ms-2" style={{ flex: 1 }}>
-                  <Button
-                    classType="danger"
-                    label="Batal"
-                    onClick={() => onChangePage("index")}
-                    width="100%"
-                  />
+          <div className={isMobile ? "m-0" : "m-3"}>
+            <div
+              className={
+                isMobile
+                  ? "shadow p-4 m-2 mt-0 bg-white rounded"
+                  : "shadow p-5 m-5 mt-0 bg-white rounded"
+              }>
+              <div className="row">
+                <InputField
+                  label="Nama Kriteria"
+                  name="namaKri"
+                  value={formData.namaKri}
+                  onChange={handleChange}
+                  isRequired={true}
+                />
+                <div className="mt-4 d-flex justify-content-between">
+                  <div className="me-2" style={{ flex: 1 }}>
+                    <Button
+                      classType="primary"
+                      label="Simpan"
+                      onClick={handleSaveEdit}
+                      width="100%"
+                    />
+                  </div>
+                  <div className="ms-2" style={{ flex: 1 }}>
+                    <Button
+                      classType="danger"
+                      label="Batal"
+                      onClick={() => navigate("/survei/kriteria")}
+                      width="100%"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

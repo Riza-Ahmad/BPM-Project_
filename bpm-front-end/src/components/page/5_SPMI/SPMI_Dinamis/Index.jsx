@@ -708,7 +708,7 @@ export default function Index({ onChangePage }) {
                     })}
                   />
                   <DetailData
-                    label="Tanggal Kadaluarsa"
+                    label="Tanggal Kadaluwarsa"
                     isi={new Date(detail.expDok).toLocaleDateString("id-ID", {
                       weekday: "long",
                       day: "numeric",

@@ -41,9 +41,16 @@ export default function Add({ onChangePage }) {
       formData.skp_tipe === "RadioButton" ||
       formData.skp_tipe === "CheckBox"
     ) {
+      const trimmedDescriptions = formData.descriptions.map((desc) =>
+        desc.trim()
+      );
+      const hasDuplicates =
+        new Set(trimmedDescriptions).size !== trimmedDescriptions.length;
+
       newErrors.descriptions =
         formData.descriptions.length !== formData.scale ||
-        formData.descriptions.some((desc) => !desc.trim());
+        formData.descriptions.some((desc) => !desc.trim()) ||
+        hasDuplicates;
     }
 
     // Validate TextBox and TextArea
@@ -53,6 +60,31 @@ export default function Add({ onChangePage }) {
 
     setErrors(newErrors);
     return !Object.values(newErrors).some((error) => error);
+  };
+
+  const isNameDuplicate = async (name) => {
+    try {
+      const response = await fetch(
+        `${API_LINK}/SkalaPenilaian/GetAllDataKriteriaSurvei`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ page: 1, pageSize: 100 }),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        return result.some(
+          (item) => item.skp_tipe.toLowerCase() === name.toLowerCase()
+        );
+      } else {
+        throw new Error("Gagal memeriksa duplikasi nama.");
+      }
+    } catch (error) {
+      console.error("Error checking duplicate:", error);
+      return false; // Jika ada error, anggap tidak duplikat (default)
+    }
   };
 
   const renderErrorMessage = (errorType) => {
@@ -83,11 +115,48 @@ export default function Add({ onChangePage }) {
     }));
   };
 
+  const isScaleDuplicate = async (scale) => {
+    try {
+      const response = await fetch(
+        `${API_LINK}/SkalaPenilaian/GetAllSkalaPenilaianAktif`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ page: 1, pageSize: 100 }),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        return result.some(
+          (item) => item.scale.toLowerCase() === scale.toLowerCase()
+        );
+      } else {
+        throw new Error("Gagal memeriksa duplikasi skala.");
+      }
+    } catch (error) {
+      console.error("Error checking duplicate scale:", error);
+      return false; // Jika ada error, anggap tidak duplikat (default)
+    }
+  };
+
   const handleSave = async () => {
     if (!validateForm()) {
       await SweetAlert(
         "Peringatan!",
         "Harap lengkapi semua data yang diperlukan.",
+        "warning",
+        "OK"
+      );
+      return;
+    }
+
+    // Validasi duplikasi skala
+    const isDuplicate = await isScaleDuplicate(formData.scale);
+    if (isDuplicate) {
+      await SweetAlert(
+        "Peringatan!",
+        "Skala penilaian sudah ada. Silahkan membuat skala yang berbeda.",
         "warning",
         "OK"
       );
@@ -154,8 +223,7 @@ export default function Add({ onChangePage }) {
                 isMobile
                   ? "shadow p-4 m-2 mt-0 bg-white rounded"
                   : "shadow p-5 m-5 mt-0 bg-white rounded"
-              }
-            >
+              }>
               <HeaderForm label="Tambah Skala Penilaian" />
 
               <DropDown
@@ -178,7 +246,7 @@ export default function Add({ onChangePage }) {
                 <div style={{ marginTop: "20px" }}>
                   <div>
                     <label style={{ fontWeight: "bold", marginBottom: "10px" }}>
-                      Preview
+                      Preview <span style={{ color: "red" }}>*</span>
                     </label>
                     <input
                       type="text"
@@ -206,7 +274,7 @@ export default function Add({ onChangePage }) {
                 <div style={{ marginTop: "20px" }}>
                   <div>
                     <label style={{ fontWeight: "bold", marginBottom: "10px" }}>
-                      Preview
+                      Preview <span style={{ color: "red" }}>*</span>
                     </label>
                     <textarea
                       rows="4"
@@ -234,7 +302,9 @@ export default function Add({ onChangePage }) {
                 <div style={{ marginTop: "20px" }}>
                   <div style={{ marginBottom: "20px" }}>
                     <label>
-                      <strong>Skala *</strong>
+                      <strong>
+                        Skala <span style={{ color: "red" }}>*</span>
+                      </strong>
                     </label>
                     <input
                       type="number"
@@ -274,8 +344,7 @@ export default function Add({ onChangePage }) {
                             marginRight: "15px",
                             display: "inline-flex",
                             alignItems: "center",
-                          }}
-                        >
+                          }}>
                           <input
                             type="radio"
                             name="preview"
@@ -294,7 +363,9 @@ export default function Add({ onChangePage }) {
 
                   <div>
                     <label>
-                      <strong>Deskripsi Nilai *</strong>
+                      <strong>
+                        Deskripsi Nilai <span style={{ color: "red" }}>*</span>
+                      </strong>
                     </label>
                     {Array.from({ length: formData.scale }, (_, i) => (
                       <div key={i} style={{ marginBottom: "10px" }}>
@@ -327,8 +398,7 @@ export default function Add({ onChangePage }) {
                       marginTop: "10px",
                       color: "#555",
                       fontStyle: "italic",
-                    }}
-                  >
+                    }}>
                     {formData.name
                       ? formData.descriptions[Number(formData.name) - 1] ||
                         "Deskripsi belum diisi."
@@ -341,7 +411,9 @@ export default function Add({ onChangePage }) {
                 <div style={{ marginTop: "20px" }}>
                   <div style={{ marginBottom: "20px" }}>
                     <label>
-                      <strong>Skala *</strong>
+                      <strong>
+                        Skala <span style={{ color: "red" }}>*</span>
+                      </strong>
                     </label>
                     <input
                       type="number"
@@ -381,8 +453,7 @@ export default function Add({ onChangePage }) {
                             marginRight: "15px",
                             display: "inline-flex",
                             alignItems: "center",
-                          }}
-                        >
+                          }}>
                           <input
                             type="checkbox"
                             value={value}
@@ -414,7 +485,9 @@ export default function Add({ onChangePage }) {
 
                   <div>
                     <label>
-                      <strong>Deskripsi Nilai *</strong>
+                      <strong>
+                        Deskripsi Nilai <span style={{ color: "red" }}>*</span>
+                      </strong>
                     </label>
                     {Array.from({ length: formData.scale }, (_, i) => (
                       <div key={i} style={{ marginBottom: "10px" }}>
@@ -447,8 +520,7 @@ export default function Add({ onChangePage }) {
                       marginTop: "10px",
                       color: "#555",
                       fontStyle: "italic",
-                    }}
-                  >
+                    }}>
                     {formData.checkedValues?.length > 0
                       ? `Nilai dipilih: ${formData.checkedValues.join(", ")}`
                       : "Tidak ada nilai yang dipilih."}
@@ -465,7 +537,7 @@ export default function Add({ onChangePage }) {
                 </div>
               )}
 
-              <div className="d-flex justify-content-between align-items-center">
+              <div className="d-flex justify-content-between align-items-center mt-4">
                 <div className="flex-grow-1 m-2">
                   <Button
                     width="100%"

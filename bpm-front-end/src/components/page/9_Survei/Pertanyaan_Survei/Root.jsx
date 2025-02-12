@@ -1,10 +1,10 @@
-
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import Index from './Index';
-import Add from './Add';
-import Edit from './Edit';
-import ScrollToTop from '../../../part/ScrollToTop';
-import Detail from './Detail';
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import ScrollToTop from "../../../part/ScrollToTop";
+import Index from "./Index";
+import Add from "./Add";
+import Edit from "./Edit";
+import Detail from "./Detail";
+import Swal from "sweetalert2";
 
 export default function Pertanyaan_Survei() {
   const navigate = useNavigate();
@@ -15,17 +15,37 @@ export default function Pertanyaan_Survei() {
         navigate("/survei/pertanyaan", withState);
         break;
       case "add":
-        navigate("/survei/pertanyaan/add");
+        navigate(`${currentPath}/add`, {
+          state: { mode: "add", ...withState },
+        });
         break;
       case "edit":
-        navigate("/survei/pertanyaan/edit", {
-          state: {...withState },
-        });
+        const { id } = withState;
+        if (id) {
+          navigate(`${currentPath}/edit/${id}`, {
+            state: { mode: "edit", id },
+          });
+        } else {
+          Swal.fire(
+            "Error",
+            "ID tidak valid atau tidak ditemukan untuk edit.",
+            "error"
+          );
+        }
         break;
       case "detail":
-        navigate("/survei/pertanyaan/detail", {
-          state: {...withState },
-        });
+        const { detailId } = withState;
+        if (detailId) {
+          navigate(`${currentPath}/detail/${detailId}`, {
+            state: { mode: "detail", detailId },
+          });
+        } else {
+          Swal.fire(
+            "Error",
+            "ID tidak valid atau tidak ditemukan untuk detail.",
+            "error"
+          );
+        }
         break;
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
@@ -37,10 +57,29 @@ export default function Pertanyaan_Survei() {
     <>
       <ScrollToTop />
       <Routes>
-        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
-        <Route path="/add" element={<Add onChangePage={handlePageChange} />} />
-        <Route path="/edit" element={<Edit onChangePage={handlePageChange} />} /> 
-        <Route path="/detail" element={<Detail onChangePage={handlePageChange} />} />
+        <Route
+          path="/"
+          element={
+            mode === "add" ? (
+              <Add onChangePage={handlePageChange} />
+            ) : mode === "edit" ? (
+              <Edit onChangePage={handlePageChange} />
+            ) : mode === "detail" ? (
+              <Detail onChangePage={handlePageChange} />
+            ) : (
+              <Index onChangePage={handlePageChange} />
+            )
+          }
+        />
+        <Route path="add" element={<Add onChangePage={handlePageChange} />} />
+        <Route
+          path="edit/:id"
+          element={<Edit onChangePage={handlePageChange} />}
+        />
+        <Route
+          path="detail/:detailId"
+          element={<Detail onChangePage={handlePageChange} />}
+        />
       </Routes>
     </>
   );

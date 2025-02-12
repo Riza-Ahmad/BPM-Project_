@@ -73,8 +73,6 @@ export default function DetailTemuan({ onChangePage }) {
   const handleDataChange = (updatedFormData, updatedFiles) => {
     setFormData(updatedFormData);
     setFiles(updatedFiles);
-
-    console.log(updatedFormData);
   };
 
   if (loading) return <Loading />;
