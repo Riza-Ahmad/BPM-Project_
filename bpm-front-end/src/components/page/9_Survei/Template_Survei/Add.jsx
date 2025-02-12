@@ -10,7 +10,7 @@ import { useFetch } from "../../../util/useFetch";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 
-export default function AddTemplateSurvei() {
+export default function AddTemplateSurvei({ onChangePage }) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
@@ -97,7 +97,7 @@ export default function AddTemplateSurvei() {
                 { label: "Template Survei", href: "/survei/template" },
                 { label: "Tambah Template Survei" },
               ]}
-              onClick={() => navigate("/survei/template")}
+              onClick={() => onChangePage("index")}
             />
           </div>
           <div className={isMobile ? "m-0" : "m-3"}>

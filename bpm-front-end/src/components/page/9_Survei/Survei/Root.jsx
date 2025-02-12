@@ -18,19 +18,21 @@ export default function Survei() {
 
   // Handler for page navigation with state management
   const handlePageChange = (page, withState = {}) => {
+    console.log(page);
+    console.log(currentPath);
     switch (page) {
       case "index":
         navigate(`${currentPath}`, { state: { mode: "index", ...withState } });
         break;
       case "add":
-        navigate(`${currentPath}/tambah`, {
+        navigate(`${currentPath}`, {
           state: { mode: "add", ...withState },
         });
         break;
       case "detail":
         const { detailId } = withState;
         if (detailId) {
-          navigate(`${currentPath}/detail/${detailId}`, {
+          navigate(`${currentPath}`, {
             state: { mode: "detail", detailId },
           });
         } else {

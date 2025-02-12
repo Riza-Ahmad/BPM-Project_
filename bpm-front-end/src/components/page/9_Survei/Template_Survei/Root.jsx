@@ -14,31 +14,29 @@ export default function Template_Survei() {
   const currentPath = location.pathname;
 
   // Handler for page navigation
-  const handlePageChange = (page, withState = {}, idData, idTemplate) => {
+  const handlePageChange = (page, withState = {}) => {
     switch (page) {
       case "index":
         navigate(`${currentPath}`, { state: { mode: "index", ...withState } });
         break;
       case "add":
-        navigate(`${currentPath}/add`, {
+        navigate(`${currentPath}`, {
           state: { mode: "add", ...withState },
         });
         break;
-
       case "edit":
-        const { id } = withState;
-        if (id) {
-          navigate(`${currentPath}/edit/${id}`, {
-            state: { mode: "edit", id },
-          });
-        } 
+        navigate(`${currentPath}`, {
+          state: { mode: "edit", ...withState },
+        });
         break;
       case "detail":
-        navigate(`${currentPath}`, { state: { mode: "detail", ...withState } });
+        navigate(`${currentPath}`, {
+          state: { mode: "detail", ...withState },
+        });
         break;
       case "preview":
-        navigate(`${currentPath}/preview/${idTemplate}`, {
-          state: { mode: "preview", idTemplate },
+        navigate(`${currentPath}`, {
+          state: { mode: "preview", ...withState },
         });
         break;
       default:
@@ -53,8 +51,6 @@ export default function Template_Survei() {
     <>
       <ScrollToTop />
       <Routes>
-        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
-        <Route path="add" element={<Add onChangePage={handlePageChange} />} />
         <Route
           path="/"
           element={
@@ -72,19 +68,6 @@ export default function Template_Survei() {
               )}
             </ProtectedRoute>
           }
-        />
-        <Route path="/add" element={<Add onChangePage={handlePageChange} />} />
-        <Route
-          path="/edit/:id"
-          element={<Edit onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/detail/:idData"
-          element={<Detail onChangePage={handlePageChange} />}
-        />
-        <Route
-          path="/preview/:idTemplate"
-          element={<Preview onChangePage={handlePageChange} />}
         />
       </Routes>
     </>

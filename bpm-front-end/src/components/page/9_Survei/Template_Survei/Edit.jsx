@@ -25,7 +25,7 @@ const arrSort = [
   { Value: "tanggalBuat DESC", Text: "Waktu Dibuat [↓]" },
 ];
 
-export default function EditTemplateSurvei() {
+export default function EditTemplateSurvei({ onChangePage }) {
   const { id } = useParams(); // ambil id dari URL
   const navigate = useNavigate();
   const location = useLocation();
@@ -147,7 +147,7 @@ export default function EditTemplateSurvei() {
   useEffect(() => {
     const fetchTemplateSurvei = async () => {
       try {
-        const body = { idData: id };
+        const body = { idData: idData };
         console.log(body);
         setLoading(true);
 
@@ -164,7 +164,7 @@ export default function EditTemplateSurvei() {
         } else {
           const data = result[0];
           setFormData({
-            idData: id,
+            idData: idData,
             namaTemplate: data.namaTemplate,
             ksrId: data.ksrId,
             skpId: data.skpId,
@@ -203,6 +203,7 @@ export default function EditTemplateSurvei() {
       if (result === "ERROR" || !result || result.length === 0) {
         setPertanyaan([]);
       } else {
+        console.log("Jalan Awal: ", Object.values(result));
         setPertanyaan(Object.values(result));
       }
     } catch (err) {
@@ -223,6 +224,7 @@ export default function EditTemplateSurvei() {
           param2: selectedSort,
           param3: pageSize,
           param4: pageCurrent,
+          param5: formData.pertanyaan,
           // Tambahkan parameter lain jika diperlukan (misal status atau kriteria)
         },
         "POST"
@@ -232,6 +234,7 @@ export default function EditTemplateSurvei() {
         param2: selectedSort,
         param3: pageSize,
         param4: pageCurrent,
+        param5: formData.pertanyaan,
         // Tambahkan parameter lain jika diperlukan (misal status atau kriteria)
       });
       if (result === "ERROR" || !result || result.length === 0) {
@@ -239,6 +242,7 @@ export default function EditTemplateSurvei() {
         setTotalData(0);
       } else {
         const arrResult = Object.values(result);
+        console.log("Jalan: ", arrResult);
         setFilteredData(arrResult);
         // Asumsikan totalData ada pada properti totalData di elemen pertama
         setTotalData(arrResult[0].totalData || 0);
@@ -264,7 +268,7 @@ export default function EditTemplateSurvei() {
     fetchKriteria();
     console.log(fetchKriteria);
     fetchSkalaPenilaian();
-  }, [id]);
+  }, [idData]);
 
   // Panggil fetch detail pertanyaan setiap kali formData.pertanyaan berubah
 
@@ -338,7 +342,7 @@ export default function EditTemplateSurvei() {
     }
     try {
       const payload = {
-        idTemplate: id,
+        idTemplate: idData,
         pertanyaan: tambahPertanyaan, // hanya berisi satu ID
       };
       console.log("jalan - jalaaaaan nih");
@@ -426,7 +430,7 @@ export default function EditTemplateSurvei() {
     );
     if (confirm) {
       try {
-        const payload = { idTemplate: id, idPertanyaan };
+        const payload = { idTemplate: idData, idPertanyaan };
         const response = await useFetch(
           `${API_LINK}/TemplateSurvei/DeletePertanyaanFromTemplate`,
           payload,
@@ -468,7 +472,7 @@ export default function EditTemplateSurvei() {
                 { label: "Template Survei", href: "/survei/template" },
                 { label: "Edit Template Survei" },
               ]}
-              onClick={() => navigate("/survei/template")}
+              onClick={() => onChangePage("index")}
             />
           </div>
           <div className={isMobile ? "m-0" : "m-3"}>
@@ -565,7 +569,13 @@ export default function EditTemplateSurvei() {
                     </div>
                   </div>
                   <Table
-                    arrHeader={["No", "Kriteria", "Pertanyaan", "Keterangan"]}
+                    arrHeader={[
+                      "No",
+                      "Kriteria",
+                      "Pertanyaan",
+                      "Tipe",
+                      "Skala",
+                    ]}
                     data={pertanyaan.map((item, index) => ({
                       Key: item.id,
                       idPer: item.idBank, // pastikan property id sesuai data
@@ -685,7 +695,7 @@ export default function EditTemplateSurvei() {
                             "Skala",
                           ]}
                           data={filteredData.map((item, index) => ({
-                            Key: item.pty_id, // pastikan properti ID sesuai
+                            Key: item.pty_id, // pastikan properti idDatasesuai
                             No: (pageCurrent - 1) * pageSize + index + 1,
                             Kriteria: item.ksr_nama,
                             Pertanyaan: (
@@ -695,7 +705,7 @@ export default function EditTemplateSurvei() {
                                 }}
                               />
                             ),
-                            Tipe: item.skp_deskripsi,
+                            Tipe: item.skp_tipe,
                             Skala: item.skp_skala,
                             status: item.status,
                           }))}

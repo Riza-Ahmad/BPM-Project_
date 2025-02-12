@@ -7,6 +7,7 @@ import Button from "../../../part/Button";
 import Dropdown from "../../../part/Dropdown";
 import CheckBox from "../../../part/CheckBox";
 import SweetAlert from "../../../util/SweetAlert";
+import Swal from "sweetalert2";
 import { API_LINK } from "../../../util/Constants";
 import { useFetch } from "../../../util/useFetch";
 import { useIsMobile } from "../../../util/useIsMobile";
@@ -112,7 +113,7 @@ export default function Edit({ onChangePage }) {
       setLoading(true);
       try {
         const data = await useFetch(
-          `${API_LINK}/MasterPertanyaan/GetAllKriteriaSurveiAktif`,
+          `${API_LINK}/MasterKriteriaSurvei/GetAllKriteriaSurveiAktif`,
           {},
           "POST"
         );

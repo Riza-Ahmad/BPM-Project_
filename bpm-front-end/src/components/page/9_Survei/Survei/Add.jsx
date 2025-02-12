@@ -6,6 +6,7 @@ import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
 import Dropdown from "../../../part/Dropdown";
 import CheckBox from "../../../part/CheckBox";
+import Loading from "../../../part/Loading";
 import { API_LINK } from "../../../util/Constants";
 import SweetAlert from "../../../util/SweetAlert";
 import { useIsMobile } from "../../../util/useIsMobile";
@@ -138,10 +139,10 @@ export default function Add({ onChangePage }) {
       tanggalAwalRef.current?.focus();
       return;
     }
-    if (!tanggalAkhirRef.current?.validate()) {
-      tanggalAkhirRef.current?.focus();
-      return;
-    }
+    // if (!tanggalAkhirRef.current?.validate()) {
+    //   tanggalAkhirRef.current?.focus();
+    //   return;
+    // }
     if (!respondenRef.current?.validate()) {
       respondenRef.current?.focus();
       return;
@@ -156,17 +157,17 @@ export default function Add({ onChangePage }) {
     }
 
     const startDate = new Date(`${tanggalAwalRef.current.value}`);
-    const endDate = new Date(`${tanggalAkhirRef.current.value}`);
+    // const endDate = new Date(`${tanggalAkhirRef.current.value}`);
 
-    if (startDate >= endDate) {
-      SweetAlert(
-        "Gagal!",
-        "Tanggal dan waktu mulai harus lebih awal dari tanggal dan waktu selesai.",
-        "error",
-        "OK"
-      );
-      return;
-    }
+    // if (startDate >= endDate) {
+    //   SweetAlert(
+    //     "Gagal!",
+    //     "Tanggal dan waktu mulai harus lebih awal dari tanggal dan waktu selesai.",
+    //     "error",
+    //     "OK"
+    //   );
+    //   return;
+    // }
     setLoading(true);
     try {
       console.log(formData);
@@ -179,12 +180,9 @@ export default function Add({ onChangePage }) {
         throw new Error("Gagal menambah data transaksi survei.");
       }
 
-      SweetAlert(
-        "Berhasil!",
-        "Jadwal kegiatan berhasil dibuat.",
-        "success",
-        "OK"
-      ).then(() => onChangePage("index"));
+      SweetAlert("Berhasil!", "Survei berhasil dibuat.", "success", "OK").then(
+        () => onChangePage("index")
+      );
     } catch (error) {
       SweetAlert("Gagal!", error.message, "error", "OK");
       setLoading(false);
@@ -271,7 +269,7 @@ export default function Add({ onChangePage }) {
                     type="date"
                   />
 
-                  <InputField
+                  {/* <InputField
                     ref={tanggalAkhirRef}
                     label="Tanggal Akhir"
                     value={formData.tanggalAkhir}
@@ -280,7 +278,7 @@ export default function Add({ onChangePage }) {
                     }
                     isRequired={true}
                     type="date"
-                  />
+                  /> */}
                 </div>
               </div>
               <CheckBox

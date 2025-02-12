@@ -279,7 +279,7 @@ export default function Template_Survei({ onChangePage }) {
               iconName="add"
               classType="primary"
               label="Tambah Template"
-              onClick={() => navigate("/survei/template/add")}
+              onClick={() => onChangePage("add", {})}
             />
 
             <div className="row mt-5">
@@ -370,7 +370,7 @@ export default function Template_Survei({ onChangePage }) {
                     : [] // Default case if needed
               }
               onEdit={(item) => {
-                onChangePage("edit", { id: item.Key });
+                onChangePage("edit", { idData: item.Key });
               }}
               onDelete={(item) => handleDelete(item.Key)}
               onFinal={(item) => handleFinal(item.Key)}

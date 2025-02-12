@@ -4,7 +4,7 @@ import ProtectedRoute from "../../../util/ProtectedRoute";
 import { ROOT_LINK } from "../../../util/Constants";
 import Index from "./Index";
 // import Add from "./Add";
- import Edit from "./EditSurvei";
+import Edit from "./EditSurvei";
 // import Detail from "./Detail";
 
 export default function Daftar_Survei() {
@@ -43,7 +43,7 @@ export default function Daftar_Survei() {
         <Route
           path="/"
           element={
-            <ProtectedRoute isRole={true}>
+            <ProtectedRoute isRole={false}>
               {mode === "add" ? (
                 <Add onChangePage={handlePageChange} />
               ) : mode === "edit" ? (
