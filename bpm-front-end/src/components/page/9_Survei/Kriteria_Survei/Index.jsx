@@ -12,10 +12,11 @@ import Cookies from "js-cookie";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 const arrSort = [
-  { Value: "[namaKri] ASC", Text: "Terbaru" },
-  { Value: "[namaKri] DESC", Text: "Terlama" },
+  { Value: "[namaKri] ASC", Text: "Kriteria Terlama" },
+  { Value: "[namaKri] DESC", Text: "Kriteria Terbaru" },
 ];
 const arrStatus = [
+  { Value: "", Text: "Semua Status" },
   { Value: "Aktif", Text: "Aktif" },
   { Value: "Tidak Aktif", Text: "Tidak Aktif" },
 ];
@@ -37,6 +38,7 @@ export default function KriteriaSurvei({ onChangePage }) {
   const isMobile = useIsMobile();
   const idMenu = location.state?.idMenu;
   const [pageCurrent, setPageCurrent] = useState(1);
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filteredData, setFilteredData] = useState([]);
@@ -44,11 +46,14 @@ export default function KriteriaSurvei({ onChangePage }) {
   const [error, setError] = useState(null);
 
   const [currentFilter, setCurrentFilter] = useState({
-    param1: "Aktif",
-    param2: "",
-    param3: "namaKri ASC",
-    param4: pageSize,
-    param5: pageCurrent,
+    param1: "Aktif", // Status
+    param2: "", // Nama Kriteria (pencarian)
+    param3: "createdDate DESC", // Sorting by date secara default
+    param4: pageSize, // Jumlah item per halaman
+    param5: pageCurrent, // Halaman saat ini
+    param6: "", // Filter berdasarkan createdBy
+    param7: "", // Tanggal mulai (createdDate)
+    param8: "", // Tanggal akhir (createdDate)
   });
 
   useEffect(() => {
@@ -173,13 +178,13 @@ export default function KriteriaSurvei({ onChangePage }) {
             <div className="row mt-5">
               <div className="col-lg-11 col-md-6">
                 <SearchField
-                  value={currentFilter.param2 || ""}
-                  placeHolder="Cari Kriteria..."
-                  onInput={(e) =>
-                    setCurrentFilter((prevFilter) => ({
-                      ...prevFilter,
-                      param2: e.target.value, // Mengambil nilai input dari e.target.value
-                    }))
+                  onChange={(e) =>
+                    setCurrentFilter((prevFilter) => {
+                      return {
+                        ...prevFilter,
+                        param2: e,
+                      };
+                    })
                   }
                 />
               </div>
@@ -226,8 +231,7 @@ export default function KriteriaSurvei({ onChangePage }) {
             isMobile
               ? "table-container bg-white p-2 m-2 mt-0 rounded"
               : "table-container bg-white p-3 m-5 mt-0 rounded"
-          }
-        >
+          }>
           <Table
             arrHeader={["No", "Nama Kriteria"]}
             data={filteredData.map((item, index) => ({
@@ -251,7 +255,7 @@ export default function KriteriaSurvei({ onChangePage }) {
           <Paging
             pageSize={pageSize}
             pageCurrent={pageCurrent}
-            totalData={filteredData.length}
+            totalData={totalData}
             navigation={handlePageNavigation}
           />
         </div>

@@ -31,10 +31,6 @@ export default function Detail() {
     createdDate: "",
     modifiedBy: "",
     modifiedDate: "",
-    ksrId: "",
-    skpId: "",
-    kriteriaNama: "",
-    skalaTipe: "",
   });
   const [loading, setLoading] = useState(true);
 
@@ -81,29 +77,6 @@ export default function Detail() {
     fetchDetail();
   }, [detailId, navigate]);
 
-  const KolomKiriDetail = ({ detailData }) => (
-    <div>
-      <DetailData label="Nama Kriteria" isi={detailData?.namaKri || "-"} />
-      <DetailData label="Status" isi={detailData?.status || "-"} />
-      <DetailData label="Dibuat Oleh" isi={detailData?.createdBy || "-"} />
-      <DetailData label="Tanggal Dibuat" isi={detailData?.createdDate || "-"} />
-    </div>
-  );
-
-  // Komponen untuk menampilkan kolom kanan detail
-  const KolomKananDetail = () => (
-    <div className="col-lg-6 col-md-6">
-      <DetailData
-        label="Dimodifikasi Oleh"
-        isi={detailData.modifiedBy || "-"}
-      />
-      <DetailData label="Tanggal Dimodifikasi" isi={detailData.modifiedDate} />
-      <DetailData label="ID Kriteria" isi={detailData.ksrId || "-"} />
-      <DetailData label="ID Skala Penilaian" isi={detailData.skpId || "-"} />
-      <DetailData label="Tipe Skala" isi={detailData.skalaTipe || "-"} />
-    </div>
-  );
-
   // Tampilkan loading jika data sedang dimuat
   if (loading) return <Loading />;
 
@@ -127,8 +100,45 @@ export default function Detail() {
 
             {/* Konten Detail */}
             <div className="row">
-              <KolomKiriDetail />
-              <KolomKananDetail />
+              <div className="col-md-6 col-lg-6">
+                <DetailData
+                  label="Nama Kriteria"
+                  isi={detailData?.namaKri || "-"}
+                />
+                <DetailData
+                  label="Dibuat Oleh"
+                  isi={detailData?.createdBy || "-"}
+                />
+                <DetailData
+                  label="Tanggal Dibuat"
+                  isi={
+                    detailData.createdDateDate
+                      ? new Date(detailData.modifiedDate).toLocaleDateString(
+                          "id-ID",
+                          {
+                            weekday: "long",
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          }
+                        )
+                      : "-"
+                  }
+                />
+              </div>
+              <div className="col-md-6 col-lg-6">
+                <DetailData label="Status" isi={detailData?.status || "-"} />
+                <DetailData
+                  label="Dimodifikasi Oleh"
+                  isi={detailData.modifiedBy || "-"}
+                />
+                <DetailData
+                  label="Tanggal Dimodifikasi"
+                  isi={detailData.modifiedDate}
+                />
+              </div>
+
+              <div className="col-lg-6 col-md-6"></div>
             </div>
 
             {/* Tombol Aksi */}
@@ -137,7 +147,7 @@ export default function Detail() {
                 <Button
                   width="100%"
                   label="Kembali"
-                  classType="danger"
+                  classType="secondary"
                   onClick={() => navigate("/survei/kriteria")}
                 />
               </div>

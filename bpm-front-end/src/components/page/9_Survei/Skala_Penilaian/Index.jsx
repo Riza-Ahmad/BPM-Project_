@@ -83,6 +83,55 @@ export default function Index() {
       setLoading(false);
     }
   };
+  const handleToggle = (item) => {
+    // Tampilkan konfirmasi menggunakan SweetAlert sebelum toggle status
+    SweetAlert(
+      "Konfirmasi",
+      `Apakah Anda yakin ingin ${
+        item.skp_status === "Aktif" ? "menonaktifkan" : "mengaktifkan"
+      } data ini?`,
+      "question",
+      "Ya",
+      null,
+      "",
+      true // Tampilkan tombol batal
+    ).then((result) => {
+      if (result) {
+        // Perbarui data yang akan dikirim
+        const updatedData = {
+          idData: item.Key,
+          status: item.skp_status === "Aktif" ? "Tidak Aktif" : "Aktif",
+        };
+
+        useFetch(
+          `${API_LINK}/SkalaPenilaian/DeleteSkalaPenilaian`,
+          updatedData,
+          "POST"
+        )
+          .then((response) => {
+            if (response === "ERROR") {
+              throw new Error("Gagal memperbarui data");
+            }
+            SweetAlert(
+              "Berhasil!",
+              updatedData.status === "Aktif"
+                ? "Data berhasil diaktifkan"
+                : "Data berhasil dinonaktifkan",
+              "success",
+              "OK"
+            ).then(() => {
+              fetchKriteria(); // Panggil ulang data setelah pembaruan berhasil
+            });
+          })
+          .catch((error) => {
+            SweetAlert("Gagal!", error.message, "error", "OK");
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+      }
+    });
+  };
 
   const handleDelete = async (id) => {
     const result = await Swal.fire({
@@ -222,15 +271,17 @@ export default function Index() {
                 "Tipe Skala": item.skp_tipe,
                 Skala: item.skp_skala,
                 Deskripsi: item.skp_deskripsi,
-                Status: item.skp_status === "Aktif" ? "Aktif" : "Tidak Aktif",
+                Status: item.skp_status,
               }))}
               actions={(item) => {
-                const actions = ["Detail", "Toggle"];
-                if (item.Status === "Aktif") actions.push("Edit");
-                return actions;
+                if (item.Status === "Tidak Aktif") {
+                  return ["Toggle"];
+                }
+                // Jika status selain "Tidak Aktif", tampilkan semua actions
+                return ["Detail", "Edit", "Toggle"];
               }}
               onDetail={(item) => handleNavigation.toDetail(item.key)}
-              onToggle={(item) => handleDelete(item.key)}
+              onToggle={(item) => handleToggle(item)}
               onEdit={(item) => handleNavigation.toEdit(item.key)}
             />
             <Paging

@@ -145,7 +145,7 @@ export default function DetailSkalaPenilaian() {
                 <Button
                   width="100%"
                   label="Kembali"
-                  classType="danger"
+                  classType="secondary"
                   onClick={() => navigate("/survei/skala")}
                 />
               </div>

@@ -7,7 +7,7 @@ import Dropdown from "../../../part/Dropdown";
 import Modal from "../../../part/Modal";
 import Filter from "../../../part/Filter";
 import SearchField from "../../../part/SearchField";
-import Swal from "sweetalert2";
+import SweetAlert from "../../../util/SweetAlert";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { API_LINK, TEMPLATE_LINK } from "../../../util/Constants";
@@ -34,6 +34,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
   const [filterKriteria, setFilterKriteria] = useState(""); // Filter untuk Kriteria Survei, "" berarti semua
   const [filterSkala, setFilterSkala] = useState(""); // Filter untuk Skala Penilaian, "" berarti semua
   const [filteredData, setFilteredData] = useState([]);
+  const [formData, setFormData] = useState({ pty_pertanyaan: "" });
 
   // State untuk opsi dropdown yang diambil dari API
   const [ksrOptions, setKsrOptions] = useState([]);
@@ -58,6 +59,30 @@ export default function Pertanyaan_Survei({ onChangePage }) {
     indexOfLastData
   );
 
+  const isNameDuplicate = async (name) => {
+    try {
+      const response = await fetch(
+        `${API_LINK}/MasterPertanyaan/GetDataPertanyaan`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ page: 1, pageSize: 100 }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Gagal memeriksa duplikasi nama.");
+      }
+
+      const result = await response.json();
+      return result.some(
+        (item) => item.pty_pertanyaan.toLowerCase() === name.toLowerCase()
+      );
+    } catch (error) {
+      console.error("Error checking duplicate:", error);
+      return false; // Jika terjadi error, asumsi tidak duplikat
+    }
+  };
   // Fungsi untuk mengambil data pertanyaan dari API
   const fetchData = async () => {
     setIsLoading(true);
@@ -389,6 +414,16 @@ export default function Pertanyaan_Survei({ onChangePage }) {
       );
       return;
     }
+    const isDuplicate = await isNameDuplicate(formData.pty_pertanyan);
+    if (isDuplicate) {
+      SweetAlert(
+        "Gagal Menambahkan Pertanyaan",
+        "Pertanyaan sudah digunakan. Pilih Pertanyaan lain.",
+        "warning",
+        "OK"
+      );
+      return;
+    }
     try {
       for (let index = 0; index < parsedData.length; index++) {
         try {
@@ -508,9 +543,59 @@ export default function Pertanyaan_Survei({ onChangePage }) {
     setFilterSkala(e.target.value);
   };
 
+  const handleToggle = (item) => {
+    // Tampilkan konfirmasi menggunakan SweetAlert sebelum toggle status
+    SweetAlert(
+      "Konfirmasi",
+      `Apakah Anda yakin ingin ${
+        item.pty_status === "Aktif" ? "menonaktifkan" : "mengaktifkan"
+      } data ini?`,
+      "question",
+      "Ya",
+      null,
+      "",
+      true // Tampilkan tombol batal
+    ).then((result) => {
+      if (result) {
+        // Perbarui data yang akan dikirim
+        const updatedData = {
+          idData: item.Key,
+          status: item.pty_status === "Aktif" ? "Tidak Aktif" : "Aktif",
+        };
+
+        useFetch(
+          `${API_LINK}/MasterPertanyaan/DeletePertanyaan`,
+          updatedData,
+          "POST"
+        )
+          .then((response) => {
+            if (response === "ERROR") {
+              throw new Error("Gagal memperbarui data");
+            }
+            SweetAlert(
+              "Berhasil!",
+              updatedData.pty_status === "Aktif"
+                ? "Data berhasil diaktifkan"
+                : "Data berhasil dinonaktifkan",
+              "success",
+              "OK"
+            ).then(() => {
+              currentData.map; // Panggil ulang data setelah pembaruan berhasil
+            });
+          })
+          .catch((error) => {
+            SweetAlert("Gagal!", error.message, "error", "OK");
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+      }
+    });
+  };
+
   // Fungsi toggle status pertanyaan
-  const handleToggle = async (id) => {
-    const parameters = { p1: id, p2: "Admin" };
+  const handleTogglea = async (id) => {
+    const parameters = { p1: id };
     const confirm = await Swal.fire({
       title: "Konfirmasi",
       text: "Apakah Anda yakin ingin menonaktifkan pertanyaan ini?",
@@ -555,8 +640,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
           </div>
           <div
             className="p-3 mt-2 mb-0"
-            style={{ marginLeft: isMobile ? "1rem" : "3rem" }}
-          >
+            style={{ marginLeft: isMobile ? "1rem" : "3rem" }}>
             <div className="row" style={{ gap: "1rem", marginLeft: "5px" }}>
               <Button
                 iconName="add"
@@ -595,11 +679,11 @@ export default function Pertanyaan_Survei({ onChangePage }) {
                     arrData={[
                       {
                         Value: "[pty_created_date] ASC",
-                        Text: "Waktu Dibuat [↑]",
+                        Text: "Pertanyaan Terlama",
                       },
                       {
                         Value: "[pty_created_date] DESC",
-                        Text: "Waktu Dibuat [↓]",
+                        Text: "Pertanyaan Terbaru",
                       },
                     ]}
                     defaultValue="[pty_created_date] DESC"
@@ -636,8 +720,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
           </div>
           <div
             className="table-container bg-white p-3 mt-0 rounded"
-            style={{ margin: isMobile ? "1rem" : "3rem" }}
-          >
+            style={{ margin: isMobile ? "1rem" : "3rem" }}>
             {isLoading ? (
               <p>Loading...</p>
             ) : isError ? (
@@ -649,17 +732,21 @@ export default function Pertanyaan_Survei({ onChangePage }) {
                 <Table
                   arrHeader={[
                     "No",
-                    "Pertanyaan",
                     "Kriteria Survei",
+                    "Pertanyaan",
+                    "Tipe Skala",
                     "Skala Penilaian",
+                    "Deskripsi Skala",
                   ]}
                   data={currentDataPage.map((item, index) => ({
                     ...item,
                     Key: item.pty_id ?? "Tidak Ada",
                     No: indexOfFirstData + index + 1,
-                    Pertanyaan: item.pty_pertanyaan ?? "Tidak Ada",
                     "Kriteria Survei": item.ksr_nama ?? "Tidak Ada",
-                    "Skala Penilaian": item.skp_id ?? "Tidak Ada",
+                    Pertanyaan: item.pty_pertanyaan ?? "Tidak Ada",
+                    "Tipe Skala": item.skp_tipe ?? "Tidak Ada",
+                    "Skala Penilaian": item.skp_skala ?? "Tidak Ada",
+                    "Deskripsi Skala": item.skp_deskripsi ?? "Tidak Ada",
                     Status: item.pty_status === "Aktif",
                   }))}
                   actions={(row) =>
@@ -671,7 +758,8 @@ export default function Pertanyaan_Survei({ onChangePage }) {
                     onChangePage("detail", { detailId: item.Key })
                   }
                   onEdit={(item) => onChangePage("edit", { id: item.Key })}
-                  onToggle={(item) => handleToggle(item.Key)}
+                  // onToggle={(item) => handleToggle(item.Key)}
+                  onToggle={(item) => handleToggle(item)}
                 />
                 <Paging
                   pageSize={pageSize}
@@ -716,8 +804,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
             }}
             onClick={() => importModalRef.current.close()}
           />
-        }
-      >
+        }>
         <div
           className="form-group"
           style={{
@@ -725,8 +812,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
             flexDirection: "column",
             gap: "10px",
             width: "100%",
-          }}
-        >
+          }}>
           <label>
             Silahkan unduh format template pertanyaan terlebih dahulu, <br />
             <a
@@ -747,8 +833,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
                     console.error("Error:", error);
                     alert("Terjadi kesalahan saat mengakses file.");
                   });
-              }}
-            >
+              }}>
               Klik disini
             </a>
           </label>

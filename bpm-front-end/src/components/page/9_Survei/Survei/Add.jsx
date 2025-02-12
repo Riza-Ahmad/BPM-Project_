@@ -98,6 +98,7 @@ export default function Add({ onChangePage }) {
                     isRequired={true}
                     placeHolder="Masukkan Tanggal Awal Survei"
                     type="date"
+                    min={new Date().toISOString().split("T")[0]}
                   />
                 </div>
 
@@ -117,6 +118,7 @@ export default function Add({ onChangePage }) {
                     isRequired={true}
                     placeHolder="Masukkan Tanggal Akhir Survei"
                     type="date"
+                    min={new Date().toISOString().split("T")[0]}
                   />
                 </div>
               </div>

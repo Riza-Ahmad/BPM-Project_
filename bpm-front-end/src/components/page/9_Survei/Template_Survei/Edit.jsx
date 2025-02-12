@@ -61,7 +61,7 @@ export default function EditTemplateSurvei() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedSort, setSelectedSort] = useState("namaPertanyaan ASC");
   const [pageCurrent, setPageCurrent] = useState(1);
-  const [pageSize] = useState(5);
+  const [pageSize] = useState(10);
   const [totalData, setTotalData] = useState(0);
   const [filteredData, setFilteredData] = useState([]);
   // Untuk penambahan multi pertanyaan (checkbox)
@@ -501,6 +501,17 @@ export default function EditTemplateSurvei() {
                         classType="primary"
                         type="button"
                         label="Tambah Pertanyaan Dari Bank"
+                        onClick={() => {
+                          handleOpenModal(); // Memanggil fungsi untuk membuka modal
+                          setAksiIs(false); // Mengubah nilai state `aksiIs`
+                        }}
+                      />
+                    </div>
+                    <div className="col-3 mb-3">
+                      <Button
+                        classType="primary"
+                        type="button"
+                        label="Tambah Pertanyaan Baru"
                         onClick={() => {
                           handleOpenModal(); // Memanggil fungsi untuk membuka modal
                           setAksiIs(false); // Mengubah nilai state `aksiIs`
