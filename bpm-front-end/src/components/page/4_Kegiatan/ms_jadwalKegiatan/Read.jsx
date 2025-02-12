@@ -254,12 +254,15 @@ export default function Read({ onChangePage }) {
                     "No",
                     "Nama Kegiatan",
                     "Tanggal Mulai",
+                    "Tanggal Selesai",
+                    "Durasi Waktu",
                     "Jenis Kegiatan",
                     "Tempat",
                     "Status",
                   ]}
                   data={filteredData.map((item, index) => ({
                     Key: item.idKegiatan,
+                    key: item.selisihWaktu,
                     No: indexOfFirstData + index + 1,
                     "Nama Kegiatan": (
                       <div
@@ -268,6 +271,7 @@ export default function Read({ onChangePage }) {
                         }}
                       />
                     ),
+
                     "Tanggal Mulai": new Date(
                       item.tglMulaiKegiatan
                     ).toLocaleDateString("id-ID", {
@@ -276,6 +280,25 @@ export default function Read({ onChangePage }) {
                       month: "long",
                       year: "numeric",
                     }),
+
+                    "Tanggal Selesai": new Date(
+                      item.tglSelesaiKegiatan
+                    ).toLocaleDateString("id-ID", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    }),
+
+                    "Durasi Waktu": new Date(
+                      item.selisihWaktu("Tanggal Mulai" - "Tanggal Selesai")
+                    ).toLocaleDateString("id-ID", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    }),
+
                     "Jenis Kegiatan": item.namaJenisKegiatan,
                     Tempat: item.tempatKegiatan,
                     Status: item.kategoriKegiatan,
