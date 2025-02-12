@@ -44,7 +44,6 @@ const TextArea = React.forwardRef(
 
     const focusEditor = () => {
       if (editorRef.current) {
-        // Fokuskan editor menggunakan API internal Jodit
         const editor = editorRef.current.editor;
         if (editor) {
           editor.focus();
@@ -53,13 +52,11 @@ const TextArea = React.forwardRef(
     };
 
     const validate = () => {
-      // Memeriksa apakah editor kosong atau hanya berisi spasi
       if (isRequired && !editorValue.trim()) {
         setError(true);
         return false;
       }
 
-      // Memeriksa apakah konten hanya berisi <p><br></p> atau tag HTML kosong lainnya
       const isEmptyHtml = /^(<p><br><\/p>|<br\s*\/?>|\s*)$/i.test(
         editorValue.trim()
       );
@@ -93,9 +90,44 @@ const TextArea = React.forwardRef(
           config={{
             readonly: isDisabled,
             toolbarButtonSize: "middle",
-
             toolbarSticky: false,
             placeholder: "Start typing here...",
+            buttons: [
+              "bold",
+              "underline",
+              "italic",
+              "strikeThrough",
+              "link",
+              "ul",
+              "ol",
+            ],
+            buttonsMD: [
+              "bold",
+              "underline",
+              "italic",
+              "strikeThrough",
+              "link",
+              "ul",
+              "ol",
+            ],
+            buttonsSM: [
+              "bold",
+              "underline",
+              "italic",
+              "strikeThrough",
+              "link",
+              "ul",
+              "ol",
+            ],
+            buttonsXS: [
+              "bold",
+              "underline",
+              "italic",
+              "strikeThrough",
+              "link",
+              "ul",
+              "ol",
+            ],
           }}
           onBlur={(newContent) => handleEditorChange(newContent)}
           tabIndex={1}

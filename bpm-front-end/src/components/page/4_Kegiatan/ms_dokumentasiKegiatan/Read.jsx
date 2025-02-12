@@ -117,7 +117,7 @@ export default function Read({ onChangePage }) {
   const handleDelete = async (id) => {
     const confirm = await SweetAlert(
       "Konfirmasi",
-      "Apakah Anda yakin ingin menghapus kegiatan ini?",
+      "Apakah Anda yakin ingin menghapus kegiatan ini? Hal ini akan menghapus Jadwal dan Dokumentasi Kegiatan terkait",
       "warning",
       "Ya, Hapus",
       null,
@@ -261,6 +261,7 @@ export default function Read({ onChangePage }) {
                     "No",
                     "Nama Kegiatan",
                     "Tanggal Mulai",
+                    "Tanggal Selesai",
                     "Jenis Kegiatan",
                     "Tempat",
                   ]}
@@ -276,6 +277,14 @@ export default function Read({ onChangePage }) {
                     ),
                     "Tanggal Mulai": new Date(
                       item.tglMulaiKegiatan
+                    ).toLocaleDateString("id-ID", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    }),
+                    "Tanggal Selesai": new Date(
+                      item.tglSelesaiKegiatan
                     ).toLocaleDateString("id-ID", {
                       weekday: "long",
                       day: "numeric",

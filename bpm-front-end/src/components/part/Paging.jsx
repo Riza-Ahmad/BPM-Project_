@@ -1,14 +1,6 @@
 import React from "react";
 import Button from "./Button";
 
-const ScrollToTop = () => {
-  React.useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  return null;
-};
-
 export default function Paging({
   pageSize,
   pageCurrent,
@@ -156,7 +148,6 @@ export default function Paging({
 
   return (
     <div className="mt-lg-0 mt-md-0 mt-sm-3 mt-3">
-      <ScrollToTop /> {/* Ensure ScrollToTop is included */}
       <div className="input-group">
         {generatePageButton(pageSize, pageCurrent, totalData)}
       </div>

@@ -252,7 +252,12 @@ export default function Edit({ onChangePage }) {
             <div className="row">
               <UploadFoto
                 ref={fotoRef}
-                label="Foto"
+                label={
+                  <span>
+                    Foto <br></br>
+                    <sub>Resolusi foto yang disarankan adalah 1920×600 px</sub>
+                  </span>
+                }
                 initialImages={tempImages}
                 onChange={handleUploadChange}
                 multiple

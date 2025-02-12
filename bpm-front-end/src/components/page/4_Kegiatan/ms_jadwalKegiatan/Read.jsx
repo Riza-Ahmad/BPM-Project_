@@ -255,7 +255,6 @@ export default function Read({ onChangePage }) {
                     "Nama Kegiatan",
                     "Tanggal Mulai",
                     "Tanggal Selesai",
-                    "Durasi Waktu",
                     "Jenis Kegiatan",
                     "Tempat",
                     "Status",
@@ -283,15 +282,6 @@ export default function Read({ onChangePage }) {
 
                     "Tanggal Selesai": new Date(
                       item.tglSelesaiKegiatan
-                    ).toLocaleDateString("id-ID", {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    }),
-
-                    "Durasi Waktu": new Date(
-                      item.selisihWaktu("Tanggal Mulai" - "Tanggal Selesai")
                     ).toLocaleDateString("id-ID", {
                       weekday: "long",
                       day: "numeric",

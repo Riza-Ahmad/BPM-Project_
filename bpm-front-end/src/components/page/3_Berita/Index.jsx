@@ -15,6 +15,7 @@ import { useIsMobile } from "../../util/useIsMobile";
 import { useNavigate } from "react-router-dom";
 import { useFetch } from "../../util/useFetch";
 import Cookies from "js-cookie";
+import { decodeHtml } from "../../util/DecodeHtml";
 
 export default function Index({ onChangePage }) {
   const [beritaData, setBeritaData] = useState([]);
@@ -31,10 +32,11 @@ export default function Index({ onChangePage }) {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const pageSize = 6;
- 
+
   useEffect(() => {
     const fetchBerita = async () => {
       try {
+        setLoading(true);
         const activeUser = Cookies.get("activeUser");
         if (activeUser) {
           const parsedUser = JSON.parse(activeUser);
@@ -134,7 +136,6 @@ export default function Index({ onChangePage }) {
   const startIndex = (pageCurrent - 1) * pageSize;
   const currentData = filteredData;
 
-  if (loading) return <Loading />;
   if (error) return <p>{error}</p>;
 
   return (
@@ -272,56 +273,60 @@ export default function Index({ onChangePage }) {
             </div>
 
             {/* Kartu Berita */}
-            <div className="container">
-              {currentData.length === 0 ? ( // Gunakan "===" untuk perbandingan
-                <div className="row">
-                  <p> Berita tidak ditemukan</p>
-                </div> // Gunakan kurung buka-tutup dengan benar untuk ternary operator
-              ) : (
-                <div className="container">
+            {loading ? (
+              <Loading />
+            ) : (
+              <div className="container">
+                {currentData.length === 0 ? ( // Gunakan "===" untuk perbandingan
                   <div className="row">
-                    {currentData.map((newsItem, index) => (
-                      <div
-                        key={index}
-                        className={
-                          isMobile
-                            ? "col-lg-4 col-md-6 col-12 mb-4 p-0"
-                            : "col-lg-4 col-md-6 col-12 mb-4 ps-0 p-3"
-                        }
-                      >
-                        <CardBerita
-                          title={truncateAndHighlight(
-                            newsItem.title,
-                            searchKeyword,
-                            93
-                          )}
-                          author={newsItem.author}
-                          date={newsItem.formattedDate}
-                          description={highlightText(
-                            getSnippet(
-                              newsItem.description,
-                              searchKeyword,
-                              isMobile ? 50 : 100
-                            ),
-                            searchKeyword
-                          )}
-                          image={BERITAFOTO_LINK + newsItem.images[0]}
-                          onClick={() =>
-                            onChangePage("news", { state: newsItem })
+                    <p> Berita tidak ditemukan</p>
+                  </div> // Gunakan kurung buka-tutup dengan benar untuk ternary operator
+                ) : (
+                  <div className="container">
+                    <div className="row">
+                      {currentData.map((newsItem, index) => (
+                        <div
+                          key={index}
+                          className={
+                            isMobile
+                              ? "col-lg-4 col-md-6 col-12 mb-4 p-0"
+                              : "col-lg-4 col-md-6 col-12 mb-4 ps-0 p-3"
                           }
-                        />
-                      </div>
-                    ))}
+                        >
+                          <CardBerita
+                            title={truncateAndHighlight(
+                              newsItem.title,
+                              searchKeyword,
+                              93
+                            )}
+                            author={newsItem.author}
+                            date={newsItem.formattedDate}
+                            description={highlightText(
+                              getSnippet(
+                                decodeHtml(newsItem.description),
+                                searchKeyword,
+                                isMobile ? 50 : 100
+                              ),
+                              searchKeyword
+                            )}
+                            image={BERITAFOTO_LINK + newsItem.images[0]}
+                            onClick={() =>
+                              onChangePage("news", { state: newsItem })
+                            }
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <Paging
+                      pageSize={pageSize}
+                      pageCurrent={pageCurrent}
+                      totalData={totalData}
+                      navigation={(page) => setPageCurrent(page)}
+                    />
                   </div>
-                  <Paging
-                    pageSize={pageSize}
-                    pageCurrent={pageCurrent}
-                    totalData={totalData}
-                    navigation={(page) => setPageCurrent(page)}
-                  />
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Sidebar (1 bagian dari total ruang) */}

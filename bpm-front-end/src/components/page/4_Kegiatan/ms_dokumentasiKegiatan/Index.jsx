@@ -8,6 +8,7 @@ import { useLocation } from "react-router-dom";
 import { useFetch } from "../../../util/useFetch";
 import { decodeHtml } from "../../../util/DecodeHtml";
 import Cookies from "js-cookie";
+import Loading from "../../../part/Loading";
 
 export default function Index({ onChangePage }) {
   const [groupedEvents, setGroupedEvents] = useState({});
@@ -103,7 +104,7 @@ export default function Index({ onChangePage }) {
   }, []);
 
   if (loading) {
-    return <p>Loading...</p>;
+    return <Loading />;
   }
 
   const filteredEvents = Object.keys(groupedEvents).reduce((acc, year) => {
@@ -199,14 +200,17 @@ export default function Index({ onChangePage }) {
           style={{ marginTop: "2rem" }}
         >
           {Object.keys(filteredEvents).length > 0 ? (
-            Object.keys(filteredEvents).map((year) => (
-              <TabTahunKegiatan
-                key={year}
-                year={year}
-                kegiatanList={filteredEvents[year]}
-                selectedId={location.state?.idData}
-              />
-            ))
+            Object.keys(filteredEvents)
+              .map(Number)
+              .sort((a, b) => b - a)
+              .map((year) => (
+                <TabTahunKegiatan
+                  key={year}
+                  year={year}
+                  kegiatanList={filteredEvents[year]}
+                  selectedId={location.state?.idData}
+                />
+              ))
           ) : (
             <p className="m-5">Belum ada kegiatan</p>
           )}

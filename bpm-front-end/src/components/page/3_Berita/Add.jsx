@@ -194,11 +194,16 @@ export default function Add({ onChangePage }) {
               />
               <UploadFoto
                 ref={fotoRef}
-                label="Masukkan Foto"
+                label={
+                  <span>
+                    Foto <br></br>
+                    <sub>Resolusi foto yang disarankan adalah 1920×600 px</sub>
+                  </span>
+                }
                 onChange={handleUploadChange}
-                multiple
                 isRequired={true}
               />
+
               <div className="d-flex justify-content-between align-items-center">
                 <div className="flex-grow-1 m-2">
                   <Button
