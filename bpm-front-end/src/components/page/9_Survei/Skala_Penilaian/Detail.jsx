@@ -89,10 +89,7 @@ export default function DetailSkalaPenilaian() {
         label="Status"
         isi={detailData.skp_status === 0 ? "Tidak" : "Ya"}
       />
-      <DetailData
-        label="Dibuat Oleh"
-        isi={detailData.skp_created_by || "Tidak tersedia"}
-      />
+      <DetailData label="Dibuat Oleh" isi={detailData.skp_created_by || "-"} />
       <DetailData
         label="Dibuat Tanggal"
         isi={formatTanggal(detailData.skp_created_date)}
@@ -109,7 +106,7 @@ export default function DetailSkalaPenilaian() {
       />
       <DetailData
         label="Dimodifikasi Oleh"
-        isi={detailData.skp_modif_by || "Tidak tersedia"}
+        isi={detailData.skp_modif_by || "-"}
       />
       <DetailData
         label="Dimodifikasi Tanggal"

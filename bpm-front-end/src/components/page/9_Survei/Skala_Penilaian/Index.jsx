@@ -45,9 +45,7 @@ export default function Index() {
 
     const matchesType = filterType ? item.skp_tipe === filterType : true;
     const matchesStatus =
-      filterStatus !== ""
-        ? item.skp_status.toString() === filterStatus
-        : item.skp_status === 1;
+    filterStatus !== "" ? item.skp_status === filterStatus : item.skp_status === "Aktif";
 
     return matchesSearch && matchesType && matchesStatus;
   };
@@ -136,7 +134,7 @@ export default function Index() {
   const { currentPageData, totalFilteredItems } = getPageData();
   const activeData =
     filterStatus === ""
-      ? skalaData.filter((item) => item.skp_status === 1)
+      ? skalaData.filter((item) => item.skp_status === "Aktif")
       : skalaData;
   const uniqueTypes = [...new Set(activeData.map((item) => item.skp_tipe))];
   const marginStyle = { margin: isMobile ? "1rem" : "3rem" };
@@ -201,8 +199,8 @@ export default function Index() {
                       onChange={(e) => setFilterStatus(e.target.value)}
                     >
                       <option value="">Semua Status</option>
-                      <option value="1">Aktif</option>
-                      <option value="0">Tidak Aktif</option>
+                    <option value="Aktif">Aktif</option>
+                    <option value="Tidak Aktif">Tidak Aktif</option>
                     </select>
                   </div>
 
@@ -222,24 +220,24 @@ export default function Index() {
             style={marginStyle}
           >
             <Table
-              arrHeader={tableHeaders}
-              data={currentPageData.map((item, index) => ({
-                key: item.skp_id,
-                No: (pageCurrent - 1) * config.pageSize + index + 1,
-                "Tipe Skala": item.skp_tipe,
-                Skala: item.skp_skala,
-                Deskripsi: item.skp_deskripsi,
-                Status: item.skp_status === 1 ? "Aktif" : "Tidak Aktif",
-              }))}
-              actions={(item) => {
-                const actions = ["Detail", "Toggle"];
-                if (item.Status === "Aktif") actions.push("Edit");
-                return actions;
-              }}
-              onDetail={(item) => handleNavigation.toDetail(item.key)}
-              onToggle={(item) => handleDelete(item.key)}
-              onEdit={(item) => handleNavigation.toEdit(item.key)}
-            />
+            arrHeader={tableHeaders}
+            data={currentPageData.map((item, index) => ({
+              key: item.skp_id,
+              No: (pageCurrent - 1) * config.pageSize + index + 1,
+              "Tipe Skala": item.skp_tipe,
+              Skala: item.skp_skala,
+              Deskripsi: item.skp_deskripsi,
+              Status: item.skp_status === "Aktif" ? "Aktif" : "Tidak Aktif",
+            }))}
+            actions={(item) => {
+              const actions = ["Detail", "Toggle"];
+              if (item.Status === "Aktif") actions.push("Edit");
+              return actions;
+            }}
+            onDetail={(item) => handleNavigation.toDetail(item.key)}
+            onToggle={(item) => handleDelete(item.key)}
+            onEdit={(item) => handleNavigation.toEdit(item.key)}
+          />
             <Paging
               pageSize={config.pageSize}
               pageCurrent={pageCurrent}

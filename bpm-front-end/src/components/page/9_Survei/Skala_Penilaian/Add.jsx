@@ -7,6 +7,7 @@ import { useIsMobile } from "../../../util/useIsMobile";
 import Button from "../../../part/Button";
 import DropDown from "../../../part/Dropdown";
 import SweetAlert from "../../../util/SweetAlert";
+import { useFetch } from "../../../util/useFetch";
 
 export default function Add({ onChangePage }) {
   const isMobile = useIsMobile();
@@ -14,7 +15,7 @@ export default function Add({ onChangePage }) {
 
   const [formData, setFormData] = useState({
     name: "",
-    skp_tipe: "", 
+    skp_tipe: "",
     scale: 1,
     descriptions: [],
     skp_deskripsi: "",
@@ -24,7 +25,7 @@ export default function Add({ onChangePage }) {
   const [errors, setErrors] = useState({
     skp_tipe: false,
     descriptions: false,
-    skp_deskripsi: false
+    skp_deskripsi: false,
   });
 
   const validateForm = () => {
@@ -34,22 +35,26 @@ export default function Add({ onChangePage }) {
       descriptions: false,
       skp_deskripsi: false,
     };
-  
+
     // Validate descriptions for RadioButton and CheckBox
-    if (formData.skp_tipe === "RadioButton" || formData.skp_tipe === "CheckBox") {
-      newErrors.descriptions = formData.descriptions.length !== formData.scale || 
-        formData.descriptions.some(desc => !desc.trim());
+    if (
+      formData.skp_tipe === "RadioButton" ||
+      formData.skp_tipe === "CheckBox"
+    ) {
+      newErrors.descriptions =
+        formData.descriptions.length !== formData.scale ||
+        formData.descriptions.some((desc) => !desc.trim());
     }
-  
+
     // Validate TextBox and TextArea
     if (formData.skp_tipe === "TextBox" || formData.skp_tipe === "TextArea") {
       newErrors.skp_deskripsi = !formData.skp_deskripsi.trim();
     }
-  
+
     setErrors(newErrors);
-    return !Object.values(newErrors).some(error => error);
+    return !Object.values(newErrors).some((error) => error);
   };
-  
+
   const renderErrorMessage = (errorType) => {
     return errors[errorType] ? (
       <div className="text-danger mt-1" style={{ fontSize: "0.8rem" }}>
@@ -60,7 +65,6 @@ export default function Add({ onChangePage }) {
       </div>
     ) : null;
   };
-  
 
   const handleTypeChange = (e) => {
     const value = e.target.value;
@@ -72,58 +76,61 @@ export default function Add({ onChangePage }) {
       skp_deskripsi: "",
       checkedValues: [],
     });
-    
-    setErrors(prev => ({
+
+    setErrors((prev) => ({
       ...prev,
-      skp_tipe: !value
+      skp_tipe: !value,
     }));
   };
 
   const handleSave = async () => {
     if (!validateForm()) {
-      await SweetAlert("Peringatan!", "Harap lengkapi semua data yang diperlukan.", "warning", "OK");
+      await SweetAlert(
+        "Peringatan!",
+        "Harap lengkapi semua data yang diperlukan.",
+        "warning",
+        "OK"
+      );
       return;
     }
-  
+
     try {
       let deskripsiToSend;
-  
+
       if (formData.skp_tipe === "TextBox" || formData.skp_tipe === "TextArea") {
         deskripsiToSend = formData.skp_deskripsi;
       } else {
         deskripsiToSend = formData.descriptions.join(", ");
       }
-  
-      const response = await fetch(
+
+      const payload = {
+        skp_skala: formData.scale,
+        skp_deskripsi: deskripsiToSend,
+        skp_tipe: formData.skp_tipe,
+      };
+
+      const response = await useFetch(
         `${API_LINK}/SkalaPenilaian/CreateSkalaPenilaian`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            skp_skala: formData.scale,
-            skp_deskripsi: deskripsiToSend,
-            skp_tipe: formData.skp_tipe,
-            skp_created_by: "Admin",
-          }),
-        }
+        payload,
+        "POST"
       );
-  
-      if (response.ok) {
-        await SweetAlert("Berhasil!", "Data berhasil Disimpan.", "success", "OK");
-        navigate("/survei/skala");
+
+      if (response === "ERROR") {
+        throw new Error("Gagal menyimpan skala penilaian.");
       } else {
-        const errorData = await response.json();
-        alert(
-          `Gagal menyimpan data: ${
-            errorData.message || "Error tidak diketahui."
-          }`
+        await SweetAlert(
+          "Berhasil!",
+          "Data berhasil Disimpan.",
+          "success",
+          "OK"
         );
+        navigate("/survei/skala"); // Kembali ke halaman survei/skala
       }
     } catch (error) {
-      alert(`Terjadi kesalahan: ${error.message}`);
+      console.error("Error saving skala penilaian:", error);
+      SweetAlert("Gagal!", error.message, "error", "OK");
     }
   };
-  
 
   const handleCancel = () => {
     navigate("/survei/skala");
@@ -165,7 +172,7 @@ export default function Add({ onChangePage }) {
                   { Value: "CheckBox", Text: "CheckBox" },
                 ]}
               />
-              {renderErrorMessage('skp_tipe')}
+              {renderErrorMessage("skp_tipe")}
 
               {formData.skp_tipe === "TextBox" && (
                 <div style={{ marginTop: "20px" }}>
@@ -190,7 +197,7 @@ export default function Add({ onChangePage }) {
                         borderRadius: "5px",
                       }}
                     />
-                    {renderErrorMessage('skp_deskripsi')}
+                    {renderErrorMessage("skp_deskripsi")}
                   </div>
                 </div>
               )}
@@ -218,7 +225,7 @@ export default function Add({ onChangePage }) {
                         borderRadius: "5px",
                       }}
                     />
-                    {renderErrorMessage('skp_deskripsi')}
+                    {renderErrorMessage("skp_deskripsi")}
                   </div>
                 </div>
               )}
@@ -312,7 +319,7 @@ export default function Add({ onChangePage }) {
                         />
                       </div>
                     ))}
-                    {renderErrorMessage('descriptions')}
+                    {renderErrorMessage("descriptions")}
                   </div>
 
                   <p
@@ -432,7 +439,7 @@ export default function Add({ onChangePage }) {
                         />
                       </div>
                     ))}
-                    {renderErrorMessage('descriptions')}
+                    {renderErrorMessage("descriptions")}
                   </div>
 
                   <p
@@ -454,8 +461,8 @@ export default function Add({ onChangePage }) {
                           "Deskripsi belum diisi."}
                       </li>
                     ))}
-                    </ul>
-              </div>
+                  </ul>
+                </div>
               )}
 
               <div className="d-flex justify-content-between align-items-center">
