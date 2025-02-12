@@ -15,7 +15,13 @@ import DropDown from "../../../part/Dropdown";
 import Loading from "../../../part/Loading";
 import SweetAlert from "../../../util/SweetAlert";
 import PdfPreviewDownload from "../../../part/PdfPreviewDownload";
+import pdf from "../MI_PRG4_M4_P2_XXX.pdf";
+import { useIsMobile } from "../../../util/useIsMobile";
 import Cookies from "js-cookie";
+import { Document, Page } from "react-pdf";
+import "react-pdf/dist/esm/Page/AnnotationLayer.css";
+
+// import { Document, Page } from '@react-pdf-viewer/core';
 
 const arrSort = [
   { Value: "[judulDok] ASC", Text: "Judul Dokumen [↑]" },
@@ -38,6 +44,7 @@ export default function Index({ onChangePage }) {
     namaPengguna = JSON.parse(activeUser).Nama;
   }
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   const [pageSize] = useState(10);
   const [pageCurrent, setPageCurrent] = useState(1);
@@ -61,6 +68,12 @@ export default function Index({ onChangePage }) {
   const [error, setError] = useState(null);
   const [breadcrumbs, setBreadcrumbs] = useState([]);
   const [arrTahun, setArrTahun] = useState([]);
+
+  const [numPages, setNumPages] = useState(null);
+
+  const onDocumentLoadSuccess = ({ numPages }) => {
+    setNumPages(numPages);
+  };
 
   const { jenis } = useParams();
   const ModalRef = useRef();
@@ -158,6 +171,7 @@ export default function Index({ onChangePage }) {
 
   const handlePreview = (item) => {
     const selected = filteredData.find((obj) => obj.idDok == item.Key);
+    console.log(selected);
     handleOpenModal("preview", selected);
   };
 
@@ -320,15 +334,16 @@ export default function Index({ onChangePage }) {
 
   return (
     <div className="d-flex flex-column min-vh-100">
-      <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
-        <div className="container">
-          <h1 style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}>
-            {title}
-          </h1>
-          <Breadcrumbs breadcrumbs={breadcrumbs} />
-
-          <div className="mt-4">
-            {role === "ROL01" ? (
+      <main className="flex-grow-1 p-3" style={{ marginTop: "60px" }}>
+        <div className="d-flex flex-column">
+          <div className="p-3 m-5 mt-0 mb-0">
+            <h1 style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}>
+              {"DOKUMEN " + title}
+            </h1>
+            <Breadcrumbs breadcrumbs={breadcrumbs} />
+          </div>
+          {role === "ROL01" ? (
+            <div className="p-3" style={{ marginLeft: "50px" }}>
               <Button
                 iconName="add"
                 classType="primary"
@@ -340,74 +355,86 @@ export default function Index({ onChangePage }) {
                   })
                 }
               />
-            ) : (
-              ""
-            )}
-            <div className="row mt-3">
-              <div className="col-lg-10">
-                <SearchField
-                  onChange={(e) =>
-                    setCurrentFilter((prevFilter) => {
-                      return {
-                        ...prevFilter,
-                        param3: e,
-                      };
-                    })
-                  }
-                />
-              </div>
-              <div className="col-lg-2">
-                <Filter>
-                  <DropDown
-                    arrData={arrSort}
-                    label="Urut Berdasarkan"
-                    type="pilih"
-                    defaultValue="[judulDok] ASC"
-                    forInput="sortFilter"
+            </div>
+          ) : (
+            ""
+          )}
+
+          <div
+            className={
+              isMobile
+                ? "table-container bg-white p-1 m-1 mt-0 rounded"
+                : "table-container bg-white p-3 m-5 mt-0 rounded"
+            }
+          >
+            <div className="row">
+              <div className="col-12 d-flex flex-wrap align-items-center">
+                <div className="me-auto flex-grow-1 me-3">
+                  <SearchField
                     onChange={(e) =>
                       setCurrentFilter((prevFilter) => {
                         return {
                           ...prevFilter,
-                          param7: e.target.value,
+                          param3: e,
                         };
                       })
                     }
                   />
-                  <DropDown
-                    arrData={arrTahun}
-                    label="Tahun Dokumen"
-                    type="semua"
-                    forInput="yearFilter"
-                    onChange={(e) =>
-                      setCurrentFilter((prevFilter) => {
-                        return {
-                          ...prevFilter,
-                          param4: e.target.value,
-                        };
-                      })
-                    }
-                  />
-                  <DropDown
-                    arrData={arrStatus}
-                    label="Status"
-                    type="pilih"
-                    defaultValue="Aktif"
-                    forInput="statusFilter"
-                    onChange={(e) =>
-                      setCurrentFilter((prevFilter) => {
-                        return {
-                          ...prevFilter,
-                          param2: e.target.value,
-                        };
-                      })
-                    }
-                  />
-                </Filter>
+                </div>
+                <div className="mb-3">
+                  <Filter>
+                    <DropDown
+                      arrData={arrSort}
+                      label="Urut Berdasarkan"
+                      type="pilih"
+                      defaultValue="[judulDok] ASC"
+                      forInput="sortFilter"
+                      onChange={(e) =>
+                        setCurrentFilter((prevFilter) => {
+                          return {
+                            ...prevFilter,
+                            param7: e.target.value,
+                          };
+                        })
+                      }
+                    />
+                    <DropDown
+                      arrData={arrTahun}
+                      label="Tahun Dokumen"
+                      type="semua"
+                      forInput="yearFilter"
+                      onChange={(e) =>
+                        setCurrentFilter((prevFilter) => {
+                          return {
+                            ...prevFilter,
+                            param4: e.target.value,
+                          };
+                        })
+                      }
+                    />
+                    {role === "ROL01" ? (
+                      <DropDown
+                        arrData={arrStatus}
+                        label="Status"
+                        type="pilih"
+                        defaultValue="Aktif"
+                        forInput="statusFilter"
+                        onChange={(e) =>
+                          setCurrentFilter((prevFilter) => {
+                            return {
+                              ...prevFilter,
+                              param2: e.target.value,
+                            };
+                          })
+                        }
+                      />
+                    ) : (
+                      ""
+                    )}
+                  </Filter>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="table-container bg-white rounded">
             {loading ? (
               <Loading />
             ) : (
@@ -490,62 +517,84 @@ export default function Index({ onChangePage }) {
           <div className="p-5 mt-0 bg-white rounded shadow">
             <div className="row">
               <div className="col-lg-12 col-md-12">
-                <DetailData label="Judul Dokumen" isi={detail.judulDok} />
+                <DetailData label="Judul Dokumen" isi={detail.judulDok || ""} />
               </div>
               <div className="col-lg-6 col-md-6">
-                <DetailData label="Nomor Dokumen" isi={detail.noDok} />
-                <DetailData label="Jenis Dokumen" isi={detail.controlDok} />
+                <DetailData label="Nomor Dokumen" isi={detail.noDok || ""} />
+                <DetailData
+                  label="Jenis Dokumen"
+                  isi={detail.controlDok || ""}
+                />
               </div>
               <div className="col-lg-6 col-md-6">
                 <DetailData
                   label="Tanggal Berlaku"
-                  isi={new Date(detail.tglDok).toLocaleDateString("id-ID", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
+                  isi={
+                    detail.tglDok
+                      ? new Date(detail.tglDok).toLocaleDateString("id-ID", {
+                          weekday: "long",
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })
+                      : "-"
+                  }
                 />
                 <DetailData
-                  label="Tanggal Kadaluarsa"
-                  isi={new Date(detail.expDok).toLocaleDateString("id-ID", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
+                  label="Tanggal Kadaluwarsa"
+                  isi={
+                    detail.expDok
+                      ? new Date(detail.expDok).toLocaleDateString("id-ID", {
+                          weekday: "long",
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })
+                      : "-"
+                  }
                 />
               </div>
             </div>
             <div className="row">
               <div className="col-lg-6 col-md-6">
-                <DetailData label="Dibuat Oleh" isi={detail.createdBy} />
+                <DetailData label="Dibuat Oleh" isi={detail.createdBy || "-"} />
                 <DetailData
                   label="Dibuat Tanggal"
-                  isi={new Date(detail.createdDate).toLocaleDateString(
-                    "id-ID",
-                    {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    }
-                  )}
+                  isi={
+                    detail.createdDate
+                      ? new Date(detail.createdDate).toLocaleDateString(
+                          "id-ID",
+                          {
+                            weekday: "long",
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          }
+                        )
+                      : "-"
+                  }
                 />
               </div>
               <div className="col-lg-6 col-md-6">
-                <DetailData label="Dimodifikasi Oleh" isi={detail.modifiedBy} />
+                <DetailData
+                  label="Dimodifikasi Oleh"
+                  isi={detail.modifiedBy || "-"}
+                />
                 <DetailData
                   label="Dimodifikasi Tanggal"
-                  isi={new Date(detail.modifiedDate).toLocaleDateString(
-                    "id-ID",
-                    {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    }
-                  )}
+                  isi={
+                    detail.modifiedDate
+                      ? new Date(detail.modifiedDate).toLocaleDateString(
+                          "id-ID",
+                          {
+                            weekday: "long",
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          }
+                        )
+                      : "-"
+                  }
                 />
               </div>
             </div>
@@ -565,7 +614,7 @@ export default function Index({ onChangePage }) {
             />
           }
         >
-          <div className="p-3 mt-0 bg-white rounded shadow">
+          <div className="p-3 mt-0 bg-white">
             <div style={{ width: "80vh", height: "70vh" }}>
               {loading == true ? (
                 <div
@@ -590,6 +639,22 @@ export default function Index({ onChangePage }) {
                     border: "none",
                   }}
                 />
+
+                // <Document
+                //   file={DOKUMEN_LINK + detail.fileDok}
+                //   onLoadSuccess={onDocumentLoadSuccess}
+                //   // className="pdf-document"
+                // >
+                //   {/* Render all pages */}
+                //   {Array.from(new Array(numPages), (el, index) => (
+                //     <Page
+                //       key={`page_${index + 1}`}
+                //       pageNumber={index + 1}
+                //       renderAnnotationLayer={false} // Disable annotations
+                //       renderTextLayer={false} // Disable text selection
+                //     />
+                //   ))}
+                // </Document>
               )}
             </div>
           </div>

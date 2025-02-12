@@ -1,205 +1,239 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import PageTitleNav from "../../../part/PageTitleNav";
-import { useLocation, useNavigate } from "react-router-dom";
-import TextField from "../../../part/TextField";
+import InputField from "../../../part/InputField";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
 import Dropdown from "../../../part/Dropdown";
-import { API_LINK } from "../../../util/Constants";
-import RadioButton from "../../../part/RadioButton";
+import CheckBox from "../../../part/CheckBox";
 import SweetAlert from "../../../util/SweetAlert";
+import Swal from "sweetalert2";
+import { API_LINK } from "../../../util/Constants";
+import { useFetch } from "../../../util/useFetch";
+import { useIsMobile } from "../../../util/useIsMobile";
+import Loading from "../../../part/Loading";
 
-export default function Edit({ onChangePage, questionId }) {
-  const title = "Edit Pertanyaan";
+export default function Edit({ onChangePage }) {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const title = "Edit Bank Pertanyaan Survei";
   const breadcrumbs = [
-    { label: "Daftar Pertanyaan", href: "/survei/pertanyaan" },
-    { label: "Edit Pertanyaan", href: `/survei/pertanyaan/edit/${questionId}` },
+    { label: "Bank Pertanyaan Survei", href: "/survei/pertanyaan" },
+    {
+      label: "Edit Bank Pertanyaan Survei",
+      href: `/survei/pertanyaan/edit/${id}`,
+    },
   ];
 
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [isPertanyaanUmumYes, setPertanyaanUmumYes] = useState(false);
-  const [pertanyaan, setPertanyaan] = useState("");
-  const [kriteriaSurvei, setKriteriaSurvei] = useState([]);
-  const [skalaPenilaian, setSkalaPenilaian] = useState([]);
-  const [responden, setResponden] = useState("");
-  const [isHeader, setIsHeader] = useState(false);
-  const [isStatus, setIsStatus] = useState(1);
-  const [isGeneral, setIsGeneral] = useState(); // Set to "" initially, to handle radio input correctly
-  const [createdBy, setCreatedBy] = useState("");
-  const [selectedKriteriaSurvei, setSelectedKriteriaSurvei] = useState("");
-  const [selectedSkalaPenilaian, setSelectedSkalaPenilaian] = useState("");
-  const [pertanyaanId, setPertanyaanId] = useState("");
+  const [formData, setFormData] = useState({
+    ptyId: id,
+    pertanyaan: "",
+    ksrId: "",
+    skpId: "",
+    responden: [], // Menyimpan data responden
+  });
 
+  const [ksrOptions, setKsrOptions] = useState([]);
+  const [skpOptions, setSkpOptions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Mengambil data pertanyaan dan responden dari API
   useEffect(() => {
-    const fetchDataSkala = async () => {
+    const fetchDokumenById = async () => {
+      setLoading(true);
       try {
-        const response = await fetch(
-          `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({}),
-          }
+        const body = { id: id };
+
+        const result = await useFetch(
+          `${API_LINK}/MasterPertanyaan/GetDataPertanyaanById`,
+          body,
+          "POST"
         );
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        const result1 = await useFetch(
+          `${API_LINK}/MasterPertanyaan/GetDataPertanyaanRespondenById`,
+          body,
+          "POST"
+        );
+
+        console.log("API Response:", result); // Debug respons API
+        console.log("API ResponseResponden:", result1); // Debug respons API
+        const valuesArray = result1.map((item) => item.Value);
+
+        if (!result || result === "ERROR" || result.length === 0) {
+          Swal.fire("Error", "Data tidak ditemukan", "error");
+          return;
         }
 
-        const result = await response.json();
+        if (!result1 || result1 === "ERROR" || result1.length === 0) {
+          Swal.fire("Error", "Data tidak ditemukan", "error");
+          return;
+        }
 
-        const formattedData = result.map((item) => ({
-          Value: item.skp_id,
-          Text: item.skp_tipe,
-        }));
+        const { pty_pertanyaan, ksr_id, skp_id } = result[0];
 
-        setSkalaPenilaian(formattedData);
-      } catch (error) {
-        console.error("Error fetching SkalaPenilaian:", error);
+        let parsedResponden = [];
+
+        // Pastikan dtl_responden tidak null atau kosong
+        // if (dtl_responden) {
+        //   try {
+        //     const jsonArray = JSON.parse(dtl_responden);
+        //     parsedResponden = jsonArray.map((item) =>
+        //       parseInt(item.dtl_responden, 10)
+        //     );
+        //   } catch (error) {
+        //     console.error("Error parsing JSON dtl_responden:", error);
+        //   }
+        // }
+
+        // console.log("dtl_responden (parsed):", parsedResponden); // Debug setelah parsing
+
+        setFormData({
+          ptyId: id,
+          pertanyaan: pty_pertanyaan,
+          ksrId: ksr_id,
+          skpId: skp_id,
+          responden: valuesArray || [],
+        });
+      } catch (err) {
+        Swal.fire("Error", "Gagal mengambil data: " + err.message, "error");
+      } finally {
+        setLoading(false);
       }
     };
 
-    const fetchDataKriteria = async () => {
+    fetchDokumenById();
+  }, [id]);
+
+  // Fetch the data for Kriteria Survei
+  useEffect(() => {
+    const fetchKriteria = async () => {
+      setLoading(true);
       try {
-        const response = await fetch(
-          `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({}),
-          }
+        const data = await useFetch(
+          `${API_LINK}/MasterKriteriaSurvei/GetAllKriteriaSurveiAktif`,
+          {},
+          "POST"
         );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-
-        const formattedData = result.map((item) => ({
-          Value: item.ksr_id,
-          Text: item.ksr_nama,
-        }));
-
-        setKriteriaSurvei(formattedData);
-      } catch (error) {
-        console.error("Error fetching KriteriaSurvei:", error);
+        setKsrOptions(data);
+      } catch (err) {
+        setError("Gagal mengambil data Kriteria Survei: " + err.message);
+      } finally {
+        setLoading(false);
       }
     };
-
-    const fetchDataPertanyaan = async (pertanyaanId) => {
-      try {
-        const response = await fetch(
-          `${API_LINK}/MasterPertanyaan/GetPertanyaanById`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ id: pertanyaanId }),
-          }
-        );
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const result = await response.json();
-        const pertanyaanData = result[0]; // Assuming it's an array with the first element containing the data
-        setPertanyaanId(pertanyaanId);
-        setPertanyaan(pertanyaanData.pty_pertanyaan);
-        setIsHeader(pertanyaanData.pty_isheader);
-        setIsGeneral(pertanyaanData.pty_isgeneral); // Correctly set the general question state
-        setIsStatus(pertanyaanData.pty_status);
-        setCreatedBy(pertanyaanData.pty_created_by);
-        setSelectedKriteriaSurvei(pertanyaanData.ksr_id);
-        setSelectedSkalaPenilaian(pertanyaanData.skp_id);
-
-        if (pertanyaanData.pty_isgeneral === 1) {
-          setPertanyaanUmumYes(true);
-        } else if (pertanyaanData.pty_isgeneral === 0) {
-          setPertanyaanUmumYes(false);
-        }
-      } catch (error) {
-        console.error("Error fetching Pertanyaan data:", error);
-      }
-    };
-    const pertanyaanId = location.state.idPertanyaan;
-
-    fetchDataSkala();
-    fetchDataKriteria();
-    fetchDataPertanyaan(pertanyaanId);
+    fetchKriteria();
   }, []);
 
-  const handlePertanyaanUmumChange = (value) => {
-    // setIsGeneral(value); // Directly set the value of isGeneral
-    //setPertanyaanUmumYes(value === "Ya"); // Control the 'pertanyaanUmumYes' state based on radio value
-    setIsGeneral(value === "Ya" ? 1 : 0); // Atur nilai isGeneral dengan angka
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const data = {
-      pty_id: pertanyaanId,
-      pertanyaan,
-      isHeader: isHeader ? 1 : 0,
-      isGeneral,
-      isStatus,
-      createdBy,
-      selectedKriteriaSurvei,
-      selectedSkalaPenilaian,
-    };
-
-    const confirm = await SweetAlert(
-      "Konfirmasi",
-      "Apakah Anda yakin ingin menyimpan perubahan?",
-      "warning",
-      "Ya",
-      null,
-      "",
-      true // Menampilkan tombol batal
-    );
-    if (!confirm) {
-      // Jika pengguna membatalkan, hentikan proses submit
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `${API_LINK}/MasterPertanyaan/editPertanyaan`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
+  // Fetch the data for Skala Penilaian
+  useEffect(() => {
+    const fetchSkalaPenilaian = async () => {
+      setLoading(true);
+      try {
+        const skpResponse = await useFetch(
+          `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
+          {},
+          "POST"
+        );
+        if (skpResponse && Array.isArray(skpResponse)) {
+          setSkpOptions(
+            skpResponse
+              .filter((item) => item.skp_status === "Aktif")
+              .map((item) => ({
+                value: item.skp_id,
+                Text: `${item.skp_skala} (${item.skp_deskripsi})`,
+              }))
+          );
         }
-      );
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      } catch (error) {
+        setError("Gagal mengambil data Skala Penilaian: " + error.message);
+      } finally {
+        setLoading(false);
       }
-      const result = await response.json();
-      console.log("Hasil dari server:", result);
-      await SweetAlert(
-        "Berhasil",
-        "Pertanyaan berhasil diperbarui!",
-        "success"
-      );
-      onChangePage("index");
-    } catch (error) {
-      console.error("Error:", error);
-      await SweetAlert("Error", `Terjadi kesalahan: ${error.message}`, "error");
+    };
+    fetchSkalaPenilaian();
+    console.log(formData);
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    if (type === "checkbox") {
+      const parsedValue = value; // Ensure the value is an integer
+
+      setFormData((prevFormData) => {
+        const updatedResponden = checked
+          ? [...prevFormData.responden, parsedValue] // Add to the array if checked
+          : prevFormData.responden.filter((item) => item !== parsedValue); // Remove from the array if unchecked
+
+        return {
+          ...prevFormData,
+          responden: updatedResponden,
+        };
+      });
+    } else {
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        [name]: value,
+      }));
     }
   };
-  const handleCancel = () => {
-    onChangePage("index");
+
+  const handleSubmit = async () => {
+    try {
+      const payload = {
+        pertanyaan: formData.pertanyaan,
+        ksrId: parseInt(formData.ksrId, 10),
+        skpId: parseInt(formData.skpId, 10),
+        responden: formData.responden,
+      };
+
+      console.log(formData);
+      console.log("Jalan");
+      console.log(payload);
+      const result = await useFetch(
+        `${API_LINK}/MasterPertanyaan/EditPertanyaan`,
+        formData,
+        "POST"
+      );
+
+      if (result === "ERROR") {
+        throw new Error("Terjadi kesalahan server");
+      } else {
+        SweetAlert(
+          "Berhasil!",
+          "Pertanyaan berhasil diperbarui",
+          "success",
+          "OK"
+        );
+        navigate("/survei/pertanyaan");
+      }
+    } catch (error) {
+      SweetAlert(
+        "Gagal!",
+        error.message || "Terjadi kesalahan saat menyimpan",
+        "error",
+        "OK"
+      );
+    }
   };
 
-  const [selectedValue, setSelectedValue] = useState(""); // State untuk menyimpan nilai radio yang dipilih
-  const radioRef = useRef(); // Referensi untuk akses fungsi internal komponen RadioButton
+  const handleCancel = () => {
+    SweetAlert(
+      "Yakin?",
+      "Perubahan belum disimpan, yakin batal?",
+      "warning",
+      "Ya, batalkan",
+      "Tidak"
+    ).then((result) => {
+      if (result) navigate("/survei/pertanyaan");
+    });
+  };
+
+  if (loading) return <Loading />;
+  if (error) return <p className="text-danger text-center mt-4">{error}</p>;
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -209,139 +243,79 @@ export default function Edit({ onChangePage, questionId }) {
             <PageTitleNav
               title={title}
               breadcrumbs={breadcrumbs}
-              onClick={() => onChangePage("index")}
+              onClick={() => navigate("/survei/pertanyaan")}
             />
           </div>
           <div className="shadow p-5 m-5 mt-0 bg-white rounded">
-            <HeaderForm label="Formulir Pertanyaan" />
-            <form onSubmit={handleSubmit}>
-              {/* Checkbox Header */}
-              <div className="row">
-                <div className="col-lg-12">
-                  <label>
-                    <strong>Header</strong>
-                  </label>
-                  <div className="form-check">
-                    <input
-                      type="checkbox"
-                      className="form-check-input"
-                      checked={isHeader}
-                      onChange={(e) => setIsHeader(e.target.checked)}
-                    />
-                  </div>
-                </div>
-              </div>
-              {/* Pertanyaan Umum */}
-              <div className="row">
-                <label style={{ fontWeight: "bold" }}>
-                  Pertanyaan Umum <span style={{ color: "red" }}>*</span>
-                </label>
-                <div className="custom-radio-dropdown">
-                  {/* <RadioButton
-                                    ref={radioRef} // Berikan referensi untuk validasi dan reset
-                                    arrData={[
-                                        { Value: "0", Text: "Tidak" },
-                                        { Value: "1", Text: "Ya" },
-                                    ]}
-                                    label="Apakah ini pertanyaan umum?"
-                                    name="pertanyaanUmum"
-                                    isRequired={true} // Menjadikan pilihan wajib
-                                    checked={isGeneral}
-                                    value={!isGeneral}
-                                    onChange={(e) => handlePertanyaanUmumChange(e.target.value)}
-                                    // Perbarui nilai saat ada perubahan
-                                    errorMessage="Harap pilih salah satu opsi." // Pesan kesalahan kustom
-                                    /> */}
-
-                  <div className="radio-item">
-                    <input
-                      type="radio"
-                      id="ya"
-                      name="pertanyaanUmum"
-                      value="Ya"
-                      required
-                      checked={isGeneral === 1}
-                      onChange={(e) => {
-                        handlePertanyaanUmumChange(e.target.value);
-                        setPertanyaanUmumYes(true);
-                      }}
-                    />
-                    <label htmlFor="ya">Ya</label>
-                  </div>
-                  <div className="radio-item">
-                    <input
-                      type="radio"
-                      id="tidak"
-                      name="pertanyaanUmum"
-                      value="Tidak"
-                      required
-                      checked={isGeneral === 0}
-                      onChange={(e) => {
-                        handlePertanyaanUmumChange(e.target.value);
-                        setPertanyaanUmumYes(false);
-                      }}
-                    />
-                    <label htmlFor="tidak">Tidak</label>
-                  </div>
-                </div>
-              </div>
-              {/* Input Pertanyaan */}
-              <div className="row">
-                <div className="col-lg-12 col-md-6">
-                  <TextField
-                    label="Pertanyaan"
-                    value={pertanyaan}
-                    onChange={(e) => setPertanyaan(e.target.value)}
-                    isRequired={true}
-                  />
-                </div>
-                <div className="col-lg-12 col-md-6">
-                  <Dropdown
-                    arrData={kriteriaSurvei}
-                    label="Kriteria Survei"
-                    isRequired={true}
-                    onChange={(e) => setSelectedKriteriaSurvei(e.target.value)}
-                    value={selectedKriteriaSurvei}
-                    type="pilih"
-                    forInput="kriteriaSurvei"
-                    disabled={isPertanyaanUmumYes}
-                  />
-                </div>
-                <div className="col-lg-12 col-md-6">
-                  <Dropdown
-                    arrData={skalaPenilaian}
-                    label="Skala Penilaian"
-                    isRequired={true}
-                    onChange={(e) => setSelectedSkalaPenilaian(e.target.value)}
-                    value={selectedSkalaPenilaian}
-                    type="pilih"
-                    forInput="skalaPenilaian"
-                    disabled={isPertanyaanUmumYes}
-                  />
-                </div>
-              </div>
-              {/* Button Submit and Cancel */}
-              <div className="row mt-3">
-                <div className="col-md-6 text-center">
-                  <Button
-                    classType="primary"
-                    type="submit"
-                    label="Simpan"
-                    width="100%"
-                    onClick={handleSubmit}
-                  />
-                </div>
-                <div className="col-md-6 text-center">
-                  <Button
-                    classType="danger"
-                    type="button"
-                    label="Batal"
-                    width="100%"
-                    onClick={handleCancel}
-                  />
-                </div>
-              </div>
-            </form>
+            <HeaderForm label="Formulir Bank Pertanyaan" />
+            <div className="mb-4">
+              <Dropdown
+                label="Kriteria Survei"
+                arrData={ksrOptions}
+                value={formData.ksrId}
+                onChange={handleChange}
+                name="ksrId"
+                isRequired={true}
+                type="pilih"
+              />
+            </div>
+            <div className="mb-4">
+              <InputField
+                label="Pertanyaan"
+                value={formData.pertanyaan}
+                name="pertanyaan"
+                onChange={handleChange}
+                isRequired={true}
+                type="text"
+                placeholder="Masukkan pertanyaan survei"
+              />
+            </div>
+            <div className="mb-4">
+              <Dropdown
+                label="Skala Penilaian"
+                arrData={skpOptions}
+                value={formData.skpId}
+                onChange={handleChange}
+                name="skpId"
+                isRequired={true}
+                type="pilih"
+              />
+            </div>
+            <div className="mb-5">
+              <CheckBox
+                arrData={[
+                  {
+                    Value: 0,
+                    Text: "Dosen dan Instruktur",
+                  },
+                  { Value: 1, Text: "Tenaga Pendidik" },
+                  { Value: 2, Text: "Mitra Kerjasama" },
+                ]}
+                label="Responden"
+                name="responden"
+                isRequired={true}
+                values={formData.responden || []}
+                onChange={handleChange}
+                col="col-4"
+              />
+            </div>
+            <div className="d-flex justify-content-between align-items-center mt-4 gap-3">
+              <Button
+                classType="primary"
+                type="button"
+                label="Simpan"
+                width="100%"
+                disabled={loading}
+                onClick={handleSubmit}
+              />
+              <Button
+                classType="danger"
+                type="button"
+                label="Batal"
+                width="100%"
+                onClick={handleCancel}
+              />
+            </div>
           </div>
         </div>
       </main>

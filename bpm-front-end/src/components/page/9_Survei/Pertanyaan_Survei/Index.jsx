@@ -3,328 +3,549 @@ import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
 import PageTitleNav from "../../../part/PageTitleNav";
 import Button from "../../../part/Button";
-import TextField from "../../../part/TextField";
+import Dropdown from "../../../part/Dropdown";
 import Modal from "../../../part/Modal";
 import Filter from "../../../part/Filter";
 import SearchField from "../../../part/SearchField";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../../../util/useIsMobile";
-import { API_LINK } from "../../../util/Constants";
+import { API_LINK, TEMPLATE_LINK } from "../../../util/Constants";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import { useFetch } from "../../../util/useFetch";
 
-const title = "Pertanyaan Survei";
-const breadcrumbs = [{ label: " Daftar Pertanyaan" }];
+const title = "Bank Pertanyaan Survei";
+const breadcrumbs = [{ label: "Bank Pertanyaan Survei" }];
 
 export default function Pertanyaan_Survei({ onChangePage }) {
+  // Konfigurasi paging dan state data
   const [pageSize] = useState(10);
   const [pageCurrent, setPageCurrent] = useState(1);
-  const [selectedQuestion, setSelectedQuestion] = useState("");
-  const [formData, setFormData] = useState({ questionText: "" });
-  const importModalRef = useRef("");
-  const [file, setFile] = useState("");
-  const [data, setData] = useState("");
-  const [filteredData, setFilteredData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState(""); // Menyimpan status filter
-  const [sortOrder, setSortOrder] = useState("asc"); // Menyimpan urutan sortir
+  const [currentData, setCurrentData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // State untuk pencarian dan filter (client-side)
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState(""); // "" berarti semua status
+  const [filterSort, setFilterSort] = useState("[pty_created_date] DESC"); // default sorting
+  const [filterKriteria, setFilterKriteria] = useState(""); // Filter untuk Kriteria Survei, "" berarti semua
+  const [filterSkala, setFilterSkala] = useState(""); // Filter untuk Skala Penilaian, "" berarti semua
+  const [filteredData, setFilteredData] = useState([]);
 
-  useEffect(() => {
-    console.log(currentData);
-    const fetchDataPertanyaan = async () => {
-      setLoading(true); // Aktifkan indikator loading
-      try {
-        // Panggil API
-        const response = await fetch(
-          `${API_LINK}/MasterPertanyaan/GetDataPertanyaan`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({}), // Parameter kosong
-          }
-        );
+  // State untuk opsi dropdown yang diambil dari API
+  const [ksrOptions, setKsrOptions] = useState([]);
+  const [skpOptions, setSkpOptions] = useState([]);
+  const [loadingFilter, setLoadingFilter] = useState(false);
+  const [errorFilter, setErrorFilter] = useState(null);
 
-        // Cek status response
-        if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }
+  // Ref untuk modal import dan modal export
+  const importModalRef = useRef(null);
+  const exportModalRef = useRef(null); // untuk modal export
 
-        // Parsing hasil JSON
-        const result = await response.json();
+  // State untuk pilihan kriteria pada modal export
+  const [exportKriteria, setExportKriteria] = useState("");
 
-        // Cek apakah result adalah array
-        if (!Array.isArray(result)) {
-          console.error("Data yang diterima bukan array");
-          return;
-        }
-
-        // Mapping data dan pastikan pty_id ada di setiap item
-        const formattedPertanyaan = result.map((item, index) => {
-          return {
-            Key: item.pty_id || "No ID", // Jika pty_id tidak ada, gunakan fallback
-            question: item.pty_pertanyaan,
-            isHeader: item.pty_isheader,
-            isGeneral: item.pty_isgeneral,
-            status: item.pty_status,
-            createdBy: item.pty_created_by,
-            createdDate: item.pty_created_date
-              ? new Date(item.pty_created_date).toISOString()
-              : "-",
-            role: item.pty_role_responden,
-          };
-        });
-
-        // Set data ke state
-        setData(formattedPertanyaan);
-        setFilteredData(formattedPertanyaan);
-      } catch (error) {
-        console.error("Fetch error:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: error.message || "Gagal mengambil data pertanyaan!",
-        });
-      } finally {
-        setLoading(false); // Matikan indikator loading
-      }
-    };
-    fetchDataPertanyaan();
-  }, []);
-
-  const addModalRef = useRef();
-  const updateModalRef = useRef();
-  const detailModalRef = useRef();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [questions, setQuestions] = useState([]);
-  const [questionText, setQuestionText] = useState("");
-  const [isHeader, setIsHeader] = useState(false);
-  const [generalQuestion, setGeneralQuestion] = useState("Ya");
-  const [surveyCriteria, setSurveyCriteria] = useState("");
-  const [respondent, setRespondent] = useState("");
 
-  const handleAddQuestion = () => {
-    const newQuestion = {
-      id: questions.length + 1,
-      text: questionText,
-      generalQuestion,
-      surveyCriteria,
-      respondent,
-    };
-    setQuestions([...questions, newQuestion]);
-    setQuestionText("");
-    setSurveyCriteria("");
-    setRespondent("");
-    setIsHeader(false);
-    setGeneralQuestion("Ya");
-    addModalRef.current.close();
-    5;
-  };
+  // Hitung indeks data untuk paging
+  const indexOfLastData = pageCurrent * pageSize;
+  const indexOfFirstData = indexOfLastData - pageSize;
+  // Jika ada pencarian atau filter, gunakan filteredData; jika tidak, gunakan currentData
+  const dataToDisplay =
+    searchQuery || filterStatus || filterSort || filterKriteria || filterSkala
+      ? filteredData
+      : currentData;
+  const currentDataPage = dataToDisplay.slice(
+    indexOfFirstData,
+    indexOfLastData
+  );
 
-  const handleChange = (e) => {
-    setQuery(e.target.value);
-  };
-
-  const handleSearch = () => {
-    // Ambil nilai pencarian dari SearchField
-    const searchQuery = getSearchQuery(); // Ganti dengan cara Anda mendapatkan query pencarian dari SearchField
-
-    // Filter berdasarkan status dan urutan
-    let filteredData = originalData.filter((item) => {
-      // Filter berdasarkan status
-      if (statusFilter && item.status !== statusFilter) return false;
-
-      // Filter berdasarkan query pencarian
-      if (
-        searchQuery &&
-        !item.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-        return false;
-
-      return true;
-    });
-
-    // Urutkan data berdasarkan urutan yang dipilih
-    filteredData = filteredData.sort((a, b) => {
-      if (sortOrder === "asc") {
-        return a.name.localeCompare(b.name); // Urutkan berdasarkan nama secara ascending
-      } else if (sortOrder === "desc") {
-        return b.name.localeCompare(a.name); // Urutkan berdasarkan nama secara descending
+  // Fungsi untuk mengambil data pertanyaan dari API
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const dataJson = await useFetch(
+        `${API_LINK}/MasterPertanyaan/GetDataPertanyaan`,
+        {},
+        "POST"
+      );
+      console.log("Data Terambil:", dataJson);
+      if (dataJson === "ERROR") {
+        setIsError(true);
+        setCurrentData([]);
+      } else {
+        setCurrentData(dataJson || []);
+        setIsError(false);
       }
-      return 0;
-    });
-
-    // Update data yang ditampilkan setelah filter dan sort
-    setCurrentData(filteredData);
+    } catch (error) {
+      console.error("Error fetch data:", error);
+      setIsError(true);
+      setCurrentData([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleUpdateQuestion = () => {
-    if (!selectedQuestion) return;
-    const updatedQuestion = {
-      ...selectedQuestion,
-      text: formData.questionText,
-      generalQuestion,
-      surveyCriteria,
-      respondent,
+  // Ambil data opsi Kriteria Survei dari API
+  useEffect(() => {
+    const fetchKriteria = async () => {
+      setLoading(true);
+      try {
+        const data = await useFetch(
+          `${API_LINK}/MasterPertanyaan/GetAllKriteriaSurveiAktif`,
+          {},
+          "POST"
+        );
+        setKsrOptions(data);
+      } catch (err) {
+        setError("Gagal mengambil data: " + err.message);
+      } finally {
+        setLoading(false);
+      }
     };
-    setQuestions(
-      questions.map((q) => (q.id === selectedQuestion.id ? updatedQuestion : q))
-    );
-    setSelectedQuestion(null);
-    setFormData({ questionText: "" });
-    updateModalRef.current.close();
-  };
+    fetchKriteria();
+  }, []);
 
-  const handleExportQuestions = () => {
-    if (questions.length === 0) {
+  // Ambil data opsi Skala Penilaian dari API
+  useEffect(() => {
+    const fetchSkalaPenilaian = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const skpResponse = await useFetch(
+          `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
+          {},
+          "POST"
+        );
+        if (skpResponse && Array.isArray(skpResponse)) {
+          const filteredSkp = skpResponse.filter(
+            (item) => item.skp_status === "Aktif"
+          );
+          setSkpOptions(
+            filteredSkp.map((item) => ({
+              value: item.skp_id,
+              Text: item.skp_skala + " (" + item.skp_deskripsi + ")",
+            }))
+          );
+        }
+      } catch (error) {
+        setError("Gagal mengambil data Skala Penilaian: " + error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSkalaPenilaian();
+  }, []);
+
+  // Panggil fetchData saat komponen dimount
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // Lakukan filter client-side berdasarkan searchQuery, filterStatus, filterSort, filterKriteria, dan filterSkala
+  useEffect(() => {
+    let data = [...currentData];
+    // Filter berdasarkan pencarian di field pty_pertanyaan
+    if (searchQuery) {
+      const searchRegex = new RegExp(searchQuery, "i");
+      data = data.filter(
+        (item) => item.pty_pertanyaan && searchRegex.test(item.pty_pertanyaan)
+      );
+    }
+    // Filter berdasarkan status jika dipilih (misalnya "Aktif" atau "Tidak Aktif")
+    if (filterStatus) {
+      data = data.filter((item) => item.pty_status === filterStatus);
+    }
+    // Filter berdasarkan Kriteria Survei jika dipilih
+    if (filterKriteria) {
+      data = data.filter((item) => item.ksr_nama === filterKriteria);
+    }
+    // Filter berdasarkan Skala Penilaian jika dipilih
+    if (filterSkala) {
+      data = data.filter((item) => item.skp_id === filterSkala);
+    }
+    // Urutkan data berdasarkan filterSort
+    if (filterSort === "[pty_created_date] ASC") {
+      data.sort(
+        (a, b) => new Date(a.pty_created_date) - new Date(b.pty_created_date)
+      );
+    } else if (filterSort === "[pty_created_date] DESC") {
+      data.sort(
+        (a, b) => new Date(b.pty_created_date) - new Date(a.pty_created_date)
+      );
+    }
+    setFilteredData(data);
+    setPageCurrent(1); // Reset ke halaman pertama ketika filter berubah
+  }, [
+    searchQuery,
+    filterStatus,
+    filterSort,
+    filterKriteria,
+    filterSkala,
+    currentData,
+  ]);
+
+  // Jika data berubah dan halaman saat ini melebihi total halaman, reset ke halaman pertama
+  useEffect(() => {
+    const totalPages = Math.ceil(dataToDisplay.length / pageSize);
+    if (pageCurrent > totalPages) {
+      setPageCurrent(1);
+    }
+  }, [dataToDisplay, pageCurrent, pageSize]);
+
+  // ===========================
+  // Fungsi export ke Excel (modifikasi export berdasarkan kriteria survei)
+  // ===========================
+  const handleExportQuestionsByCriteria = () => {
+    // Gunakan data yang sudah terfilter agar ekspor sesuai dengan filter yang aktif
+    const dataSource = dataToDisplay;
+    const dataToExport = exportKriteria
+      ? dataSource.filter((item) => item.ksr_nama === exportKriteria)
+      : dataSource;
+
+    if (dataToExport.length === 0) {
       Swal.fire({
         icon: "warning",
         title: "Data Kosong",
-        text: "Tidak ada pertanyaan untuk diekspor.",
+        text: "Tidak ada data untuk diekspor untuk kriteria yang dipilih.",
       });
       return;
     }
 
-    const header = "ID,Pertanyaan";
-    const csvData = [header, ...questions.map((q) => `${q.id},${q.text}`)].join(
-      "\n"
+    // Sort data berdasarkan ID Pertanyaan (ascending)
+    const sortedDataQuestions = [...dataToExport].sort(
+      (a, b) => Number(a.pty_id) - Number(b.pty_id)
     );
 
-    const blob = new Blob([csvData], { type: "text/csv" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "questions_export.csv";
-    link.click();
-  };
+    // ==========================
+    // 1. Sheet Data Pertanyaan
+    // ==========================
+    const headersQuestions = [
+      [
+        "ID Pertanyaan",
+        "Pertanyaan",
+        "ID Kriteria Survei",
+        "ID Skala Penilaian",
+        "Status",
+        "Dibuat Oleh",
+        "Tanggal Dibuat",
+        "Dimodifikasi Oleh",
+        "Tanggal Dimodifikasi",
+      ],
+    ];
 
-  const handleImportQuestions = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target.result;
-        const lines = content.split("\n");
-        const newQuestions = lines.map((line) => {
-          const [id, text] = line.split(",");
-          return { id: parseInt(id, 10), text };
-        });
-        setQuestions(newQuestions);
-      };
-      reader.readAsText(file);
-    }
-  };
-  const handleFileChange = (event) => {
-    setFile(event.target.files[0]);
-  };
-  const indexOfLastData = pageCurrent * pageSize;
-  const indexOfFirstData = indexOfLastData - pageSize;
-  const currentData = filteredData.slice(indexOfFirstData, indexOfLastData);
-  // const filteredQuestions = Data.filter((question) =>
-  //     question.text.toLowerCase().includes(filterValue.toLowerCase())
-  // );
+    const dataQuestions = sortedDataQuestions.map((item) => [
+      item.pty_id,
+      item.pty_pertanyaan,
+      item.krs_id,
+      item.skp_id,
+      item.pty_status,
+      item.pty_created_by,
+      item.pty_created_date,
+      item.pty_modif_by,
+      item.pty_modif_date,
+    ]);
 
-  // Mengambil data yang sudah difilter berdasarkan halaman saat ini
-  //const currentData = Data.slice(indexOfFirstData, indexOfLastData);
+    const worksheetQuestions = XLSX.utils.aoa_to_sheet(headersQuestions);
+    XLSX.utils.sheet_add_aoa(worksheetQuestions, dataQuestions, {
+      origin: "A2",
+    });
 
-  const handlePageNavigation = (page) => {
-    setPageCurrent(page);
-  };
+    // ==========================
+    // 2. Sheet Data Kriteria Survei
+    // ==========================
+    const headersKriteria = [["ID Kriteria", "Nama Kriteria"]];
+    const uniqueKriteriaMap = new Map(
+      dataToExport.map((item) => [item.krs_id, item.ksr_nama])
+    );
+    const uniqueKriteria = Array.from(uniqueKriteriaMap.entries()).sort(
+      (a, b) => Number(a[0]) - Number(b[0])
+    );
+    const dataKriteria = uniqueKriteria.map(([id, nama]) => [id, nama]);
 
-  const handleOpenImportModal = () => {
-    importModalRef.current.open();
-  };
+    const worksheetKriteria = XLSX.utils.aoa_to_sheet(headersKriteria);
+    XLSX.utils.sheet_add_aoa(worksheetKriteria, dataKriteria, { origin: "A2" });
 
-  const handleCheckboxChange = () => {
-    setIsHeader(!isHeader);
-  };
+    // ==========================
+    // 3. Sheet Data Skala Penilaian
+    // ==========================
+    const headersSkala = [["ID Skala", "Tipe Skala", "Deskripsi"]];
+    const uniqueSkalaMap = new Map(
+      dataToExport.map((item) => [
+        item.skp_id,
+        { tipe: item.skp_tipe, deskripsi: item.skp_deskripsi },
+      ])
+    );
+    const uniqueSkala = Array.from(uniqueSkalaMap.entries()).sort(
+      (a, b) => Number(a[0]) - Number(b[0])
+    );
+    const dataSkala = uniqueSkala.map(([id, obj]) => [
+      id,
+      obj.tipe,
+      obj.deskripsi,
+    ]);
 
-  const handleEdit = (id) => {
-    // ()=>onChangePage('edit')
-    if (!id) {
-      console.error("ID tidak ada atau tidak valid");
-      return; // Hentikan jika id tidak valid
-    }
+    const worksheetSkala = XLSX.utils.aoa_to_sheet(headersSkala);
+    XLSX.utils.sheet_add_aoa(worksheetSkala, dataSkala, { origin: "A2" });
 
-    // Debugging: Cek nilai id
-    console.log("ID yang akan digunakan untuk request:", id);
+    // ==========================
+    // Styling untuk Semua Sheet
+    // ==========================
+    const applyStyles = (worksheet, headers, data) => {
+      const range = XLSX.utils.decode_range(worksheet["!ref"]);
 
-    // Lakukan request ke API dengan id yang valid
-    fetch(`MasterPertanyaan/GetDataPertanyaanById/${id}`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Request gagal");
+      // Styling Header (Bold & Center)
+      for (let C = range.s.c; C <= range.e.c; C++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: 0, c: C });
+        if (worksheet[cellAddress]) {
+          worksheet[cellAddress].s = {
+            font: { bold: true },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {
+              top: { style: "thin" },
+              bottom: { style: "thin" },
+              left: { style: "thin" },
+              right: { style: "thin" },
+            },
+          };
         }
-        return response.json();
-      })
-      .then((data) => {
-        // Proses data yang diterima
-        console.log("Data diterima:", data);
-        // Update state atau lakukan tindakan lain dengan data
-      })
-      .catch((error) => {
-        console.error("Terjadi kesalahan:", error);
-      });
-  };
-  const handleSelectChange = (e) => {
-    setGeneralQuestion(e.target.value);
+      }
+
+      // Styling Data (Border)
+      for (let R = range.s.r + 1; R <= range.e.r; R++) {
+        for (let C = range.s.c; C <= range.e.c; C++) {
+          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+          if (worksheet[cellAddress]) {
+            worksheet[cellAddress].s = {
+              border: {
+                top: { style: "thin" },
+                bottom: { style: "thin" },
+                left: { style: "thin" },
+                right: { style: "thin" },
+              },
+            };
+          }
+        }
+      }
+
+      // Auto Fit Column Width
+      const autoFitColumns = (ws, headers, data) => {
+        const colWidths = headers[0].map((header, index) => ({
+          wch:
+            Math.max(
+              header.length,
+              ...data.map((row) =>
+                row[index] ? row[index].toString().length : 0
+              )
+            ) + 2,
+        }));
+        ws["!cols"] = colWidths;
+      };
+
+      autoFitColumns(worksheet, headers, data);
+    };
+
+    applyStyles(worksheetQuestions, headersQuestions, dataQuestions);
+    applyStyles(worksheetKriteria, headersKriteria, dataKriteria);
+    applyStyles(worksheetSkala, headersSkala, dataSkala);
+
+    // ==========================
+    // Membuat Workbook & Menyimpan File
+    // ==========================
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheetQuestions,
+      "Data Pertanyaan"
+    );
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheetKriteria,
+      "Data Kriteria Survei"
+    );
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheetSkala,
+      "Data Skala Penilaian"
+    );
+
+    XLSX.writeFile(workbook, "Pertanyaan_Eksport.xlsx");
+
+    // Setelah selesai, tutup modal export
+    exportModalRef.current.close();
   };
 
+  // Variabel global untuk parsedData (data impor)
+  let parsedData = [];
+
+  // Fungsi import pertanyaan dari file Excel
+  const handleImportQuestions = async () => {
+    if (!parsedData || parsedData.length === 0) {
+      Swal.fire(
+        "Perhatian",
+        "Tidak ada data yang valid untuk diimpor.",
+        "warning"
+      );
+      return;
+    }
+    try {
+      for (let index = 0; index < parsedData.length; index++) {
+        try {
+          const createResponse = await useFetch(
+            `${API_LINK}/MasterPertanyaan/CreatePertanyaan`,
+            parsedData[index],
+            "POST"
+          );
+          console.log("response", createResponse);
+          if (createResponse === "ERROR") {
+            throw new Error(`Gagal menambah data pada indeks ${index}`);
+          } else {
+            console.log(`Data pada indeks ${index} berhasil ditambahkan.`);
+          }
+        } catch (error) {
+          console.error("Error pada indeks", index, ":", error.message);
+          Swal.fire(
+            "Gagal!",
+            `Error pada data ke-${index + 1}: ${error.message}`,
+            "error",
+            "OK"
+          );
+          break; // Hentikan proses jika ada error
+        }
+      }
+      // Refresh data setelah impor
+      await fetchData();
+      Swal.fire("Sukses", "Pertanyaan berhasil diimpor!", "success");
+      importModalRef.current.close();
+    } catch (error) {
+      console.error("Error:", error.message);
+      Swal.fire(
+        "Gagal",
+        "Terjadi kesalahan saat mengimpor pertanyaan.",
+        "error"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fungsi membaca file Excel dan parsing data
+  const handleFileChange = (file) => {
+    if (!file) {
+      console.error("File tidak ditemukan");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const dataBuffer = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(dataBuffer, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        if (!worksheet) {
+          console.error("Sheet tidak ditemukan dalam file Excel.");
+          return;
+        }
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        if (!jsonData || jsonData.length <= 1) {
+          console.error("Data di dalam sheet kosong atau tidak valid.");
+          return;
+        }
+        console.log("Data JSON mentah:", jsonData);
+        parsedData = jsonData
+          .map((row, index) => {
+            if (index > 0 && row[0]) {
+              return {
+                pertanyaan: row[0] || "",
+                kriteria: row[1] || "",
+                skala: row[2] || "",
+                // Ubah isActive menjadi status string ("Aktif" atau "Tidak Aktif")
+                pty_status: row[3] === "Aktif" ? "Aktif" : "Tidak Aktif",
+              };
+            }
+          })
+          .filter(Boolean);
+        console.log("Parsed Data:", parsedData);
+      } catch (error) {
+        console.error("Error saat membaca file Excel:", error.message);
+      }
+    };
+    reader.onerror = (error) => {
+      console.error("Error membaca file:", error.message);
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  // Fungsi navigasi paging
+  const handlePageNavigation = (page) => {
+    const totalPage = Math.ceil(dataToDisplay.length / pageSize);
+    setPageCurrent(page > totalPage ? totalPage : page);
+  };
+
+  // Handler untuk SearchField
+  const handleSearchChange = (value) => {
+    setSearchQuery(value);
+  };
+
+  // Handler untuk filter status
+  const handleStatusFilterChange = (e) => {
+    setFilterStatus(e.target.value);
+  };
+
+  // Handler untuk filter sort (Pertanyaan ASC/DESC)
+  const handleSortFilterChange = (e) => {
+    setFilterSort(e.target.value);
+  };
+
+  // Handler untuk filter Kriteria Survei
+  const handleKriteriaFilterChange = (e) => {
+    setFilterKriteria(e.target.value);
+  };
+
+  // Handler untuk filter Skala Penilaian
+  const handleSkalaFilterChange = (e) => {
+    setFilterSkala(e.target.value);
+  };
+
+  // Fungsi toggle status pertanyaan
   const handleToggle = async (id) => {
-    const parameters = { p1: id, p2: "Admin" }; // Mengirimkan ID dan user yang melakukan modifikasi
-
-    // Konfirmasi dari SweetAlert
+    const parameters = { p1: id, p2: "Admin" };
     const confirm = await Swal.fire({
       title: "Konfirmasi",
-      text: "Apakah Anda yakin ingin toggle status pertanyaan ini?",
+      text: "Apakah Anda yakin ingin menonaktifkan pertanyaan ini?",
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Ya",
       cancelButtonText: "Batal",
     });
-
     if (confirm.isConfirmed) {
       try {
-        // Kirim request ke API untuk melakukan toggle status pertanyaan
         const response = await fetch(
-          `${API_LINK}/MasterPertanyaan/TogglePertanyaanStatus`,
+          `${API_LINK}/MasterPertanyaan/DeletePertanyaan`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(parameters),
           }
         );
-
-        if (!response.ok) throw new Error("Gagal toggle status pertanyaan.");
-
-        // Update status data di frontend
-        setData((prevData) =>
-          prevData.map(
-            (item) =>
-              item.pty_id === id
-                ? { ...item, pty_status: item.pty_status === 1 ? 0 : 1 }
-                : item // Toggle status (1 ke 0 atau sebaliknya)
-          )
-        );
-
-        // Update filteredData agar hanya menampilkan data yang statusnya aktif (pty_status = 1)
-        setFilteredData(
-          (prevFilteredData) =>
-            prevFilteredData.filter((item) => item.pty_status === 1) // Menyaring data yang aktif
-        );
-
-        Swal.fire(
-          "Berhasil",
-          "Status pertanyaan berhasil di-toggle.",
-          "success"
-        );
+        if (!response.ok) throw new Error("Gagal menonaktifkan pertanyaan.");
+        Swal.fire("Berhasil", "Pertanyaan berhasil di-nonaktifkan.", "success");
+        // Refresh data setelah toggle
+        fetchData();
       } catch (err) {
         console.error("Error:", err);
-        Swal.fire("Gagal", "Terjadi kesalahan saat toggle status.", "error");
+        Swal.fire("Gagal", "Terjadi kesalahan menonaktifkan status.", "error");
       }
     } else {
-      Swal.fire("Batal", "Toggle dibatalkan.", "info");
+      Swal.fire("Batal", "Menonaktifkan dibatalkan.", "info");
     }
   };
+
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
@@ -338,12 +559,9 @@ export default function Pertanyaan_Survei({ onChangePage }) {
           </div>
           <div
             className="p-3 mt-2 mb-0"
-            style={{ marginLeft: "50px", margin: isMobile ? "1rem" : "3rem" }}
+            style={{ marginLeft: isMobile ? "1rem" : "3rem" }}
           >
             <div className="row" style={{ gap: "1rem", marginLeft: "5px" }}>
-              {" "}
-              {/* Menambahkan jarak antar elemen */}
-              <div className=""></div>
               <Button
                 iconName="add"
                 classType="primary"
@@ -352,66 +570,72 @@ export default function Pertanyaan_Survei({ onChangePage }) {
               />
               <Button
                 iconName="file-upload"
-                classType="primary"
+                classType="success"
                 label="Import Pertanyaan"
-                onClick={handleOpenImportModal}
+                onClick={() => importModalRef.current.open()}
               />
+              {/* Tombol export membuka modal export */}
               <Button
                 iconName="file-download"
-                classType="primary"
+                classType="success"
                 label="Export Pertanyaan"
-                onClick={handleExportQuestions}
+                onClick={() => exportModalRef.current.open()}
               />
             </div>
-            <input
-              type="file"
-              id="import-file"
-              style={{ display: "none" }}
-              onChange={handleImportQuestions}
-            />
             <div className="row mt-5">
               <div className="col-lg-10 col-md-6">
-                <SearchField />
-              </div>
-
-              {/* <div className="col-lg-2 col-md-7" style={{marginLeft:"-70px"}}>  */}
-              <div className="col-lg-2 col-md-7">
-                <Button
-                  iconName="apps-sort"
-                  classType="primary dropdown-toggle px-4 border-start"
-                  title="Saring atau Urutkan Data"
-                  data-bs-toggle="dropdown"
-                  data-bs-auto-close="outside"
-                  label="Filter"
+                <SearchField
+                  id="search"
+                  placeHolder="Cari Pertanyaan..."
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  isDisabled={false}
                 />
-
-                <div className="dropdown-menu p-4" style={{ width: "350px" }}>
-                  {/* Status Filter */}
-                  <div className="mb-3">
-                    <label className="form-label">Status</label>
-                    <select
-                      className="form-select"
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)} // Set status filter
-                    >
-                      <option value="">Semua</option>
-                      <option value="aktif">Aktif</option>
-                      <option value="tidak-aktif">Tidak Aktif</option>
-                    </select>
-                  </div>
-                  {/* Sort Order Filter */}
-                  <div className="mb-3">
-                    <label className="form-label">Urutkan Berdasarkan</label>
-                    <select
-                      className="form-select"
-                      value={sortOrder}
-                      onChange={(e) => setSortOrder(e.target.value)}
-                    >
-                      <option value="asc">Ascending</option>
-                      <option value="desc">Descending</option>
-                    </select>
-                  </div>
-                </div>
+              </div>
+              <div className="col-lg-1 col-md-6">
+                <Filter>
+                  <Dropdown
+                    label="Urut Berdasarkan"
+                    type="pilih"
+                    arrData={[
+                      {
+                        Value: "[pty_created_date] ASC",
+                        Text: "Waktu Dibuat [↑]",
+                      },
+                      {
+                        Value: "[pty_created_date] DESC",
+                        Text: "Waktu Dibuat [↓]",
+                      },
+                    ]}
+                    defaultValue="[pty_created_date] DESC"
+                    onChange={handleSortFilterChange}
+                  />
+                  <Dropdown
+                    label="Status"
+                    type="pilih"
+                    arrData={[
+                      { Value: "", Text: "Semua" },
+                      { Value: "Aktif", Text: "Aktif" },
+                      { Value: "Tidak Aktif", Text: "Tidak Aktif" },
+                    ]}
+                    defaultValue=""
+                    onChange={handleStatusFilterChange}
+                  />
+                  <Dropdown
+                    label="Kriteria Survei"
+                    type="pilih"
+                    arrData={[{ Value: "", Text: "Semua" }, ...ksrOptions]}
+                    defaultValue=""
+                    onChange={handleKriteriaFilterChange}
+                  />
+                  <Dropdown
+                    label="Skala Penilaian"
+                    type="pilih"
+                    arrData={[{ Value: "", Text: "Semua" }, ...skpOptions]}
+                    defaultValue=""
+                    onChange={handleSkalaFilterChange}
+                  />
+                </Filter>
               </div>
             </div>
           </div>
@@ -419,60 +643,54 @@ export default function Pertanyaan_Survei({ onChangePage }) {
             className="table-container bg-white p-3 mt-0 rounded"
             style={{ margin: isMobile ? "1rem" : "3rem" }}
           >
-            <Table
-              arrHeader={["No", "Pertanyaan", "Header", "Pertanyaan Umum"]}
-              data={currentData
-                // Filter berdasarkan status
-                .filter((item) => {
-                  if (statusFilter === "") return true; // Jika status filter kosong, tampilkan semua data
-                  if (statusFilter === "aktif" && item.status === 1)
-                    return true;
-                  if (statusFilter === "tidak-aktif" && item.status === 0)
-                    return true;
-                  return false;
-                })
-                // Sortir berdasarkan urutan
-                .sort((a, b) => {
-                  if (sortOrder === "asc") {
-                    return a.No - b.No; // Urutkan berdasarkan No secara ascending
-                  } else {
-                    return b.No - a.No; // Urutkan berdasarkan No secara descending
+            {isLoading ? (
+              <p>Loading...</p>
+            ) : isError ? (
+              <p className="text-danger text-center mt-4">
+                Terjadi kesalahan saat mengambil data.
+              </p>
+            ) : (
+              <>
+                <Table
+                  arrHeader={[
+                    "No",
+                    "Pertanyaan",
+                    "Kriteria Survei",
+                    "Skala Penilaian",
+                  ]}
+                  data={currentDataPage.map((item, index) => ({
+                    ...item,
+                    Key: item.pty_id ?? "Tidak Ada",
+                    No: indexOfFirstData + index + 1,
+                    Pertanyaan: item.pty_pertanyaan ?? "Tidak Ada",
+                    "Kriteria Survei": item.ksr_nama ?? "Tidak Ada",
+                    "Skala Penilaian": item.skp_id ?? "Tidak Ada",
+                    Status: item.pty_status === "Aktif",
+                  }))}
+                  actions={(row) =>
+                    row.Status
+                      ? ["Detail", "Edit", "Toggle"]
+                      : ["Detail", "Edit", "Toggle"]
                   }
-                })
-                .map((item, index) => ({
-                  Key: item.Key,
-                  No: indexOfFirstData + index + 1,
-                  Pertanyaan: item.question,
-                  Header: item.isHeader ? "Ya" : "Tidak",
-                  "Pertanyaan Umum": item.isGeneral ? "Ya" : "Tidak",
-                  status: item.status,
-                }))}
-              actions={(item) => {
-                if (item.status === 0) {
-                  return ["Toggle"];
-                } else {
-                  return ["Detail", "Edit", "Toggle"];
-                }
-              }}
-              onDetail={(item) =>
-                onChangePage("detail", { idPertanyaan: item.Key })
-              }
-              onEdit={(item) =>
-                onChangePage("edit", { idPertanyaan: item.Key })
-              }
-              onToggle={(item) => handleToggle(item.Key)}
-            />
-            <Paging
-              pageSize={pageSize}
-              pageCurrent={pageCurrent}
-              totalData={data.length}
-              navigation={handlePageNavigation}
-            />
+                  onDetail={(item) =>
+                    onChangePage("detail", { detailId: item.Key })
+                  }
+                  onEdit={(item) => onChangePage("edit", { id: item.Key })}
+                  onToggle={(item) => handleToggle(item.Key)}
+                />
+                <Paging
+                  pageSize={pageSize}
+                  pageCurrent={pageCurrent}
+                  totalData={dataToDisplay.length}
+                  navigation={handlePageNavigation}
+                />
+              </>
+            )}
           </div>
         </div>
       </main>
 
-      {/* Import Modal */}
+      {/* IMPORT MODAL */}
       <Modal
         ref={importModalRef}
         title="Import Pertanyaan"
@@ -486,13 +704,9 @@ export default function Pertanyaan_Survei({ onChangePage }) {
               width: "200px",
               height: "40px",
               fontSize: "15px",
-              margin: "10px 0", // Jarak antar tombol
+              margin: "10px 0",
             }}
-            onClick={() => {
-              if (file) {
-                handleImportQuestions();
-              }
-            }}
+            onClick={handleImportQuestions}
           />
         }
         Button2={
@@ -503,12 +717,9 @@ export default function Pertanyaan_Survei({ onChangePage }) {
               width: "200px",
               height: "40px",
               fontSize: "15px",
-              margin: "10px 0", // Jarak antar tombol
+              margin: "10px 0",
             }}
-            onClick={() => {
-              setFile(null);
-              importModalRef.current.close();
-            }}
+            onClick={() => importModalRef.current.close()}
           />
         }
       >
@@ -516,16 +727,33 @@ export default function Pertanyaan_Survei({ onChangePage }) {
           className="form-group"
           style={{
             display: "flex",
-            flexDirection: "column", // Atur elemen form secara vertikal
-            // alignItems: "center", // Tengah horizontal
-            // textAlign: "center", // Tengah teks dalam label
-            gap: "10px", // Jarak antar elemen
-            width: "100%", // Elemen form memenuhi modal
+            flexDirection: "column",
+            gap: "10px",
+            width: "100%",
           }}
         >
           <label>
             Silahkan unduh format template pertanyaan terlebih dahulu, <br />
-            <a href="#" style={{ color: "blue", textDecoration: "underline" }}>
+            <a
+              style={{ color: "blue", textDecoration: "underline" }}
+              onClick={(e) => {
+                e.preventDefault();
+                const templateDokumen = "Template_Survei.xlsx";
+                const url = TEMPLATE_LINK + templateDokumen;
+                fetch(url, { method: "GET" })
+                  .then((response) => {
+                    if (response.ok) {
+                      window.open(url, "_blank");
+                    } else {
+                      alert("Gagal mengunduh file.");
+                    }
+                  })
+                  .catch((error) => {
+                    console.error("Error:", error);
+                    alert("Terjadi kesalahan saat mengakses file.");
+                  });
+              }}
+            >
               Klik disini
             </a>
           </label>
@@ -536,11 +764,11 @@ export default function Pertanyaan_Survei({ onChangePage }) {
           </label>
           <input
             type="file"
-            onChange={handleFileChange}
+            onChange={(e) => handleFileChange(e.target.files[0])}
             style={{
               width: "100%",
               padding: "10px",
-              border: "2px solid ",
+              border: "2px solid",
               borderRadius: "10px",
               marginTop: "5px",
             }}
@@ -549,189 +777,56 @@ export default function Pertanyaan_Survei({ onChangePage }) {
           />
         </div>
       </Modal>
-      {/* ADD MODAL */}
+
+      {/* EXPORT MODAL */}
       <Modal
-        ref={addModalRef}
-        title="Tambah Pertanyaan Survei"
-        size="full"
+        ref={exportModalRef}
+        title="Export Pertanyaan"
+        size="medium"
         Button1={
           <Button
             classType="primary"
-            label="Simpan"
-            onClick={handleAddQuestion}
+            label="Export"
+            type="submit"
+            style={{
+              width: "200px",
+              height: "40px",
+              fontSize: "15px",
+              margin: "10px 0",
+            }}
+            onClick={handleExportQuestionsByCriteria}
           />
         }
         Button2={
           <Button
-            classType="secondary"
+            classType="danger"
             label="Batal"
-            onClick={() => addModalRef.current.close()}
+            style={{
+              width: "200px",
+              height: "40px",
+              fontSize: "15px",
+              margin: "10px 0",
+            }}
+            onClick={() => exportModalRef.current.close()}
           />
         }
       >
-        {/* Header Checkbox */}
-        <div>
-          <label>Header</label>
-          <input
-            type="checkbox"
-            checked={isHeader}
-            onChange={handleCheckboxChange}
-          />
-        </div>
-        <br />
-
-        {/* Pertanyaan Umum */}
-        <div>
-          <label htmlFor="generalQuestion">Pertanyaan Umum *</label>
-          <br />
-          <select
-            id="generalQuestion"
-            value={generalQuestion}
-            onChange={handleSelectChange}
-            required
-            style={{ width: "100%", padding: "8px", marginTop: "5px" }}
-          >
-            <option value="" disabled>
-              Pilih salah satu
-            </option>
-            <option value="Ya">Ya</option>
-            <option value="Tidak">Tidak</option>
-          </select>
-        </div>
-        <br />
-
-        {/* Input Pertanyaan */}
-        <div>
-          <TextField
-            label="Pertanyaan"
-            isRequired={true}
-            value={questionText}
-            onChange={(e) => setQuestionText(e.target.value)}
-            placeholder="Masukkan Pertanyaan"
-          />
-        </div>
-        {/* Kriteria dan Responden, tampil jika "Tidak" */}
-        {generalQuestion === "Tidak" && (
-          <>
-            <div>
-              <label
-                htmlFor="surveyCriteria"
-                style={{
-                  fontWeight: "bold",
-                  display: "block",
-                  marginBottom: "8px",
-                }}
-              >
-                Kriteria Survei *
-              </label>
-              <select
-                id="surveyCriteria"
-                value={surveyCriteria}
-                onChange={(e) => setSurveyCriteria(e.target.value)}
-                required
-                style={{ width: "100%", padding: "8px", marginTop: "5px" }}
-              >
-                <option value="" disabled>
-                  Pilih Kriteria
-                </option>
-                <option value="Kepuasan Dosen">Kepuasan Dosen</option>
-                <option value="Kepuasan Tenaga Pendidik">
-                  Kepuasan Tenaga Pendidik
-                </option>
-              </select>
-            </div>
-            <br />
-            <div>
-              <label
-                htmlFor="respondent"
-                style={{
-                  fontWeight: "bold",
-                  display: "block",
-                  marginBottom: "8px",
-                }}
-              >
-                Responden *
-              </label>
-              <select
-                id="respondent"
-                value={respondent}
-                onChange={(e) => setRespondent(e.target.value)}
-                required
-                style={{ width: "100%", padding: "8px", marginTop: "5px" }}
-              >
-                <option value="" disabled>
-                  Pilih Responden
-                </option>
-                <option value="Mahasiswa">Mahasiswa</option>
-                <option value="Tenaga Pendidik">Tenaga Pendidik</option>
-              </select>
-            </div>
-          </>
-        )}
-      </Modal>
-      {/* Update Modal */}
-      <Modal
-        ref={updateModalRef}
-        title="Update Pertanyaan"
-        size="full"
-        // Button1={<Button classType="primary" label="Simpan" onClick={handleUpdateQuestion} />}
-        // Button2={<Button classType="secondary" label="Batal" onClick={() => updateModalRef.current.close()} />}
-      >
-        {/* Header */}
-        <div>
-          <label> Header </label>
-          <input
-            type="checkbox"
-            checked={isHeader}
-            onChange={handleCheckboxChange}
-          />
-        </div>
-
-        {/* Pertanyaan Umum */}
-        <div>
-          <label>Pertanyaan Umum</label>
-          <select value={generalQuestion} onChange={handleSelectChange}>
-            <option value="Ya">Ya</option>
-            <option value="Tidak">Tidak</option>
-          </select>
-        </div>
-
-        {/* Kriteria dan Responden, tampil jika "Tidak" */}
-        {generalQuestion === "Tidak" && (
-          <>
-            <div>
-              <label>Kriteria Survei</label>
-              <select
-                value={surveyCriteria}
-                onChange={(e) => setSurveyCriteria(e.target.value)}
-              >
-                <option value="Kepuasan Dosen">Kepuasan Dosen</option>
-                <option value="Kepuasan Tenaga Pendidik">
-                  Kepuasan Tenaga Pendidik
-                </option>
-              </select>
-            </div>
-            <div>
-              <label>Responden</label>
-              <select
-                value={respondent}
-                onChange={(e) => setRespondent(e.target.value)}
-              >
-                <option value="Mahasiswa">Mahasiswa</option>
-                <option value="Tenaga Pendidik">Tenaga Pendidik</option>
-              </select>
-            </div>
-          </>
-        )}
-        <div>
-          <label>Pertanyaan</label>
-          <input
-            type="text"
-            value={formData.questionText}
-            onChange={(e) =>
-              setFormData({ ...formData, questionText: e.target.value })
-            }
-            placeholder="Masukkan Pertanyaan"
+        <div
+          className="form-group"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+            width: "100%",
+          }}
+        >
+          <label>Pilih Kriteria Survei untuk mengekspor pertanyaan:</label>
+          <Dropdown
+            label="Kriteria Survei"
+            type="pilih"
+            arrData={[{ Value: "", Text: "Semua" }, ...ksrOptions]}
+            defaultValue=""
+            onChange={(e) => setExportKriteria(e.target.value)}
           />
         </div>
       </Modal>

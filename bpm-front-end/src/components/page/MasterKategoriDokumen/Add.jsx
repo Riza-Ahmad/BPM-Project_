@@ -156,7 +156,7 @@ export default function Add({ onChangePage, breadcrumbs }) {
           "Data berhasil ditambahkan.",
           "success",
           "OK"
-        ).then(() => onChangePage("index"));
+        ).then(() => onChangePage("read"));
       }
     } catch (error) {
       console.error("Error:", error.message);
@@ -173,7 +173,7 @@ export default function Add({ onChangePage, breadcrumbs }) {
             <PageTitleNav
               title="Tambah Data"
               breadcrumbs={breadcrumbs}
-              onClick={() => onChangePage("index")}
+              onClick={() => onChangePage("read")}
             />
           </div>
           <div className={isMobile ? "m-0" : "m-3"}>
@@ -280,7 +280,7 @@ export default function Add({ onChangePage, breadcrumbs }) {
                       type="button"
                       label="Batal"
                       width="100%"
-                      onClick={() => onChangePage("index")}
+                      onClick={() => onChangePage("read")}
                     />
                   </div>
                 </div>

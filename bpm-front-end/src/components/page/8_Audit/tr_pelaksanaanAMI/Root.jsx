@@ -9,6 +9,10 @@ import DetailTemuan from "./DetailTemuan";
 import IndexAnalisaTemuan from "./IndexAnalisaTemuan";
 import EditAnalisaTemuan from "./EditAnalisaTemuan";
 import DetailAnalisaTemuan from "./DetailAnalisaTemuan";
+import EditMonitoring from "./EditMonitoring";
+import DetailMonitoring from "./DetailMonitoring";
+import EditVerifikasi from "./EditVerifikasi";
+import DetailVerifikasi from "./DetailVerifikasi";
 
 export default function bankPertanyaan() {
   const navigate = useNavigate();
@@ -54,6 +58,28 @@ export default function bankPertanyaan() {
           state: { mode: "detailAnalisaTemuan", ...withState },
         });
         break;
+      case "editMonitoring":
+        navigate(`${currentPath}`, {
+          state: { mode: "editMonitoring", ...withState },
+        });
+        break;
+      case "detailMonitoring":
+        navigate(`${currentPath}`, {
+          state: { mode: "detailMonitoring", ...withState },
+        });
+        break;
+
+      case "editVerifikasi":
+        navigate(`${currentPath}`, {
+          state: { mode: "editVerifikasi", ...withState },
+        });
+        break;
+
+      case "detailVerifikasi":
+        navigate(`${currentPath}`, {
+          state: { mode: "detailVerifikasi", ...withState },
+        });
+        break;
 
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
@@ -86,6 +112,14 @@ export default function bankPertanyaan() {
                 <EditAnalisaTemuan onChangePage={handlePageChange} />
               ) : mode === "detailAnalisaTemuan" ? (
                 <DetailAnalisaTemuan onChangePage={handlePageChange} />
+              ) : mode === "editMonitoring" ? (
+                <EditMonitoring onChangePage={handlePageChange} />
+              ) : mode === "detailMonitoring" ? (
+                <DetailMonitoring onChangePage={handlePageChange} />
+              ) : mode === "editVerifikasi" ? (
+                <EditVerifikasi onChangePage={handlePageChange} />
+              ) : mode === "detailVerifikasi" ? (
+                <DetailVerifikasi onChangePage={handlePageChange} />
               ) : (
                 <Index onChangePage={handlePageChange} />
               )}

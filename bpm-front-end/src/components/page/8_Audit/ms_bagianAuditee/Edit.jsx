@@ -151,8 +151,8 @@ export default function Edit({ onChangePage }) {
           setDisplayLov((prevData) => ({
             ...prevData,
             kadepBad: arrResult[0].kadepBad,
-            pic1Bad: arrResult[0].pic1Bad,
-            pic2Bad: arrResult[0].pic2Bad,
+            pic1Bad: arrResult[0].pic1NamaBad,
+            pic2Bad: arrResult[0].pic2NamaBad,
           }));
           setTotalData(arrResult[0][0].TotalCount);
         }
@@ -216,6 +216,21 @@ export default function Edit({ onChangePage }) {
     console.log(formData);
 
     try {
+      const result = await useFetch(
+        `${API_LINK}/MasterBagianAuditee/CheckBagianAuditeeExistEdit`,
+        {
+          param1: formData.kodeBad,
+          param2: formData.namaBad,
+          param3: idData,
+        },
+        "POST"
+      );
+
+      if (result.length > 0) {
+        SweetAlert("Gagal!", "Data bagian auditee sudah ada", "error", "OK");
+        return;
+      }
+
       const createResponse = await useFetch(
         `${API_LINK}/MasterBagianAuditee/EditBagianAuditee`,
         formData,
@@ -259,7 +274,6 @@ export default function Edit({ onChangePage }) {
             />
           </div>
           <div className={isMobile ? "m-0" : "m-3"}>
-            {/* Main Content Section */}
             <div
               className={
                 isMobile
@@ -267,7 +281,7 @@ export default function Edit({ onChangePage }) {
                   : "shadow p-5 m-5 mt-0 bg-white rounded"
               }
             >
-              <HeaderForm label="Formulir Kriteria" />
+              <HeaderForm label="Formulir Bagian Auditee" />
               <InputField
                 ref={kodeBadRef}
                 label="Kode Bagian Auditee"
@@ -304,7 +318,7 @@ export default function Edit({ onChangePage }) {
                 id="pic1Bad"
                 label="PIC 1"
                 placeholder="PIlih PIC 1"
-                isRequired={true}
+                isRequired={false}
                 modalTarget="#kadepModal"
                 type="text"
                 value={displayLov.pic1Bad}
@@ -316,7 +330,7 @@ export default function Edit({ onChangePage }) {
                 id="pic2Bad"
                 label="PIC 2"
                 placeholder="PIlih PIC 2"
-                isRequired={true}
+                isRequired={false}
                 modalTarget="#kadepModal"
                 value={displayLov.pic2Bad}
                 onChange={handleChange}

@@ -78,29 +78,47 @@ export default function EditTemuan({ onChangePage }) {
   };
 
   const handleSubmit = async () => {
-    for (const [key, value] of Object.entries(formData)) {
-      const updatedObject = {
-        id: Number(key),
-        namaTemuan: value.namaTemuan,
-        kategoriTemuan: value.kategoriTemuan,
-        saran: value.saran,
-        idSea: idData,
-      };
+    try {
+      setLoading(true);
+      const promises = Object.entries(formData).map(([key, value]) => {
+        const updatedObject = {
+          id: Number(key),
+          namaTemuan: value.namaTemuan,
+          kategoriTemuan: value.kategoriTemuan,
+          saran: value.saran,
+          idSea: idData,
+        };
 
-      console.log(updatedObject);
+        console.log(updatedObject);
 
-      const createResponse = await useFetch(
-        `${API_LINK}/TransaksiTemuan/EditTemuan`,
-        updatedObject
-      );
-      if (createResponse === "ERROR") {
+        return useFetch(
+          `${API_LINK}/TransaksiTemuan/EditTemuan`,
+          updatedObject
+        );
+      });
+      const responses = await Promise.all(promises);
+
+      if (responses.includes("ERROR")) {
         throw new Error("Gagal menambah data");
       }
-    }
 
-    SweetAlert("Berhasil!", "Data berhasil diperbarui.", "success", "OK").then(
-      () => onChangePage("index")
-    );
+      SweetAlert(
+        "Berhasil!",
+        "Data berhasil diperbarui.",
+        "success",
+        "OK"
+      ).then(() => onChangePage("index"));
+    } catch (error) {
+      console.error("Error during submission:", error);
+      SweetAlert(
+        "Gagal!",
+        "Terjadi kesalahan saat memperbarui data.",
+        "error",
+        "OK"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) return <Loading />;

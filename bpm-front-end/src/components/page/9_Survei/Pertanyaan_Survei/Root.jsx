@@ -1,31 +1,54 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  useNavigate,
-} from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import ScrollToTop from "../../../part/ScrollToTop";
 import Index from "./Index";
 import Add from "./Add";
 import Edit from "./Edit";
-import ScrollToTop from "../../../part/ScrollToTop";
-import Detail from "./Detail"; // Pastikan untuk mengimpor komponen Detail
+import Detail from "./Detail";
+import Swal from "sweetalert2";
 
 export default function Pertanyaan_Survei() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.pathname;
 
+  // Handler for page navigation
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
       case "index":
-        navigate("/survei/pertanyaan");
+        navigate(`${currentPath}`, { state: { mode: "index", ...withState } });
         break;
       case "add":
-        navigate("/survei/pertanyaan/add");
+        navigate(`${currentPath}/add`, {
+          state: { mode: "add", ...withState },
+        });
         break;
       case "edit":
-        navigate("/survei/pertanyaan/edit");
+        const { id } = withState;
+        if (id) {
+          navigate(`${currentPath}/edit/${id}`, {
+            state: { mode: "edit", id },
+          });
+        } else {
+          Swal.fire(
+            "Error",
+            "ID tidak valid atau tidak ditemukan untuk edit.",
+            "error"
+          );
+        }
         break;
       case "detail":
-        navigate("/survei/pertanyaan/detail");
+        const { detailId } = withState;
+        if (detailId) {
+          navigate(`${currentPath}/detail/${detailId}`, {
+            state: { mode: "detail", detailId },
+          });
+        } else {
+          Swal.fire(
+            "Error",
+            "ID tidak valid atau tidak ditemukan untuk detail.",
+            "error"
+          );
+        }
         break;
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
@@ -33,15 +56,33 @@ export default function Pertanyaan_Survei() {
     }
   };
 
+  const { mode } = location.state || { mode: "index" };
+
   return (
     <>
       <ScrollToTop />
       <Routes>
-        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
-        <Route path="add" element={<Add onChangePage={handlePageChange} />} />
-        <Route path="edit" element={<Edit onChangePage={handlePageChange} />} />
         <Route
-          path="detail"
+          path="/"
+          element={
+            mode === "add" ? (
+              <Add onChangePage={handlePageChange} />
+            ) : mode === "edit" ? (
+              <Edit onChangePage={handlePageChange} />
+            ) : mode === "detail" ? (
+              <Detail onChangePage={handlePageChange} />
+            ) : (
+              <Index onChangePage={handlePageChange} />
+            )
+          }
+        />
+        <Route path="add" element={<Add onChangePage={handlePageChange} />} />
+        <Route
+          path="edit/:id"
+          element={<Edit onChangePage={handlePageChange} />}
+        />
+        <Route
+          path="detail/:detailId"
           element={<Detail onChangePage={handlePageChange} />}
         />
       </Routes>

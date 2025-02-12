@@ -17,6 +17,7 @@ import SearchField from "../../../part/SearchField";
 import Filter from "../../../part/Filter";
 import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
+import { format } from "date-fns";
 
 const arrSort = [
   { Value: "[namaKry] ASC", Text: "Nama Karyawan [↑]" },
@@ -94,10 +95,11 @@ export default function Edit({ onChangePage }) {
           });
         } else {
           // Asumsi result adalah array
-          const fetchedData = result[0]; // Karena hanya ada satu objek dalam array
+          const fetchedData = result[0];
+          console.log(fetchedData);
 
-          const fetchedDate = new Date(fetchedData.tanggalKonfirmasi); // Ubah string ke objek Date
-          const formattedDate = fetchedDate.toISOString().split("T")[0];
+          const fetchedDate = new Date(fetchedData.tanggalKonfirmasi);
+          const formattedDate = format(fetchedDate, "yyyy-MM-dd");
 
           // Menangani pemetaan dan decode HTML
           setFormData({
@@ -329,7 +331,6 @@ export default function Edit({ onChangePage }) {
     }
   };
 
-  if (loading) return <Loading />;
   if (error) return <p>{error}</p>;
   return (
     <div className="d-flex flex-column min-vh-100">

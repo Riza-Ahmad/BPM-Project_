@@ -225,6 +225,16 @@ export default function Table({
             onClick={() => onAnalisaTemuan(id)}
           />
         );
+      case "Choose":
+        return (
+          <button
+            className="btn btn-primary px-3"
+            title="Pilih"
+            onClick={() => onChoose(id)}
+          >
+            <span style={{ fontWeight: 600 }}>PILIH</span>
+          </button>
+        );
       default:
         return null;
     }

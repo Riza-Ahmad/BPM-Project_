@@ -21,37 +21,37 @@ export default function Peraturan() {
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
       case "index":
-        navigate("/peraturan/kebijakan", {
+        navigate("/peraturan/dokumen", {
           state: { mode: "index", ...withState },
         });
         break;
       case "add":
-        navigate("/peraturan/kebijakan", {
+        navigate("/peraturan/dokumen", {
           state: { mode: "add", ...withState },
         });
         break;
       case "edit":
-        navigate("/peraturan/kebijakan", {
+        navigate("/peraturan/dokumen", {
           state: { mode: "edit", ...withState },
         });
         break;
       case "editfile":
-        navigate("/peraturan/kebijakan", {
+        navigate("/peraturan/dokumen", {
           state: { mode: "editfile", ...withState },
         });
         break;
       case "readrevisi":
-        navigate("/peraturan/kebijakan", {
+        navigate("/peraturan/dokumen", {
           state: { mode: "readrevisi", ...withState },
         });
         break;
       case "readunduhan":
-        navigate("/peraturan/kebijakan", {
+        navigate("/peraturan/dokumen", {
           state: { mode: "readunduhan", ...withState },
         });
         break;
       case "detail":
-        navigate("/peraturan/kebijakan", {
+        navigate("/peraturan/dokumen", {
           state: { mode: "detail", ...withState },
         });
         break;

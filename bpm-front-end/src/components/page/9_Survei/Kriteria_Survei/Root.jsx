@@ -1,31 +1,54 @@
-// KriteriaSurveiRoutes.jsx
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import Index from "./Index";
 import Add from "./Add";
 import Edit from "./Edit";
 import Detail from "./Detail";
 import ScrollToTop from "../../../part/ScrollToTop";
-import Tentang from "../../../page/2_Tentang/Index";
+import Swal from "sweetalert2"; // Import Swal for alert
 
 export default function KriteriaSurveiRoutes() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.pathname;
 
+  // Handler for page navigation with dynamic state management
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
       case "index":
-        navigate("/survei/kriteria");
+        navigate(`${currentPath}`, { state: { mode: "index", ...withState } });
         break;
       case "add":
-        navigate("/survei/kriteria/add");
+        navigate(`${currentPath}/add`, {
+          state: { mode: "add", ...withState },
+        });
         break;
       case "edit":
-        navigate(`/survei/kriteria/edit/${withState.id}`);
+        const { id } = withState;
+        if (id) {
+          navigate(`${currentPath}/edit/${id}`, {
+            state: { mode: "edit", id },
+          });
+        } else {
+          Swal.fire(
+            "Error",
+            "ID tidak valid atau tidak ditemukan untuk edit.",
+            "error"
+          );
+        }
         break;
       case "detail":
-        navigate(`/survei/kriteria/detail/${withState.id}`);
-        break;
-      case "tentang":
-        navigate("/tentang");
+        const { detailId } = withState;
+        if (detailId) {
+          navigate(`${currentPath}/detail/${detailId}`, {
+            state: { mode: "detail", detailId },
+          });
+        } else {
+          Swal.fire(
+            "Error",
+            "ID tidak valid atau tidak ditemukan untuk detail.",
+            "error"
+          );
+        }
         break;
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
@@ -33,15 +56,35 @@ export default function KriteriaSurveiRoutes() {
     }
   };
 
+  const { mode } = location.state || { mode: "index" };
+
   return (
     <>
       <ScrollToTop />
       <Routes>
-        <Route path="/tentang" element={<Tentang onChangePage={handlePageChange} />} />
-        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
-        <Route path="/add" element={<Add onChangePage={handlePageChange} />} />
-        <Route path="/edit/:id" element={<Edit onChangePage={handlePageChange} />} />
-        <Route path="/detail/:id" element={<Detail onChangePage={handlePageChange} />} />
+        <Route
+          path="/"
+          element={
+            mode === "add" ? (
+              <Add onChangePage={handlePageChange} />
+            ) : mode === "edit" ? (
+              <Edit onChangePage={handlePageChange} />
+            ) : mode === "detail" ? (
+              <Detail onChangePage={handlePageChange} />
+            ) : (
+              <Index onChangePage={handlePageChange} />
+            )
+          }
+        />
+        <Route path="add" element={<Add onChangePage={handlePageChange} />} />
+        <Route
+          path="/edit/:id"
+          element={<Edit onChangePage={handlePageChange} />}
+        />
+        <Route
+          path="/detail/:detailId"
+          element={<Detail onChangePage={handlePageChange} />}
+        />
       </Routes>
     </>
   );

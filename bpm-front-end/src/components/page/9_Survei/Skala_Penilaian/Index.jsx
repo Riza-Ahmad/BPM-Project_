@@ -4,6 +4,7 @@ import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
 import PageTitleNav from "../../../part/PageTitleNav";
 import Button from "../../../part/Button";
+import DropDown from "../../../part/Dropdown";
 import Loading from "../../../part/Loading";
 import SearchField from "../../../part/SearchField";
 import Filter from "../../../part/Filter";
@@ -44,9 +45,10 @@ export default function Index() {
       searchRegex.test(item.skp_status);
 
     const matchesType = filterType ? item.skp_tipe === filterType : true;
-    const matchesStatus = filterStatus !== "" 
-      ? item.skp_status.toString() === filterStatus 
-      : item.skp_status === 1;
+    const matchesStatus =
+      filterStatus !== ""
+        ? item.skp_status === filterStatus
+        : item.skp_status === "Aktif";
 
     return matchesSearch && matchesType && matchesStatus;
   };
@@ -57,7 +59,7 @@ export default function Index() {
     const endIndex = startIndex + config.pageSize;
     return {
       currentPageData: filteredData.slice(startIndex, endIndex),
-      totalFilteredItems: filteredData.length
+      totalFilteredItems: filteredData.length,
     };
   };
 
@@ -70,13 +72,13 @@ export default function Index() {
         body: JSON.stringify({ status: null }),
       });
 
-      if (!response.ok) throw new Error("Failed to fetch data");
+      if (!response.ok) throw new Error("Gagal mengambil data");
 
       const result = await response.json();
       setSkalaData(result);
     } catch (error) {
-      console.error("Fetch error:", error);
-      Swal.fire("Error", "Failed to fetch data", "error");
+      console.error("Kesalahan Fetch:", error);
+      Swal.fire("Kesalahan", "Gagal mengambil data", "error");
     } finally {
       setLoading(false);
     }
@@ -84,12 +86,12 @@ export default function Index() {
 
   const handleDelete = async (id) => {
     const result = await Swal.fire({
-      title: "Confirm Deletion",
-      text: "Are you sure you want to delete this item?",
+      title: "Konfirmasi Penghapusan",
+      text: "Apakah Anda yakin ingin menghapus item ini?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Delete",
-      cancelButtonText: "Cancel",
+      confirmButtonText: "Hapus",
+      cancelButtonText: "Batal",
     });
 
     if (!result.isConfirmed) return;
@@ -101,20 +103,22 @@ export default function Index() {
         body: JSON.stringify({ p1: id, p2: "Admin" }),
       });
 
-      if (!response.ok) throw new Error("Delete operation failed");
+      if (!response.ok) throw new Error("Operasi hapus gagal");
 
-      Swal.fire("Success", "Item deleted successfully", "success");
+      Swal.fire("Sukses", "Item berhasil dihapus", "success");
       fetchSkala();
     } catch (error) {
-      console.error("Delete error:", error);
-      Swal.fire("Error", "Failed to delete item", "error");
+      console.error("Kesalahan Hapus:", error);
+      Swal.fire("Kesalahan", "Gagal menghapus item", "error");
     }
   };
 
   const handleNavigation = {
     toAdd: () => navigate("/survei/skala/add"),
-    toDetail: (key) => navigate(`/survei/skala/detail/${key}`, { state: { detailData: key } }),
-    toEdit: (key) => navigate(`/survei/skala/edit/${key}`, { state: { editData: key } }),
+    toDetail: (key) =>
+      navigate(`/survei/skala/detail/${key}`, { state: { detailData: key } }),
+    toEdit: (key) =>
+      navigate(`/survei/skala/edit/${key}`, { state: { editData: key } }),
     toBeranda: () => navigate("/beranda"),
   };
 
@@ -131,8 +135,11 @@ export default function Index() {
   if (loading) return <Loading />;
 
   const { currentPageData, totalFilteredItems } = getPageData();
-  const activeData = filterStatus === "" ? skalaData.filter(item => item.skp_status === 1) : skalaData;
-  const uniqueTypes = [...new Set(activeData.map(item => item.skp_tipe))];
+  const activeData =
+    filterStatus === ""
+      ? skalaData.filter((item) => item.skp_status === "Aktif")
+      : skalaData;
+  const uniqueTypes = [...new Set(activeData.map((item) => item.skp_tipe))];
   const marginStyle = { margin: isMobile ? "1rem" : "3rem" };
 
   return (
@@ -156,46 +163,42 @@ export default function Index() {
             />
 
             <div className="row mt-5">
-              <div className="col-lg-8 col-md-6">
+              <div className="col-lg-11 col-md-6">
                 <SearchField
-                  placeHolder="Cari data..."
+                  placeHolder="Cari Skala Penilaian..."
                   value={searchQuery}
                   onChange={setSearchQuery}
                 />
               </div>
-              <div className="col-lg-4 col-md-6">
+              <div className="col-lg-1 col-md-6">
                 <Filter>
                   <div>
-                    <label htmlFor="filter-type" className="form-label">
-                      Filter Tipe Skala:
-                    </label>
-                    <select
-                      id="filter-type"
-                      className="form-select"
+                    <DropDown
+                      arrData={uniqueTypes.map((type) => ({
+                        Value: type,
+                        Text: type,
+                      }))}
+                      type="pilih"
+                      label="Filter Tipe Skala"
+                      forInput="filter-type"
                       value={filterType}
                       onChange={(e) => setFilterType(e.target.value)}
-                    >
-                      <option value="">Semua Tipe</option>
-                      {uniqueTypes.map(type => (
-                        <option key={type} value={type}>{type}</option>
-                      ))}
-                    </select>
+                    />
                   </div>
 
                   <div className="mt-3">
-                    <label htmlFor="filter-status" className="form-label">
-                      Filter Status:
-                    </label>
-                    <select
-                      id="filter-status"
-                      className="form-select"
+                    <DropDown
+                      arrData={[
+                        { Value: "", Text: "Semua Status" },
+                        { Value: "Aktif", Text: "Aktif" },
+                        { Value: "Tidak Aktif", Text: "Tidak Aktif" },
+                      ]}
+                      type="pilih"
+                      label="Filter Status"
+                      forInput="filter-status"
                       value={filterStatus}
                       onChange={(e) => setFilterStatus(e.target.value)}
-                    >
-                      <option value="">Semua Status</option>
-                      <option value="1">Aktif</option>
-                      <option value="0">Tidak Aktif</option>
-                    </select>
+                    />
                   </div>
 
                   <button
@@ -209,7 +212,10 @@ export default function Index() {
             </div>
           </div>
 
-          <div className="table-container bg-white p-3 mt-0 rounded" style={marginStyle}>
+          <div
+            className="table-container bg-white p-3 mt-0 rounded"
+            style={marginStyle}
+          >
             <Table
               arrHeader={tableHeaders}
               data={currentPageData.map((item, index) => ({
@@ -218,7 +224,7 @@ export default function Index() {
                 "Tipe Skala": item.skp_tipe,
                 Skala: item.skp_skala,
                 Deskripsi: item.skp_deskripsi,
-                Status: item.skp_status === 1 ? "Aktif" : "Tidak Aktif",
+                Status: item.skp_status === "Aktif" ? "Aktif" : "Tidak Aktif",
               }))}
               actions={(item) => {
                 const actions = ["Detail", "Toggle"];

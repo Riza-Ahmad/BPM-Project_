@@ -12,6 +12,7 @@ import Button from "../../../part/Button";
 import Swal from "sweetalert2";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
+import { useFetch } from "../../../util/useFetch";
 
 // Format tanggal untuk Indonesia
 const formatTanggal = (tanggal) => {
@@ -33,32 +34,27 @@ export default function DetailSkalaPenilaian() {
   // State
   const [loading, setLoading] = useState(true);
   const [detailData, setDetailData] = useState({
+    skp_skala: "",
+    skp_deskripsi: "",
     skp_tipe: "",
     skp_status: "",
     skp_created_by: "",
     skp_created_date: "",
     skp_modif_by: "",
     skp_modif_date: "",
-    skp_deskripsi: "",
   });
 
   // Fungsi untuk mengambil data detail dari API
   const ambilDetailSkala = async () => {
     try {
-      const response = await fetch(
+      const hasil = await useFetch(
         `${API_LINK}/SkalaPenilaian/GetDataSkalaPenilaianById`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ p1: detailId }),
-        }
+        { p1: detailId },
+        "POST"
       );
 
-      if (!response.ok) {
-        throw new Error("Gagal mengambil data skala penilaian.");
-      }
+      console.log("Response API:", hasil);
 
-      const hasil = await response.json();
       if (hasil && hasil.length > 0) {
         setDetailData(hasil[0]);
       } else {
@@ -84,15 +80,13 @@ export default function DetailSkalaPenilaian() {
   // Komponen untuk menampilkan kolom kiri detail
   const KolomKiriDetail = () => (
     <div className="col-lg-6 col-md-6">
-      <DetailData label="Tipe" isi={detailData.skp_tipe || "-"} />
+      <DetailData label="Skala" isi={detailData.skp_skala || "-"} />
+      <DetailData label="Tipe Input" isi={detailData.skp_tipe || "-"} />
       <DetailData
         label="Status"
-        isi={detailData.skp_status === 0 ? "Tidak" : "Ya"}
+        isi={detailData.skp_status === "Aktif" ? "Aktif" : "Tidak Aktif"}
       />
-      <DetailData
-        label="Dibuat Oleh"
-        isi={detailData.skp_created_by || "Tidak tersedia"}
-      />
+      <DetailData label="Dibuat Oleh" isi={detailData.skp_created_by || "-"} />
       <DetailData
         label="Dibuat Tanggal"
         isi={formatTanggal(detailData.skp_created_date)}
@@ -104,12 +98,12 @@ export default function DetailSkalaPenilaian() {
   const KolomKananDetail = () => (
     <div className="col-lg-6 col-md-6">
       <DetailData
-        label="Deskripsi Nilai (Terendah - Tertinggi)"
+        label="Deskripsi Nilai"
         isi={detailData.skp_deskripsi || "-"}
       />
       <DetailData
         label="Dimodifikasi Oleh"
-        isi={detailData.skp_modif_by || "Tidak tersedia"}
+        isi={detailData.skp_modif_by || "-"}
       />
       <DetailData
         label="Dimodifikasi Tanggal"
@@ -125,7 +119,6 @@ export default function DetailSkalaPenilaian() {
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          
           {/* Navigasi dan Judul */}
           <PageTitleNav
             title="Detail Skala Penilaian"
@@ -136,7 +129,6 @@ export default function DetailSkalaPenilaian() {
             onClick={() => navigate("/survei/skala")}
           />
 
-         
           {/* Kartu Detail */}
           <div className="shadow p-5 mt-4 bg-white rounded">
             <HeaderForm label="Detail Skala Penilaian" />

@@ -76,69 +76,58 @@ export default function EditSelfAssessment({ onChangePage }) {
   };
 
   const handleSubmit = async () => {
+    setLoading(true);
     const folderName = "Audit";
     const updatedFormData = { ...formData };
 
-    // Loop melalui objek files
-    for (const [key, fileArray] of Object.entries(files)) {
-      const dokumenBerkasArray = [];
-
-      for (const file of fileArray) {
-        if (typeof file === "string") {
-          // Jika file adalah string (path file yang sudah ada), langsung tambahkan ke array dokumen berkas
-          dokumenBerkasArray.push(file);
-        } else if (file instanceof File) {
-          // Jika file adalah File object, kirim ke API
-          const filePrefix = file.name
-            .replace(/\.[^/.]+$/, "")
-            .replace(/\s+/g, "_");
-
-          const fileFormData = new FormData();
-          fileFormData.append("file", file);
-
-          try {
-            const dokumenBerkas = await uploadFile(
-              file,
-              folderName,
-              filePrefix
-            );
-
-            if (Array.isArray(dokumenBerkas)) {
-              dokumenBerkasArray.push(...dokumenBerkas);
-            } else {
-              dokumenBerkasArray.push(dokumenBerkas);
-            }
-          } catch (error) {
-            console.error("Error uploading file:", error);
+    // Unggah file secara paralel
+    await Promise.all(
+      Object.entries(files).map(async ([key, fileArray]) => {
+        const dokumenBerkasArrayPromises = fileArray.map(async (file) => {
+          if (typeof file === "string") {
+            return file;
+          } else if (file instanceof File) {
+            const filePrefix = file.name
+              .replace(/\.[^/.]+$/, "")
+              .replace(/\s+/g, "_");
+            return await uploadFile(file, folderName, filePrefix);
           }
+        });
+
+        const dokumenBerkasArray = (
+          await Promise.all(dokumenBerkasArrayPromises)
+        ).flat();
+        if (updatedFormData[key]) {
+          updatedFormData[key].dokumenBerkas = dokumenBerkasArray;
         }
-      }
+      })
+    );
 
-      if (updatedFormData[key]) {
-        updatedFormData[key].dokumenBerkas = dokumenBerkasArray;
-      }
-    }
+    // Kirim data secara paralel
+    await Promise.all(
+      Object.entries(updatedFormData).map(async ([key, value]) => {
+        const updatedObject = {
+          id: Number(key),
+          jawaban: value.jawaban,
+          jawabanLanjutan: value.jawabanLanjutan,
+          idSea: idData,
+          kategoriTemuan: value.kategoriTemuan,
+          dokumenBerkas: value.dokumenBerkas,
+        };
 
-    for (const [key, value] of Object.entries(updatedFormData)) {
-      const updatedObject = {
-        id: Number(key),
-        jawaban: value.jawaban,
-        jawabanLanjutan: value.jawabanLanjutan,
-        idSea: idData,
-        dokumenBerkas: value.dokumenBerkas,
-      };
+        console.log(updatedObject);
 
-      console.log(updatedObject);
+        const createResponse = await useFetch(
+          `${API_LINK}/TransaksiSelfAssessment/EditSelfAssesment`,
+          updatedObject
+        );
+        if (createResponse === "ERROR") {
+          throw new Error("Gagal menambah data");
+        }
+      })
+    );
 
-      const createResponse = await useFetch(
-        `${API_LINK}/TransaksiSelfAssessment/EditSelfAssesment`,
-        updatedObject
-      );
-      if (createResponse === "ERROR") {
-        throw new Error("Gagal menambah data");
-      }
-    }
-
+    setLoading(false);
     SweetAlert("Berhasil!", "Data berhasil diperbarui.", "success", "OK").then(
       () => onChangePage("index")
     );

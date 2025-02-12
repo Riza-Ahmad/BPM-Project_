@@ -1,31 +1,33 @@
-import React from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  useNavigate,
-} from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import Index from "./Index";
 import Add from "./Add";
-import Detail from "./Detail";
 import Edit from "./Edit";
+import Detail from "./Detail";
 import ScrollToTop from "../../../part/ScrollToTop";
+import Swal from "sweetalert2"; // Import Swal for alert
 
-export default function Skala_Survei() {
+export default function Skala_Penilaian() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.pathname;
 
+  // Handler for page navigation with dynamic state management
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
       case "index":
-        navigate("/survei/skala");
+        navigate(`${currentPath}`, { state: { mode: "index", ...withState } });
         break;
       case "add":
-        navigate("/survei/skala/add");
+        navigate(`${currentPath}/add`, {
+          state: { mode: "add", ...withState },
+        });
         break;
       case "edit":
-        const { id } = withState; // Ensure that id is passed for editing
+        const { id } = withState;
         if (id) {
-          navigate(`/survei/skala/edit/${id}`, { state: { editData: id } }); // Pass id to the edit route
+          navigate(`${currentPath}/edit/${id}`, {
+            state: { mode: "edit", id },
+          });
         } else {
           Swal.fire(
             "Error",
@@ -34,13 +36,12 @@ export default function Skala_Survei() {
           );
         }
         break;
-
       case "detail":
-        const { detailId } = withState; // For detail page, ensure that detailId is passed
+        const { detailId } = withState;
         if (detailId) {
-          navigate(`/survei/skala/detail/${detailId}`, {
-            state: { detailData: detailId },
-          }); // Pass detailId to the detail route
+          navigate(`${currentPath}/detail/${detailId}`, {
+            state: { mode: "detail", detailId },
+          });
         } else {
           Swal.fire(
             "Error",
@@ -56,18 +57,33 @@ export default function Skala_Survei() {
     }
   };
 
+  const { mode } = location.state || { mode: "index" };
+
   return (
     <>
       <ScrollToTop />
       <Routes>
-        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
+        <Route
+          path="/"
+          element={
+            mode === "add" ? (
+              <Add onChangePage={handlePageChange} />
+            ) : mode === "edit" ? (
+              <Edit onChangePage={handlePageChange} />
+            ) : mode === "detail" ? (
+              <Detail onChangePage={handlePageChange} />
+            ) : (
+              <Index onChangePage={handlePageChange} />
+            )
+          }
+        />
         <Route path="add" element={<Add onChangePage={handlePageChange} />} />
         <Route
-          path="edit/:key"
+          path="/edit/:key"
           element={<Edit onChangePage={handlePageChange} />}
         />
         <Route
-          path="detail/:detailId"
+          path="/detail/:detailId"
           element={<Detail onChangePage={handlePageChange} />}
         />
         <Route

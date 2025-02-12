@@ -15,8 +15,10 @@ export default function NavItem() {
   const [jumlahNotifikasi, setJumlahNotifikasi] = useState([]);
 
   let username = "";
+  let role = "";
   const cookie = Cookies.get("activeUser");
   if (cookie) username = JSON.parse(cookie).username;
+  if (cookie) role = JSON.parse(cookie).RoleID.slice(0, 5);
 
   const handleNavigation = (linkMenu, idMenu) => {
     navigate(linkMenu, {
@@ -48,9 +50,10 @@ export default function NavItem() {
     const fetchMenuItems = async () => {
       const data = await useFetch(
         `${API_LINK}/Utilities/GetListMenu`,
-        {},
+        { user: role },
         "POST"
       );
+
       if (data !== "ERROR") {
         setMenuItems(buildMenuHierarchy(data));
       } else {
