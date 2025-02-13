@@ -186,25 +186,27 @@ export default function Daftar_Survei({ onChangePage }) {
               <Table
                 arrHeader={["No", "Nama Survei", "Tanggal Awal", "Status"]}
                 data={filteredData.map((item, index) => ({
-                  key: item.idSurvei,
+                  Key: item.idSurvei,
                   No: (pageCurrent - 1) * pageSize + index + 1,
                   "Nama Survei": item.namaSurvei,
                   "Tanggal Awal": item.tanggalAwalSurvei,
                   Status: item.statusSurvei,
                 }))}
                 actions={["Preview"]}
-                onPreview={handlePreview}
+                onPreview={(item) =>
+                  onChangePage("preview", { idData: item.Key })
+                }
               />
             ) : (
               <Table
                 arrHeader={["No", "Nama Survei"]}
                 data={filteredData.map((item, index) => ({
-                  key: item.idSurvei,
+                  Key: item.idSurvei,
                   No: (pageCurrent - 1) * pageSize + index + 1,
                   "Nama Survei": item.namaSurvei,
                 }))}
                 actions={["Edit"]}
-                onEdit={handleEdit}
+                onEdit={(item) => onChangePage("edit", { idData: item.Key })}
               />
             )}
 

@@ -1,36 +1,65 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import PageTitleNav from "../../../part/PageTitleNav";
-import InputField from "../../../part/InputField";
+import DetailData from "../../../part/DetailData";
 import HeaderForm from "../../../part/HeaderText";
-import Button from "../../../part/Button";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
-import SweetAlert from "../../../util/SweetAlert";
-import { useIsMobile } from "../../../util/useIsMobile";
-import { API_LINK } from "../../../util/Constants";
-import { useFetch } from "../../../util/useFetch";
 import Loading from "../../../part/Loading";
-import TabSelfAssessment from "../../8_Audit/tr_pelaksanaanAMI/TabSelfAssessment";
-export default function Edit({ onChangePage }) {
-  const isMobile = useIsMobile();
+import { API_LINK } from "../../../util/Constants";
+import { useIsMobile } from "../../../util/useIsMobile";
+import { useFetch } from "../../../util/useFetch";
+import { useLocation, useNavigate } from "react-router-dom";
+import TabPreviewSurvei from "./TabPreviewSurvei";
+import Cookies from "js-cookie";
 
+export default function EditSurvei({ onChangePage }) {
+  const activeUser = Cookies.get("activeUser");
+  let role = ""; // Jika undefined, gunakan nilai default
+  let roleNama = "";
+  let namaPengguna = "";
+  let username = "";
+  if (activeUser) {
+    role = JSON.parse(activeUser).RoleID.slice(0, 5);
+    roleNama = JSON.parse(activeUser).Role;
+    namaPengguna = JSON.parse(activeUser).Nama;
+    username = JSON.parse(activeUser).username;
+  }
+  const title = "Daftar Survei";
   const location = useLocation();
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [formData, setFormData] = useState({
+    idTransaksi: "",
+    namaTemplateSurvei: "",
+    kataPembuka: "",
+    kataPenutup: "",
+    tanggalAwal: "",
+    tanggalAkhir: "",
+    dibuatOleh: "",
+    dibuatTanggal: "",
+    diubahOleh: "",
+    diubahTanggal: "",
+    statusTransaksi: "",
+  });
+
   const idData = location.state?.idData;
-  const title = "";
 
+  // Track when template fetch is completed
+  const [isTemplateFetched, setIsTemplateFetched] = useState(false);
   const [kriteria, setKriteria] = useState([]);
+  const [pertanyaan, setPertanyaan] = useState({});
 
+  // GET DATA BY ID
   useEffect(() => {
     const fetchKriteria = async () => {
       setLoading(true);
       try {
         const data = await useFetch(
-          `${API_LINK}/TransaksiSelfAssessment/GetDataKriteriaSAById`,
+          `${API_LINK}/TransaksiSurvei/GetDataKriteriaTransaksiSurveiByIdxx`,
           { id: idData },
           "POST"
         );
-
+        console.log("Kriteria Survei :", data);
         setKriteria(data);
       } catch (err) {
         setError("Gagal mengambil data: " + err);
@@ -42,18 +71,18 @@ export default function Edit({ onChangePage }) {
     fetchKriteria();
   }, []);
 
-  const [pertanyaan, setPertanyaan] = useState({});
-
   useEffect(() => {
     const fetchPertanyaan = async () => {
       setLoading(true);
       try {
+        console.log("Hallo Pertanyaan :", { id: idData, nama: username });
         const data = await useFetch(
-          `${API_LINK}/MasterPertanyaanSurvei/GetPertanyaanById`,
-          { id: idData },
+          `${API_LINK}/TransaksiSurvei/GetDataPertanyaanTransaksiSurveiByIdxx`,
+          { id: idData, nama: username },
           "POST"
         );
 
+        console.log("Pertanyaan Survei :", data);
         setPertanyaan(data);
       } catch (err) {
         setError("Gagal mengambil data: " + err);
@@ -65,49 +94,92 @@ export default function Edit({ onChangePage }) {
     fetchPertanyaan();
   }, []);
 
-  const [formData, setFormData] = useState({});
+  useEffect(() => {
+    const fetchTemplateData = async () => {
+      const body = { idData: idData };
+      setLoading(true);
+
+      try {
+        const result = await useFetch(
+          `${API_LINK}/TransaksiSurvei/GetDataTransaksiSurveiByIdxx`,
+          body,
+          "POST"
+        );
+        console.log("Transaksi Survei: ", result);
+        if (result === "ERROR" || result === null || result.length === 0) {
+          setFormData({
+            idTransaksi: "",
+            namaTemplateSurvei: "",
+            kataPembuka: "",
+            kataPenutup: "",
+            tanggalAwal: "",
+            tanggalAkhir: "",
+            dibuatOleh: "",
+            dibuatTanggal: "",
+            diubahOleh: "",
+            diubahTanggal: "",
+            statusTransaksi: "",
+          });
+        } else {
+          const fetchedData = result[0];
+          setFormData({
+            idTransaksi: fetchedData.idTransaksi,
+            namaTemplateSurvei: fetchedData.namaTemplateSurvei,
+            kataPembuka: fetchedData.kataPembuka,
+            kataPenutup: fetchedData.kataPenutup,
+            tanggalAwal: new Date(fetchedData.tanggalAwal).toLocaleDateString(
+              "id-ID",
+              {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              }
+            ),
+            tanggalAkhir: fetchedData.tanggalAkhir || "-",
+            dibuatOleh: fetchedData.dibuatOleh,
+            dibuatTanggal: new Date(
+              fetchedData.dibuatTanggal
+            ).toLocaleDateString("id-ID", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            }),
+            diubahOleh: fetchedData.diubahOleh || "-",
+            diubahTanggal: fetchedData.dimodifTgl
+              ? new Date(fetchedData.diubahTanggal).toLocaleDateString(
+                  "id-ID",
+                  {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  }
+                )
+              : "-",
+            statusTransaksi: fetchedData.statusTransaksi || "-",
+          });
+        }
+      } catch (err) {
+        setError("Gagal mengambil data: " + err);
+      } finally {
+        setLoading(false);
+        setIsTemplateFetched(true); // Mark as fetched
+      }
+    };
+
+    fetchTemplateData();
+  }, [idData]);
+  const [formDataTab, setFormDataTab] = useState({});
 
   const handleDataChange = (updatedFormData, updatedFiles) => {
-    setFormData(updatedFormData);
-    setFiles(updatedFiles);
-  };
-
-  const handleSubmit = async () => {
-    setLoading(true);
-    const folderName = "Audit";
-    const updatedFormData = { ...formData };
-
- 
-
-    // Kirim data secara paralel
-    await Promise.all(
-      Object.entries(updatedFormData).map(async ([key, value]) => {
-        const updatedObject = {
-          id: Number(key),
-          jawaban: value.jawaban,
-          jawabanLanjutan: value.jawabanLanjutan,
-          idSea: idData,
-          dokumenBerkas: value.dokumenBerkas,
-        };
-
-        const createResponse = await useFetch(
-          `${API_LINK}/TransaksiSurvei/EditTransaksiSurvei`,
-          updatedObject
-        );
-        if (createResponse === "ERROR") {
-          throw new Error("Gagal menambah data");
-        }
-      })
-    );
-
-    setLoading(false);
-    SweetAlert("Berhasil!", "Data berhasil diperbarui.", "success", "OK").then(
-      () => onChangePage("index")
-    );
+    setFormDataTab(updatedFormData);
   };
 
   if (loading) return <Loading />;
   if (error) return <p>{error}</p>;
+
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
@@ -127,76 +199,56 @@ export default function Edit({ onChangePage }) {
                 isMobile
                   ? "shadow p-4 m-2 mt-0 bg-white rounded"
                   : "shadow p-5 m-5 mt-0 bg-white rounded"
-              }>
-              <HeaderForm label="Formulir Survei" />
+              }
+            >
+              <HeaderForm label={formData.namaTemplateSurvei} />
 
               <div className="border bg-white rounded mt-5 p-3">
-                {pertanyaan && pertanyaan.length > 0 ? (
-                  <>
-                    <p>
-                      Terakhir Diperbarui Oleh :{" "}
-                      <strong>{pertanyaan[0].dimodifOleh || ""}</strong>
-                    </p>
-                    <p>
-                      Pada :{" "}
-                      <strong>
-                        {pertanyaan[0].dimodifTgl
-                          ? (() => {
-                              const modifiedDate = new Date(
-                                pertanyaan[0].dimodifTgl
-                              );
-                              if (isNaN(modifiedDate)) return "-";
-                              return (
-                                modifiedDate.toLocaleDateString("id-ID", {
-                                  weekday: "long",
-                                  day: "numeric",
-                                  month: "long",
-                                  year: "numeric",
-                                }) +
-                                " " +
-                                modifiedDate.toLocaleTimeString("id-ID", {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                }) +
-                                " WIB"
-                              );
-                            })()
-                          : "-"}
-                      </strong>
-                    </p>
-                  </>
-                ) : (
-                  <p>Data pertanyaan tidak tersedia.</p>
-                )}
+                <div className="row">
+                  <div className="col-lg-6 col-md-6">
+                    <DetailData
+                      label="Kata Pembuka"
+                      isi={formData.kataPembuka}
+                    />
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <DetailData
+                      label="Kata Penutup"
+                      isi={formData.kataPenutup}
+                    />
+                  </div>
+                </div>
+                <div className="row">
+                  <div className="col-lg-6 col-md-6">
+                    <DetailData
+                      label="Tanggal Mulai Survei"
+                      isi={formData.tanggalAwal}
+                    />
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <DetailData
+                      label="Tanggal Akhir Survei"
+                      isi={formData.tanggalAkhir}
+                    />
+                  </div>
+                </div>
+                <div className="row">
+                  <div className="col-lg-6 col-md-6">
+                    <DetailData label="Dibuat Oleh" isi={formData.dibuatOleh} />
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <DetailData
+                      label="Dibuat Tanggal"
+                      isi={formData.dibuatTanggal}
+                    />
+                  </div>
+                </div>
               </div>
-
-              <TabSelfAssessment
+              <TabPreviewSurvei
                 header={kriteria}
                 pertanyaan={pertanyaan}
                 onDataChange={handleDataChange}
               />
-
-              <div className="d-flex justify-content-between align-items-center">
-                <div className="flex-grow-1 m-2">
-                  <Button
-                    classType="primary"
-                    type="button"
-                    label="Simpan"
-                    width="100%"
-                    onClick={handleSubmit}
-                    isDisabled={Object.keys(formData).length === 0}
-                  />
-                </div>
-                <div className="flex-grow-1 m-2">
-                  <Button
-                    classType="danger"
-                    type="button"
-                    label="Batal"
-                    width="100%"
-                    onClick={() => onChangePage("index")}
-                  />
-                </div>
-              </div>
             </div>
           </div>
         </div>

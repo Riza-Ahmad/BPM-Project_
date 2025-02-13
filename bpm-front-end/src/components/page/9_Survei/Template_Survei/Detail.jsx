@@ -51,9 +51,6 @@ export default function Detail({ onChangePage }) {
   const [idEdit, setIdEdit] = useState("");
 
   // Opsi untuk Kriteria Survei (ksrOptions) dan Skala Penilaian (skpOptions)
-  const [ksrOptions, setKsrOptions] = useState([]);
-  const [skpOptions, setSkpOptions] = useState([]);
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -264,14 +261,11 @@ export default function Detail({ onChangePage }) {
     }
   }, [searchKeyword, selectedSort, pageCurrent, showModal]);
 
-  // // Panggil fetch opsi dan data template saat komponen mount
   useEffect(() => {
     fetchKriteria();
     console.log(fetchKriteria);
     fetchSkalaPenilaian();
   }, [idData]);
-
-  // Panggil fetch detail pertanyaan setiap kali formData.pertanyaan berubah
 
   // Handler perubahan input form
   const handleChange = (e) => {
