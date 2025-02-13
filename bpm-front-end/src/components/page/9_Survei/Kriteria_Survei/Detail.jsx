@@ -9,7 +9,6 @@ import DetailData from "../../../part/DetailData";
 import HeaderForm from "../../../part/HeaderText";
 import Loading from "../../../part/Loading";
 
-// Format tanggal untuk Indonesia
 const formatTanggal = (tanggal) => {
   if (!tanggal) return "-";
   return new Date(tanggal).toLocaleDateString("id-ID", {
@@ -25,16 +24,13 @@ export default function Detail() {
   const { detailId } = useParams();
   const isMobile = useIsMobile();
   const [detailData, setDetailData] = useState({
+    idKri: "",
     namaKri: "",
     status: "",
     createdBy: "",
     createdDate: "",
     modifiedBy: "",
     modifiedDate: "",
-    ksrId: "",
-    skpId: "",
-    kriteriaNama: "",
-    skalaTipe: "",
   });
   const [loading, setLoading] = useState(true);
 
@@ -57,10 +53,13 @@ export default function Detail() {
         const result = await response.json();
         if (result && result[0]) {
           setDetailData({
-            ...result[0],
-            status: result[0].pty_status === 0 ? "Tidak Aktif" : "Aktif", // Assuming status mapping
-            createdDate: formatTanggal(result[0].pty_created_date),
-            modifiedDate: formatTanggal(result[0].pty_modif_date),
+            idKri: result[0].idKri,
+            namaKri: result[0].namaKri,
+            status: result[0].status,
+            createdBy: result[0].createdBy,
+            createdDate: formatTanggal(result[0].createdDate),
+            modifiedBy: result[0].modifiedBy,
+            modifiedDate: formatTanggal(result[0].modifiedDate),
           });
         } else {
           throw new Error("Data tidak ditemukan");
@@ -81,37 +80,12 @@ export default function Detail() {
     fetchDetail();
   }, [detailId, navigate]);
 
-  const KolomKiriDetail = ({ detailData }) => (
-    <div>
-      <DetailData label="Nama Kriteria" isi={detailData?.namaKri || "-"} />
-      <DetailData label="Status" isi={detailData?.status || "-"} />
-      <DetailData label="Dibuat Oleh" isi={detailData?.createdBy || "-"} />
-      <DetailData label="Tanggal Dibuat" isi={detailData?.createdDate || "-"} />
-    </div>
-  );
-
-  // Komponen untuk menampilkan kolom kanan detail
-  const KolomKananDetail = () => (
-    <div className="col-lg-6 col-md-6">
-      <DetailData
-        label="Dimodifikasi Oleh"
-        isi={detailData.modifiedBy || "-"}
-      />
-      <DetailData label="Tanggal Dimodifikasi" isi={detailData.modifiedDate} />
-      <DetailData label="ID Kriteria" isi={detailData.ksrId || "-"} />
-      <DetailData label="ID Skala Penilaian" isi={detailData.skpId || "-"} />
-      <DetailData label="Tipe Skala" isi={detailData.skalaTipe || "-"} />
-    </div>
-  );
-
-  // Tampilkan loading jika data sedang dimuat
   if (loading) return <Loading />;
 
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          {/* Navigasi dan Judul */}
           <PageTitleNav
             title="Detail Kriteria Survei"
             breadcrumbs={[
@@ -121,17 +95,32 @@ export default function Detail() {
             onClick={() => navigate("/survei/kriteria")}
           />
 
-          {/* Kartu Detail */}
           <div className="shadow p-5 mt-4 bg-white rounded">
             <HeaderForm label="Detail Kriteria Survei" />
 
-            {/* Konten Detail */}
             <div className="row">
-              <KolomKiriDetail />
-              <KolomKananDetail />
+              <div className="col-md-6">
+                <DetailData label="Nama Kriteria" isi={detailData.namaKri} />
+                <DetailData label="Status" isi={detailData.status} />
+                <DetailData label="Dibuat Oleh" isi={detailData.createdBy} />
+                <DetailData
+                  label="Tanggal Dibuat"
+                  isi={detailData.createdDate}
+                />
+              </div>
+              <div className="col-md-6">
+                <DetailData
+                  label="Dimodifikasi Oleh"
+                  isi={detailData.modifiedBy}
+                />
+                <DetailData
+                  label="Tanggal Dimodifikasi"
+                  isi={detailData.modifiedDate}
+                />
+                <DetailData label="ID Kriteria" isi={detailData.idKri} />
+              </div>
             </div>
 
-            {/* Tombol Aksi */}
             <div className="d-flex justify-content-between align-items-center">
               <div className="flex-grow-1 m-2">
                 <Button
