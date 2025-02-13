@@ -648,12 +648,12 @@ export default function Pertanyaan_Survei({ onChangePage }) {
                 label="Tambah Pertanyaan"
                 onClick={() => onChangePage("add")}
               />
-              <Button
+              {/* <Button
                 iconName="file-upload"
                 classType="success"
                 label="Import Pertanyaan"
                 onClick={() => importModalRef.current.open()}
-              />
+              /> */}
               <Button
                 iconName="file-download"
                 classType="success"
