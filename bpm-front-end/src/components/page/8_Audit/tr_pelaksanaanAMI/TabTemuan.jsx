@@ -49,7 +49,7 @@ const TabTemuan = ({
       const initialFiles = pertanyaan.reduce((acc, item) => {
         if (item.berkasDokumen) {
           const berkasArray = item.berkasDokumen
-            .split(",")
+            .split(", ")
             .map((file) => file.replace(/"/g, "").trim());
 
           if (!acc[item.idPertanyaanSA]) {

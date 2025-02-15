@@ -245,7 +245,7 @@ export default function EditAnalisaTemuan({ onChangePage }) {
                           initialFiles={
                             [
                               result[0].berkasDokumen
-                                .split(",")
+                                .split(", ")
                                 .map((file) => file.replace(/"/g, "").trim()),
                             ] || []
                           }

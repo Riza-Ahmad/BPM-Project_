@@ -55,6 +55,7 @@ export default function Read({ onChangePage }) {
   const indexOfLastData = pageCurrent * pageSize;
   const indexOfFirstData = indexOfLastData - pageSize;
 
+  console.log(idMenu);
   if (activeUser) {
     role = JSON.parse(activeUser).RoleID.slice(0, 5);
     roleNama = JSON.parse(activeUser).Role;
