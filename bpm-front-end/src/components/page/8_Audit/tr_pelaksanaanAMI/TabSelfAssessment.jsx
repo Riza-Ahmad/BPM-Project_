@@ -255,73 +255,80 @@ const TabSelfAssessment = ({
                             padding: "8px",
                           }}
                         >
-                          {mode === "editSA" && (
+                          {isDraftandAuditor === false && (
                             <>
-                              <div style={{ marginBottom: "10px" }}>
-                                <RadioButton
-                                  label="Jawaban"
-                                  name={`jawaban-${item.idPertanyaanSA}`}
-                                  arrData={arrJawaban}
-                                  value={
-                                    formData[item.idPertanyaanSA]?.jawaban || ""
-                                  }
-                                  onChange={(e) =>
-                                    handleInputChange(
-                                      item.idPertanyaanSA,
-                                      "jawaban",
-                                      e.target.value
-                                    )
-                                  }
-                                  isRequired={true}
-                                  col="col-12"
-                                />
-                              </div>
+                              {mode === "editSA" && (
+                                <>
+                                  <div style={{ marginBottom: "10px" }}>
+                                    <RadioButton
+                                      label="Jawaban"
+                                      name={`jawaban-${item.idPertanyaanSA}`}
+                                      arrData={arrJawaban}
+                                      value={
+                                        formData[item.idPertanyaanSA]
+                                          ?.jawaban || ""
+                                      }
+                                      onChange={(e) =>
+                                        handleInputChange(
+                                          item.idPertanyaanSA,
+                                          "jawaban",
+                                          e.target.value
+                                        )
+                                      }
+                                      isRequired={true}
+                                      col="col-12"
+                                    />
+                                  </div>
 
-                              <div
-                                style={{
-                                  marginBottom: "10px",
-                                  maxWidth: "15rem",
-                                }}
-                              >
-                                <RadioButton
-                                  label="Kategori Temuan"
-                                  name={`kategori-${item.idPertanyaanSA}`}
-                                  arrData={arrKategori}
-                                  value={
-                                    formData[item.idPertanyaanSA]
-                                      ?.kategoriTemuan || ""
-                                  }
-                                  onChange={(e) =>
-                                    handleInputChange(
-                                      item.idPertanyaanSA,
-                                      "kategoriTemuan",
-                                      e.target.value
-                                    )
-                                  }
-                                  isRequired={true}
-                                  col="col-12"
-                                />
-                              </div>
-                            </>
-                          )}
+                                  <div
+                                    style={{
+                                      marginBottom: "10px",
+                                      maxWidth: "15rem",
+                                    }}
+                                  >
+                                    <RadioButton
+                                      label="Kategori Temuan"
+                                      name={`kategori-${item.idPertanyaanSA}`}
+                                      arrData={arrKategori}
+                                      value={
+                                        formData[item.idPertanyaanSA]
+                                          ?.kategoriTemuan || ""
+                                      }
+                                      onChange={(e) =>
+                                        handleInputChange(
+                                          item.idPertanyaanSA,
+                                          "kategoriTemuan",
+                                          e.target.value
+                                        )
+                                      }
+                                      isRequired={true}
+                                      col="col-12"
+                                    />
+                                  </div>
+                                </>
+                              )}
 
-                          {mode === "detailSA" && (
-                            <>
-                              <DetailData
-                                label="Jawaban"
-                                isi={
-                                  formData[item.idPertanyaanSA]?.jawaban || ""
-                                }
-                                colorIsi="text-black mb-4"
-                              />
+                              {mode === "detailSA" && (
+                                <>
+                                  <DetailData
+                                    label="Jawaban"
+                                    isi={
+                                      formData[item.idPertanyaanSA]?.jawaban ||
+                                      ""
+                                    }
+                                    colorIsi="text-black mb-4"
+                                  />
 
-                              <DetailData
-                                label="Temuan"
-                                isi={
-                                  formData[item.idPertanyaanSA]?.kategoriTemuan
-                                }
-                                colorIsi="text-black mb-4"
-                              />
+                                  <DetailData
+                                    label="Temuan"
+                                    isi={
+                                      formData[item.idPertanyaanSA]
+                                        ?.kategoriTemuan
+                                    }
+                                    colorIsi="text-black mb-4"
+                                  />
+                                </>
+                              )}
                             </>
                           )}
                         </td>

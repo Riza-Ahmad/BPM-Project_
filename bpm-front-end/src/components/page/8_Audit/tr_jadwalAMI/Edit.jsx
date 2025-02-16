@@ -208,6 +208,8 @@ export default function Edit({ onChangePage }) {
       // Reset pertanyaanLanjutan jika butuhDokumen kosong
       if (name === "butuhDokumen" && value.length === 0) {
         updatedData.pertanyaanLanjutan = ""; // Reset ke nilai default
+      } else if (name === "auditee") {
+        updatedData.instrumen = "";
       }
 
       return updatedData;

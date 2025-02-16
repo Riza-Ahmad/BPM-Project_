@@ -46,6 +46,7 @@ export default function Detail({ onChangePage }) {
     jenisDokSKAkr: "",
     judulDokSertifAkr: "",
     jenisDokSertifAkr: "",
+    img: "",
   });
 
   useEffect(() => {
@@ -75,6 +76,7 @@ export default function Detail({ onChangePage }) {
             fileSkAkr: obj.fileSkAkr,
             judulDokSertifAkr: obj.judulSertifAkr,
             fileSertifAkr: obj.fileSertifAkr,
+            img: obj.image,
           });
         }
       } catch (err) {
@@ -196,6 +198,20 @@ export default function Detail({ onChangePage }) {
                       label="Jenjang"
                       isi={formData.jenjangAkr ? formData.jenjangAkr : "-"}
                     />
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <div>
+                      <label className="form-label fw-bold">Foto Elemen</label>
+                      <br />
+                      <img
+                        src={
+                          formData.img ? `/programStudi/${formData.img}` : ""
+                        }
+                        alt="Uploaded"
+                        className="img-fluid mb-3"
+                        style={{ maxHeight: "8rem" }}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

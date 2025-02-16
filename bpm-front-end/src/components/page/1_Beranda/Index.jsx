@@ -23,72 +23,7 @@ export default function Index() {
   const [beritaData, setBeritaData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [akreditasiData, setDataAkreditasi] = useState([
-    {
-      id: 1,
-      jenjang: "Diploma 3",
-      programStudi: "Manajemen Informatika (MI)",
-      sertifikat: "link",
-      foto: "min.png",
-      akre: "Unggul", // Added accreditation field
-    },
-    {
-      id: 2,
-      jenjang: "Diploma 3",
-      programStudi: "Teknologi Rekayasa Logistik (TRL)",
-      sertifikat: "link",
-      foto: "trl.png",
-      akre: "Baik", // Added accreditation field
-    },
-    {
-      id: 3,
-      jenjang: "Diploma 3",
-      programStudi: "Mekatronika (MK)",
-      sertifikat: "link",
-      foto: "mk.png",
-      akre: "A", // Added accreditation field
-    },
-    {
-      id: 4,
-      jenjang: "Diploma 3",
-      programStudi: "Teknik Produksi dan Manufaktur (TPM)",
-      sertifikat: "link",
-      foto: "tpm.png",
-      akre: "Unggul", // Added accreditation field
-    },
-    {
-      id: 5,
-      jenjang: "Diploma 3",
-      programStudi: "Teknik Rekayasa Pemeliharaan Alat Berat (TRPAB)",
-      sertifikat: "link",
-      foto: "trpab.png",
-      akre: "Baik", // Added accreditation field
-    },
-    {
-      id: 6,
-      jenjang: "Diploma 3",
-      programStudi: "Pembuatan Peralatan dan Perkakas Produksi (P4)",
-      sertifikat: "link",
-      foto: "p4.png",
-      akre: "A", // Added accreditation field
-    },
-    {
-      id: 7,
-      jenjang: "Diploma 3",
-      programStudi: "Teknologi Rekayasa Perangkat Lunak (TRPL)",
-      sertifikat: "link",
-      foto: "trpl.png",
-      akre: "Unggul", // Added accreditation field
-    },
-    {
-      id: 8,
-      jenjang: "Diploma 3",
-      programStudi: "Mesin Otomotif (MO)",
-      sertifikat: "link",
-      foto: "mo.png",
-      akre: "Baik", // Added accreditation field
-    },
-  ]);
+  const [akreditasiData, setDataAkreditasi] = useState([]);
 
   const [rencanaKegiatan, setRencanaKegiatan] = useState([]);
 
@@ -135,6 +70,24 @@ export default function Index() {
     };
 
     fetchJenisKegiatan();
+  }, []);
+
+  useEffect(() => {
+    const fetchAkreProdi = async () => {
+      try {
+        const data = await useFetch(
+          `${API_LINK}/Utilities/GetListAkreditasiProdi`,
+          {},
+          "POST"
+        );
+
+        setDataAkreditasi(data);
+      } catch (error) {
+        setError(error.message);
+      }
+    };
+
+    fetchAkreProdi();
   }, []);
 
   useEffect(() => {
@@ -309,7 +262,11 @@ export default function Index() {
         </div>
       </div>
 
-      <SliderProgramStudi akreditasiData={akreditasiData} />
+      {akreditasiData && (
+        <>
+          <SliderProgramStudi akreditasiData={akreditasiData} />
+        </>
+      )}
 
       <HeaderText
         label="Berita BPM Terkini"
