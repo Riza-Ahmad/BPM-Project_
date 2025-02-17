@@ -191,7 +191,6 @@ export default function Preview({ onChangePage }) {
               <TabPreviewSurvei
                 header={kriteria}
                 pertanyaan={pertanyaan}
-                onDataChange={handleDataChange}
                 mode="detailSurvei"
               />
             </div>

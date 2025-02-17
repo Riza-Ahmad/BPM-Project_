@@ -384,9 +384,13 @@ export default function EditTemplateSurvei({ onChangePage }) {
     }
 
     try {
+      console.log("Data Terupdate: ", {
+        idEdit: idEdit,
+        pertanyaanBaru: pertanyaanBaru,
+      });
       // Kirim permintaan ke backend menggunakan useFetch
       const createResponse = await useFetch(
-        `${API_LINK}/MasterInstrumenAudit/EditDataInstrumenAuditPertanyaan`,
+        `${API_LINK}/TemplateSurvei/EditTamplatePertanyaanSurveixx`,
         { idEdit: idEdit, pertanyaanBaru: pertanyaanBaru }
       );
 
