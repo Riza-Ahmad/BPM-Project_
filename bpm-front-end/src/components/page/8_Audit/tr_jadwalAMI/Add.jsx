@@ -112,6 +112,7 @@ export default function Add({ onChangePage }) {
   useEffect(() => {
     const fetchUser = async () => {
       setLoading(true);
+
       try {
         const result = await useFetch(
           `${API_LINK}/MasterBagianAuditee/GetDataUser`,
@@ -124,6 +125,7 @@ export default function Add({ onChangePage }) {
           setTotalData(0);
         } else {
           const arrResult = Object.values(result);
+
           setUserData(arrResult);
           setTotalData(arrResult[0].TotalCount);
         }
@@ -518,7 +520,13 @@ export default function Add({ onChangePage }) {
                         pageSize={pageSize}
                         pageCurrent={pageCurrent}
                         totalData={totalData}
-                        navigation={setPageCurrent}
+                        navigation={(e) => {
+                          setPageCurrent(e);
+                          setCurrentFilter((prevFilter) => ({
+                            ...prevFilter,
+                            param5: e,
+                          }));
+                        }}
                       />
                     </div>
                   )}
