@@ -62,7 +62,7 @@ const ProductPerformance = ({ labels, sourceData }) => {
   };
   return (
     <div
-      className="bg-white mt-2 mb-5 p-5 bg-light border rounded d-flex flex-column justify-content-center align-items-center"
+      className="bg-white mt-2 mb-2 p-5 bg-light border rounded d-flex flex-column justify-content-center align-items-center"
       style={{ maxHeight: "25rem" }}
     >
       <h2 className="text-center">{labels}</h2>
