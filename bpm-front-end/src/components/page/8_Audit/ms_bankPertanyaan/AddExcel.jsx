@@ -10,6 +10,8 @@ import Loading from "../../../part/Loading";
 import FileUpload from "../../../part/FileUpload";
 import * as XLSX from "xlsx";
 import { useFetch } from "../../../util/useFetch";
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 
 const template = "/template/Template_BankPertanyaan.xlsx";
 const templateIso = "/template/Template_BankPertanyaanISO.xlsx";
@@ -32,11 +34,13 @@ export default function Add({ onChangePage }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [pageSize] = useState(100);
+  const [pageCurrent, setPageCurrent] = useState(1);
 
   const [currentFilter, setCurrentFilter] = useState({
     param1: "Aktif",
     param2: "",
-    param3: "namaKri ASC",
+    param3: "idKri ASC",
     param4: pageSize,
     param5: pageCurrent,
   });
@@ -69,6 +73,149 @@ export default function Add({ onChangePage }) {
     fetchKriteria();
     console.log(kriteria);
   }, []);
+
+  const handleDownload = async () => {
+    // Buat workbook dan worksheet
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Pertanyaan");
+
+    // Data untuk sheet "Pertanyaan"
+    const sheet1Data = [
+      [
+        "Daftar ID Kriteria dapat dilihat pada Sheet Daftar Kriteria",
+        "Isikan Pertanyaan",
+        "1 = Butuh, 0 = Tidak Butuh",
+        "Dokumen1,Dokumen2,…..(Kosongan Jika Tidak Butuh Dokumen Pendukung)",
+        "1 = Ya, 0 = Tidak",
+      ],
+      [
+        "ID Kriteria",
+        "Pertanyaan",
+        "Dokumen Pendukung",
+        "Dokumen Pendukung Keterangan",
+        "Jenis IKT?",
+      ],
+      [11, "Pertanyaan1", 1, "Dokumen1", 0],
+      [15, "Pertanyaan2", 0, "", 1],
+    ];
+
+    // Tambahkan data ke worksheet
+    sheet1Data.forEach((row) => {
+      worksheet.addRow(row);
+    });
+
+    // Atur lebar kolom
+    worksheet.columns = [
+      { width: 15 },
+      { width: 70 },
+      { width: 20 },
+      { width: 40 },
+      { width: 15 },
+    ];
+
+    worksheet.getRow(1).eachCell((cell) => {
+      cell.font = { bold: false };
+      cell.alignment = {
+        horizontal: "center",
+        vertical: "middle",
+        wrapText: true,
+      }; // Wrap Text Aktif
+      cell.border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+    });
+
+    worksheet.getRow(2).eachCell((cell) => {
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "B4C6E7" },
+      };
+      cell.font = { bold: true };
+      cell.alignment = {
+        horizontal: "center",
+        vertical: "middle",
+        wrapText: true,
+      }; // Wrap Text Aktif
+      cell.border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+    });
+
+    // Atur alignment untuk kolom A, C, dan E di baris 1 dan 2
+    worksheet.getColumn(1).eachCell((cell) => {
+      cell.alignment = {
+        horizontal: "center",
+        vertical: "middle",
+        wrapText: true,
+      };
+    });
+
+    worksheet.getColumn(3).eachCell((cell) => {
+      cell.alignment = {
+        horizontal: "center",
+        vertical: "middle",
+        wrapText: true,
+      };
+    });
+
+    worksheet.getColumn(5).eachCell((cell) => {
+      cell.alignment = {
+        horizontal: "center",
+        vertical: "middle",
+        wrapText: true,
+      };
+    });
+
+    // Buat sheet kedua "Daftar Kriteria"
+    const sheetKriteria = workbook.addWorksheet("Daftar Kriteria");
+    sheetKriteria.addRow(["ID Kriteria", "Nama Kriteria"]);
+    kriteria.forEach((item) => {
+      sheetKriteria.addRow([item.idKri, item.namaKri]);
+    });
+
+    sheetKriteria.columns = [{ width: 15 }, { width: 70 }];
+    sheetKriteria.getRow(1).eachCell((cell) => {
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "B4C6E7" },
+      };
+      cell.font = { bold: true };
+      cell.alignment = {
+        horizontal: "center",
+        vertical: "middle",
+        wrapText: true,
+      }; // Wrap Text Aktif
+      cell.border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+    });
+
+    sheetKriteria.getColumn(1).eachCell((cell) => {
+      cell.alignment = {
+        horizontal: "center",
+        vertical: "middle",
+        wrapText: true,
+      };
+    });
+
+    // Simpan file
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(
+      new Blob([buffer], { type: "application/octet-stream" }),
+      "Template_Bank_Pertanyaan.xlsx"
+    );
+  };
 
   const handleFileChange = (file) => {
     if (!file) {
@@ -275,19 +422,14 @@ export default function Add({ onChangePage }) {
                 </label>
                 <br />
                 <a
-                  href={template}
-                  download="Template_BankPertanyaan.xlsx"
-                  style={{ textDecoration: "none" }}
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleDownload();
+                  }}
+                  style={{ textDecoration: "none", cursor: "pointer" }}
                 >
                   Unduh Template Pertanyaan Excel
-                </a>
-                <br />
-                <a
-                  href={templateIso}
-                  download="Template_BankPertanyaanISO.xlsx"
-                  style={{ textDecoration: "none" }}
-                >
-                  Unduh Template Pertanyaan Excel ISO 9001
                 </a>
               </div>
 
