@@ -21,7 +21,7 @@ const expectedHeaders = [
   "ID Kriteria", // Kolom 1
   "Pertanyaan", // Kolom 2
   "Dokumen Pendukung", // Kolom 3
-  "Dokumen Pendukung", // Kolom 4
+  "Dokumen Pendukung Keterangan", // Kolom 4
   "Jenis IKT?", // Kolom 5
 ];
 
