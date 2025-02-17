@@ -169,7 +169,11 @@ export default function Read({ onChangePage }) {
                 "Revisi Ke": item.revisiDokFormatted,
                 "Judul Dokumen": item.judulDok,
                 "Nama Berkas (File)": item.fileDok,
-                "Tanggal Unggah": item.tglUnggah,
+                "Tanggal Unggah": new Date(item.tglUnggah).toLocaleDateString("id-ID", {
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+                }),
                 "Di Unggah Oleh": item.createdBy,
                 status: item.status,
               }))}
