@@ -72,7 +72,14 @@ export default function Add({ onChangePage }) {
           setSkpOptions(
             filteredSkp.map((item) => ({
               value: item.skp_id,
-              Text: item.skp_skala + " (" + item.skp_deskripsi + ")",
+              Text:
+                item.skp_tipe +
+                " (" +
+                item.skp_skala +
+                ")" +
+                " (" +
+                item.skp_deskripsi +
+                ")",
             }))
           );
         }
