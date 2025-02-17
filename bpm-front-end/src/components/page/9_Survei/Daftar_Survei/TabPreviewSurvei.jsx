@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "moment/locale/id";
 import HeaderText from "../../../part/HeaderText.jsx";
 import { useIsMobile } from "../../../util/useIsMobile.js";
@@ -7,7 +7,7 @@ import TextArea from "../../../part/TextArea.jsx";
 import RadioButton from "../../../part/RadioButton.jsx";
 import FileUpload from "../../../part/FileUploadMulti.jsx";
 import DetailData from "../../../part/DetailData.jsx";
-import CheckBox from "../../../part/CheckBox";
+import CheckBox from "../../../part/CheckBoxTable.jsx";
 import InputArea from "../../../part/InputArea";
 import InputField from "../../../part/InputField";
 
@@ -49,7 +49,7 @@ const TabPreviewSurvei = ({
   useEffect(() => {
     if (!isInitialized && pertanyaan.length > 0) {
       const initialFormData = pertanyaan.reduce((acc, item) => {
-        acc[item.idPertanyaanSA] = {
+        acc[item.idDetailJawabanSurvei] = {
           jawaban: decodeHtml(item.jawabanSurvei) || "",
           komen: item.komenSurvei || "",
         };
@@ -71,6 +71,63 @@ const TabPreviewSurvei = ({
     onDataChange(updatedFormData);
   };
 
+  // const handleChange = (e, id, field) => {
+  //   const { value, checked, valueNow } = e.target;
+  //   // Jika value adalah array, ambil elemen pertamanya sebagai string
+  //   console.log("Checked awal: ", checked);
+  //   setFormData((prev) => {
+  //     const prevData = prev[id]?.[field] || []; // Ambil data sebelumnya atau array kosong
+  //     let updatedResponden;
+  //     setTimeout(() => console.log("PrevData awal: ", prevData), 0);
+  //     setTimeout(() => console.log("Value awal: ", value), 0);
+
+  //     if (checked) {
+  //       updatedResponden = [value]; // Tambahkan value jika dicentang
+  //     } else {
+  //       updatedResponden = prevData.filter(
+  //         (item) => String(item) !== String(valueNow)
+  //       );
+  //     }
+  //     setTimeout(() => console.log("hasilnya : ", updatedResponden), 0);
+
+  //     return {
+  //       ...prev,
+  //       [id]: {
+  //         ...prev[id],
+  //         [field]: Array.from(new Set(updatedResponden.flat())), // Hapus duplikat & pastikan array tetap satu dimensi
+  //       },
+  //     };
+  //   });
+  //   console.log(formData);
+  // };
+
+  const handleChange = (e, id, field) => {
+    const { value, checked, valueNow } = e.target;
+    setFormData((prev) => {
+      let updatedResponden;
+      updatedResponden = value;
+
+      return {
+        ...prev,
+        [id]: {
+          [field]: updatedResponden, // Hapus duplikat & pastikan array tetap satu dimensi
+        },
+      };
+    });
+
+    onDataChange((prev) => {
+      let updatedResponden;
+      updatedResponden = value;
+
+      return {
+        ...prev,
+        [id]: {
+          [field]: updatedResponden, // Hapus duplikat & pastikan array tetap satu dimensi
+        },
+      };
+    });
+  };
+
   const handleExpandToggle = (index) => {
     setExpandedIndexes((prevIndexes) => {
       if (prevIndexes.includes(index)) {
@@ -81,7 +138,9 @@ const TabPreviewSurvei = ({
   };
 
   const arrDataList = generateArrData(pertanyaan);
-  console.log("arrDataList :", arrDataList);
+  const CheckBoxRef = useRef();
+
+  //console.log("arrDataList :", arrDataList);
 
   const renderContent = (arrData) => {
     if (arrData.skalaTipe === "RadioButton") {
@@ -116,14 +175,14 @@ const TabPreviewSurvei = ({
     } else if (arrData.skalaTipe === "CheckBox") {
       return (
         <CheckBox
+          ref={CheckBoxRef}
           label="Bebas pilih lebih dari satu!"
-          forInput="upload-file"
           arrData={arrData.arrData}
           name={`jawaban-${arrData.idPertanyaan}`}
-          value={formData[arrData.idPertanyaan]?.jawaban || ""}
-          onChange={(e) =>
-            handleInputChange(arrData.idPertanyaan, "jawaban", e.target.value)
-          }
+          values={formData[arrData.idPertanyaan]?.jawaban || []}
+          onChange={(e) => {
+            handleChange(e, arrData.idPertanyaan, "jawaban");
+          }}
           isRequired={true}
         />
       );

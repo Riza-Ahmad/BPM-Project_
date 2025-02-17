@@ -3,6 +3,7 @@ import ScrollToTop from "../../../part/ScrollToTop";
 import ProtectedRoute from "../../../util/ProtectedRoute";
 import Index from "./Index";
 import Add from "./Add";
+import AddPertanyaan from "./AddPertanyaan";
 import Edit from "./Edit";
 import Detail from "./Detail";
 import Preview from "./Preview";
@@ -22,6 +23,11 @@ export default function Template_Survei() {
       case "add":
         navigate(`${currentPath}`, {
           state: { mode: "add", ...withState },
+        });
+        break;
+      case "addpertanyaan":
+        navigate(`${currentPath}`, {
+          state: { mode: "addpertanyaan", ...withState },
         });
         break;
       case "edit":
@@ -57,6 +63,8 @@ export default function Template_Survei() {
             <ProtectedRoute isRole={true}>
               {mode === "add" ? (
                 <Add onChangePage={handlePageChange} />
+              ) : mode === "addpertanyaan" ? (
+                <AddPertanyaan onChangePage={handlePageChange} />
               ) : mode === "edit" ? (
                 <Edit onChangePage={handlePageChange} />
               ) : mode === "detail" ? (

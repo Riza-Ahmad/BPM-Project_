@@ -80,22 +80,17 @@ export default function Daftar_Survei({ onChangePage }) {
   const fetchSurvei = async () => {
     setLoading(true);
     try {
-      console.log(activeUser);
-      console.log("hahaha");
-      console.log(currentFilter);
       const result = await useFetch(
         `${API_LINK}/TransaksiSurvei/GetDataDaftarSurveixx`,
         currentFilter,
         "POST"
       );
-      console.log("jalan");
-      console.log(result);
       if (result === "ERROR" || result === null || result.length === 0) {
         setFilteredData([]);
         setTotalData(0);
       } else {
         const arrResult = Object.values(result);
-        // console.log(arrResult);
+        console.log("Status nih:", arrResult);
         setFilteredData(arrResult);
         setTotalData(arrResult[0].TotalCount);
       }
@@ -204,9 +199,15 @@ export default function Daftar_Survei({ onChangePage }) {
                   Key: item.idSurvei,
                   No: (pageCurrent - 1) * pageSize + index + 1,
                   "Nama Survei": item.namaSurvei,
+                  Status: item.statusTerjawab,
                 }))}
-                actions={["Edit"]}
+                actions={(item) =>
+                  item.Status === "Belum Terjawab" ? ["Edit"] : ["Detail"]
+                }
                 onEdit={(item) => onChangePage("edit", { idData: item.Key })}
+                onDetail={(item) =>
+                  onChangePage("detail", { idData: item.Key })
+                }
               />
             )}
 

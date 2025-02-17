@@ -4,6 +4,7 @@ import ProtectedRoute from "../../../util/ProtectedRoute";
 import { ROOT_LINK } from "../../../util/Constants";
 import Index from "./Index";
 // import Add from "./Add";
+import Detail from "./DetailSurvei";
 import Edit from "./EditSurvei";
 import Preview from "./Preview";
 
@@ -24,6 +25,11 @@ export default function Daftar_Survei() {
       case "preview":
         navigate(`${currentPath}`, {
           state: { mode: "preview", ...withState },
+        });
+        break;
+      case "detail":
+        navigate(`${currentPath}`, {
+          state: { mode: "detail", ...withState },
         });
         break;
       default:
@@ -47,6 +53,8 @@ export default function Daftar_Survei() {
                 <Edit onChangePage={handlePageChange} />
               ) : mode === "preview" ? (
                 <Preview onChangePage={handlePageChange} />
+              ) : mode === "detail" ? (
+                <Detail onChangePage={handlePageChange} />
               ) : (
                 <Index onChangePage={handlePageChange} />
               )}

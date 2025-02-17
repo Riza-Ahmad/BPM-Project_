@@ -6,13 +6,14 @@ import Button from "../../../part/Button";
 import Loading from "../../../part/Loading";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
+import { decodeHtml } from "../../../util/DecodeHtml.js";
 import { useFetch } from "../../../util/useFetch";
 import SweetAlert from "../../../util/SweetAlert";
 import { useLocation, useNavigate } from "react-router-dom";
 import TabPreviewSurvei from "./TabPreviewSurvei";
 import Cookies from "js-cookie";
 
-export default function EditSurvei({ onChangePage }) {
+export default function DetailSurvei({ onChangePage }) {
   const activeUser = Cookies.get("activeUser");
   let role = ""; // Jika undefined, gunakan nilai default
   let roleNama = "";
@@ -195,7 +196,6 @@ export default function EditSurvei({ onChangePage }) {
           id: Number(key),
           jawaban: value.jawaban,
         };
-        console.log("Data Ke- ", updatedObject);
 
         const createResponseJawaban = await useFetch(
           `${API_LINK}/TransaksiSurvei/UpdateDaftarSurveiJawabanByUserxx`,
@@ -284,27 +284,8 @@ export default function EditSurvei({ onChangePage }) {
                 header={kriteria}
                 pertanyaan={pertanyaan}
                 onDataChange={handleDataChange}
+                mode="detailSurvei"
               />
-              <div className="d-flex justify-content-between align-items-center">
-                <div className="flex-grow-1 m-2">
-                  <Button
-                    classType="primary"
-                    type="submit"
-                    label="Simpan"
-                    width="100%"
-                    onClick={handleSubmit}
-                  />
-                </div>
-                <div className="flex-grow-1 m-2">
-                  <Button
-                    classType="danger"
-                    type="button"
-                    label="Batal"
-                    width="100%"
-                    onClick={() => onChangePage("index")}
-                  />
-                </div>
-              </div>
             </div>
           </div>
         </div>
