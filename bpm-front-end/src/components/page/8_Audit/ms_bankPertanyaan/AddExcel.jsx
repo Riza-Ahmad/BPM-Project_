@@ -13,9 +13,6 @@ import { useFetch } from "../../../util/useFetch";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 
-const template = "/template/Template_BankPertanyaan.xlsx";
-const templateIso = "/template/Template_BankPertanyaanISO.xlsx";
-
 // Definisikan struktur header yang diharapkan
 const expectedHeaders = [
   "ID Kriteria", // Kolom 1
