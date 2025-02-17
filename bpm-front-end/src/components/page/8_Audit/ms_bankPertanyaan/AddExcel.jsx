@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PageTitleNav from "../../../part/PageTitleNav";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
@@ -32,6 +32,43 @@ export default function Add({ onChangePage }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
+
+  const [currentFilter, setCurrentFilter] = useState({
+    param1: "Aktif",
+    param2: "",
+    param3: "namaKri ASC",
+    param4: pageSize,
+    param5: pageCurrent,
+  });
+
+  const [kriteria, setKriteria] = useState({});
+
+  const fetchKriteria = async () => {
+    setLoading(true);
+    try {
+      const result = await useFetch(
+        `${API_LINK}/MasterKriteria/GetDataKriteria`,
+        currentFilter,
+        "POST"
+      );
+
+      if (result === "ERROR" || result === null || result.length === 0) {
+        setKriteria([]);
+      } else {
+        const arrResult = Object.values(result);
+        setKriteria(arrResult);
+      }
+    } catch (err) {
+      setError("Gagal mengambil data: " + err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchKriteria();
+    console.log(kriteria);
+  }, []);
 
   const handleFileChange = (file) => {
     if (!file) {

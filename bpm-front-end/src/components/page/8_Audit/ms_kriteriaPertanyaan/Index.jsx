@@ -94,6 +94,7 @@ export default function Index({ onChangePage }) {
 
   useEffect(() => {
     fetchKriteria();
+    console.log(filteredData);
   }, [currentFilter]);
 
   const handleOpenModal = (type, data = null) => {
