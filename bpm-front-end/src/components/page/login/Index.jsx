@@ -8,6 +8,7 @@ import Button from "../../part/Button";
 import Cookies from "js-cookie"; // Import js-cookie for cookie handling
 import { API_LINK } from "../../util/Constants";
 import { useFetch } from "../../util/useFetch";
+import SweetAlert from "../../util/SweetAlert";
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -35,7 +36,7 @@ export default function Login() {
         );
 
         if (data.status === "LOGIN FAILED") {
-          alert("Login failed");
+          SweetAlert("Gagal!", "Username atau Password salah", "error", "OK");
           return;
         } else {
           const userData = data[0];

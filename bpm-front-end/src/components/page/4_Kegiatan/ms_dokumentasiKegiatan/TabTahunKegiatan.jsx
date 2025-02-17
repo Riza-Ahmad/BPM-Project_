@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import moment from "moment";
 import "moment/locale/id";
+import { decodeHtml } from "../../../util/DecodeHtml.js";
 import CardKegiatan from "../../../part/CardKegiatan.jsx";
 import HeaderText from "../../../part/HeaderText.jsx";
 import { useIsMobile } from "../../../util/useIsMobile.js";
@@ -94,7 +95,7 @@ const TabTahunKegiatan = ({ year, kegiatanList, selectedId }) => {
                         kegiatan.endTime
                       )}`}
                       location={kegiatan.location}
-                      image={kegiatan.image}
+                      image={decodeHtml(kegiatan.image)}
                       galleryLink={kegiatan.linkFolder}
                       fileNotulen={KEGIATANFILE_LINK + kegiatan.fileNotulen}
                       statusFileNotulen={kegiatan.statusFileNotulen}

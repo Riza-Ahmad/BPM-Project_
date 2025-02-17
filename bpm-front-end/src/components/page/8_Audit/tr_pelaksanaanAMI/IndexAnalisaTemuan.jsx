@@ -147,6 +147,7 @@ export default function Index({ onChangePage }) {
 
   const handleDownload = async () => {
     try {
+      console.log(JSON.stringify({ id: idData }));
       const response = await fetch(
         `${API_LINK}/ExportExcel/GenerateExcelFromTemplate`,
         {

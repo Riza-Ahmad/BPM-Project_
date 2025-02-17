@@ -205,6 +205,19 @@ export default function Add({ onChangePage }) {
       return;
     }
 
+    const leadAuditor = leadAuditorRef.current?.value;
+    const auditor = auditorRef.current?.value;
+    if (leadAuditor === auditor) {
+      SweetAlert(
+        "Perhatian!",
+        "Lead Auditor tidak boleh sama dengan Auditor.",
+        "warning",
+        "OK"
+      );
+      leadAuditorRef.current?.focus();
+      return;
+    }
+
     if (!isTgl) {
       tglAMIref.current?.focus();
       return;

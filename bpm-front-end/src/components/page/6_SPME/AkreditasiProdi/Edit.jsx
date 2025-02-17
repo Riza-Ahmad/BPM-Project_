@@ -32,6 +32,18 @@ const arrStatus = [
   { Value: "Tidak Aktif", Text: "Tidak Aktif" },
 ];
 
+const arrProdi = [
+  { Value: "min.png", Text: "Manajemen Informatika" },
+  { Value: "mk.png", Text: "Mekatronika" },
+  { Value: "mo.png", Text: "Mesin Otomotif" },
+  { Value: "p4.png", Text: "Pembuatan Peralatan dan Perkakas Produksi" },
+  { Value: "tkbg.png", Text: "Teknik Konstruksi Bangunan" },
+  { Value: "tpm.png", Text: "Teknik Produksi dan Manufaktur" },
+  { Value: "trl.png", Text: "Teknologi Rekayasa Logistik" },
+  { Value: "trpab.png", Text: "Teknik Rekasayasa Pemeliharaan Alat Berat" },
+  { Value: "trpl.png", Text: "Teknologi Rekasayasa Perangkat Lunak" },
+];
+
 export default function Edit({ onChangePage }) {
   const activeUser = Cookies.get("activeUser");
   let role = ""; // Jika undefined, gunakan nilai default
@@ -99,6 +111,7 @@ export default function Edit({ onChangePage }) {
     fileSertifAkr: "",
     judulDokSertifAkr: "",
     jenisDokSertifAkr: "",
+    img: "",
   });
 
   const [fileSK, setFileSK] = useState(null);
@@ -161,6 +174,7 @@ export default function Edit({ onChangePage }) {
             fileSkAkr: obj.fileSkAkr,
             judulDokSertifAkr: obj.judulSertifAkr,
             fileSertifAkr: obj.fileSertifAkr,
+            img: obj.image,
           });
         }
       } catch (err) {
@@ -264,6 +278,7 @@ export default function Edit({ onChangePage }) {
         kadaluarsaAkr: formData.kadaluarsaAkr ? formData.kadaluarsaAkr : "",
         SKAkr: displayLov.fileSkAkr ? displayLov.fileSkAkr : "",
         SertifAkr: displayLov.fileSertifAkr ? displayLov.fileSertifAkr : "",
+        img: formData.img,
       };
 
       console.log(AkreData);
@@ -352,6 +367,17 @@ export default function Edit({ onChangePage }) {
                       name="jenjangAkr"
                       type="text"
                       maxChar="20"
+                    />
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <DropDown
+                      name="img"
+                      arrData={arrProdi}
+                      type="pilih"
+                      label="Image"
+                      value={formData.img || ""}
+                      onChange={handleChange}
+                      isRequired={true}
                     />
                   </div>
                 </div>

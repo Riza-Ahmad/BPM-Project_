@@ -102,7 +102,7 @@ export default function Edit({ onChangePage }) {
     setLoading(true);
     try {
       const result = await useFetch(
-        `${API_LINK}/MasterBankPertanyaanAudit/GetDataBankPertanyaanAudit`,
+        `${API_LINK}/MasterInstrumenAudit/GetAllPertanyaanByInstrumenId`,
         {
           param1: searchKeyword,
           param2: selectedSort,
@@ -110,6 +110,7 @@ export default function Edit({ onChangePage }) {
           param4: pageCurrent,
           param5: selectedStatus,
           param6: selectedKriteria,
+          param7: idData,
         }
       );
 
@@ -199,10 +200,13 @@ export default function Edit({ onChangePage }) {
   const fetchData = async () => {
     setLoading(true);
     try {
+      console.log(formData.pertanyaan);
       const result = await useFetch(
         `${API_LINK}/MasterInstrumenAudit/GetPertanyaanByIds`,
         { param: formData.pertanyaan }
       );
+
+      console.log(result);
 
       if (result === "ERROR" || result === null || result.length === 0) {
         setPertanyaan([]);
@@ -469,6 +473,22 @@ export default function Edit({ onChangePage }) {
     };
 
     try {
+      const paData = {
+        pertanyaan: formPertanyaan.pertanyaan,
+        namaKri: formPertanyaan.kriteria,
+        id: "",
+      };
+      const result = await useFetch(
+        `${API_LINK}/MasterBankPertanyaanAudit/CheckBankPertanyaanAudit`,
+        paData,
+        "POST"
+      );
+
+      if (result.length > 0) {
+        SweetAlert("Gagal!", "Data Pertanyaan sudah ada", "error", "OK");
+        return;
+      }
+
       const createResponse = await useFetch(
         `${API_LINK}/MasterInstrumenAudit/CreateBankPertanyaandiInstrumen`,
         dataToSend,

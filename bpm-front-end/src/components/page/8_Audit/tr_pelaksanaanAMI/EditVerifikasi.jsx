@@ -115,7 +115,7 @@ export default function EditVerifikasi({ onChangePage }) {
 
     const confirm = await SweetAlert(
       "Apakah Anda yakin ingin melakukan Verifikasi tindakan ini?",
-      "Data tidak akan bisa diubah jika Verifikasi Tindakan Audit Mutu Internal sudah difinalkan",
+      "Data tidak akan bisa diubah jika Verifikasi Tindakan pada Temuan Audit Mutu Internal sudah difinalkan",
       "warning",
       "Ya, Finalkan",
       null,
@@ -234,7 +234,7 @@ export default function EditVerifikasi({ onChangePage }) {
                           initialFiles={
                             [
                               result[0].berkasDokumen
-                                .split(",")
+                                .split(", ")
                                 .map((file) => file.replace(/"/g, "").trim()),
                             ] || []
                           }

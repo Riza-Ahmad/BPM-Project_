@@ -208,6 +208,8 @@ export default function Edit({ onChangePage }) {
       // Reset pertanyaanLanjutan jika butuhDokumen kosong
       if (name === "butuhDokumen" && value.length === 0) {
         updatedData.pertanyaanLanjutan = ""; // Reset ke nilai default
+      } else if (name === "auditee") {
+        updatedData.instrumen = "";
       }
 
       return updatedData;
@@ -262,6 +264,19 @@ export default function Edit({ onChangePage }) {
 
     if (!isAuditor) {
       auditorRef.current?.focus();
+      return;
+    }
+
+    const leadAuditor = leadAuditorRef.current?.value;
+    const auditor = auditorRef.current?.value;
+    if (leadAuditor === auditor) {
+      SweetAlert(
+        "Perhatian!",
+        "Lead Auditor tidak boleh sama dengan Auditor.",
+        "warning",
+        "OK"
+      );
+      leadAuditorRef.current?.focus();
       return;
     }
 

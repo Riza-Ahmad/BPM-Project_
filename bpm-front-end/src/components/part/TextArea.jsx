@@ -89,8 +89,13 @@ const TextArea = React.forwardRef(
           value={editorValue}
           config={{
             readonly: isDisabled,
+            toolbarSticky: true,
+            toolbarStickyOffset: 0,
+            height: 300,
+            style: {
+              overflow: "auto", // Mengaktifkan scroll
+            },
             toolbarButtonSize: "middle",
-            toolbarSticky: false,
             placeholder: "Start typing here...",
             buttons: [
               "bold",

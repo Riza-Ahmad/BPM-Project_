@@ -27,6 +27,9 @@ const arrProdi = [
   { Value: "p4.png", Text: "Pembuatan Peralatan dan Perkakas Produksi" },
   { Value: "tkbg.png", Text: "Teknik Konstruksi Bangunan" },
   { Value: "tpm.png", Text: "Teknik Produksi dan Manufaktur" },
+  { Value: "trl.png", Text: "Teknologi Rekayasa Logistik" },
+  { Value: "trpab.png", Text: "Teknik Rekasayasa Pemeliharaan Alat Berat" },
+  { Value: "trpl.png", Text: "Teknologi Rekasayasa Perangkat Lunak" },
 ];
 
 export default function Add({ onChangePage }) {
