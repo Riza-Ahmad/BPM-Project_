@@ -8,61 +8,57 @@ import Swal from "sweetalert2";
 import DetailData from "../../../part/DetailData";
 import HeaderForm from "../../../part/HeaderText";
 import Loading from "../../../part/Loading";
-import { useFetch } from "../../../util/useFetch";
 
-const formatTanggal = (tanggal) => {
-  if (!tanggal) return "-";
-  return new Date(tanggal).toLocaleDateString("id-ID", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-};
+const formatTanggal = (tanggal) =>
+  tanggal
+    ? new Date(tanggal).toLocaleDateString("id-ID", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : "-";
 
 export default function Detail() {
   const navigate = useNavigate();
   const { detailId } = useParams();
   const isMobile = useIsMobile();
+  const [detailData, setDetailData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [detailData, setDetailData] = useState({
-    pty_pertanyaan: "",
-    pty_status: "",
-    ksr_id: "",
-    skp_id: "",
-    ksr_nama: "",
-    skp_tipe: "",
-    skp_skala: "",
-    skp_deskripsi: "",
-  });
 
   useEffect(() => {
     const fetchDetail = async () => {
-      setLoading(true);
       try {
-        // Kirim ID dalam format array JSON
-        const requestBody = JSON.stringify([detailId]);
-
-        const result = await useFetch(
-          `${API_LINK}/MasterPertanyaan/GetDataPertanyaanById`,
-          requestBody,
-          "POST"
+        const response = await fetch(
+          `${API_LINK}/MasterPertanyaan/GetDataPertanyaanByIdDetail`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ p1: detailId }),
+          }
         );
 
-        console.log("Hasil Fetch:", result); // Debugging
+        if (!response.ok) {
+          throw new Error("Gagal mengambil data detail");
+        }
 
-        if (result && result.length > 0) {
-          const data = result[0];
-
+        const result = await response.json();
+        if (result.length > 0) {
+          const data = result[0]; // Ambil data pertama dari array
           setDetailData({
-            pty_pertanyaan: data.pertanyaan || "-",
-            pty_status: data.status || "-",
+            idBank: data.idBank || "-",
+            pertanyaan: data.pertanyaan || "-",
+            status: data.status || "-",
             ksr_id: data.ksr_id || "-",
+            namaKri: data.namaKri || "-",
             skp_id: data.skp_id || "-",
-            ksr_nama: data.namaKri || "-",
-            skp_tipe: data.tipeSka || "-",
-            skp_skala: data.skala || "-",
-            skp_deskripsi: data.deskSka || "-",
+            tipeSka: data.tipeSka || "-",
+            skala: data.skala || "-",
+            deskSka: data.deskSka || "-",
+            createdBy: data.createdBy || "-",
+            createdDate: formatTanggal(data.createdDate),
+            modifiedBy: data.modifiedBy || "-",
+            modifiedDate: formatTanggal(data.modifiedDate),
           });
         } else {
           throw new Error("Data tidak ditemukan");
@@ -80,12 +76,11 @@ export default function Detail() {
       }
     };
 
-    if (detailId) {
-      fetchDetail();
-    }
+    fetchDetail();
   }, [detailId, navigate]);
 
   if (loading) return <Loading />;
+  if (!detailData) return <p>Data tidak ditemukan atau tidak aktif</p>;
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -104,18 +99,28 @@ export default function Detail() {
             <div className="row">
               <div className="col-lg-6 col-md-6">
                 <DetailData
-                  label="Pertanyaan"
-                  isi={detailData.pty_pertanyaan}
+                  label="ID Bank Pertanyaan"
+                  isi={detailData.idBank}
                 />
-                <DetailData label="Kriteria" isi={detailData.ksr_nama} />
-                <DetailData label="Status" isi={detailData.pty_status} />
+                <DetailData label="Pertanyaan" isi={detailData.pertanyaan} />
+                <DetailData label="Status" isi={detailData.status} />
+                <DetailData label="Kriteria ID" isi={detailData.ksr_id} />
+                <DetailData label="Kriteria" isi={detailData.namaKri} />
+                <DetailData label="Dibuat Oleh" isi={detailData.createdBy} />
+                <DetailData
+                  label="Tanggal Dibuat"
+                  isi={detailData.createdDate}
+                />
               </div>
               <div className="col-lg-6 col-md-6">
-                <DetailData label="Skala Tipe" isi={detailData.skp_tipe} />
-                <DetailData label="Skala Skala" isi={detailData.skp_skala} />
+                <DetailData label="Skala ID" isi={detailData.skp_id} />
+                <DetailData label="Tipe Skala" isi={detailData.tipeSka} />
+                <DetailData label="Skala" isi={detailData.skala} />
+                <DetailData label="Deskripsi Skala" isi={detailData.deskSka} />
+                <DetailData label="Diubah Oleh" isi={detailData.modifiedBy} />
                 <DetailData
-                  label="Deskripsi Skala"
-                  isi={detailData.skp_deskripsi}
+                  label="Tanggal Diubah"
+                  isi={detailData.modifiedDate}
                 />
               </div>
             </div>

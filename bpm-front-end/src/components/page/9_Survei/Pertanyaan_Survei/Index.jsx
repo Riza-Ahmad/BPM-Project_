@@ -97,7 +97,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
       setLoading(true);
       try {
         const data = await useFetch(
-          `${API_LINK}/MasterPertanyaan/GetAllKriteriaSurveiAktif`,
+          `${API_LINK}/MasterKriteriaSurvei/GetAllKriteriaSurveiAktif`,
           {},
           "POST"
         );
