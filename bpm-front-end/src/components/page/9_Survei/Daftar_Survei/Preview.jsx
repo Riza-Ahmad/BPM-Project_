@@ -4,6 +4,8 @@ import DetailData from "../../../part/DetailData";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
 import BarChart from "../../../part/BarChart";
+import BarChart2 from "../../../part/BarChart2";
+import PieChart from "../../../part/PieChart";
 import Loading from "../../../part/Loading";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
@@ -11,6 +13,7 @@ import { useFetch } from "../../../util/useFetch";
 import SweetAlert from "../../../util/SweetAlert";
 import { useLocation, useNavigate } from "react-router-dom";
 import TabPreviewSurvei from "./TabPreviewSurvei";
+import TabPreviewJawaban from "./TabPreviewJawaban";
 import Cookies from "js-cookie";
 
 export default function Preview({ onChangePage }) {
@@ -49,7 +52,7 @@ export default function Preview({ onChangePage }) {
 
   // Track when template fetch is completed
   const [isTemplateFetched, setIsTemplateFetched] = useState(false);
-  const [dataBarChart, setDataBarChart] = useState({});
+  const [dataBarChart, setDataBarChart] = useState([]);
   const [kriteria, setKriteria] = useState([]);
   const [pertanyaan, setPertanyaan] = useState({});
 
@@ -314,11 +317,17 @@ export default function Preview({ onChangePage }) {
                 sourceData={dataBarChart}
               />
 
-              <TabPreviewSurvei
+              <TabPreviewJawaban
                 header={kriteria}
                 pertanyaan={pertanyaan}
                 onDataChange={handleDataChange}
               />
+              {/* <PieChart /> */}
+              {/* <TabPreviewSurvei
+                header={kriteria}
+                pertanyaan={pertanyaan}
+                onDataChange={handleDataChange}
+              /> */}
             </div>
           </div>
         </div>
