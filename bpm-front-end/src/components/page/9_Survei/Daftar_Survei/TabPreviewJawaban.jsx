@@ -1,8 +1,20 @@
 import React, { useState, useEffect } from "react";
+import { API_LINK } from "../../../util/Constants";
+import { useIsMobile } from "../../../util/useIsMobile";
+import { useFetch } from "../../../util/useFetch";
+import { decodeHtml } from "../../../util/DecodeHtml.js";
+import BarChart2 from "../../../part/BarChart2";
+import PieChart from "../../../part/PieChart";
+import Loading from "../../../part/Loading";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-const TabPreviewSurvei = ({ pertanyaan = [] }) => {
+const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [] }) => {
   const [selectedQuestion, setSelectedQuestion] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [formDataJawaban, setFormDataJawaban] = useState([]);
+  const [filterFormDataJawaban, setFilterFormDataJawaban] = useState([]);
+  const [tipeFilter, setTipeFilter] = useState("");
 
   useEffect(() => {
     console.log("Pertanyaan :", pertanyaan);
@@ -10,6 +22,104 @@ const TabPreviewSurvei = ({ pertanyaan = [] }) => {
       setSelectedQuestion("");
     }
   }, [pertanyaan]);
+
+  const handleDataChange = (e) => {
+    setSelectedQuestion(e.target.value);
+    console.log("Terpilih :", selectedQuestion);
+  };
+
+  useEffect(() => {
+    if (selectedQuestion) {
+      const fetchData = async () => {
+        setLoading(true);
+
+        try {
+          const result = await useFetch(
+            `${API_LINK}/TransaksiSurvei/GetDataJawabanTransaksiSurveiByPertanyaanxx`,
+            { idTransaksi: idTransaksi, idPertanyaan: selectedQuestion },
+            "POST"
+          );
+
+          if (result === "ERROR" || result === null || result.length === 0) {
+            setFormDataJawaban([]);
+          } else {
+            const fetchedData = result;
+            console.log("Result nih:", result);
+            setTipeFilter(result[0].tipeJawaban);
+            const initialFormData = fetchedData.reduce((acc, item) => {
+              acc[item.idPenjawab] = {
+                idPenjawab: item.idPenjawab,
+                deskripsiJawaban: item.deskripsiJawaban,
+                jawabanSurvei: decodeHtml(item.jawabanSurvei) || "",
+                kriteriaJawaban: item.kriteriaJawaban,
+                pertanyaanSurvei: item.pertanyaanSurvei,
+                skalaJawaban: item.skalaJawaban,
+                tipeJawaban: item.tipeJawaban,
+              };
+              return acc;
+            }, {});
+
+            console.log("Data Jawaban : ", initialFormData);
+            setFormDataJawaban(initialFormData);
+          }
+        } catch (err) {
+          setError("Gagal mengambil data: " + err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchData();
+    }
+  }, [selectedQuestion]);
+
+  useEffect(() => {
+    if (!formDataJawaban) return;
+    setTipeFilter(formDataJawaban?.[1]?.tipeJawaban);
+
+    if (tipeFilter === "CheckBox") {
+      const uniqueLabels = Object.values(formDataJawaban)
+        .map((item) => item.deskripsiJawaban.split(","))
+        .flat()
+        .filter((value, index, self) => self.indexOf(value) === index);
+
+      const labelCount = uniqueLabels.reduce((acc, label) => {
+        acc[label] = 0;
+        return acc;
+      }, {});
+
+      Object.values(formDataJawaban).forEach((item) => {
+        if (item.jawabanSurvei) {
+          try {
+            const selectedValues = JSON.parse(item.jawabanSurvei);
+            selectedValues.forEach((value) => {
+              if (labelCount[value] !== undefined) {
+                labelCount[value] += 1;
+              }
+            });
+          } catch (error) {
+            console.error("Error parsing JSON:", item.jawabanSurvei);
+          }
+        }
+      });
+
+      setFilterFormDataJawaban(
+        uniqueLabels.map((label) => ({ label, value: labelCount[label] }))
+      );
+      console.log(
+        "filter data: ",
+        uniqueLabels.map((label) => ({ label, value: labelCount[label] }))
+      );
+    } else if (tipeFilter === "RadioButton") {
+      console.log("Tipe");
+    } else if (tipeFilter === "TextBox") {
+      console.log("Tipe");
+    } else {
+      console.log("Tipe");
+    }
+  }, [formDataJawaban]);
+
+  if (loading) return <Loading />;
 
   return (
     <div className="border rounded-3 shadow-sm p-3 mb-3">
@@ -35,7 +145,7 @@ const TabPreviewSurvei = ({ pertanyaan = [] }) => {
               appearance: "none",
             }}
             value={selectedQuestion}
-            onChange={(e) => setSelectedQuestion(e.target.value)}
+            onChange={handleDataChange}
           >
             <option key={""} value={""} className="text-dark">
               {"-=Select Pertanyaan=-"}
@@ -69,6 +179,12 @@ const TabPreviewSurvei = ({ pertanyaan = [] }) => {
             }}
           ></i>
         </div>
+        {tipeFilter === "CheckBox" && (
+          <PieChart
+            judul={formDataJawaban?.[1]?.pertanyaanSurvei}
+            sourceData={filterFormDataJawaban}
+          />
+        )}
       </div>
     </div>
   );

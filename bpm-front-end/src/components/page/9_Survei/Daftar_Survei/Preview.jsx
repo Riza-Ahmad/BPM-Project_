@@ -4,8 +4,6 @@ import DetailData from "../../../part/DetailData";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
 import BarChart from "../../../part/BarChart";
-import BarChart2 from "../../../part/BarChart2";
-import PieChart from "../../../part/PieChart";
 import Loading from "../../../part/Loading";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
@@ -317,11 +315,7 @@ export default function Preview({ onChangePage }) {
                 sourceData={dataBarChart}
               />
 
-              <TabPreviewJawaban
-                header={kriteria}
-                pertanyaan={pertanyaan}
-                onDataChange={handleDataChange}
-              />
+              <TabPreviewJawaban idTransaksi={idData} pertanyaan={pertanyaan} />
               {/* <PieChart /> */}
               {/* <TabPreviewSurvei
                 header={kriteria}
