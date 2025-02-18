@@ -4,16 +4,13 @@ import PageTitleNav from "../../../part/PageTitleNav";
 import InputField from "../../../part/InputField";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
-import DocUpload from "../../../part/DocUpload";
 import DropDown from "../../../part/Dropdown";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import SweetAlert from "../../../util/SweetAlert";
-import FileUpload from "../../../part/FileUpload";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { API_LINK } from "../../../util/Constants";
 import { useFetch } from "../../../util/useFetch";
 import Loading from "../../../part/Loading";
-import moment from "moment";
 
 const arrData = [
   { Value: "Controlled Copy", Text: "Controlled Copy" },
@@ -53,11 +50,6 @@ export default function Edit({ onChangePage }) {
     }));
   };
 
-  const handleFileChange = (updatedFiles) => {
-    setFile(updatedFiles);
-    console.log(file);
-  };
-
   useEffect(() => {
     const fetchDokumenById = async () => {
       const body = {
@@ -73,7 +65,6 @@ export default function Edit({ onChangePage }) {
       if (result === "ERROR" || result === null || result.length === 0) {
         setFormData(null);
       } else {
-        console.log(result);
         const dokumenArray = Object.values(result);
         setFormData({
           idKdo: 4,
@@ -97,8 +88,6 @@ export default function Edit({ onChangePage }) {
     const isTanggalDokValid = tanggalDokRef.current?.validate();
     const isKadaluarsaDokValid = kadaluarsaDokRef.current?.validate();
     const isJenisDokValid = jenisDokRef.current?.validate();
-
-    console.log("masuk sini");
 
     if (!isJudulDokValid) {
       judulDokRef.current?.focus();
@@ -167,8 +156,6 @@ export default function Edit({ onChangePage }) {
       SweetAlert("Gagal!", error.message, "error", "OK");
     }
   };
-
-  console.log(formData);
 
   if (loading) return <Loading />;
 

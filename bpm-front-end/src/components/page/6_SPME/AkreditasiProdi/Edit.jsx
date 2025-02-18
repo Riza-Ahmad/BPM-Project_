@@ -55,8 +55,6 @@ export default function Edit({ onChangePage }) {
   const location = useLocation();
   const idMenu = location.state?.idMenu;
   const idData = location.state?.idData;
-  console.log(idMenu);
-  console.log(idData);
 
   const [pageSize] = useState(10);
   const [pageCurrent, setPageCurrent] = useState(1);
@@ -130,7 +128,6 @@ export default function Edit({ onChangePage }) {
       ...prevData,
       [activeModalFor.current]: e["Judul Dokumen"],
     }));
-    console.log(e);
     document.getElementById("dokModalClose").click();
   };
 
@@ -181,7 +178,6 @@ export default function Edit({ onChangePage }) {
           currentFilter,
           "POST"
         );
-        console.log(currentFilter);
 
         if (result === "ERROR" || result === null || result.length === 0) {
           setFilteredData([]);
@@ -231,7 +227,6 @@ export default function Edit({ onChangePage }) {
       jenjangAkrRef.current?.focus();
       return;
     }
-    console.log("Mau ini");
     if (!isPeringkatAkrValid) {
       peringkatAkrRef.current?.focus();
       return;
@@ -266,8 +261,6 @@ export default function Edit({ onChangePage }) {
         SertifAkr: displayLov.fileSertifAkr ? displayLov.fileSertifAkr : "",
       };
 
-      console.log(AkreData);
-
       const createResponse = await useFetch(
         `${API_LINK}/MasterAkreditasi/EditDataAkreditasi`,
         AkreData,
@@ -279,7 +272,7 @@ export default function Edit({ onChangePage }) {
       } else {
         SweetAlert(
           "Berhasil!",
-          "Data berhasil ditambahkan.",
+          "Data berhasil diperbarui.",
           "success",
           "OK"
         ).then(() =>

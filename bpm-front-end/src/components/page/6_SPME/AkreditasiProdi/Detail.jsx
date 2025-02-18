@@ -16,6 +16,7 @@ import SweetAlert from "../../../util/SweetAlert";
 import Loading from "../../../part/Loading";
 import { DOKUMEN_LINK } from "../../../util/Constants";
 import DetailData from "../../../part/DetailData";
+import { formatDate } from "../../../util/Formatting";
 
 export default function Detail({ onChangePage }) {
   const title = "Detail Data";
@@ -30,8 +31,6 @@ export default function Detail({ onChangePage }) {
   const location = useLocation();
   const idMenu = location.state?.idMenu;
   const idData = location.state?.idData;
-  console.log(idMenu);
-  console.log(idData);
 
   const [formData, setFormData] = useState({
     kodeAkr: "",
@@ -174,62 +173,55 @@ export default function Detail({ onChangePage }) {
                   : "shadow p-5 m-5 mt-0 bg-white rounded"
               }
             >
-              {/** Step 1: Personal Information */}
-              {/* {currentStep === 1 && ( */}
-              <div>
-                <HeaderForm label="Detail Data Akreditasi" />
-                <div className="row mb-3">
-                  <div className="col-lg-6 col-md-6 ">
-                    <DetailData
-                      label="Kode Prodi"
-                      isi={formData.kodeAkr ? formData.kodeAkr : "-"}
-                    />
-                  </div>
-                  <div className="col-lg-6 col-md-6">
-                    <DetailData
-                      label="Nama Prodi"
-                      isi={formData.namaAkr ? formData.namaAkr : "-"}
-                    />
-                  </div>
-                  <div className="col-lg-6 col-md-6">
-                    <DetailData
-                      label="Jenjang"
-                      isi={formData.jenjangAkr ? formData.jenjangAkr : "-"}
-                    />
-                  </div>
+              <HeaderForm label="Detail Data Akreditasi" />
+              <div className="row mb-3">
+                <div className="col-lg-6 col-md-6 ">
+                  <DetailData
+                    label="Kode Prodi"
+                    isi={formData.kodeAkr ? formData.kodeAkr : "-"}
+                  />
+                </div>
+                <div className="col-lg-6 col-md-6">
+                  <DetailData
+                    label="Nama Prodi"
+                    isi={formData.namaAkr ? formData.namaAkr : "-"}
+                  />
+                </div>
+                <div className="col-lg-6 col-md-6">
+                  <DetailData
+                    label="Jenjang"
+                    isi={formData.jenjangAkr ? formData.jenjangAkr : "-"}
+                  />
+                </div>
+                <div className="col-lg-6 col-md-6">
+                  <DetailData
+                    label="Peringkat"
+                    isi={formData.peringkatAkr ? formData.peringkatAkr : "-"}
+                  />
+                </div>
+                <div className="col-lg-6 col-md-6">
+                  <DetailData
+                    label="Nomor SK"
+                    isi={formData.nomorSKAkr ? formData.nomorSKAkr : "-"}
+                  />
+                </div>
+                <div className="col-lg-6 col-md-6">
+                  <DetailData
+                    label="Tahun SK"
+                    isi={formData.berlakuAkr ? formData.berlakuAkr : "-"}
+                  />
+                </div>
+                <div className="col-lg-6 col-md-6">
+                  <DetailData
+                    label="Tanggal Kadaluwarsa SK"
+                    isi={
+                      formData.kadaluarsaAkr
+                        ? formatDate(formData.kadaluarsaAkr, true)
+                        : "-"
+                    }
+                  />
                 </div>
               </div>
-              <div>
-                <div className="row mb-3">
-                  <div className="col-lg-6 col-md-6">
-                    <DetailData
-                      label="Peringkat"
-                      isi={formData.peringkatAkr ? formData.peringkatAkr : "-"}
-                    />
-                  </div>
-                  <div className="col-lg-6 col-md-6">
-                    <DetailData
-                      label="Nomor SK"
-                      isi={formData.nomorSKAkr ? formData.nomorSKAkr : "-"}
-                    />
-                  </div>
-                  <div className="col-lg-6 col-md-6">
-                    <DetailData
-                      label="Tanggal Mulai Berlaku SK"
-                      isi={formData.berlakuAkr ? formData.berlakuAkr : "-"}
-                    />
-                  </div>
-                  <div className="col-lg-6 col-md-6">
-                    <DetailData
-                      label="Tanggal Kadaluwarsa SK"
-                      isi={
-                        formData.kadaluarsaAkr ? formData.kadaluarsaAkr : "-"
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-              {/* )} */}
             </div>
           </div>
         </div>

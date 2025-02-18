@@ -14,6 +14,7 @@ import Breadcrumbs from "../../part/Breadcrumbs";
 import DropDown from "../../part/Dropdown";
 import Loading from "../../part/Loading";
 import PageTitleNav from "../../part/PageTitleNav";
+import Cookies from "js-cookie";
 
 const arrSort = [
   { Value: "[namaKdo] ASC", Text: "Nama Kategori [↑]" },
@@ -30,6 +31,16 @@ export default function Index({ onChangePage }) {
   const [pageCurrent, setPageCurrent] = useState(1);
   const [totalData, setTotalData] = useState(0);
   const [filteredData, setFilteredData] = useState([]);
+
+  const activeUser = Cookies.get("activeUser");
+  let role = "";
+  let roleNama = "";
+  let namaPengguna = "";
+  if (activeUser) {
+    role = JSON.parse(activeUser).RoleID.slice(0, 5);
+    roleNama = JSON.parse(activeUser).Role;
+    namaPengguna = JSON.parse(activeUser).Nama;
+  }
 
   const [modalType, setModalType] = useState(""); // "add", "edit", "detail", "preview"
   const [detail, setDetail] = useState(null);
@@ -174,91 +185,95 @@ export default function Index({ onChangePage }) {
                 : "table-container bg-white p-3 m-5 mt-0 rounded"
             }
           >
-            <div className="">
-              <Button
-                iconName="add"
-                classType="primary dropdown-toggle px-3 border-start"
-                data-bs-toggle="dropdown"
-                data-bs-auto-close="outside"
-                label="Tambah Data"
-              />
-              <div className="dropdown-menu">
-                {["Kategori Header", "Kategori Child"].map((label, index) => (
-                  <Button
-                    key={index}
-                    type="button"
-                    label={label}
-                    width="100%"
-                    boxShadow="0px 4px 6px rgba(0, 0, 0, 0)"
-                    onClick={() =>
-                      onChangePage(
-                        index === 0 ? "addKat" : "addKatChild",
-                        breadcrumbs
-                      )
-                    }
-                    style={{
-                      color: "#2654A1",
-                      textAlign: "left",
-                      cursor: "pointer",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = "#2654A1";
-                      e.target.style.color = "white";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = "white";
-                      e.target.style.color = "#2654A1";
-                    }}
-                  />
-                ))}
+            {role === "ROL01" ? (
+              <div>
+                <Button
+                  iconName="add"
+                  classType="primary dropdown-toggle px-3 border-start"
+                  data-bs-toggle="dropdown"
+                  data-bs-auto-close="outside"
+                  label="Tambah Data"
+                />
+                <div className="dropdown-menu">
+                  {["Kategori Header", "Kategori Child"].map((label, index) => (
+                    <Button
+                      key={index}
+                      type="button"
+                      label={label}
+                      width="100%"
+                      boxShadow="0px 4px 6px rgba(0, 0, 0, 0)"
+                      onClick={() =>
+                        onChangePage(
+                          index === 0 ? "addKat" : "addKatChild",
+                          breadcrumbs
+                        )
+                      }
+                      style={{
+                        color: "#2654A1",
+                        textAlign: "left",
+                        cursor: "pointer",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = "#2654A1";
+                        e.target.style.color = "white";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = "white";
+                        e.target.style.color = "#2654A1";
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="row mt-3">
-                <div className="col-lg-10">
-                  <SearchField
+            ) : (
+              ""
+            )}
+            <div className="row mt-3">
+              <div className="col-lg-10">
+                <SearchField
+                  onChange={(e) =>
+                    setCurrentFilter((prevFilter) => {
+                      return {
+                        ...prevFilter,
+                        param1: e,
+                      };
+                    })
+                  }
+                />
+              </div>
+              <div className="col-lg-2">
+                <Filter>
+                  <DropDown
+                    arrData={arrSort}
+                    type="pilih"
+                    label="Urut Berdasarkan"
+                    defaultValue="[namaKdo] ASC"
+                    forInput="sortFilter"
                     onChange={(e) =>
                       setCurrentFilter((prevFilter) => {
                         return {
                           ...prevFilter,
-                          param1: e,
+                          param3: e.target.value,
                         };
                       })
                     }
                   />
-                </div>
-                <div className="col-lg-2">
-                  <Filter>
-                    <DropDown
-                      arrData={arrSort}
-                      type="pilih"
-                      label="Urut Berdasarkan"
-                      defaultValue="[namaKdo] ASC"
-                      forInput="sortFilter"
-                      onChange={(e) =>
-                        setCurrentFilter((prevFilter) => {
-                          return {
-                            ...prevFilter,
-                            param3: e.target.value,
-                          };
-                        })
-                      }
-                    />
-                    <DropDown
-                      arrData={arrStatus}
-                      label="Status"
-                      type="pilih"
-                      defaultValue="Aktif"
-                      forInput="statusFilter"
-                      onChange={(e) =>
-                        setCurrentFilter((prevFilter) => {
-                          return {
-                            ...prevFilter,
-                            param2: e.target.value,
-                          };
-                        })
-                      }
-                    />
-                  </Filter>
-                </div>
+                  <DropDown
+                    arrData={arrStatus}
+                    label="Status"
+                    type="pilih"
+                    defaultValue="Aktif"
+                    forInput="statusFilter"
+                    onChange={(e) =>
+                      setCurrentFilter((prevFilter) => {
+                        return {
+                          ...prevFilter,
+                          param2: e.target.value,
+                        };
+                      })
+                    }
+                  />
+                </Filter>
               </div>
             </div>
             {loading ? (
@@ -281,6 +296,7 @@ export default function Index({ onChangePage }) {
                     }
                     return ["Detail", "Edit", "Toggle"];
                   }}
+                  aksiIs={role === "ROL01" ? true : false}
                   onEdit={handleEdit}
                   onDetail={handleDetail}
                   onToggle={handleToggle}

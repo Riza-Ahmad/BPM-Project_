@@ -158,7 +158,7 @@ export default function Index2({ onChangePage, isIkuIkt }) {
   }, [location.state?.idMenu]);
 
   useEffect(() => {
-    let tempBradcrumps = [{ label: "SPMI" }, { label: "Siklus SPMI" }];
+    let tempBradcrumps = [{ label: "SPME" }, { label: "IKU & IKT" }];
 
     if (!tempBradcrumps.some((item) => item.label === menuData.judulSta)) {
       tempBradcrumps.push({

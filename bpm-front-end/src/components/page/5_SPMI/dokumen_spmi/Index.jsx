@@ -15,13 +15,9 @@ import DropDown from "../../../part/Dropdown";
 import Loading from "../../../part/Loading";
 import SweetAlert from "../../../util/SweetAlert";
 import PdfPreviewDownload from "../../../part/PdfPreviewDownload";
-import pdf from "../MI_PRG4_M4_P2_XXX.pdf";
 import { useIsMobile } from "../../../util/useIsMobile";
 import Cookies from "js-cookie";
-import { Document, Page } from "react-pdf";
-import "react-pdf/dist/esm/Page/AnnotationLayer.css";
-
-// import { Document, Page } from '@react-pdf-viewer/core';
+import { formatDate } from "../../../util/Formatting";
 
 const arrSort = [
   { Value: "[judulDok] ASC", Text: "Judul Dokumen [↑]" },
@@ -35,7 +31,7 @@ const arrStatus = [
 
 export default function Index({ onChangePage }) {
   const activeUser = Cookies.get("activeUser");
-  let role = ""; // Jika undefined, gunakan nilai default
+  let role = "";
   let roleNama = "";
   let namaPengguna = "";
   if (activeUser) {
@@ -62,19 +58,12 @@ export default function Index({ onChangePage }) {
     param7: "[judulDok] ASC",
   });
 
-  const [modalType, setModalType] = useState(""); // "add", "edit", "detail", "preview"
+  const [modalType, setModalType] = useState("");
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [breadcrumbs, setBreadcrumbs] = useState([]);
   const [arrTahun, setArrTahun] = useState([]);
-
-  const [numPages, setNumPages] = useState(null);
-
-  const onDocumentLoadSuccess = ({ numPages }) => {
-    setNumPages(numPages);
-  };
-
   const { jenis } = useParams();
   const ModalRef = useRef();
 
@@ -124,7 +113,6 @@ export default function Index({ onChangePage }) {
         currentFilter,
         "POST"
       );
-      console.log(currentFilter);
 
       if (result === "ERROR" || result === null || result.length === 0) {
         setFilteredData([]);
@@ -171,7 +159,6 @@ export default function Index({ onChangePage }) {
 
   const handlePreview = (item) => {
     const selected = filteredData.find((obj) => obj.idDok == item.Key);
-    console.log(selected);
     handleOpenModal("preview", selected);
   };
 
@@ -213,7 +200,6 @@ export default function Index({ onChangePage }) {
   };
 
   const handleToggle = (item) => {
-    // Tampilkan konfirmasi menggunakan SweetAlert sebelum toggle status
     SweetAlert(
       "Konfirmasi",
       `Apakah Anda yakin ingin ${
@@ -223,10 +209,9 @@ export default function Index({ onChangePage }) {
       "Ya",
       null,
       "",
-      true // Tampilkan tombol batal
+      true
     ).then((result) => {
       if (result) {
-        // Jika pengguna mengonfirmasi, hanya simpan idDok dan status yang diperbarui
         const updatedData = filteredData
           .filter((data) => data.idDok === item.Key)
           .map((data) => ({
@@ -247,7 +232,6 @@ export default function Index({ onChangePage }) {
               "success",
               "OK"
             ).then(() => {
-              // Panggil fetchEvents untuk memperbarui data tanpa reload halaman
               fetchDokumen();
             });
           })
@@ -449,11 +433,9 @@ export default function Index({ onChangePage }) {
                       status: item.status,
                     }))}
                     actions={(row) => {
-                      // Jika status "Tidak Aktif", hanya tampilkan Toggle
                       if (row.status === "Tidak Aktif") {
                         return ["Toggle"];
                       }
-                      // Jika status selain "Tidak Aktif", tampilkan semua actions
                       return [
                         "Detail",
                         "Preview",
@@ -479,9 +461,11 @@ export default function Index({ onChangePage }) {
                     {filteredData.length > 0 ? (
                       filteredData.map((item) => (
                         <PdfPreviewDownload
-                          key={item.id} // Pastikan setiap item memiliki `key` unik
+                          key={item.idDok}
                           judul={item.judulDok}
-                          handleClick={() => handleDownload(item)}
+                          handleClick={() =>
+                            handleDownload({ Key: item.idDok })
+                          }
                         />
                       ))
                     ) : (
@@ -505,7 +489,7 @@ export default function Index({ onChangePage }) {
         <Modal
           ref={ModalRef}
           title="Detail Dokumen"
-          size="full"
+          size={isMobile ? "small" : "medium"}
           Button2={
             <Button
               classType="secondary"
@@ -514,13 +498,15 @@ export default function Index({ onChangePage }) {
             />
           }
         >
-          <div className="p-5 mt-0 bg-white rounded shadow">
+          <div className="p-3 mt-0 bg-white ">
             <div className="row">
               <div className="col-lg-12 col-md-12">
                 <DetailData label="Judul Dokumen" isi={detail.judulDok || ""} />
               </div>
               <div className="col-lg-6 col-md-6">
                 <DetailData label="Nomor Dokumen" isi={detail.noDok || ""} />
+              </div>
+              <div className="col-lg-6 col-md-6">
                 <DetailData
                   label="Jenis Dokumen"
                   isi={detail.controlDok || ""}
@@ -529,49 +515,23 @@ export default function Index({ onChangePage }) {
               <div className="col-lg-6 col-md-6">
                 <DetailData
                   label="Tanggal Berlaku"
-                  isi={
-                    detail.tglDok
-                      ? new Date(detail.tglDok).toLocaleDateString("id-ID", {
-                          weekday: "long",
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        })
-                      : "-"
-                  }
-                />
-                <DetailData
-                  label="Tanggal Kadaluwarsa"
-                  isi={
-                    detail.expDok
-                      ? new Date(detail.expDok).toLocaleDateString("id-ID", {
-                          weekday: "long",
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        })
-                      : "-"
-                  }
+                  isi={detail.tglDok ? formatDate(detail.tglDok, true) : "-"}
                 />
               </div>
-            </div>
-            <div className="row">
+              <div className="col-lg-6 col-md-6">
+                <DetailData
+                  label="Tanggal Kadaluwarsa"
+                  isi={detail.expDok ? formatDate(detail.expDok, true) : "-"}
+                />
+              </div>
               <div className="col-lg-6 col-md-6">
                 <DetailData label="Dibuat Oleh" isi={detail.createdBy || "-"} />
+              </div>
+              <div className="col-lg-6 col-md-6">
                 <DetailData
                   label="Dibuat Tanggal"
                   isi={
-                    detail.createdDate
-                      ? new Date(detail.createdDate).toLocaleDateString(
-                          "id-ID",
-                          {
-                            weekday: "long",
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          }
-                        )
-                      : "-"
+                    detail.createdDate ? formatDate(detail.createdDate) : "-"
                   }
                 />
               </div>
@@ -580,20 +540,12 @@ export default function Index({ onChangePage }) {
                   label="Dimodifikasi Oleh"
                   isi={detail.modifiedBy || "-"}
                 />
+              </div>
+              <div className="col-lg-6 col-md-6">
                 <DetailData
                   label="Dimodifikasi Tanggal"
                   isi={
-                    detail.modifiedDate
-                      ? new Date(detail.modifiedDate).toLocaleDateString(
-                          "id-ID",
-                          {
-                            weekday: "long",
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          }
-                        )
-                      : "-"
+                    detail.modifiedDate ? formatDate(detail.modifiedDate) : "-"
                   }
                 />
               </div>
@@ -601,10 +553,11 @@ export default function Index({ onChangePage }) {
           </div>
         </Modal>
       )}
+
       {modalType === "preview" && (
         <Modal
           ref={ModalRef}
-          title={detail.judulDok}
+          title="Preview Dokumen"
           size="full"
           Button2={
             <Button
@@ -614,7 +567,7 @@ export default function Index({ onChangePage }) {
             />
           }
         >
-          <div className="p-3 mt-0 bg-white">
+          <div className="mt-0 bg-white">
             <div style={{ width: "80vh", height: "70vh" }}>
               {loading == true ? (
                 <div
@@ -639,22 +592,6 @@ export default function Index({ onChangePage }) {
                     border: "none",
                   }}
                 />
-
-                // <Document
-                //   file={DOKUMEN_LINK + detail.fileDok}
-                //   onLoadSuccess={onDocumentLoadSuccess}
-                //   // className="pdf-document"
-                // >
-                //   {/* Render all pages */}
-                //   {Array.from(new Array(numPages), (el, index) => (
-                //     <Page
-                //       key={`page_${index + 1}`}
-                //       pageNumber={index + 1}
-                //       renderAnnotationLayer={false} // Disable annotations
-                //       renderTextLayer={false} // Disable text selection
-                //     />
-                //   ))}
-                // </Document>
               )}
             </div>
           </div>

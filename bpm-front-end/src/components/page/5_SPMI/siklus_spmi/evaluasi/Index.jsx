@@ -925,7 +925,6 @@ export default function Index({ onChangePage }) {
     <>
       <div className="d-flex flex-column min-vh-100">
         <main className="flex-grow-1 p-3" style={{ marginTop: "60px" }}>
-        <main className="flex-grow-1 p-3" style={{ marginTop: "60px" }}>
           <div className="d-flex flex-column">
             <div className="container mb-3">
               {/* CAROUSEL */}
@@ -936,8 +935,26 @@ export default function Index({ onChangePage }) {
                   <h1
                     style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}
                   >
-                    {title ? title : "Page Title"}
+                    {menuData?.namaKdo
+                      ? decodeHtml(menuData.namaKdo)
+                      : "Page Title"}
                   </h1>
+                  {role === "ROL01" ? (
+                    <Button
+                      classType="btn btn-primary"
+                      title="Edit Cover"
+                      label="Edit Cover"
+                      onClick={() =>
+                        onChangePage("edit", {
+                          breadcrumbs: breadcrumbs,
+                          idData: menuData.idKdo,
+                          idMenu: idMenu,
+                        })
+                      }
+                    />
+                  ) : (
+                    ""
+                  )}
                 </div>
 
                 <nav className="ms-1">
@@ -959,7 +976,6 @@ export default function Index({ onChangePage }) {
                                 cursor: "pointer",
                               }}
                               onClick={() => navigate(breadcrumb.href)}
-                              onClick={() => navigate(breadcrumb.href)}
                             >
                               {breadcrumb.label}
                             </span>
@@ -978,6 +994,7 @@ export default function Index({ onChangePage }) {
                     ? textContent
                     : "Lorem Ipsum dolor sit amet..."}
                 </p>
+              </div>
               <div className="mt-3 mb-5">
                 <p style={{ textAlign: "justify" }}>
                   {textContent != ""
@@ -986,129 +1003,6 @@ export default function Index({ onChangePage }) {
                 </p>
               </div>
 
-              <hr />
-
-              <div className="container shadow p-3 mt-5 mb-5 bg-white rounded">
-                <div className="row">
-                  <div className="col-lg-2 px-3">
-                    <div
-                      className="row"
-                      style={{ overflow: "auto", maxHeight: "500px" }}
-                    >
-                      {uniqueDokRefs.map((item) => (
-                        <button
-                          key={item.dok_ref}
-                          onClick={() => setSelectedDokRef(item)}
-                          className={`btn ${
-                            selectedDokRef.dok_ref === item.dok_ref
-                              ? "btn-primary"
-                              : ""
-                          } doc-item`}
-                        >
-                          {item.dok_ref_name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="col-lg-10">
-                    <div className="text-center">
-                      <h3
-                        style={{
-                          color: "#2654A1",
-                          margin: "0",
-                          fontWeight: "700",
-                        }}
-                      >
-                        {selectedDokRef.dok_ref_name}
-                      </h3>
-                    </div>
-                    <hr />
-                    <div className="table-container bg-white mt-0 rounded">
-                      <div className={isMobile ? "mb-3" : "row"}>
-                        <div className="col-12 d-flex flex-wrap align-items-center gap-1">
-                          <div className="">
-                            <Button
-                              iconName="add"
-                              classType="primary"
-                              label="Tambah Dokumen"
-                              onClick={() => onChangePage("add")}
-                            />
-                          </div>
-
-                          <div className="me-auto flex-grow-1 mt-3 me-3">
-                            <SearchField
-                              onChange={(value) => setSearchKeyword(value)}
-                            />
-                          </div>
-
-                          <div className="">
-                            <Filter>
-                              <div className="mb-3">
-                                <label htmlFor="yearPicker" className="mb-1">
-                                  Berdasarkan Tahun
-                                </label>
-                                <input
-                                  type="number"
-                                  className="form-control"
-                                  placeholder="Masukkan Tahun"
-                                  // value={selectedYear}
-                                  // onChange={(e) =>
-                                  //   setSelectedYear(e.target.value)
-                                  // }
-                                  min="2000"
-                                  max={new Date().getFullYear()}
-                                />
-                              </div>
-
-                              <Button
-                                classType="btn btn-secondary"
-                                title="Reset Filter"
-                                label="Reset"
-                                // onClick={resetFilter}
-                              />
-                            </Filter>
-                          </div>
-                        </div>
-                      </div>
-                      <Table
-                        arrHeader={["No", "Dokumen"]}
-                        headerToDataMap={{
-                          No: "No",
-                          Dokumen: "Dokumen",
-                        }}
-                        data={sortedData.map((item, index) => ({
-                          key: item.dok_id || index,
-                          No: indexOfFirstData + index + 1,
-                          Dokumen: item.dok_judul,
-                        }))}
-                        actions={[
-                          "Preview",
-                          "Detail",
-                          "Edit",
-                          "Print",
-                          "Delete",
-                          "PrintHistory",
-                          "UpdateHistory",
-                        ]}
-                        onPreview={(data) => {
-                          console.log("prev");
-                          const selected = sortedData.find(
-                            (item) => item.dok_id == data.key
-                          );
-                          handleOpenModal("preview", selected);
-                        }}
-                        onEdit={handleEdit}
-                        onDetail={(data) => {
-                          const selected = sortedData.find(
-                            (item) => item.dok_id == data.key
-                          );
-                          handleOpenModal("detail", selected);
-                        }}
-                        onPrint={() => console.log("printed")}
-                        onDelete={(item) => handleDelete(item.key)}
-                      />
-              <hr />
-
               <div className="container shadow p-3 mt-5 mb-5 bg-white rounded">
                 <div className="row">
                   <div className="col-lg-2 px-3">
@@ -1229,21 +1123,142 @@ export default function Index({ onChangePage }) {
                         onDelete={(item) => handleDelete(item.key)}
                       />
 
-                      <Paging
-                        pageSize={pageSize}
-                        pageCurrent={pageCurrent}
-                        totalData={sortedData.length}
-                        navigation={handlePageNavigation}
-                      />
-                    </div>
-                  </div>
-                </div>
-                      <Paging
-                        pageSize={pageSize}
-                        pageCurrent={pageCurrent}
-                        totalData={sortedData.length}
-                        navigation={handlePageNavigation}
-                      />
+                      <div className="container shadow p-3 mt-5 mb-5 bg-white rounded">
+                        <div className="row">
+                          <div className="col-lg-2 px-3">
+                            <div
+                              className="row"
+                              style={{ overflow: "auto", maxHeight: "500px" }}
+                            >
+                              {uniqueDokRefs.map((item) => (
+                                <button
+                                  key={item.dok_ref}
+                                  onClick={() => setSelectedDokRef(item)}
+                                  className={`btn ${
+                                    selectedDokRef.dok_ref === item.dok_ref
+                                      ? "btn-primary"
+                                      : ""
+                                  } doc-item`}
+                                >
+                                  {item.dok_ref_name}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="col-lg-10">
+                            <div className="text-center">
+                              <h3
+                                style={{
+                                  color: "#2654A1",
+                                  margin: "0",
+                                  fontWeight: "700",
+                                }}
+                              >
+                                {selectedDokRef.dok_ref_name}
+                              </h3>
+                            </div>
+                            <hr />
+                            <div className="table-container bg-white mt-0 rounded">
+                              <div className={isMobile ? "mb-3" : "row"}>
+                                <div className="col-12 d-flex flex-wrap align-items-center gap-1">
+                                  <div className="">
+                                    <Button
+                                      iconName="add"
+                                      classType="primary"
+                                      label="Tambah Dokumen"
+                                      onClick={() => onChangePage("add")}
+                                    />
+                                  </div>
+
+                                  <div className="me-auto flex-grow-1 mt-3 me-3">
+                                    <SearchField
+                                      onChange={(value) =>
+                                        setSearchKeyword(value)
+                                      }
+                                    />
+                                  </div>
+
+                                  <div className="">
+                                    <Filter>
+                                      <div className="mb-3">
+                                        <label
+                                          htmlFor="yearPicker"
+                                          className="mb-1"
+                                        >
+                                          Berdasarkan Tahun
+                                        </label>
+                                        <input
+                                          type="number"
+                                          className="form-control"
+                                          placeholder="Masukkan Tahun"
+                                          // value={selectedYear}
+                                          // onChange={(e) =>
+                                          //   setSelectedYear(e.target.value)
+                                          // }
+                                          min="2000"
+                                          max={new Date().getFullYear()}
+                                        />
+                                      </div>
+
+                                      <Button
+                                        classType="btn btn-secondary"
+                                        title="Reset Filter"
+                                        label="Reset"
+                                        // onClick={resetFilter}
+                                      />
+                                    </Filter>
+                                  </div>
+                                </div>
+                              </div>
+                              <Table
+                                arrHeader={["No", "Dokumen"]}
+                                headerToDataMap={{
+                                  No: "No",
+                                  Dokumen: "Dokumen",
+                                }}
+                                data={sortedData.map((item, index) => ({
+                                  key: item.dok_id || index,
+                                  No: indexOfFirstData + index + 1,
+                                  Dokumen: item.dok_judul,
+                                }))}
+                                actions={[
+                                  "Preview",
+                                  "Detail",
+                                  "Edit",
+                                  "Print",
+                                  "Delete",
+                                  "PrintHistory",
+                                  "UpdateHistory",
+                                ]}
+                                onPreview={(data) => {
+                                  console.log("prev");
+                                  const selected = sortedData.find(
+                                    (item) => item.dok_id == data.key
+                                  );
+                                  handleOpenModal("preview", selected);
+                                }}
+                                onEdit={handleEdit}
+                                onDetail={(data) => {
+                                  const selected = sortedData.find(
+                                    (item) => item.dok_id == data.key
+                                  );
+                                  handleOpenModal("detail", selected);
+                                }}
+                                onPrint={() => console.log("printed")}
+                                onDelete={(item) => handleDelete(item.key)}
+                              />
+
+                              <Paging
+                                pageSize={pageSize}
+                                pageCurrent={pageCurrent}
+                                totalData={sortedData.length}
+                                navigation={handlePageNavigation}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1271,10 +1286,12 @@ export default function Index({ onChangePage }) {
                 <div className="col-lg-12 col-md-12">
                   <DetailData label="Judul Dokumen" isi={detail.dok_judul} />
                 </div>
+
                 <div className="col-lg-6 col-md-6">
                   <DetailData label="Nomor Dokumen" isi={detail.dok_nodok} />
                   <DetailData label="Jenis Dokumen" isi={detail.dok_control} />
                 </div>
+
                 <div className="col-lg-6 col-md-6">
                   <DetailData
                     label="Tanggal Berlaku"
@@ -1301,8 +1318,7 @@ export default function Index({ onChangePage }) {
                     )}
                   />
                 </div>
-              </div>
-              <div className="row">
+
                 <div className="col-lg-6 col-md-6">
                   <DetailData label="Dibuat Oleh" isi={detail.dok_created_by} />
                   <DetailData
@@ -1318,6 +1334,7 @@ export default function Index({ onChangePage }) {
                     )}
                   />
                 </div>
+
                 <div className="col-lg-6 col-md-6">
                   <DetailData
                     label="Dimodifikasi Oleh"
@@ -1335,7 +1352,8 @@ export default function Index({ onChangePage }) {
                       }
                     )}
                   />
-              <div className="row">
+                </div>
+
                 <div className="col-lg-6 col-md-6">
                   <DetailData label="Dibuat Oleh" isi={detail.dok_created_by} />
                   <DetailData
@@ -1351,6 +1369,7 @@ export default function Index({ onChangePage }) {
                     )}
                   />
                 </div>
+
                 <div className="col-lg-6 col-md-6">
                   <DetailData
                     label="Dimodifikasi Oleh"
@@ -1373,6 +1392,7 @@ export default function Index({ onChangePage }) {
             </div>
           </Modal>
         )}
+
         {modalType === "preview" && (
           <Modal
             ref={ModalRef}

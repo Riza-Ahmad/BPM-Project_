@@ -57,7 +57,12 @@ export default function EditChild({ onChangePage, breadcrumbs, idData }) {
       if (result === "ERROR" || result === null || result.length === 0) {
         setFormData({});
       } else {
-        setFormData(result[0]);
+        setFormData({
+          idKdo: result[0].idKdo,
+          namaKdo: result[0].namaKdo,
+          parentKdo: result[0].parentKdo,
+          urutanKdo: result[0].urutanKdo,
+        });
       }
       setLoading(false);
     };
@@ -102,7 +107,7 @@ export default function EditChild({ onChangePage, breadcrumbs, idData }) {
 
     try {
       const createResponse = await useFetch(
-        `${API_LINK}/MasterKategoriDokumen/CreateDataKategoriDokumenChild`,
+        `${API_LINK}/MasterKategoriDokumen/EditDataKategoriDokumenChild`,
         formData,
         "POST"
       );
@@ -119,6 +124,8 @@ export default function EditChild({ onChangePage, breadcrumbs, idData }) {
       SweetAlert("Gagal!", error.message, "error", "OK");
     }
   };
+
+  if (loading) return <Loading />
 
   return (
     <div className="d-flex flex-column min-vh-100">

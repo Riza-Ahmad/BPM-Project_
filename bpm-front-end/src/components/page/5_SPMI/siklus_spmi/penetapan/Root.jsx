@@ -5,17 +5,10 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import Index from "./Index";
 import ScrollToTop from "../../../../part/ScrollToTop";
 import ProtectedRoute from "../../../../util/ProtectedRoute";
 import EditKonten from "./EditKonten";
-import Add from "./Add";
-import Edit from "./Edit";
-import Read from "../../../MasterKategoriDokumen/Index";
-import Addkat from "../../../MasterKategoriDokumen/Add";
-import addKatChild from "../../../MasterKategoriDokumen/AddChild";
-import IndexAlternate from "./IndexAlternate";
-import IndexAlternate2 from "./IndexAlternate2";
+import Index from "./Index";
 
 export default function Penetapan() {
   const navigate = useNavigate();
@@ -28,31 +21,9 @@ export default function Penetapan() {
       case "index":
         navigate(`${currentPath}`, { state: { mode: "index", ...withState } });
         break;
-      case "read":
-        navigate(`${currentPath}`, { state: { mode: "read", ...withState } });
-        break;
-      case "addKat":
-        navigate(`${currentPath}`, { state: { mode: "addKat", ...withState } });
-        break;
-      case "addKatChild":
-        navigate(`${currentPath}`, { state: { mode: "addKatChild", ...withState } });
-        break;
-      case "edit":
-        navigate(`${currentPath}`, { state: { mode: "edit", ...withState } });
-        break;
-      case "kelola":
+      case "editKonten":
         navigate(`${currentPath}`, {
-          state: { mode: "kelola", ...withState },
-        });
-        break;
-      case "updHistory":
-        navigate(`${currentPath}`, {
-          state: { mode: "updHistory", ...withState },
-        });
-        break;
-      case "downHistory":
-        navigate(`${currentPath}`, {
-          state: { mode: "downHistory", ...withState },
+          state: { mode: "editKonten", ...withState },
         });
         break;
       default:
@@ -71,16 +42,10 @@ export default function Penetapan() {
           path="/"
           element={
             <ProtectedRoute>
-              {mode === "kelola" ? (
-                <Read onChangePage={handlePageChange} />
-              ) : mode === "addKat" ? (
-                <Addkat onChangePage={handlePageChange} />
-              ) : mode === "addKatChild" ? (
-                <addKatChild onChangePage={handlePageChange} />
-              ) : mode === "read" ? (
-                <Read onChangePage={handlePageChange} />
+              {mode === "editKonten" ? (
+                <EditKonten onChangePage={handlePageChange} />
               ) : (
-                <IndexAlternate2 onChangePage={handlePageChange} />
+                <Index onChangePage={handlePageChange} />
               )}
             </ProtectedRoute>
           }

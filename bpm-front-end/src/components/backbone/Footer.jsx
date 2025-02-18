@@ -12,7 +12,7 @@ function Footer() {
           {/* Column 1: About BPM */}
           <div className="col-lg-5 col-md-6 mb-4">
             <img
-              src="../src/assets/bpm-logo.png"
+              src="../../src/assets/bpm-logo.png"
               alt="Logo BPM"
               style={{ width: "200px", height: "auto" }}
             />

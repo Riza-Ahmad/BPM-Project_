@@ -61,7 +61,6 @@ const inisialisasiSideMenuData = [
 export default function Index({ onChangePage, isIkuIkt }) {
   const location = useLocation();
   const idMenu = location.state?.idMenu;
-  // console.log(location.state.idMenu);
   const activeUser = Cookies.get("activeUser");
   let role = "";
   let roleNama = "";
@@ -156,8 +155,6 @@ export default function Index({ onChangePage, isIkuIkt }) {
         const arrResult = Object.values(result);
         const firstResult = arrResult[0];
 
-        console.log(firstResult);
-
         // Set Menu Data
         setMenuData({
           idKdo: firstResult.idKdo,
@@ -179,8 +176,6 @@ export default function Index({ onChangePage, isIkuIkt }) {
         });
         const listMenu = CreateMenu(arrResult);
         const depth = calculateDepth(listMenu);
-        // console.log(listMenu);
-        // console.log(depth);
         const sideMenuTransformed = listMenu[0]?.children;
 
         switch (depth) {
@@ -247,7 +242,6 @@ export default function Index({ onChangePage, isIkuIkt }) {
   const fetchDokumen = async () => {
     setLoading(true);
     try {
-      console.log(currentFilter);
       const result = await useFetch(
         `${API_LINK}/MasterDokumen/GetDataDokumenByKategori`,
         currentFilter,
@@ -474,12 +468,24 @@ export default function Index({ onChangePage, isIkuIkt }) {
     }
 
     return list.map(({ idKdo, namaKdo }, index) => (
-      <div className="nav-item mx-0" key={idKdo || index}>
+      <div
+        key={idKdo || index}
+        className="col-auto mb-0 d-flex justify-content-center"
+      >
         <button
+          className={`btn ${
+            activeTab?.idKdo === idKdo ? "shadow" : "btn-outline-white"
+          } rounded-top-2 rounded-bottom-0`}
+          style={{
+            backgroundColor: activeTab?.idKdo === idKdo ? "#2654A1" : "",
+            color: activeTab?.idKdo === idKdo ? "white" : "#AAA7A7",
+            fontSize: "16px",
+            padding: "10px 15px",
+            fontWeight: "650",
+            width: "auto",
+            whiteSpace: "nowrap",
+          }}
           onClick={() => handleTabClick(idKdo, list[index])}
-          className={`nav-link ${
-            activeTab?.idKdo === idKdo ? " active" : ""
-          } text-dark px-3`}
         >
           {namaKdo || "Unnamed Tab"}
         </button>
@@ -491,7 +497,6 @@ export default function Index({ onChangePage, isIkuIkt }) {
     setSideMenu(item?.children || []); // Set children of the clicked item as the new side menu
     setActiveTab(item); // Update the active tab
     setActiveSide(item?.children[0] || null);
-    console.log(item?.children[0]);
     setCurrentFilter((prevFilter) => ({
       ...prevFilter,
       param1: idKdo, // Update the filter with the clicked tab's ID
@@ -605,7 +610,9 @@ export default function Index({ onChangePage, isIkuIkt }) {
                   <h1
                     style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}
                   >
-                    {menuData?.namaKdo ? menuData.namaKdo.toUpperCase() : "Page Title"}
+                    {menuData?.namaKdo
+                      ? menuData.namaKdo.toUpperCase()
+                      : "Page Title"}
                   </h1>
                 </div>
 
@@ -614,19 +621,23 @@ export default function Index({ onChangePage, isIkuIkt }) {
 
               <div className="mt-5">
                 <div
-                  className="nav nav-underline ms-2"
+                  className="row m-0 g-1 "
                   style={{ overflowX: "auto", maxWidth: "cover" }}
                 >
                   {renderTab(tabMenu)}
                 </div>
                 <div className="p-3 mb-5 bg-white rounded shadow">
                   <div className="row">
-                    <div
-                      className="col-lg-2"
-                      style={{ overflow: "auto", maxHeight: "800px" }}
-                    >
-                      {renderSide(sideMenu)}
-                    </div>
+                    {sideMenu.length > 0 ? (
+                      <div
+                        className="col-lg-2"
+                        style={{ overflow: "auto", maxHeight: "800px" }}
+                      >
+                        {renderSide(sideMenu)}
+                      </div>
+                    ) : (
+                      ""
+                    )}
                     <div className="col">
                       <div className="text-center">
                         <h3
@@ -768,9 +779,11 @@ export default function Index({ onChangePage, isIkuIkt }) {
                                 {filteredData.length > 0 ? (
                                   filteredData.map((item) => (
                                     <PdfPreviewDownload
-                                      key={item.id} // Pastikan setiap item memiliki `key` unik
+                                      key={item.idDok} // Pastikan setiap item memiliki `key` unik
                                       judul={item.judulDok}
-                                      handleClick={() => handleDownload(item)}
+                                      handleClick={() =>
+                                        handleDownload({ Key: item.idDok })
+                                      }
                                     />
                                   ))
                                 ) : (
@@ -801,7 +814,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
           <Modal
             ref={ModalRef}
             title="Detail Dokumen"
-            size="full"
+            size={isMobile ? "small" : "medium"}
             Button2={
               <Button
                 classType="secondary"
@@ -810,22 +823,21 @@ export default function Index({ onChangePage, isIkuIkt }) {
               />
             }
           >
-            <div className="p-5 mt-0 bg-white rounded shadow">
+            <div className="p-3 mt-0 bg-white ">
               <div className="row">
                 <div className="col-lg-12 col-md-12">
                   <DetailData
                     label="Judul Dokumen"
-                    isi={detail.judulDok ? detail.judulDok : "-"}
+                    isi={detail.judulDok || ""}
                   />
                 </div>
                 <div className="col-lg-6 col-md-6">
-                  <DetailData
-                    label="Nomor Dokumen"
-                    isi={detail.noDok ? detail.noDok : "-"}
-                  />
+                  <DetailData label="Nomor Dokumen" isi={detail.noDok || ""} />
+                </div>
+                <div className="col-lg-6 col-md-6">
                   <DetailData
                     label="Jenis Dokumen"
-                    isi={detail.controlDok ? detail.controlDok : "-"}
+                    isi={detail.controlDok || ""}
                   />
                 </div>
                 <div className="col-lg-6 col-md-6">
@@ -842,6 +854,8 @@ export default function Index({ onChangePage, isIkuIkt }) {
                         : "-"
                     }
                   />
+                </div>
+                <div className="col-lg-6 col-md-6">
                   <DetailData
                     label="Tanggal Kadaluwarsa"
                     isi={
@@ -856,13 +870,13 @@ export default function Index({ onChangePage, isIkuIkt }) {
                     }
                   />
                 </div>
-              </div>
-              <div className="row">
                 <div className="col-lg-6 col-md-6">
                   <DetailData
                     label="Dibuat Oleh"
-                    isi={detail.createdBy ? detail.createdBy : "-"}
+                    isi={detail.createdBy || "-"}
                   />
+                </div>
+                <div className="col-lg-6 col-md-6">
                   <DetailData
                     label="Dibuat Tanggal"
                     isi={
@@ -883,8 +897,10 @@ export default function Index({ onChangePage, isIkuIkt }) {
                 <div className="col-lg-6 col-md-6">
                   <DetailData
                     label="Dimodifikasi Oleh"
-                    isi={detail.modifiedBy ? detail.modifiedBy : "-"}
+                    isi={detail.modifiedBy || "-"}
                   />
+                </div>
+                <div className="col-lg-6 col-md-6">
                   <DetailData
                     label="Dimodifikasi Tanggal"
                     isi={
@@ -906,10 +922,11 @@ export default function Index({ onChangePage, isIkuIkt }) {
             </div>
           </Modal>
         )}
+
         {modalType === "preview" && (
           <Modal
             ref={ModalRef}
-            title={detail.judulDok}
+            title="Preview Dokumen"
             size="full"
             Button2={
               <Button
@@ -919,7 +936,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
               />
             }
           >
-            <div className="p-3 mt-0 bg-white">
+            <div className="mt-0 bg-white">
               <div style={{ width: "80vh", height: "70vh" }}>
                 {loading == true ? (
                   <div

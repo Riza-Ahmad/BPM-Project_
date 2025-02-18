@@ -16,6 +16,7 @@ import { useIsMobile } from "../../../util/useIsMobile";
 import Loading from "../../../part/Loading";
 import PageTitleNav from "../../../part/PageTitleNav";
 import { format } from "date-fns";
+import { formatDate } from "../../../util/Formatting";
 
 export default function RiwayatUnduh({ onChangePage }) {
   const location = useLocation();
@@ -45,15 +46,12 @@ export default function RiwayatUnduh({ onChangePage }) {
           "POST"
         );
 
-        console.log(pageCurrent);
-
         if (result === "ERROR" || result === null || result.length === 0) {
           setFilteredData([]);
         } else {
           const dokumenArray = Object.values(result);
           setFilteredData(dokumenArray);
           setTotalData(dokumenArray[0].TotalCount);
-          console.log(dokumenArray);
         }
       } catch (err) {
         setError("Gagal mengambil data: " + err);
@@ -113,15 +111,7 @@ export default function RiwayatUnduh({ onChangePage }) {
                       Key: item.idUdo,
                       No: (pageCurrent - 1) * pageSize + index + 1,
                       "Tanggal Unduh": item.tglUdo
-                        ? new Date(item.tglUdo).toLocaleDateString("id-ID", {
-                            weekday: "long",
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                            hour: "numeric",
-                            minute: "numeric",
-                            second: "numeric",
-                          })
+                        ? formatDate(item.tglUdo)
                         : "-",
                       "Judul Dokumen": item.judulDok,
                       "Nama Berkas (File)": item.fileDok,

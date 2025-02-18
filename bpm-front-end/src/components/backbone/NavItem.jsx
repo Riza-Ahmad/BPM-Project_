@@ -41,14 +41,16 @@ export default function NavItem() {
 
   useEffect(() => {
     const activeUser = Cookies.get("activeUser");
+    let role = "";
     if (activeUser) {
       setIsLoggedIn(true);
+      role = JSON.parse(activeUser).RoleID.slice(0, 5);
     }
 
     const fetchMenuItems = async () => {
       const data = await useFetch(
-        `${API_LINK}/Utilities/GetListMenu`,
-        {},
+        `${API_LINK}/Utilities/GetListMenuByRole`,
+        { p1: role || "" },
         "POST"
       );
       if (data !== "ERROR") {

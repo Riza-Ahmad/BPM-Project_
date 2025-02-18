@@ -8,7 +8,7 @@ import Index from "./Index";
 import ScrollToTop from "../../../../part/ScrollToTop";
 import EditKonten from "./EditKonten";
 import Add from "./Add";
-import Edit from "./Edit";
+import Edit from "../penetapan/Edit";
 
 export default function Evaluasi() {
   const navigate = useNavigate();

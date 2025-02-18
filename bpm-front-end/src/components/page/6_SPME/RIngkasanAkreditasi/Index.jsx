@@ -6,9 +6,25 @@ import { Bar } from "react-chartjs-2";
 import "chart.js/auto";
 import HeaderText from "../../../part/HeaderText";
 import Text from "../../../part/Text";
+import { useLocation } from "react-router-dom";
+import { decodeHtml } from "../../../util/DecodeHtml";
+import Button from "../../../part/Button";
+import Cookies from "js-cookie";
 
-export default function Akreditasi() {
+export default function Akreditasi({ onChangePage }) {
+  const location = useLocation();
+  const idMenu = location.state?.idMenu;
+  const activeUser = Cookies.get("activeUser");
+  let role = ""; // Jika undefined, gunakan nilai default
+  let roleNama = "";
+  let namaPengguna = "";
+  if (activeUser) {
+    role = JSON.parse(activeUser).RoleID.slice(0, 5);
+    roleNama = JSON.parse(activeUser).Role;
+    namaPengguna = JSON.parse(activeUser).Nama;
+  }
   const [institusiData, setInstitusiData] = useState(null);
+  const [menuData, setMenuData] = useState(null);
   const [prodiData, setProdiData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,9 +33,30 @@ export default function Akreditasi() {
     { label: "Status Akreditasi" },
     { label: "Ringkasan Status Akreditasi" },
   ]);
+
+  useEffect(() => {
+    const fetchMenu = async () => {
+      setLoading(true);
+      const result = await useFetch(
+        `${API_LINK}/MasterKategoriDokumen/GetDataKategoriDokumenHeaderByIdMenu`,
+        { idKdo: location.state?.idMenu },
+        "POST"
+      ).finally(() => setLoading(false));
+
+      if (result === "ERROR") {
+        setMenuData([]);
+      } else {
+        const menuArr = Object.values(result);
+        setMenuData(menuArr[0]);
+      }
+    };
+
+    fetchMenu();
+  }, [location.state?.idMenu]);
+
   const title = "Status Akreditasi";
   const normalizePredikat = (predikat) => {
-    if (!predikat) return "TIDAK TERAKREDITASI"; // Jika data null atau tidak ada
+    if (!predikat) return "BELUM TERAKREDITASI"; // Jika data null atau tidak ada
     const normalized = predikat.trim().toUpperCase();
     switch (normalized) {
       case "A":
@@ -35,7 +72,7 @@ export default function Akreditasi() {
       case "BAIK":
         return "BAIK";
       default:
-        return "TIDAK TERAKREDITASI"; // Default jika tidak cocok
+        return "BELUM TERAKREDITASI"; // Default jika tidak cocok
     }
   };
 
@@ -65,7 +102,6 @@ export default function Akreditasi() {
         } else {
           setError(responseProdi.message);
         }
-        console.log(responseProdi);
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -77,7 +113,7 @@ export default function Akreditasi() {
   }, []);
 
   const labels = Array.from(
-    new Set(prodiData.map((item) => item.peringkatAkr || "Belum Terakreditasi"))
+    new Set(prodiData.map((item) => item.peringkatAkr || "BELUM TERAKREDITASI"))
   );
 
   const getProdiByPredikat = (predikat) => {
@@ -174,41 +210,30 @@ export default function Akreditasi() {
           <div className="container mb-3">
             <div className="d-flex justify-content-between align-items-center">
               <h1 style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}>
-                {title ? title : "Page Title"}
+                {menuData?.namaKdo
+                  ? decodeHtml(menuData.namaKdo)
+                  : "Page Title"}
               </h1>
-            </div>
-            <div
-              className="breadcrumbs"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                margin: 0,
-                padding: 0,
-              }}
-            >
-              {breadcrumbs.map((crumb, index) => (
-                <React.Fragment key={index}>
-                  <span
-                    style={{
-                      color: "#575050",
-                      textDecoration: "none",
-                      margin: 0, // Tambahkan margin 0 di sini juga
-                    }}
-                    onClick={() => navigate(crumb.href)}
-                  >
-                    {crumb.label}
-                  </span>
-                  {index < breadcrumbs.length - 1 && (
-                    <span style={{ margin: "0 0.5rem", color: "#6c757d" }}>
-                      /
-                    </span>
-                  )}
-                </React.Fragment>
-              ))}
+              {role === "ROL01" ? (
+                <Button
+                  classType="btn btn-primary"
+                  title="Edit Cover"
+                  label="Edit Cover"
+                  onClick={() =>
+                    onChangePage("editKonten", {
+                      breadcrumbs: breadcrumbs,
+                      idData: menuData.idKdo,
+                      idMenu: idMenu,
+                    })
+                  }
+                />
+              ) : (
+                ""
+              )}
             </div>
             <div className="rounded-4 shadow bg-primary bg-gradient text-white mt-4 mb-5">
               <div className="p-4 mx-2">
-                <HeaderText
+                {/* <HeaderText
                   label={`Politeknik Astra Memperoleh Predikat ${
                     institusiData?.peringkatAkr || "-"
                   }`}
@@ -216,14 +241,10 @@ export default function Akreditasi() {
                   warna="#2654A1b"
                   fontWeight="650"
                   ukuran="2rem"
-                />
+                /> */}
                 <Text
                   warna="white"
-                  isi={`Sejalan dengan ketentuan Pasal 55 ayat (4) Undang-Undang Republik Indonesia Nomor 12 
-                        Tahun 2012 , tentang Pendidikan Tinggi, akreditasi Perguruan Tinggi dilakukan oleh Badan 
-                        Akreditasi Nasional Perguruan Tinggi. Berdasarkan Surat Keputusan Direktur Dewan Eksekutif BAN-PT No. ${
-                          institusiData?.noAkr || "-"
-                        }`}
+                  isi={menuData.deskripsiKdo}
                   ukuran="1.2rem"
                 />
               </div>
@@ -232,7 +253,7 @@ export default function Akreditasi() {
             <div className="rounded-4 shadow mt-5">
               <div className="p-4 mx-2">
                 <HeaderText
-                  label="Akreditasi Program Studi"
+                  label="Program Studi yang Terakreditasi"
                   alignText="left"
                   warna="#2654A1b"
                   fontWeight="650"

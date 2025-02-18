@@ -15,6 +15,7 @@ import DocUpload from "../../../part/DocUpload";
 import { useIsMobile } from "../../../util/useIsMobile";
 import Loading from "../../../part/Loading";
 import SweetAlert from "../../../util/SweetAlert";
+import { decodeHtml } from "../../../util/DecodeHtml";
 
 const arrData = [
   { Value: "Nasional", Text: "Nasional" },
@@ -87,7 +88,7 @@ export default function Edit({ onChangePage }) {
         const obj = StandarArr[0];
         setFormData({
           idSta: idData,
-          namaSta: obj.judulSta,
+          namaSta: decodeHtml(obj.judulSta),
           jenisSta: obj.jenisSta,
           tahunSta: obj.tahunSta,
           urutanSta: obj.urutanSta,
@@ -148,7 +149,7 @@ export default function Edit({ onChangePage }) {
         `${API_LINK}/MasterStandar/EditDataStandar`,
         {
           param1: idData,
-          param2: formData.namaSta,
+          param2: decodeHtml(formData.namaSta),
           param3: formData.jenisSta,
           param4: formData.tahunSta,
           param5: formData.urutanSta,

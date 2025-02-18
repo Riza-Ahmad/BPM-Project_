@@ -61,7 +61,6 @@ const inisialisasiSideMenuData = [
 export default function Index({ onChangePage, isIkuIkt }) {
   const location = useLocation();
   const idMenu = location.state?.idMenu;
-  // console.log(location.state.idMenu);
   const activeUser = Cookies.get("activeUser");
   let role = "";
   let roleNama = "";
@@ -154,12 +153,9 @@ export default function Index({ onChangePage, isIkuIkt }) {
         }
 
         const arrResult = Object.values(result);
-        const firstResult = arrResult[0];
 
         const listMenu = CreateMenu(arrResult);
-        console.log(listMenu);
         const depth = calculateDepth(listMenu);
-        console.log(depth);
         const sideMenuTransformed = listMenu[0]?.children;
 
         switch (depth) {
@@ -216,7 +212,6 @@ export default function Index({ onChangePage, isIkuIkt }) {
   const fetchDokumen = async () => {
     setLoading(true);
     try {
-      console.log(currentFilter);
       const result = await useFetch(
         `${API_LINK}/MasterDokumen/GetDataDokumenByKategori`,
         currentFilter,
@@ -460,7 +455,6 @@ export default function Index({ onChangePage, isIkuIkt }) {
     setSideMenu(item?.children || []); // Set children of the clicked item as the new side menu
     setActiveTab(item); // Update the active tab
     setActiveSide(item?.children[0] || null);
-    console.log(item?.children[0]);
     setCurrentFilter((prevFilter) => ({
       ...prevFilter,
       param1: idSta, // Update the filter with the clicked tab's ID

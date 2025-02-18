@@ -114,7 +114,6 @@ export default function Add({ onChangePage }) {
       return;
     }
 
-    console.log(formData);
     try {
       const createResponse = await useFetch(
         `${API_LINK}/MasterStandar/CreateDataStandar`,

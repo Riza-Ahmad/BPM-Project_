@@ -1,12 +1,10 @@
 import React, { useState, useRef } from "react";
-import { useEffect } from "react";
 import PageTitleNav from "../../../part/PageTitleNav";
 import InputField from "../../../part/InputField";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
-import DocUpload from "../../../part/DocUpload";
 import DropDown from "../../../part/Dropdown";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import SweetAlert from "../../../util/SweetAlert";
 import FileUpload from "../../../part/FileUpload";
 import { useIsMobile } from "../../../util/useIsMobile";
@@ -51,7 +49,6 @@ export default function Add({ onChangePage }) {
 
   const handleFileChange = (updatedFiles) => {
     setFile(updatedFiles);
-    console.log(file);
   };
 
   const handleSubmit = async () => {
@@ -105,7 +102,9 @@ export default function Add({ onChangePage }) {
       if (file) {
         const folderName = "Dokumen";
         const filePrefix =
-          idData === null ? idMenu : idData + "_" + formData.judulDok;
+          idData === undefined
+            ? idMenu + "_" + formData.judulDok
+            : idData + "_" + formData.judulDok;
         uploadedDokNames = await uploadFile(file, folderName, filePrefix);
       }
 
@@ -237,6 +236,7 @@ export default function Add({ onChangePage }) {
                     onChange={handleFileChange}
                     name="fileDok"
                     ref={fileRef}
+                    formatFile={idMenu === 51 ? ".pdf,.docx,.xlsx" : ".pdf"}
                     isRequired={true}
                   />
                 </div>

@@ -16,7 +16,7 @@ const ImagesCarousel = ({ images = [], link = DOKUMEN_LINK }) => {
       borderRadius: "20px",
     },
     carouselImg: {
-      height: "50vh",
+      height: "60vh",
       objectFit: "cover",
     },
     controlButton: {
@@ -79,7 +79,7 @@ const ImagesCarousel = ({ images = [], link = DOKUMEN_LINK }) => {
               }
               className="d-block w-100"
               alt={`Slide ${index + 1}`}
-              style={{ objectFit: "cover", height: "50vh" }}
+              style={{ objectFit: "cover", height: "55vh" }}
             />
           </div>
         ))}

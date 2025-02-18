@@ -106,7 +106,6 @@ export default function Edit({ onChangePage, idAkreditasi }) {
       ...prevData,
       [activeModalFor.current]: e["Judul Dokumen"],
     }));
-    console.log(e);
     document.getElementById("dokModalClose").click();
   };
 
@@ -124,12 +123,10 @@ export default function Edit({ onChangePage, idAkreditasi }) {
         body,
         "POST"
       ).finally(() => setLoading(false));
-      console.log("API Response:", result); // Log the API response
 
       if (result === "ERROR" || result === null || result.length === 0) {
         setFormData(null);
       } else {
-        console.log(result);
         const dokumenArray = result;
         setFormData({
           kodeAkr: dokumenArray[0].kodeAkr,
@@ -160,7 +157,6 @@ export default function Edit({ onChangePage, idAkreditasi }) {
           currentFilter,
           "POST"
         );
-        console.log(currentFilter);
 
         if (result === "ERROR" || result === null || result.length === 0) {
           setFilteredData([]);
@@ -226,8 +222,6 @@ export default function Edit({ onChangePage, idAkreditasi }) {
         SKAkr: formData.fileSkAkr ? formData.fileSkAkr : "",
         SertifAkr: formData.fileSertifAkr ? formData.fileSertifAkr : "",
       };
-
-      console.log(AkreData);
 
       const createResponse = await useFetch(
         `${API_LINK}/MasterAkreditasi/EditDataAkreditasi`,

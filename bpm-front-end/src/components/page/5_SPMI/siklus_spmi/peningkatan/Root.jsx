@@ -4,28 +4,32 @@ import {
   Route,
   useNavigate,
 } from "react-router-dom";
-import Index from "./Index";
+// import Index from "./Index";
 import ScrollToTop from "../../../../part/ScrollToTop";
-import EditKonten from "./EditKonten";
-import Add from "./Add";
+import { useLocation } from "react-router-dom";
+import ProtectedRoute from "../../../../util/ProtectedRoute";
+import Index from "./Index";
 import Edit from "./Edit";
+import EditKonten from "./EditKonten";
 
 export default function Peningkatan() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.pathname;
 
+  // Handler for page navigation
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
-      case "peningkatan":
-        navigate("/spmi/siklus/peningkatan");
-        break;
-      case "editKonten":
-        navigate("/spmi/siklus/peningkatan/editkonten", withState);
-        break;
-      case "add":
-        navigate("/spmi/siklus/peningkatan/add");
+      case "index":
+        navigate(`${currentPath}`, { state: { mode: "index", ...withState } });
         break;
       case "edit":
-        navigate("/spmi/siklus/peningkatan/edit");
+        navigate(`${currentPath}`, { state: { mode: "edit", ...withState } });
+        break;
+      case "editKonten":
+        navigate(`${currentPath}`, {
+          state: { mode: "editKonten", ...withState },
+        });
         break;
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
@@ -33,19 +37,26 @@ export default function Peningkatan() {
     }
   };
 
+  const { mode } = location.state || { mode: "index" };
+
   return (
     <>
       <ScrollToTop />
       <Routes>
-        <Route path="/" element={<Index onChangePage={handlePageChange} />} />
+        {/* Public Route */}
         <Route
-          path="/editkonten"
-          element={<EditKonten onChangePage={handlePageChange} />}
-        />
-        <Route path="/add" element={<Add onChangePage={handlePageChange} />} />
-        <Route
-          path="/edit"
-          element={<Edit onChangePage={handlePageChange} />}
+          path="/"
+          element={
+            <ProtectedRoute>
+              {mode === "edit" ? (
+                <Edit onChangePage={handlePageChange} />
+              ) : mode === "editKonten" ? (
+                <EditKonten onChangePage={handlePageChange} />
+              ) : (
+                <Index onChangePage={handlePageChange} />
+              )}
+            </ProtectedRoute>
+          }
         />
       </Routes>
     </>

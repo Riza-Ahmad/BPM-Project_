@@ -10,6 +10,7 @@ export default function ProtectedRoute({
   let role = "";
   const activeUser = Cookies.get("activeUser");
   if (activeUser) role = JSON.parse(activeUser).RoleID.slice(0, 5);
+  // if (role !== "") isRole = true;
 
   if (!activeUser) {
     return <Navigate to="/login" />;

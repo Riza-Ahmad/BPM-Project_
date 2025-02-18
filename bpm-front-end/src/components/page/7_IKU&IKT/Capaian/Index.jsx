@@ -40,8 +40,8 @@ export default function Index({ onChangePage }) {
   const [totalIKTByStandarUtama, setTotalIKTByStandarUtama] = useState(0);
 
   const years = Array.from(
-    { length: currentYear - 1995 + 1 },
-    (_, i) => 1995 + i
+    { length: currentYear - 2024 + 1 },
+    (_, i) => 2024 + i
   );
   const title1 = "Capaian Aktual IKU dan IKT Politeknik Astra";
   const optionIndikatorKinerja = {
@@ -81,6 +81,7 @@ export default function Index({ onChangePage }) {
           "POST"
         );
         setStandarUtama(response || []);
+        // selectedStandar(response[0].idStandarUtama);
       } catch (err) {
         setError("Error fetching standar utama");
       }
@@ -209,7 +210,7 @@ export default function Index({ onChangePage }) {
     <>
       <div className="d-flex flex-column min-vh-100">
         <main className="flex-grow-1 p-3" style={{ marginTop: "60px" }}>
-          <div className="container">
+            <div className="container mt-5">
             <div className="d-flex justify-content-center align-items-center text-center">
               <h1 style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}>
                 {title1}
@@ -390,7 +391,7 @@ export default function Index({ onChangePage }) {
                               maxWidth: "100%",
                             }}
                           >
-                            <div style={{ minWidth: "900px" }}>
+                            <div style={{ minWidth: "900px", overflow: "auto" }}>
                               <Bar
                                 data={generateChartData(
                                   filteredData,
@@ -433,7 +434,7 @@ export default function Index({ onChangePage }) {
                             <button
                               key={id}
                               onClick={() => handleIKUSelection(id)}
-                              className={`btn ${
+                              className={`text-start btn ${
                                 selectedIKU === id ? "btn-primary" : "btn-light"
                               } w-100 mb-2`}
                             >

@@ -73,7 +73,7 @@ export default function Edit({ onChangePage }) {
         `${API_LINK}/MasterStandar/GetListStandarByParent`,
         { idData: idSta },
         "POST"
-      ).finally(() => setLoading(false));
+      );
 
       if (result === "ERROR") {
         setArrStandar([]);
@@ -81,6 +81,7 @@ export default function Edit({ onChangePage }) {
         const StandarArr = Object.values(result);
         setArrStandar(StandarArr);
       }
+      setLoading(false);
     };
 
     fetchTahunDokumen();
@@ -93,7 +94,7 @@ export default function Edit({ onChangePage }) {
         `${API_LINK}/MasterIndikatorKinerja/GetListIndikatorKinerjaByStandar`,
         { idData: idSta },
         "POST"
-      ).finally(() => setLoading(false));
+      );
 
       if (result === "ERROR") {
         setArrIK([]);
@@ -106,6 +107,7 @@ export default function Edit({ onChangePage }) {
           }))
         );
       }
+      setLoading(false);
     };
 
     fetchTahunDokumen();
@@ -118,7 +120,7 @@ export default function Edit({ onChangePage }) {
         `${API_LINK}/MasterIndikatorKinerja/GetDataIndikatorKinerjaById`,
         { idData: idData },
         "POST"
-      ).finally(() => setLoading(false));
+      );
 
       if (result === "ERROR") {
         formData({});
@@ -126,7 +128,14 @@ export default function Edit({ onChangePage }) {
         const StandarArr = Object.values(result);
         const obj = StandarArr[0];
         setFormData(obj);
+        // setFormData((prev) => {
+        //   return {
+        //     ...prev,
+        //     aktualIka: "-",
+        //   };
+        // });
       }
+      setLoading(false);
     };
 
     fetchStandar();
@@ -148,7 +157,8 @@ export default function Edit({ onChangePage }) {
     const body = {
       idIka: idData,
       staPelIka: formData.staPelIka || "",
-      namaIka: decodeHtml(formData.namaIka).replace(/<\/?[^>]+(>|$)/g, "") || "",
+      namaIka:
+        decodeHtml(formData.namaIka).replace(/<\/?[^>]+(>|$)/g, "") || "",
       urutanIka: formData.urutanIka || "",
       picIka: formData.picIka || "",
       parentIka: formData.parentIka || "",
@@ -161,6 +171,7 @@ export default function Edit({ onChangePage }) {
     const isPicIkaValid = picIkaRef.current?.validate();
     const isUrutanIkaValid = urutanIkaRef.current?.validate();
     const isTargetIkaValid = targetIkaRef.current?.validate();
+    const isAktualIkaValid = aktualIkaRef.current?.validate();
 
     if (!isNamaIkaValid) {
       namaIkaRef.current?.focus();
@@ -174,13 +185,15 @@ export default function Edit({ onChangePage }) {
       urutanIkaRef.current?.focus();
       return;
     }
-    // console.log('mai ini');
     if (!isTargetIkaValid) {
       targetIkaRef.current?.focus();
       return;
     }
+    if (!isAktualIkaValid) {
+      aktualIkaRef.current?.focus();
+      return;
+    }
 
-    console.log(body);
     try {
       const createResponse = await useFetch(
         `${API_LINK}/MasterIndikatorKinerja/EditDataIndikatorKinerja`,
@@ -226,129 +239,135 @@ export default function Edit({ onChangePage }) {
               }
             >
               <HeaderForm label="Indikator Kinerja" />
-              <div className="row mb-3">
-                <div className="col-lg-12 col-md-12">
-                <InputArea
-                    ref={namaIkaRef}
-                    label="Nama Indikator"
-                    value={formData.namaIka}
-                    onChange={(e) =>
-                      setFormData({ ...formData, namaIka: e.target.value })
-                    }
-                    isRequired={true}
-                  />
-                </div>
-                <div className="col-lg-6 col-md-6">
-                  <InputField
-                    ref={picIkaRef}
-                    label="PIC"
-                    value={formData.picIka}
-                    onChange={handleChange}
-                    isRequired={true}
-                    name="picIka"
-                    type="text"
-                    maxChar="50"
-                  />
-                </div>
-                <div className="col-lg-6 col-md-6">
-                  <InputField
-                    ref={targetIkaRef}
-                    label="Target"
-                    value={formData.targetIka}
-                    onChange={handleChange}
-                    isRequired={true}
-                    name="targetIka"
-                    type="text"
-                    maxChar="100"
-                  />
-                </div>
-                {modew !== "utama" ? (
-                  <>
-                    <div className="col-lg-6 col-md-6">
-                      <DropDown
-                        arrData={arrStandar}
-                        type="pilih"
-                        label="Standar PT"
-                        forInput="staIdPelIka"
-                        isRequired={false}
-                        onChange={handleChange}
-                        value={formData.staPelIka}
-                        ref={staPelIkaRef}
-                      />
-                    </div>
-                    <div className="col-lg-6 col-md-6">
-                      <DropDown
-                        arrData={arrIK}
-                        type="pilih"
-                        label="IKU"
-                        forInput="parentIka"
-                        isRequired={false}
-                        onChange={handleChange}
-                        value={formData.parentIka}
-                        ref={parentIkaRef}
-                      />
-                    </div>
-                  </>
-                ) : (
-                  ""
-                )}
-                <div className="col-lg-6 col-md-6">
-                  <InputField
-                    ref={aktualIkaRef}
-                    label="Aktual"
-                    value={formData.aktualIka || ""}
-                    forInput="aktualIka"
-                    onChange={handleChange}
-                    isRequired={false}
-                    type="text"
-                    maxChar="100"
-                  />
-                </div>
-                <div className="col-lg-6 col-md-6">
-                  <DropDown
-                    arrData={arrData}
-                    type="pilih"
-                    label="Status Capaian"
-                    forInput="capaianIka"
-                    isRequired={false}
-                    onChange={handleChange}
-                    value={formData.capaianIka || ""}
-                    ref={capaianIkaRef}
-                  />
-                </div>
-                <div className="col-lg-6 col-md-6">
-                  <InputField
-                    ref={urutanIkaRef}
-                    label="Urutan"
-                    value={formData.urutanIka}
-                    onChange={handleChange}
-                    isRequired={true}
-                    name="urutanIka"
-                    type="number"
-                  />
-                </div>
+              {!loading ? (
+                <div className="row mb-3">
+                  <div className="col-lg-12 col-md-12">
+                    <InputArea
+                      ref={namaIkaRef}
+                      label="Nama Indikator"
+                      value={formData.namaIka}
+                      onChange={(e) =>
+                        setFormData({ ...formData, namaIka: e.target.value })
+                      }
+                      isRequired={true}
+                    />
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <InputField
+                      ref={picIkaRef}
+                      label="PIC"
+                      value={formData.picIka}
+                      onChange={handleChange}
+                      isRequired={true}
+                      name="picIka"
+                      type="text"
+                      maxChar="50"
+                    />
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <InputField
+                      ref={targetIkaRef}
+                      label="Target"
+                      value={formData.targetIka}
+                      onChange={handleChange}
+                      isRequired={true}
+                      name="targetIka"
+                      type="text"
+                      maxChar="100"
+                    />
+                  </div>
+                  {modew !== "utama" ? (
+                    <>
+                      <div className="col-lg-6 col-md-6">
+                        <DropDown
+                          arrData={arrStandar}
+                          type="pilih"
+                          label="Standar PT"
+                          forInput="staIdPelIka"
+                          isRequired={false}
+                          onChange={handleChange}
+                          value={formData.staPelIka}
+                          ref={staPelIkaRef}
+                        />
+                      </div>
+                      <div className="col-lg-6 col-md-6">
+                        <DropDown
+                          arrData={arrIK}
+                          type="pilih"
+                          label="IKU"
+                          forInput="parentIka"
+                          isRequired={false}
+                          onChange={handleChange}
+                          value={formData.parentIka}
+                          ref={parentIkaRef}
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    ""
+                  )}
+                  <div className="col-lg-6 col-md-6">
+                    <InputField
+                      ref={aktualIkaRef}
+                      label="Aktual"
+                      value={formData.aktualIka}
+                      forInput="aktualIka"
+                      onChange={(e) =>
+                        setFormData({ ...formData, aktualIka: e.target.value })
+                      }
+                      isRequired={false}
+                      type="text"
+                      // maxChar="100"
+                    />
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <DropDown
+                      arrData={arrData}
+                      type="pilih"
+                      label="Status Capaian"
+                      forInput="capaianIka"
+                      isRequired={false}
+                      onChange={handleChange}
+                      value={formData.capaianIka || ""}
+                      ref={capaianIkaRef}
+                    />
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <InputField
+                      ref={urutanIkaRef}
+                      label="Urutan"
+                      value={formData.urutanIka}
+                      onChange={handleChange}
+                      isRequired={true}
+                      name="urutanIka"
+                      type="number"
+                    />
+                  </div>
 
-                <div className="d-flex justify-content-between align-items-center mt-3">
-                  <div className="flex-grow-1 me-2">
-                    <Button
-                      classType="primary"
-                      type="submit"
-                      label="Submit"
-                      width="100%"
-                      onClick={handleSubmit}
-                    />
-                  </div>
-                  <div className="flex-grow-1 ms-2">
-                    <Button
-                      classType="danger"
-                      type="button"
-                      label="Batal"
-                      width="100%"
-                      onClick={() => onChangePage("index")}
-                    />
+                  <div className="d-flex justify-content-between align-items-center mt-3">
+                    <div className="flex-grow-1 me-2">
+                      <Button
+                        classType="primary"
+                        type="submit"
+                        label="Submit"
+                        width="100%"
+                        onClick={handleSubmit}
+                      />
+                    </div>
+                    <div className="flex-grow-1 ms-2">
+                      <Button
+                        classType="danger"
+                        type="button"
+                        label="Batal"
+                        width="100%"
+                        onClick={() => onChangePage("index")}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                ""
+              )}
             </div>
           </div>
         </div>

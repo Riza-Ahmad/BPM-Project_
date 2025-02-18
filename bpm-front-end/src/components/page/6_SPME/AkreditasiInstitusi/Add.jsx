@@ -1,10 +1,6 @@
 import PageTitleNav from "../../../part/PageTitleNav";
-import TextField from "../../../part/TextField";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
-import DropDown from "../../../part/Dropdown";
-import DocUpload from "../../../part/DocUpload";
-import FileUpload from "../../../part/FileUpload";
 import InputField from "../../../part/InputField";
 import React, { useRef, useState } from "react";
 import { API_LINK } from "../../../util/Constants";
@@ -76,7 +72,6 @@ export default function Add({ onChangePage }) {
       kadaluarsaAkrRef.current?.focus();
       return;
     }
-    console.log("masuk sini");
 
     try {
       const AkreData = {
@@ -91,8 +86,6 @@ export default function Add({ onChangePage }) {
         SKAkr: "",
         SertifAkr: "",
       };
-
-      console.log(AkreData);
 
       const isExist = await useFetch(
         `${API_LINK}/MasterAkreditasi/CheckDataAkreditasiExist`,

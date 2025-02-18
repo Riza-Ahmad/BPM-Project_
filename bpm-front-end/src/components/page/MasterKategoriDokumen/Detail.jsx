@@ -1,26 +1,21 @@
 import React, { useState, useRef } from "react";
 import { useEffect } from "react";
-import PageTitleNav from "../../../../part/PageTitleNav";
-import InputField from "../../../../part/InputField";
-import HeaderForm from "../../../../part/HeaderText";
-import Button from "../../../../part/Button";
-import DropDown from "../../../../part/Dropdown";
-import SweetAlert from "../../../../util/SweetAlert";
-import { useIsMobile } from "../../../../util/useIsMobile";
-import { API_LINK, DOKUMEN_LINK } from "../../../../util/Constants";
-import { useFetch } from "../../../../util/useFetch";
-import TextArea from "../../../../part/TextArea";
-import UploadFoto from "../../../../part/UploadFoto";
-import { decodeHtml } from "../../../../util/DecodeHtml";
-import Loading from "../../../../part/Loading";
-import { useLocation } from "react-router-dom";
+import PageTitleNav from "../../part/PageTitleNav";
+import InputField from "../../part/InputField";
+import HeaderForm from "../../part/HeaderText";
+import Button from "../../part/Button";
+import DropDown from "../../part/Dropdown";
+import SweetAlert from "../../util/SweetAlert";
+import { useIsMobile } from "../../util/useIsMobile";
+import { API_LINK, DOKUMEN_LINK } from "../../util/Constants";
+import { useFetch } from "../../util/useFetch";
+import TextArea from "../../part/TextArea";
+import UploadFoto from "../../part/UploadFoto";
+import { decodeHtml } from "../../util/DecodeHtml";
+import Loading from "../../part/Loading";
 
-export default function EditKonten({ onChangePage }) {
+export default function Edit({ onChangePage, breadcrumbs, idData }) {
   const isMobile = useIsMobile();
-  const location = useLocation();
-  const idData = location.state?.idData;
-  const idMenu = location.state?.idMenu;
-  const breadcrumbs = location.state?.breadcrumbs;
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     idMen: null,
@@ -180,8 +175,8 @@ export default function EditKonten({ onChangePage }) {
         formData.foto2Kdo,
         formData.foto3Kdo,
       ];
-      const finalImagePaths = updated.map((status, index) =>
-        status === "updated" ? uploadedPaths.shift() : prevPaths[index]
+      const finalImagePaths = updated.map((status, read) =>
+        status === "updated" ? uploadedPaths.shift() : prevPaths[read]
       );
 
       // Construct the payload for the update request
@@ -210,7 +205,7 @@ export default function EditKonten({ onChangePage }) {
 
       // Success notification
       await SweetAlert("Berhasil!", "Data berhasil diubah.", "success", "OK");
-      onChangePage("index", { idMenu: idMenu });
+      onChangePage("read");
     } catch (error) {
       console.error("Error:", error.message);
       SweetAlert("Gagal!", error.message, "error", "OK");
@@ -226,7 +221,7 @@ export default function EditKonten({ onChangePage }) {
             <PageTitleNav
               title="Edit Data"
               breadcrumbs={breadcrumbs}
-              onClick={() => onChangePage("index", { idMenu: idMenu })}
+              onClick={() => onChangePage("read")}
             />
           </div>
           <div className={isMobile ? "m-0" : "m-3"}>
@@ -248,7 +243,6 @@ export default function EditKonten({ onChangePage }) {
                   value={formData.namaKdo}
                   onChange={handleChange}
                   isRequired={true}
-                  isDisabled={true}
                   name="namaKdo"
                   type="text"
                   maxChar="100"
@@ -270,7 +264,6 @@ export default function EditKonten({ onChangePage }) {
                       label="Menu"
                       forInput="idMen"
                       isRequired={true}
-                      isDisabled={true}
                       onChange={handleChange}
                       value={formData.idMen}
                       ref={idMenRef}
@@ -283,7 +276,6 @@ export default function EditKonten({ onChangePage }) {
                       value={formData.urutanKdo}
                       onChange={handleChange}
                       isRequired={true}
-                      isDisabled={true}
                       name="urutanKdo"
                       type="number"
                       min="0"
@@ -338,7 +330,7 @@ export default function EditKonten({ onChangePage }) {
                       type="button"
                       label="Batal"
                       width="100%"
-                      onClick={() => onChangePage("index", { idMenu: idMenu })}
+                      onClick={() => onChangePage("read")}
                     />
                   </div>
                 </div>
