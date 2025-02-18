@@ -153,7 +153,7 @@ export default function Daftar_Survei({ onChangePage }) {
                       arrData={dataFilterSort}
                       label="Urut Berdasarkan"
                       type="pilih"
-                      defaultValue="[namaBad] ASC"
+                      // defaultValue="[namaBad] ASC"
                       forInput="sortFilter"
                       onChange={(e) =>
                         setCurrentFilter((prevFilter) => {

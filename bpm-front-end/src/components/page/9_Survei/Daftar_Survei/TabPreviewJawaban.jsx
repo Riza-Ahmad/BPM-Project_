@@ -32,6 +32,7 @@ const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [] }) => {
     if (selectedQuestion) {
       const fetchData = async () => {
         setLoading(true);
+        console.log("data dikirim:", idTransaksi, selectedQuestion);
 
         try {
           const result = await useFetch(
@@ -106,12 +107,39 @@ const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [] }) => {
       setFilterFormDataJawaban(
         uniqueLabels.map((label) => ({ label, value: labelCount[label] }))
       );
-      console.log(
-        "filter data: ",
-        uniqueLabels.map((label) => ({ label, value: labelCount[label] }))
-      );
+      setTipeFilter("CheckBox");
     } else if (tipeFilter === "RadioButton") {
-      console.log("Tipe");
+      // Membuat label yang unik berdasarkan deskripsiJawaban
+      const uniqueLabels = Object.values(formDataJawaban)
+        .map((item) => item.deskripsiJawaban.split(","))
+        .flat()
+        .map((value) => value.trim()) // Menghapus spasi di sekitar label
+        .filter((value, index, self) => self.indexOf(value) === index); // Menyaring label unik
+
+      // Inisialisasi labelCount untuk setiap label dengan value = 0
+      const labelCount = uniqueLabels.reduce((acc, label) => {
+        acc[label] = 0; // Set nilai default 0
+        return acc;
+      }, {});
+
+      Object.values(formDataJawaban).forEach((item) => {
+        if (item.jawabanSurvei) {
+          // Jika ada jawabanSurvei, tambahkan ke labelCount yang sesuai
+          const selectedValue = item.jawabanSurvei.trim();
+          if (labelCount[selectedValue] !== undefined) {
+            labelCount[selectedValue] += 1; // Menambahkan 1 jika ditemukan kecocokan
+          }
+        }
+      });
+
+      // Mapping data menjadi format [{ label: "Ya", value: 1 }, { label: "Tidak", value: 0 }]
+      const finalData = uniqueLabels.map((label) => ({
+        label,
+        value: labelCount[label] || 0, // Pastikan jika tidak ada jawaban untuk label, set value 0
+      }));
+
+      setFilterFormDataJawaban(finalData);
+      setTipeFilter("RadioButton");
     } else if (tipeFilter === "TextBox") {
       console.log("Tipe");
     } else {
@@ -153,8 +181,8 @@ const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [] }) => {
             {pertanyaan.length > 0 ? (
               pertanyaan.map((item) => (
                 <option
-                  key={item.idDetailJawabanSurvei}
-                  value={item.idDetailJawabanSurvei}
+                  key={item.idPertanyaan}
+                  value={item.idPertanyaan}
                   className="text-dark"
                 >
                   {item.pertanyaanSurvei}
@@ -180,6 +208,13 @@ const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [] }) => {
           ></i>
         </div>
         {tipeFilter === "CheckBox" && (
+          <BarChart2
+            judul={formDataJawaban?.[1]?.pertanyaanSurvei}
+            sourceData={filterFormDataJawaban}
+          />
+        )}
+
+        {tipeFilter === "RadioButton" && (
           <PieChart
             judul={formDataJawaban?.[1]?.pertanyaanSurvei}
             sourceData={filterFormDataJawaban}

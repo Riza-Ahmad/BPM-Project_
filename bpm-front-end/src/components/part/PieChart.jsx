@@ -20,18 +20,19 @@ const COLORS = [
 ];
 
 const PieChart = ({ judul, sourceData }) => {
-  const totalValue = sourceData.reduce((sum, item) => sum + item.value, 0);
-
-  // Filter sourceData untuk menghilangkan yang nilai 0
+  // Menyaring data yang memiliki nilai lebih dari 0 untuk chart
   const filteredData = sourceData.filter((item) => item.value > 0);
+  const totalValue = filteredData.reduce((sum, item) => sum + item.value, 0);
+
+  console.log("Filtered Data:", filteredData);
 
   const pieChartData = {
-    labels: filteredData.map((item) => item.label),
+    labels: sourceData.map((item) => item.label), // Semua label, termasuk yang memiliki value 0
     datasets: [
       {
-        data: filteredData.map((item) => item.value),
-        backgroundColor: COLORS.slice(0, filteredData.length),
-        borderColor: COLORS.slice(0, filteredData.length),
+        data: sourceData.map((item) => (item.value > 0 ? item.value : null)), // Null untuk data yang 0
+        backgroundColor: COLORS.slice(0, sourceData.length),
+        borderColor: COLORS.slice(0, sourceData.length),
         borderWidth: 1,
       },
     ],
@@ -60,6 +61,7 @@ const PieChart = ({ judul, sourceData }) => {
         anchor: "end",
         align: "start",
         formatter: (value) => {
+          if (value === 0) return ""; // Tidak tampilkan label datanya jika nilai 0
           let percentage = ((value / totalValue) * 100).toFixed(1);
           return `${percentage}%`;
         },
