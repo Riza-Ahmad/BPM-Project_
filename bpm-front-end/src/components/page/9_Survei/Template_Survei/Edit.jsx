@@ -216,6 +216,7 @@ export default function EditTemplateSurvei({ onChangePage }) {
   // Fetch data master pertanyaan survei untuk modal
   const fetchPertanyaanBank = async () => {
     setIsLoading(true);
+    const idBankArray = pertanyaan.map((item) => item.idBank);
     try {
       const result = await useFetch(
         `${API_LINK}/MasterPertanyaan/GetDataBankPertanyaanSurvei`,
@@ -224,19 +225,11 @@ export default function EditTemplateSurvei({ onChangePage }) {
           param2: selectedSort,
           param3: pageSize,
           param4: pageCurrent,
-          param5: formData.pertanyaan,
+          param5: idBankArray,
           // Tambahkan parameter lain jika diperlukan (misal status atau kriteria)
         },
         "POST"
       );
-      console.log({
-        param1: searchKeyword,
-        param2: selectedSort,
-        param3: pageSize,
-        param4: pageCurrent,
-        param5: formData.pertanyaan,
-        // Tambahkan parameter lain jika diperlukan (misal status atau kriteria)
-      });
       if (result === "ERROR" || !result || result.length === 0) {
         setFilteredData([]);
         setTotalData(0);
@@ -391,9 +384,13 @@ export default function EditTemplateSurvei({ onChangePage }) {
     }
 
     try {
+      console.log("Data Terupdate: ", {
+        idEdit: idEdit,
+        pertanyaanBaru: pertanyaanBaru,
+      });
       // Kirim permintaan ke backend menggunakan useFetch
       const createResponse = await useFetch(
-        `${API_LINK}/MasterInstrumenAudit/EditDataInstrumenAuditPertanyaan`,
+        `${API_LINK}/TemplateSurvei/EditTamplatePertanyaanSurveixx`,
         { idEdit: idEdit, pertanyaanBaru: pertanyaanBaru }
       );
 
@@ -430,24 +427,16 @@ export default function EditTemplateSurvei({ onChangePage }) {
     );
     if (confirm) {
       try {
-        const payload = { idTemplate: idData, idPertanyaan };
+        const payload = { idTemplate: idData, idDertail: idPertanyaan };
+        console.log("Payload: ", payload);
         const response = await useFetch(
-          `${API_LINK}/TemplateSurvei/DeletePertanyaanFromTemplate`,
+          `${API_LINK}/TemplateSurvei/HardDeleteDetailPertanyaanTemplateSurvei`,
           payload,
           "POST"
         );
         if (response === "ERROR") throw new Error("Gagal menghapus pertanyaan");
         SweetAlert("Berhasil", "Pertanyaan berhasil dihapus", "success", "OK");
-        // Update state formData dan detail pertanyaan
-        setFormData((prevData) => ({
-          ...prevData,
-          pertanyaan: prevData.pertanyaan.filter(
-            (item) => item !== idPertanyaan
-          ),
-        }));
-        setPertanyaan((prevData) =>
-          prevData.filter((item) => item.id !== idPertanyaan)
-        );
+        window.location.reload();
       } catch (err) {
         console.error(err);
         SweetAlert(
@@ -555,9 +544,10 @@ export default function EditTemplateSurvei({ onChangePage }) {
                 </div>
                 <div className="p-3">
                   <div className="row">
-                    <div className="col-3 mb-3">
+                    <div className="col-lg-3 col-md-6 col-sm-12 mb-3">
                       <Button
                         iconName="search"
+                        width="100%"
                         classType="primary"
                         type="button"
                         label="Tambah Pertanyaan Dari Bank"
@@ -565,6 +555,17 @@ export default function EditTemplateSurvei({ onChangePage }) {
                           handleOpenModal(); // Memanggil fungsi untuk membuka modal
                           setAksiIs(false); // Mengubah nilai state `aksiIs`
                         }}
+                      />
+                    </div>
+                    <div className="col-lg-3 col-md-6 col-sm-12 mb-3">
+                      <Button
+                        width="100%"
+                        iconName="add"
+                        classType="primary"
+                        label="Tambah Pertanyaan"
+                        onClick={() =>
+                          onChangePage("addpertanyaan", { idData: idData })
+                        }
                       />
                     </div>
                   </div>

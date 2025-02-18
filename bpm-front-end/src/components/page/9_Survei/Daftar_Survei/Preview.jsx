@@ -2,33 +2,55 @@ import React, { useState, useEffect } from "react";
 import PageTitleNav from "../../../part/PageTitleNav";
 import DetailData from "../../../part/DetailData";
 import HeaderForm from "../../../part/HeaderText";
+import Button from "../../../part/Button";
+import BarChart from "../../../part/BarChart";
 import Loading from "../../../part/Loading";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { useFetch } from "../../../util/useFetch";
+import SweetAlert from "../../../util/SweetAlert";
 import { useLocation, useNavigate } from "react-router-dom";
 import TabPreviewSurvei from "./TabPreviewSurvei";
+import TabPreviewJawaban from "./TabPreviewJawaban";
+import Cookies from "js-cookie";
 
 export default function Preview({ onChangePage }) {
-  const title = "Preview Template Survei";
+  const activeUser = Cookies.get("activeUser");
+  let role = ""; // Jika undefined, gunakan nilai default
+  let roleNama = "";
+  let namaPengguna = "";
+  let username = "";
+  if (activeUser) {
+    role = JSON.parse(activeUser).RoleID.slice(0, 5);
+    roleNama = JSON.parse(activeUser).Role;
+    namaPengguna = JSON.parse(activeUser).Nama;
+    username = JSON.parse(activeUser).username;
+  }
+  const title = "Daftar Survei";
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
-    templateName: "",
-    createdBy: "",
-    createdDate: "",
-    modifiedBy: "",
-    modifiedDate: "",
-    status: "",
+    idTransaksi: "",
+    namaTemplateSurvei: "",
+    kataPembuka: "",
+    kataPenutup: "",
+    tanggalAwal: "",
+    tanggalAkhir: "",
+    dibuatOleh: "",
+    dibuatTanggal: "",
+    diubahOleh: "",
+    diubahTanggal: "",
+    statusTransaksi: "",
   });
 
   const idData = location.state?.idData;
 
   // Track when template fetch is completed
   const [isTemplateFetched, setIsTemplateFetched] = useState(false);
+  const [dataBarChart, setDataBarChart] = useState([]);
   const [kriteria, setKriteria] = useState([]);
   const [pertanyaan, setPertanyaan] = useState({});
 
@@ -38,7 +60,7 @@ export default function Preview({ onChangePage }) {
       setLoading(true);
       try {
         const data = await useFetch(
-          `${API_LINK}/TemplateSurvei/GetTemplateDataKriteriaSurveiByIdxx`,
+          `${API_LINK}/TransaksiSurvei/GetDataKriteriaTransaksiSurveiByIdxx`,
           { id: idData },
           "POST"
         );
@@ -58,9 +80,10 @@ export default function Preview({ onChangePage }) {
     const fetchPertanyaan = async () => {
       setLoading(true);
       try {
+        console.log("Hallo Pertanyaan :", { id: idData, nama: username });
         const data = await useFetch(
-          `${API_LINK}/TemplateSurvei/GetTemplateDataSPertanyaanSurveiByIdxx`,
-          { id: idData },
+          `${API_LINK}/TransaksiSurvei/GetDataPertanyaanTransaksiSurveiByIdAdminxx`,
+          { id: idData, nama: username },
           "POST"
         );
 
@@ -83,26 +106,33 @@ export default function Preview({ onChangePage }) {
 
       try {
         const result = await useFetch(
-          `${API_LINK}/TemplateSurvei/GetTemplateSurveiById`,
+          `${API_LINK}/TransaksiSurvei/GetDataTransaksiSurveiByIdxx`,
           body,
           "POST"
         );
-        console.log("Preview: ", result);
+        console.log("Transaksi Survei: ", result);
         if (result === "ERROR" || result === null || result.length === 0) {
           setFormData({
-            templateName: "",
-            createdBy: "",
-            createdDate: "",
-            modifiedBy: "",
-            modifiedDate: "",
-            status: "",
+            idTransaksi: "",
+            namaTemplateSurvei: "",
+            kataPembuka: "",
+            kataPenutup: "",
+            tanggalAwal: "",
+            tanggalAkhir: "",
+            dibuatOleh: "",
+            dibuatTanggal: "",
+            diubahOleh: "",
+            diubahTanggal: "",
+            statusTransaksi: "",
           });
         } else {
           const fetchedData = result[0];
           setFormData({
-            templateName: fetchedData.namaTemplate,
-            createdBy: fetchedData.dibuatOleh,
-            createdDate: new Date(fetchedData.dibuatTgl).toLocaleDateString(
+            idTransaksi: fetchedData.idTransaksi,
+            namaTemplateSurvei: fetchedData.namaTemplateSurvei,
+            kataPembuka: fetchedData.kataPembuka,
+            kataPenutup: fetchedData.kataPenutup,
+            tanggalAwal: new Date(fetchedData.tanggalAwal).toLocaleDateString(
               "id-ID",
               {
                 weekday: "long",
@@ -111,16 +141,29 @@ export default function Preview({ onChangePage }) {
                 year: "numeric",
               }
             ),
-            modifiedBy: fetchedData.dimodifOleh || "-",
-            modifiedDate: fetchedData.dimodifTgl
-              ? new Date(fetchedData.dimodifTgl).toLocaleDateString("id-ID", {
-                  weekday: "long",
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })
+            tanggalAkhir: fetchedData.tanggalAkhir || "-",
+            dibuatOleh: fetchedData.dibuatOleh,
+            dibuatTanggal: new Date(
+              fetchedData.dibuatTanggal
+            ).toLocaleDateString("id-ID", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            }),
+            diubahOleh: fetchedData.diubahOleh || "-",
+            diubahTanggal: fetchedData.dimodifTgl
+              ? new Date(fetchedData.diubahTanggal).toLocaleDateString(
+                  "id-ID",
+                  {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  }
+                )
               : "-",
-            status: fetchedData.statusTemplate || "-",
+            statusTransaksi: fetchedData.statusTransaksi || "-",
           });
         }
       } catch (err) {
@@ -131,10 +174,73 @@ export default function Preview({ onChangePage }) {
       }
     };
 
+    const fetchTemplateDataChart = async () => {
+      const body = { idData: idData };
+      setLoading(true);
+
+      try {
+        const result = await useFetch(
+          `${API_LINK}/TransaksiSurvei/GetDataBarChartTransaksiSurveiByIdAdminxx`,
+          body,
+          "POST"
+        );
+
+        if (result === "ERROR" || result === null || result.length === 0) {
+          setDataBarChart([]);
+        } else {
+          const fetchedData = result;
+          console.log("Data BarChart : ", fetchedData);
+          setDataBarChart(fetchedData);
+        }
+      } catch (err) {
+        setError("Gagal mengambil data: " + err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTemplateDataChart();
     fetchTemplateData();
   }, [idData]);
+  const [formDataTab, setFormDataTab] = useState({});
 
-  const handleDataChange = (updatedFormData, updatedFiles) => {};
+  const handleDataChange = (updatedFormData, updatedFiles) => {
+    setFormDataTab(updatedFormData);
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    const createResponse = await useFetch(
+      `${API_LINK}/TransaksiSurvei/UpdateDaftarSurveiByUserxx`,
+      { idTransaksi: formData.idTransaksi }
+    );
+    if (createResponse === "ERROR") {
+      throw new Error("Gagal menambah data");
+    }
+
+    await Promise.all(
+      Object.entries(formDataTab).map(async ([key, value]) => {
+        const updatedObject = {
+          id: Number(key),
+          jawaban: value.jawaban,
+        };
+        console.log("Data Ke- ", updatedObject);
+
+        const createResponseJawaban = await useFetch(
+          `${API_LINK}/TransaksiSurvei/UpdateDaftarSurveiJawabanByUserxx`,
+          updatedObject
+        );
+        if (createResponseJawaban === "ERROR") {
+          throw new Error("Gagal menambah data");
+        }
+      })
+    );
+
+    setLoading(false);
+    SweetAlert("Berhasil!", "Data berhasil diperbarui.", "success", "OK").then(
+      () => onChangePage("index")
+    );
+  };
 
   if (loading) return <Loading />;
   if (error) return <p>{error}</p>;
@@ -160,40 +266,62 @@ export default function Preview({ onChangePage }) {
                   : "shadow p-5 m-5 mt-0 bg-white rounded"
               }
             >
-              <HeaderForm label="Preview Template Survei" />
+              <HeaderForm label={formData.namaTemplateSurvei} />
 
               <div className="border bg-white rounded mt-5 p-3">
                 <div className="row">
                   <div className="col-lg-6 col-md-6">
                     <DetailData
-                      label="Nama Template"
-                      isi={formData.templateName}
-                    />
-                    <DetailData label="Dibuat Oleh" isi={formData.createdBy} />
-                    <DetailData
-                      label="Dibuat Tanggal"
-                      isi={formData.createdDate}
+                      label="Kata Pembuka"
+                      isi={formData.kataPembuka}
                     />
                   </div>
                   <div className="col-lg-6 col-md-6">
-                    <DetailData label="Status" isi={formData.status} />
                     <DetailData
-                      label="Dimodifikasi Oleh"
-                      isi={formData.modifiedBy}
+                      label="Kata Penutup"
+                      isi={formData.kataPenutup}
                     />
+                  </div>
+                </div>
+                <div className="row">
+                  <div className="col-lg-6 col-md-6">
                     <DetailData
-                      label="Dimodifikasi Tanggal"
-                      isi={formData.modifiedDate}
+                      label="Tanggal Mulai Survei"
+                      isi={formData.tanggalAwal}
+                    />
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <DetailData
+                      label="Tanggal Akhir Survei"
+                      isi={formData.tanggalAkhir}
+                    />
+                  </div>
+                </div>
+                <div className="row">
+                  <div className="col-lg-6 col-md-6">
+                    <DetailData label="Dibuat Oleh" isi={formData.dibuatOleh} />
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <DetailData
+                      label="Dibuat Tanggal"
+                      isi={formData.dibuatTanggal}
                     />
                   </div>
                 </div>
               </div>
-              <TabPreviewSurvei
+
+              <BarChart
+                labels={formData.namaTemplateSurvei}
+                sourceData={dataBarChart}
+              />
+
+              <TabPreviewJawaban idTransaksi={idData} pertanyaan={pertanyaan} />
+              {/* <PieChart /> */}
+              {/* <TabPreviewSurvei
                 header={kriteria}
                 pertanyaan={pertanyaan}
                 onDataChange={handleDataChange}
-                mode="detailSurvei"
-              />
+              /> */}
             </div>
           </div>
         </div>

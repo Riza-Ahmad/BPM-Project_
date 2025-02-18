@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "moment/locale/id";
 import HeaderText from "../../../part/HeaderText.jsx";
 import { useIsMobile } from "../../../util/useIsMobile.js";
@@ -7,19 +7,19 @@ import TextArea from "../../../part/TextArea.jsx";
 import RadioButton from "../../../part/RadioButton.jsx";
 import FileUpload from "../../../part/FileUploadMulti.jsx";
 import DetailData from "../../../part/DetailData.jsx";
-import CheckBox from "../../../part/CheckBox";
+import CheckBox from "../../../part/CheckBoxTable.jsx";
 import InputArea from "../../../part/InputArea";
 import InputField from "../../../part/InputField";
 
 const generateArrData = (pertanyaan = []) => {
   if (!Array.isArray(pertanyaan)) {
-    console.error("pertanyaan bukan array:", pertanyaan);
     return [];
   }
 
   return pertanyaan.map((item) => ({
-    idPertanyaan: item.idPertanyaan,
+    idPertanyaan: item.idDetailJawabanSurvei,
     skalaTipe: item.skalaTipe,
+    jawaban: item.jawabanSurvei,
     arrData: item.skalaDeskripsi.split(",").map((text) => ({
       Value: text.trim(),
       Text: text.trim(),
@@ -49,11 +49,9 @@ const TabPreviewSurvei = ({
   useEffect(() => {
     if (!isInitialized && pertanyaan.length > 0) {
       const initialFormData = pertanyaan.reduce((acc, item) => {
-        acc[item.idPertanyaanSA] = {
-          jawaban: item.jawaban || "",
-          jawabanLanjutan: decodeHtml(item.jawabanLanjutan) || "",
-          dokumenBerkas: item.berkasDokumen ? [item.berkasDokumen] : [],
-          kategoriTemuan: item.kategoriTemuan || "",
+        acc[item.idDetailJawabanSurvei] = {
+          jawaban: decodeHtml(item.jawabanSurvei) || "",
+          komen: item.komenSurvei || "",
         };
         return acc;
       }, {});
@@ -73,6 +71,63 @@ const TabPreviewSurvei = ({
     onDataChange(updatedFormData);
   };
 
+  // const handleChange = (e, id, field) => {
+  //   const { value, checked, valueNow } = e.target;
+  //   // Jika value adalah array, ambil elemen pertamanya sebagai string
+  //   console.log("Checked awal: ", checked);
+  //   setFormData((prev) => {
+  //     const prevData = prev[id]?.[field] || []; // Ambil data sebelumnya atau array kosong
+  //     let updatedResponden;
+  //     setTimeout(() => console.log("PrevData awal: ", prevData), 0);
+  //     setTimeout(() => console.log("Value awal: ", value), 0);
+
+  //     if (checked) {
+  //       updatedResponden = [value]; // Tambahkan value jika dicentang
+  //     } else {
+  //       updatedResponden = prevData.filter(
+  //         (item) => String(item) !== String(valueNow)
+  //       );
+  //     }
+  //     setTimeout(() => console.log("hasilnya : ", updatedResponden), 0);
+
+  //     return {
+  //       ...prev,
+  //       [id]: {
+  //         ...prev[id],
+  //         [field]: Array.from(new Set(updatedResponden.flat())), // Hapus duplikat & pastikan array tetap satu dimensi
+  //       },
+  //     };
+  //   });
+  //   console.log(formData);
+  // };
+
+  const handleChange = (e, id, field) => {
+    const { value, checked, valueNow } = e.target;
+    setFormData((prev) => {
+      let updatedResponden;
+      updatedResponden = value;
+
+      return {
+        ...prev,
+        [id]: {
+          [field]: updatedResponden, // Hapus duplikat & pastikan array tetap satu dimensi
+        },
+      };
+    });
+
+    onDataChange((prev) => {
+      let updatedResponden;
+      updatedResponden = value;
+
+      return {
+        ...prev,
+        [id]: {
+          [field]: updatedResponden, // Hapus duplikat & pastikan array tetap satu dimensi
+        },
+      };
+    });
+  };
+
   const handleExpandToggle = (index) => {
     setExpandedIndexes((prevIndexes) => {
       if (prevIndexes.includes(index)) {
@@ -83,48 +138,66 @@ const TabPreviewSurvei = ({
   };
 
   const arrDataList = generateArrData(pertanyaan);
-  console.log("arrDataList :", arrDataList);
+  const CheckBoxRef = useRef();
+
+  //console.log("arrDataList :", arrDataList);
 
   const renderContent = (arrData) => {
     if (arrData.skalaTipe === "RadioButton") {
       return (
         <RadioButton
-          id="Pilih salah satu yang cocok!"
-          label="Jawaban"
+          id="jawaban"
+          label="Pilih salah satu yang cocok!"
           arrData={arrData.arrData}
           name={`jawaban-${arrData.idPertanyaan}`}
-          onChange={undefined}
-          isRequired="true"
+          onChange={(e) =>
+            handleInputChange(arrData.idPertanyaan, "jawaban", e.target.value)
+          }
+          isRequired={true}
+          col="col-12"
+          disabled={true}
         />
       );
     } else if (arrData.skalaTipe === "TextBox") {
       return (
         <InputArea
           label="Tuliskan pendapatmu di sini!"
-          name="Isi"
-          initialValue={formData.Isi}
-          onChange={undefined}
-          isRequired="true"
+          initialValue={formData.jawaban}
+          name={`jawaban-${arrData.idPertanyaan}`}
+          onChange={(e) =>
+            handleInputChange(arrData.idPertanyaan, "jawaban", e.target.value)
+          }
+          isRequired={true}
+          col="col-12"
+          disabled={true}
         />
       );
     } else if (arrData.skalaTipe === "CheckBox") {
       return (
         <CheckBox
+          ref={CheckBoxRef}
           label="Bebas pilih lebih dari satu!"
-          forInput="upload-file"
           arrData={arrData.arrData}
-          onChange={undefined}
-          isRequired="true"
+          name={`jawaban-${arrData.idPertanyaan}`}
+          onChange={(e) => {
+            handleChange(e, arrData.idPertanyaan, "jawaban");
+          }}
+          isRequired={true}
+          disabled={true}
         />
       );
     } else {
       return (
         <InputField
           label="Isi jawabanmu di sini, ya!"
-          name="Isi"
-          initialValue={formData.Isi}
-          onChange={undefined}
-          isRequired="true"
+          initialValue={formData.jawaban}
+          name={`jawaban-${arrData.idPertanyaan}`}
+          onChange={(e) =>
+            handleInputChange(arrData.idPertanyaan, "jawaban", e.target.value)
+          }
+          isRequired={true}
+          col="col-12"
+          disabled={true}
         />
       );
     }
@@ -178,10 +251,10 @@ const TabPreviewSurvei = ({
                 <tbody>
                   {pertanyaan
                     .filter(
-                      (item) => item.namaKriteria === kriteria.namaKriteria
+                      (item) => item.kriteriaSurvei === kriteria.namaKriteria
                     )
                     .map((item, index) => (
-                      <tr key={item.idPertanyaan}>
+                      <tr key={item.idDetailJawabanSurvei}>
                         <td
                           style={{
                             border: "1px solid #ddd",
@@ -200,7 +273,7 @@ const TabPreviewSurvei = ({
                         >
                           <div
                             dangerouslySetInnerHTML={{
-                              __html: decodeHtml(item.namaPertanyaan),
+                              __html: decodeHtml(item.pertanyaanSurvei),
                             }}
                           ></div>
 
@@ -227,7 +300,8 @@ const TabPreviewSurvei = ({
                                 {renderContent(
                                   arrDataList.find(
                                     (arr) =>
-                                      arr.idPertanyaan === item.idPertanyaan
+                                      arr.idPertanyaan ===
+                                      item.idDetailJawabanSurvei
                                   )
                                 )}
                               </div>
@@ -240,7 +314,8 @@ const TabPreviewSurvei = ({
                                 {renderContent(
                                   arrDataList.find(
                                     (arr) =>
-                                      arr.idPertanyaan === item.idPertanyaan
+                                      arr.idPertanyaan ===
+                                      item.idDetailJawabanSurvei
                                   )
                                 )}
                               </div>

@@ -30,7 +30,7 @@ const generateArrData = (pertanyaan = []) => {
 const TabPreviewSurvei = ({
   header,
   pertanyaan,
-  onDataChange,
+  onDataChange = null,
   mode = "editSurvei",
   isDraftandAuditor = false,
 }) => {
@@ -60,7 +60,9 @@ const TabPreviewSurvei = ({
 
       setFormData(initialFormData);
       setIsInitialized(true);
-      onDataChange(initialFormData);
+      if (onDataChange) {
+        onDataChange(initialFormData);
+      }
     }
   }, [pertanyaan, isInitialized, onDataChange]);
 
@@ -95,6 +97,7 @@ const TabPreviewSurvei = ({
           name={`jawaban-${arrData.idPertanyaan}`}
           onChange={undefined}
           isRequired="true"
+          disabled={true}
         />
       );
     } else if (arrData.skalaTipe === "TextBox") {
@@ -105,6 +108,7 @@ const TabPreviewSurvei = ({
           initialValue={formData.Isi}
           onChange={undefined}
           isRequired="true"
+          disabled={true}
         />
       );
     } else if (arrData.skalaTipe === "CheckBox") {
@@ -115,6 +119,7 @@ const TabPreviewSurvei = ({
           arrData={arrData.arrData}
           onChange={undefined}
           isRequired="true"
+          disabled={true}
         />
       );
     } else {
@@ -125,6 +130,7 @@ const TabPreviewSurvei = ({
           initialValue={formData.Isi}
           onChange={undefined}
           isRequired="true"
+          disabled={true}
         />
       );
     }
