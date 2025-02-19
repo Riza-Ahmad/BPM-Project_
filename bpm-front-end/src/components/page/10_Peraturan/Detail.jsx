@@ -58,8 +58,20 @@ export default function Detail({ onChangePage }) {
             idDok: data[0].idDok || "",
             judulDokumen: data[0].judulDokumen || "",
             nomorInduk: data[0].nomorInduk || "",
-            tahunDokumen: formatDate(data[0].tahunDokumen) || "", // Memformat tanggal
-            tahunKadaluarsa: formatDate(data[0].tahunKadaluarsa) || "", // Memformat tanggal
+            tahunDokumen:
+              new Date(data[0].tahunDokumen).toLocaleDateString("id-ID", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              }) || "", // Memformat tanggal
+            tahunKadaluarsa:
+              new Date(data[0].tahunKadaluarsa).toLocaleDateString("id-ID", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              }) || "", // Memformat tanggal
             jenisDokumen: data[0].jenisDokumen || "",
             dibuatOleh: data[0].dibuatOleh,
             dibuatTgl: new Date(data[0].dibuatTgl).toLocaleDateString("id-ID", {
