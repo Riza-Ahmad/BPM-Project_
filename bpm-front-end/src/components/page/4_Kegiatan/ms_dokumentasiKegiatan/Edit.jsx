@@ -71,7 +71,6 @@ export default function Edit({ onChangePage }) {
     fetchJenisKegiatan();
   }, []);
 
-  // Refs for validation
   const namaRef = useRef();
   const deskripsiRef = useRef();
   const tempatRef = useRef();
@@ -179,7 +178,6 @@ export default function Edit({ onChangePage }) {
       return;
     }
 
-    // Combine date and time values into Date objects
     const startDate = new Date(
       `${tglMulaiRef.current.value} ${jamMulaiRef.current.value}`
     );
@@ -187,7 +185,6 @@ export default function Edit({ onChangePage }) {
       `${tglSelesaiRef.current.value} ${jamSelesaiRef.current.value}`
     );
 
-    // Validate that start date is less than end date
     if (startDate >= endDate) {
       SweetAlert(
         "Gagal!",
@@ -209,7 +206,7 @@ export default function Edit({ onChangePage }) {
         folderName,
         filePrefix
       );
-      updatedFileNotulen = uploadedFile[0]; // Hasil upload digunakan langsung
+      updatedFileNotulen = uploadedFile[0];
     }
 
     if (selectedFoto) {
@@ -220,7 +217,7 @@ export default function Edit({ onChangePage }) {
         folderName,
         filePrefix
       );
-      updatedFotoSampul = uploadedFoto[0]; // Hasil upload digunakan langsung
+      updatedFotoSampul = uploadedFoto[0];
     }
 
     const updatedFormData = {
@@ -377,7 +374,7 @@ export default function Edit({ onChangePage }) {
                 <InputField
                   ref={folderLinkRef}
                   label="Link Folder Dokumentasi"
-                  value={formData.linkFolder || ""} // Fallback ke string kosong
+                  value={formData.linkFolder || ""}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
@@ -406,7 +403,7 @@ export default function Edit({ onChangePage }) {
                     { Value: "Internal", Text: "Internal (Politeknik Astra)" },
                     { Value: "Publik", Text: "Publik" },
                   ]}
-                  value={formData.statusFileNotulen || "Privat"} // Fallback ke string kosong
+                  value={formData.statusFileNotulen || "Privat"}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,

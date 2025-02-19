@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import TabTahunKegiatan from "./TabTahunKegiatan"; // Import TabTahunKegiatan
+import TabTahunKegiatan from "./TabTahunKegiatan";
 import HeaderText from "../../../part/HeaderText";
 import Button from "../../../part/Button";
 import { API_LINK } from "../../../util/Constants";

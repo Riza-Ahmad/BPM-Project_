@@ -212,7 +212,7 @@ export default function Edit({ onChangePage }) {
               </div>
               <div className="col-lg-6 col-md-6">
                 <DetailData
-                  label="Tahun Dokumen"
+                  label="Tanggal Dokumen"
                   isi={formData.tahunDokumen || ""}
                 />
               </div>
@@ -224,7 +224,7 @@ export default function Edit({ onChangePage }) {
               </div>
               <div className="col-lg-6 col-md-6">
                 <DetailData
-                  label="Tahun Kadaluarsa"
+                  label="Tanggal Kadaluarsa"
                   isi={formData.tahunKadaluarsa || ""}
                 />
               </div>

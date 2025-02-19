@@ -82,7 +82,20 @@ export default function Read({ onChangePage }) {
             judulDok: item.judulDok,
             revisiDokFormatted: item.revisiDokFormatted,
             fileDok: item.fileDok,
-            tglUnggah: formatDate(item.tglUnggah || ""),
+            tglUnggah:
+              new Date(item.tglUnggah).toLocaleDateString("id-ID", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              }) +
+                ", " +
+                new Date(item.tglUnggah).toLocaleTimeString("id-ID", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false, // Menggunakan format 24 jam
+                }) +
+                " WIB" || "",
             createdBy: item.createdBy,
             status: item.statusDok,
           };

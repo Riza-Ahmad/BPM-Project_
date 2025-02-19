@@ -81,7 +81,20 @@ export default function Read({ onChangePage }) {
         const formattedEvents = data.map((item) => {
           return {
             id: item.idUnduhan,
-            tglUnduhan: formatDate(item.tglUnduhan || ""),
+            tglUnduhan:
+              new Date(item.tglUnduhan).toLocaleDateString("id-ID", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              }) +
+                ", " +
+                new Date(item.tglUnduhan).toLocaleTimeString("id-ID", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false, // Menggunakan format 24 jam
+                }) +
+                " WIB" || "",
             judulDok: item.judulDok,
             fileDok: item.fileDok,
             jenisDok: item.jenisDok,

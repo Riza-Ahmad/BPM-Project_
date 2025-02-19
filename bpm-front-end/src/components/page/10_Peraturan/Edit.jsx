@@ -215,7 +215,7 @@ export default function Edit({ onChangePage }) {
                 <InputField
                   ref={tahunDokumenRef}
                   type="date"
-                  label="Tahun Dokumen"
+                  label="Tanggal Dokumen"
                   value={formData.tahunDokumen}
                   onChange={(e) =>
                     setFormData({ ...formData, tahunDokumen: e.target.value })
@@ -244,7 +244,7 @@ export default function Edit({ onChangePage }) {
                 <InputField
                   ref={tahunKadaluarsaRef}
                   type="date"
-                  label="Tahun Kadaluarsa"
+                  label="Tanggal Kadaluarsa"
                   value={formData.tahunKadaluarsa}
                   onChange={(e) =>
                     setFormData({

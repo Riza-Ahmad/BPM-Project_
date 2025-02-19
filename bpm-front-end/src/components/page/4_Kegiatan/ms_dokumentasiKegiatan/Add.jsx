@@ -75,7 +75,6 @@ export default function Add({ onChangePage }) {
     setSelectedFoto(file);
   };
 
-  // Refs for validation
   const namaRef = useRef();
   const deskripsiRef = useRef();
   const tempatRef = useRef();
@@ -140,7 +139,6 @@ export default function Add({ onChangePage }) {
         return;
       }
 
-      // Date validation
       const startDate = new Date(
         `${tglMulaiRef.current.value} ${jamMulaiRef.current.value}`
       );
@@ -158,7 +156,6 @@ export default function Add({ onChangePage }) {
         return;
       }
 
-      // File upload logic
       let uploadedFileNotulen = null;
       let uploadedFotoSampul = null;
 
@@ -182,14 +179,12 @@ export default function Add({ onChangePage }) {
         );
       }
 
-      // Prepare new form data with the uploaded files
       const newFormData = {
         ...formData,
         fileNotulen: uploadedFileNotulen ? uploadedFileNotulen[0] : null,
         fotoSampul: uploadedFotoSampul ? uploadedFotoSampul[0] : null,
       };
 
-      // Set loading state and send API request
       setLoading(true);
       const response = await useFetch(
         `${API_LINK}/MasterKegiatan/CreateDokumentasiKegiatan`,
@@ -342,7 +337,7 @@ export default function Add({ onChangePage }) {
                 <InputField
                   ref={folderLinkRef}
                   label="Link Folder Dokumentasi"
-                  value={formData.linkFolder || ""} // Fallback ke string kosong
+                  value={formData.linkFolder || ""}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
@@ -368,7 +363,7 @@ export default function Add({ onChangePage }) {
                     { Value: "Internal", Text: "Internal (Politeknik Astra)" },
                     { Value: "Publik", Text: "Publik" },
                   ]}
-                  value={formData.statusFileNotulen || ""} // Fallback ke string kosong
+                  value={formData.statusFileNotulen || ""}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
