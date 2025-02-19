@@ -21,18 +21,24 @@ const COLORS = [
 
 const PieChart = ({ judul, sourceData }) => {
   // Menyaring data yang memiliki nilai lebih dari 0 untuk chart
-  const filteredData = sourceData.filter((item) => item.value > 0);
+  const validSourceData = Array.isArray(sourceData) ? sourceData : [];
+
+  // Menyaring data yang memiliki nilai lebih dari 0 untuk chart
+  const filteredData = validSourceData.filter((item) => item.value > 0);
+
   const totalValue = filteredData.reduce((sum, item) => sum + item.value, 0);
 
   console.log("Filtered Data:", filteredData);
 
   const pieChartData = {
-    labels: sourceData.map((item) => item.label), // Semua label, termasuk yang memiliki value 0
+    labels: validSourceData.map((item) => item.label), // Semua label, termasuk yang memiliki value 0
     datasets: [
       {
-        data: sourceData.map((item) => (item.value > 0 ? item.value : null)), // Null untuk data yang 0
-        backgroundColor: COLORS.slice(0, sourceData.length),
-        borderColor: COLORS.slice(0, sourceData.length),
+        data: validSourceData.map((item) =>
+          item.value > 0 ? item.value : null
+        ), // Null untuk data yang 0
+        backgroundColor: COLORS.slice(0, validSourceData.length),
+        borderColor: COLORS.slice(0, validSourceData.length),
         borderWidth: 1,
       },
     ],

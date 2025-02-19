@@ -21,7 +21,6 @@ const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [] }) => {
   const [tipeFilter, setTipeFilter] = useState("");
 
   useEffect(() => {
-    console.log("Pertanyaan :", pertanyaan);
     if (Array.isArray(pertanyaan) && pertanyaan.length > 0) {
       setSelectedQuestion("");
     }
@@ -36,7 +35,6 @@ const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [] }) => {
     if (selectedQuestion) {
       const fetchData = async () => {
         setLoading(true);
-        console.log("data dikirim:", idTransaksi, selectedQuestion);
 
         try {
           const result = await useFetch(
@@ -49,7 +47,7 @@ const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [] }) => {
             setFormDataJawaban([]);
           } else {
             const fetchedData = result;
-            console.log("Result nih:", result);
+
             setTipeFilter(result[0].tipeJawaban);
             const initialFormData = fetchedData.reduce((acc, item) => {
               acc[item.idPenjawab] = {
@@ -64,7 +62,6 @@ const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [] }) => {
               return acc;
             }, {});
 
-            console.log("Data Jawaban : ", initialFormData);
             setFormDataJawaban(initialFormData);
           }
         } catch (err) {
@@ -80,7 +77,7 @@ const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [] }) => {
 
   useEffect(() => {
     if (!formDataJawaban) return;
-    setTipeFilter(formDataJawaban?.[1]?.tipeJawaban);
+    console.log("Tipe jawaban: ", tipeFilter);
 
     if (tipeFilter === "CheckBox") {
       const uniqueLabels = Object.values(formDataJawaban)
@@ -144,12 +141,15 @@ const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [] }) => {
 
       setFilterFormDataJawaban(finalData);
       setTipeFilter("RadioButton");
-    } else if (tipeFilter === "TextBox") {
-      console.log("Tipe");
+    } else if (tipeFilter === "TextBox" || tipeFilter === "TextArea") {
+      setFilterFormDataJawaban(formDataJawaban);
+      setTipeFilter(tipeFilter);
+
+      console.log("Textbox : ", formDataJawaban);
     } else {
       console.log("Tipe");
     }
-  }, [formDataJawaban]);
+  }, [formDataJawaban, tipeFilter]);
 
   const handleDownload = async () => {
     try {
@@ -307,15 +307,58 @@ const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [] }) => {
         {tipeFilter === "CheckBox" && (
           <BarChart2
             judul={formDataJawaban?.[1]?.pertanyaanSurvei}
-            sourceData={filterFormDataJawaban}
+            sourceData={filterFormDataJawaban || []}
           />
         )}
 
         {tipeFilter === "RadioButton" && (
           <PieChart
             judul={formDataJawaban?.[1]?.pertanyaanSurvei}
-            sourceData={filterFormDataJawaban}
+            sourceData={filterFormDataJawaban || []}
           />
+        )}
+
+        {(tipeFilter === "TextBox" || tipeFilter === "TextArea") && (
+          <>
+            <div
+              style={{
+                maxHeight: "240px",
+                overflowY: "auto",
+                border: "1px solid gray",
+                padding: "8px",
+                borderRadius: "4px",
+                marginTop: "10px",
+              }}
+            >
+              {Object.values(filterFormDataJawaban).filter(
+                (item) => item.jawabanSurvei?.trim() !== ""
+              ).length > 0 ? (
+                Object.values(filterFormDataJawaban)
+                  .filter((item) => item.jawabanSurvei?.trim() !== "") // Pastikan jawaban tidak kosong
+                  .map((item) => (
+                    <div
+                      key={item.idPenjawab}
+                      style={{
+                        backgroundColor: "#ffffff",
+                        padding: "1rem",
+                        marginBottom: "1rem",
+                        borderRadius: "1rem",
+                        color: "gray",
+                        display: "flex",
+                        alignItems: "center",
+                        textAlign: "left",
+                      }}
+                    >
+                      <p style={{ margin: 0 }}>{item.jawabanSurvei}</p>
+                    </div>
+                  ))
+              ) : (
+                <p style={{ textAlign: "center", color: "gray" }}>
+                  Tidak ada jawaban tersedia.
+                </p>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>

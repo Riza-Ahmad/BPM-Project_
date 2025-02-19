@@ -44,12 +44,15 @@ const SALES_CHANNEL_DATA = [
 
 const BarChart2 = ({ judul, sourceData }) => {
   // Konfigurasi data untuk Chart.js
+  const validData = Array.isArray(sourceData) ? sourceData : [];
+
+  // Konfigurasi data untuk Chart.js
   const salesChartData = {
-    labels: sourceData.map((item) => item.label),
+    labels: validData.map((item) => item.label),
     datasets: [
       {
-        label: "Data" + judul,
-        data: sourceData.map((item) => item.value),
+        label: "Data " + judul,
+        data: validData.map((item) => item.value),
         backgroundColor: COLORS,
         borderColor: COLORS.map((color) => color.replace("1)", "0.8)")), // Sedikit lebih gelap
         borderWidth: 1,
