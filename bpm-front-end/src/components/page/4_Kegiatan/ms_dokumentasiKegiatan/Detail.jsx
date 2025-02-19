@@ -204,7 +204,11 @@ export default function Detail({ onChangePage }) {
 
                 <DetailData
                   label="Sifat File Notulensi"
-                  isi={formData.statusFileNotulen === 0 ? "Privat" : "Publik"}
+                  isi={
+                    formData.statusFileNotulen === "Internal"
+                      ? "Internal (Politeknik Astra)"
+                      : formData.statusFileNotulen
+                  }
                 />
               </div>
               <div className="col-lg-6 col-md-6">

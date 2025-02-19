@@ -365,6 +365,7 @@ export default function Add({ onChangePage }) {
                   name="options"
                   arrData={[
                     { Value: "Privat", Text: "Privat" },
+                    { Value: "Internal", Text: "Internal (Politeknik Astra)" },
                     { Value: "Publik", Text: "Publik" },
                   ]}
                   value={formData.statusFileNotulen || ""} // Fallback ke string kosong

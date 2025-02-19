@@ -403,6 +403,7 @@ export default function Edit({ onChangePage }) {
                   name="options"
                   arrData={[
                     { Value: "Privat", Text: "Privat" },
+                    { Value: "Internal", Text: "Internal (Politeknik Astra)" },
                     { Value: "Publik", Text: "Publik" },
                   ]}
                   value={formData.statusFileNotulen || "Privat"} // Fallback ke string kosong

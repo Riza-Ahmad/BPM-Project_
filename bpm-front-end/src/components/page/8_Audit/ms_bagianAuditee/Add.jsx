@@ -122,6 +122,26 @@ export default function Add({ onChangePage }) {
     fetchUser();
   }, [currentFilter]);
 
+  const [struktur, setStruktur] = useState([]);
+
+  useEffect(() => {
+    const fetchStruktur = async () => {
+      try {
+        const data = await useFetch(
+          `${API_LINK}/MasterBagianAuditee/GetDataStruktur`,
+          JSON.stringify({}),
+          "POST"
+        );
+
+        setStruktur(data);
+      } catch (error) {
+        setError(error.message);
+      }
+    };
+
+    fetchStruktur();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -166,6 +186,20 @@ export default function Add({ onChangePage }) {
       return;
     }
     if (!isPic2BadValid) {
+      pic2BadRef.current?.focus();
+      return;
+    }
+
+    const kadep = kadepBadRef.current?.value;
+    const pic1 = pic1BadRef.current?.value;
+    const pic2 = pic2BadRef.current?.value;
+    if (pic1 === pic2 || pic1 === kadep || pic2 === kadep) {
+      SweetAlert(
+        "Perhatian!",
+        "PIC 1 tidak boleh sama dengan PIC 2.",
+        "warning",
+        "OK"
+      );
       pic2BadRef.current?.focus();
       return;
     }
@@ -247,16 +281,18 @@ export default function Add({ onChangePage }) {
                 type="text"
                 maxChar="50"
               />
-              <InputField
+
+              <DropDown
                 ref={namaBadRef}
                 label="Nama Bagian Auditee"
+                arrData={struktur}
                 value={formData.namaBad}
                 onChange={handleChange}
+                type="pilih"
+                name={"namaBad"}
                 isRequired={true}
-                id="namaBad"
-                type="text"
-                maxChar="50"
               />
+
               <InputFieldLov
                 ref={kadepBadRef}
                 id="kadepBad"

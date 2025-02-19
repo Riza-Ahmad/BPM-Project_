@@ -196,8 +196,20 @@ export default function Edit({ onChangePage }) {
     fetchUser();
   }, [currentFilter]);
 
+  const [displayLov, setDisplayLov] = useState({
+    leadAuditor: "",
+    auditor: "",
+  });
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === "auditee") {
+      setDisplayLov({
+        leadAuditor: "",
+        auditor: "",
+      });
+    }
 
     setFormData((prevData) => {
       const updatedData = {
@@ -205,25 +217,42 @@ export default function Edit({ onChangePage }) {
         [name]: value,
       };
 
-      // Reset pertanyaanLanjutan jika butuhDokumen kosong
-      if (name === "butuhDokumen" && value.length === 0) {
-        updatedData.pertanyaanLanjutan = ""; // Reset ke nilai default
-      } else if (name === "auditee") {
+      if (name === "auditee") {
         updatedData.instrumen = "";
+        updatedData.leadAuditor = "";
+        updatedData.auditor = "";
       }
 
       return updatedData;
     });
   };
 
-  const [displayLov, setDisplayLov] = useState({
-    leadAuditor: "",
-    auditor: "",
-  });
-
   const activeModalFor = useRef();
 
   const handleChoose = (e) => {
+    if (!auditeeRef.current?.value) {
+      SweetAlert(
+        "Perhatian!",
+        "Pilih bagian Auditee terlebih dahulu",
+        "warning",
+        "OK"
+      );
+      return;
+    }
+
+    const selectedAuditee = auditee.find(
+      (auditee) => auditee.Value === Number(auditeeRef.current?.value)
+    );
+
+    if (e.idStruktur === selectedAuditee.bagAuditee) {
+      SweetAlert(
+        "Perhatian!",
+        "Auditor tidak boleh di departemen yang sama dengan bagian auditee",
+        "warning",
+        "OK"
+      );
+      return;
+    }
     setFormData((prevData) => ({
       ...prevData,
       [activeModalFor.current]: e.Key,

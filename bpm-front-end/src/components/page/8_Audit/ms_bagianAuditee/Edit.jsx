@@ -4,15 +4,12 @@ import PageTitleNav from "../../../part/PageTitleNav";
 import InputField from "../../../part/InputField";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
-import DocUpload from "../../../part/DocUpload";
 import DropDown from "../../../part/Dropdown";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import SweetAlert from "../../../util/SweetAlert";
-import FileUpload from "../../../part/FileUpload";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { API_LINK } from "../../../util/Constants";
 import { useFetch } from "../../../util/useFetch";
-import { uploadFile } from "../../../util/UploadFile";
 import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
 import Cookies from "js-cookie";
@@ -136,6 +133,8 @@ export default function Edit({ onChangePage }) {
           "POST"
         );
 
+        console.log(result);
+
         if (result === "ERROR" || result === null || result.length === 0) {
         } else {
           const arrResult = Object.values(result);
@@ -164,6 +163,24 @@ export default function Edit({ onChangePage }) {
     fetchAuditee();
   }, [idData]);
 
+  const [struktur, setStruktur] = useState([]);
+
+  useEffect(() => {
+    const fetchStruktur = async () => {
+      try {
+        const data = await useFetch(
+          `${API_LINK}/MasterBagianAuditee/GetDataStruktur`,
+          JSON.stringify({}),
+          "POST"
+        );
+
+        setStruktur(data);
+      } catch (error) {
+        setError(error.message);
+      }
+    };
+    fetchStruktur();
+  }, []);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -208,6 +225,20 @@ export default function Edit({ onChangePage }) {
       return;
     }
     if (!isPic2BadValid) {
+      pic2BadRef.current?.focus();
+      return;
+    }
+
+    const kadep = kadepBadRef.current?.value;
+    const pic1 = pic1BadRef.current?.value;
+    const pic2 = pic2BadRef.current?.value;
+    if (pic1 === pic2 || pic1 === kadep || pic2 === kadep) {
+      SweetAlert(
+        "Perhatian!",
+        "Kepala Departemen dan PIC harus berbeda",
+        "warning",
+        "OK"
+      );
       pic2BadRef.current?.focus();
       return;
     }
@@ -289,15 +320,15 @@ export default function Edit({ onChangePage }) {
                 type="text"
                 maxChar="50"
               />
-              <InputField
+              <DropDown
                 ref={namaBadRef}
                 label="Nama Bagian Auditee"
+                arrData={struktur}
                 value={formData.namaBad}
                 onChange={handleChange}
+                type="pilih"
+                name={"namaBad"}
                 isRequired={true}
-                id="namaBad"
-                type="text"
-                maxChar="50"
               />
               <InputFieldLov
                 ref={kadepBadRef}

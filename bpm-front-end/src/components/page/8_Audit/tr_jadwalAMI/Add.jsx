@@ -9,8 +9,6 @@ import { useIsMobile } from "../../../util/useIsMobile";
 import { API_LINK } from "../../../util/Constants";
 import { useFetch } from "../../../util/useFetch";
 import DropDown from "../../../part/Dropdown";
-import TextArea from "../../../part/TextArea";
-import CheckBox from "../../../part/CheckBox";
 import Loading from "../../../part/Loading";
 import InputFieldLov from "../../../part/InputFieldLov";
 import SearchField from "../../../part/SearchField";
@@ -138,32 +136,62 @@ export default function Add({ onChangePage }) {
     fetchUser();
   }, [currentFilter]);
 
+  const [displayLov, setDisplayLov] = useState({
+    leadAuditor: "",
+    auditor: "",
+  });
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-
+    if (name === "auditee") {
+      setDisplayLov({
+        leadAuditor: "",
+        auditor: "",
+      });
+    }
     setFormData((prevData) => {
       const updatedData = {
         ...prevData,
         [name]: value,
       };
 
-      // Reset pertanyaanLanjutan jika butuhDokumen kosong
-      if (name === "butuhDokumen" && value.length === 0) {
-        updatedData.pertanyaanLanjutan = ""; // Reset ke nilai default
+      if (name === "auditee") {
+        updatedData.instrumen = "";
+        updatedData.leadAuditor = "";
+        updatedData.auditor = "";
       }
 
       return updatedData;
     });
   };
 
-  const [displayLov, setDisplayLov] = useState({
-    leadAuditor: "",
-    auditor: "",
-  });
-
   const activeModalFor = useRef();
 
   const handleChoose = (e) => {
+    if (!auditeeRef.current?.value) {
+      SweetAlert(
+        "Perhatian!",
+        "Pilih bagian Auditee terlebih dahulu",
+        "warning",
+        "OK"
+      );
+      return;
+    }
+
+    const selectedAuditee = auditee.find(
+      (auditee) => auditee.Value === Number(auditeeRef.current?.value)
+    );
+
+    if (e.idStruktur === selectedAuditee.bagAuditee) {
+      SweetAlert(
+        "Perhatian!",
+        "Auditor tidak boleh di departemen yang sama dengan bagian auditee",
+        "warning",
+        "OK"
+      );
+      return;
+    }
+
     setFormData((prevData) => ({
       ...prevData,
       [activeModalFor.current]: e.Key,
@@ -511,6 +539,7 @@ export default function Add({ onChangePage }) {
                           Struktur: item.strukturDes,
                           Jabatan: item.jabatanDes,
                           Role: item.roleDes,
+                          idStruktur: item.strukturID,
                         }))}
                         actions={["Choose"]}
                         onChoose={handleChoose}

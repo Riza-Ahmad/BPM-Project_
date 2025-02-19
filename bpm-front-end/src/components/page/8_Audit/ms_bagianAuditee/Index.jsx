@@ -277,7 +277,7 @@ export default function Index({ onChangePage }) {
                       Key: item.idBad,
                       No: (pageCurrent - 1) * pageSize + index + 1,
                       "Kode Bagian Auditee": item.kodeBad,
-                      "Nama Bagian Auditee": item.namaBad,
+                      "Nama Bagian Auditee": item.namaStrukturBad,
                       status: item.status,
                     }))}
                     actions={(row) => {
@@ -349,7 +349,7 @@ export default function Index({ onChangePage }) {
               <div className="col-lg-6">
                 <DetailData
                   label="Nama Bagian Auditee"
-                  isi={detail.namaBad || "-"}
+                  isi={detail.namaStrukturBad || "-"}
                 />
               </div>
             </div>

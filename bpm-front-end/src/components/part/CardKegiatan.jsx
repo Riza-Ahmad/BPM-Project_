@@ -3,6 +3,7 @@ import Text from "./Text";
 import HeaderText from "./HeaderText";
 import { KEGIATANFILE_LINK } from "../util/Constants";
 import { useIsMobile } from "../util/useIsMobile";
+import Cookies from "js-cookie";
 
 const CardKegiatan = ({
   title,
@@ -14,6 +15,7 @@ const CardKegiatan = ({
   fileNotulen,
   statusFileNotulen,
 }) => {
+  const activeUser = Cookies.get("activeUser");
   const [isExpanded, setIsExpanded] = useState(false);
   const isMobile = useIsMobile();
   const iconStyle = {
@@ -101,6 +103,16 @@ const CardKegiatan = ({
           </a>
 
           {statusFileNotulen === "Publik" && (
+            <a
+              href={fileNotulen}
+              className="btn btn-danger btn-sm ms-3"
+              target="_blank"
+            >
+              File Notulen
+            </a>
+          )}
+
+          {statusFileNotulen === "Internal" && activeUser && (
             <a
               href={fileNotulen}
               className="btn btn-danger btn-sm ms-3"
