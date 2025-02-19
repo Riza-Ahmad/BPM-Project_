@@ -7,6 +7,10 @@ import BarChart2 from "../../../part/BarChart2";
 import PieChart from "../../../part/PieChart";
 import Loading from "../../../part/Loading";
 import "bootstrap/dist/css/bootstrap.min.css";
+import Button from "../../../part/Button.jsx";
+import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 
 const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [] }) => {
   const [selectedQuestion, setSelectedQuestion] = useState("");
@@ -147,10 +151,102 @@ const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [] }) => {
     }
   }, [formDataJawaban]);
 
+  const handleDownload = async () => {
+    try {
+      // Fetch data dari API
+      const result = await useFetch(
+        `${API_LINK}/TransaksiSurvei/GetDataSurveiEkspor`,
+        { idTransaksi: idTransaksi },
+        "POST"
+      );
+
+      if (!result || result.length === 0) {
+        console.warn("No data to export");
+        return;
+      }
+
+      // Decode semua jawaban sebelum diekspor
+      const decodedData = result.map((item) => {
+        let newItem = { ...item };
+        for (let key in newItem) {
+          if (typeof newItem[key] === "string") {
+            newItem[key] = decodeHtml(newItem[key]);
+          }
+        }
+        return newItem;
+      });
+
+      // Buat workbook dan worksheet baru
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Survey Data");
+
+      // Ambil daftar header
+      const headers = Object.keys(decodedData[0]);
+
+      // Tambahkan header ke worksheet
+      worksheet.addRow(headers);
+
+      // Tambahkan data ke worksheet
+      decodedData.forEach((row) => {
+        worksheet.addRow(Object.values(row));
+      });
+
+      // Styling untuk header (warna biru, teks bold, border)
+      const headerRow = worksheet.getRow(1);
+      headerRow.eachCell((cell) => {
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "0070C0" }, // Warna biru
+        };
+        cell.font = { bold: true, color: { argb: "FFFFFF" } }; // Teks putih & bold
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+        cell.border = {
+          top: { style: "thin", color: { argb: "000000" } },
+          bottom: { style: "thin", color: { argb: "000000" } },
+          left: { style: "thin", color: { argb: "000000" } },
+          right: { style: "thin", color: { argb: "000000" } },
+        };
+      });
+
+      // Set lebar minimal kolom ke 20
+      worksheet.columns = headers.map((header) => ({
+        header,
+        key: header,
+        width: 20, // Minimal 20 karakter
+      }));
+
+      // Simpan file ke buffer
+      const buffer = await workbook.xlsx.writeBuffer();
+
+      // Simpan file dengan FileSaver
+      const fileName = `SurveyData_${idTransaksi}.xlsx`;
+      saveAs(
+        new Blob([buffer], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        }),
+        fileName
+      );
+    } catch (error) {
+      console.error("Error downloading file:", error);
+    }
+  };
   if (loading) return <Loading />;
 
   return (
     <div className="border rounded-3 shadow-sm p-3 mb-3">
+      <div className="row">
+        <div className="p-3">
+          <Button
+            iconName="download"
+            classType="success"
+            type="submit"
+            label="Ekspor Jawaban Survei"
+            width="15rem"
+            onClick={handleDownload}
+          />
+        </div>
+      </div>
       {/* Dropdown untuk memilih pertanyaan */}
       <div
         className="card p-3 text-white d-flex flex-column"
@@ -207,6 +303,7 @@ const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [] }) => {
             }}
           ></i>
         </div>
+
         {tipeFilter === "CheckBox" && (
           <BarChart2
             judul={formDataJawaban?.[1]?.pertanyaanSurvei}

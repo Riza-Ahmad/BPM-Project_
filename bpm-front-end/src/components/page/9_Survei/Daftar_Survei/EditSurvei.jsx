@@ -180,37 +180,79 @@ export default function EditSurvei({ onChangePage }) {
   };
 
   const handleSubmit = async () => {
-    setLoading(true);
-    const createResponse = await useFetch(
-      `${API_LINK}/TransaksiSurvei/UpdateDaftarSurveiByUserxx`,
-      { idTransaksi: formData.idTransaksi }
-    );
-    if (createResponse === "ERROR") {
-      throw new Error("Gagal menambah data");
+    console.log("Data Tab: ", formDataTab);
+    console.log("Data Pertanyaan: ", pertanyaan);
+
+    // Ambil semua idDetailJawabanSurvei dari pertanyaan
+    const requiredIds = pertanyaan.map((p) => p.idDetailJawabanSurvei);
+
+    // Cari ID yang tidak memiliki jawaban atau jawabannya kosong
+    const missingIds = requiredIds.filter((id) => {
+      const jawaban = formDataTab[id]?.jawaban;
+
+      // Jika jawaban tidak ada (undefined/null), tandai sebagai belum diisi
+      if (jawaban === undefined || jawaban === null) return true;
+
+      // Jika jawaban adalah array, pastikan arraynya tidak kosong
+      if (Array.isArray(jawaban)) return jawaban.length === 0;
+
+      // Jika jawaban adalah string, pastikan tidak hanya whitespace
+      if (typeof jawaban === "string") return jawaban.trim() === "";
+
+      return false; // Jika format lain, anggap sudah terisi
+    });
+
+    if (missingIds.length > 0) {
+      SweetAlert(
+        "Peringatan!",
+        "Semua pertanyaan harus diisi sebelum menyimpan.",
+        "warning",
+        "OK"
+      );
+      return;
     }
 
-    await Promise.all(
-      Object.entries(formDataTab).map(async ([key, value]) => {
-        const updatedObject = {
-          id: Number(key),
-          jawaban: value.jawaban,
-        };
-        console.log("Data Ke- ", updatedObject);
+    setLoading(true);
 
-        const createResponseJawaban = await useFetch(
-          `${API_LINK}/TransaksiSurvei/UpdateDaftarSurveiJawabanByUserxx`,
-          updatedObject
-        );
-        if (createResponseJawaban === "ERROR") {
-          throw new Error("Gagal menambah data");
-        }
-      })
-    );
+    try {
+      const createResponse = await useFetch(
+        `${API_LINK}/TransaksiSurvei/UpdateDaftarSurveiByUserxx`,
+        { idTransaksi: formData.idTransaksi }
+      );
 
-    setLoading(false);
-    SweetAlert("Berhasil!", "Data berhasil diperbarui.", "success", "OK").then(
-      () => onChangePage("index")
-    );
+      if (createResponse === "ERROR") {
+        throw new Error("Gagal menambah data");
+      }
+
+      await Promise.all(
+        Object.entries(formDataTab).map(async ([key, value]) => {
+          const updatedObject = {
+            id: Number(key),
+            jawaban: value.jawaban,
+          };
+          console.log("Data Ke- ", updatedObject);
+
+          const createResponseJawaban = await useFetch(
+            `${API_LINK}/TransaksiSurvei/UpdateDaftarSurveiJawabanByUserxx`,
+            updatedObject
+          );
+          if (createResponseJawaban === "ERROR") {
+            throw new Error("Gagal menambah data");
+          }
+        })
+      );
+
+      setLoading(false);
+      SweetAlert(
+        "Berhasil!",
+        "Data berhasil diperbarui.",
+        "success",
+        "OK"
+      ).then(() => onChangePage("index"));
+    } catch (error) {
+      setLoading(false);
+      SweetAlert("Error!", error.message, "error", "OK");
+    }
   };
 
   if (loading) return <Loading />;
