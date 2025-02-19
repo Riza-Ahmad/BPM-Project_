@@ -10,8 +10,7 @@ import Read from "./Read";
 import Edit from "./Edit";
 import Detail from "./Detail";
 import ScrollToTop from "../../part/ScrollToTop";
-import ProtectedRoute from "../../util/ProtectedRoute"; // Import the ProtectedRoute component
-
+import ProtectedRoute from "../../util/ProtectedRoute";
 export default function Tentang() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,7 +37,6 @@ export default function Tentang() {
     }
   };
 
-  // Mengambil mode dari location.state
   const { mode } = location.state || { mode: "read" };
 
   return (
@@ -53,16 +51,13 @@ export default function Tentang() {
           path="/kelola"
           element={
             <ProtectedRoute isRole={true}>
-              {
-                // Berdasarkan mode, render komponen yang berbeda
-                mode === "edit" ? (
-                  <Edit onChangePage={handlePageChange} />
-                ) : mode === "detail" ? (
-                  <Detail onChangePage={handlePageChange} />
-                ) : (
-                  <Read onChangePage={handlePageChange} />
-                )
-              }
+              {mode === "edit" ? (
+                <Edit onChangePage={handlePageChange} />
+              ) : mode === "detail" ? (
+                <Detail onChangePage={handlePageChange} />
+              ) : (
+                <Read onChangePage={handlePageChange} />
+              )}
             </ProtectedRoute>
           }
         />

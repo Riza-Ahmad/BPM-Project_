@@ -70,7 +70,6 @@ export default function Add({ onChangePage }) {
     }
 
     try {
-      // Upload foto
       const formDataUpload = new FormData();
       images.forEach((file) => formDataUpload.append("files", file));
 

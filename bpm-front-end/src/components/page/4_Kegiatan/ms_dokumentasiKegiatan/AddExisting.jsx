@@ -60,7 +60,7 @@ export default function AddExisting({ onChangePage }) {
     if (idData && existingKegiatan.length > 0) {
       handleDropdownChange({ target: { value: idData } });
     }
-  }, [location.state?.idData, existingKegiatan]); // Tambahkan existingKegiatan sebagai dependency
+  }, [location.state?.idData, existingKegiatan]);
 
   const namaRef = useRef();
   const folderLinkRef = useRef();
@@ -111,14 +111,14 @@ export default function AddExisting({ onChangePage }) {
         jenisKegiatan: selectedData.idJenisKegiatan,
         name: selectedData.Text,
         description: selectedData.deskripsiJenisKegiatan,
-        startDate: moment(selectedData.tglMulaiKegiatan).format("YYYY-MM-DD"), // Format tanggal
+        startDate: moment(selectedData.tglMulaiKegiatan).format("YYYY-MM-DD"),
         startTime: moment(selectedData.jamMulaiKegiatan, "HH:mm:ss").format(
           "HH:mm"
-        ), // Format waktu
-        endDate: moment(selectedData.tglSelesaiKegiatan).format("YYYY-MM-DD"), // Format tanggal
+        ),
+        endDate: moment(selectedData.tglSelesaiKegiatan).format("YYYY-MM-DD"),
         endTime: moment(selectedData.jamselesaiKegiatan, "HH:mm:ss").format(
           "HH:mm"
-        ), // Format waktu
+        ),
         place: selectedData.tempatKegiatan,
         statusFileNotulen: 0,
       });
@@ -153,7 +153,6 @@ export default function AddExisting({ onChangePage }) {
 
   const handleSubmit = async () => {
     try {
-      // Form validation checks
       if (!namaRef.current?.validate()) {
         namaRef.current?.focus();
         return;
@@ -177,7 +176,6 @@ export default function AddExisting({ onChangePage }) {
       let uploadedFileNotulen = formData.fileNotulen;
       let uploadedFotoSampul = formData.fotoSampul;
 
-      // File upload logic
       if (selectedFile) {
         const folderName = "Kegiatan";
         const filePrefix = "NOTULEN_" + formData.name;
@@ -198,14 +196,12 @@ export default function AddExisting({ onChangePage }) {
         );
       }
 
-      // Prepare the new form data without setFormData
       const newFormData = {
         ...formData,
         fileNotulen: uploadedFileNotulen ? uploadedFileNotulen[0] : null,
         fotoSampul: uploadedFotoSampul ? uploadedFotoSampul[0] : null,
       };
 
-      // Set loading state and make API request
       setLoading(true);
       const response = await useFetch(
         `${API_LINK}/MasterKegiatan/EditDokumentasiKegiatan`,

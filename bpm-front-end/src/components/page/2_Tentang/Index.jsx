@@ -147,8 +147,8 @@ export default function Index({ onChangePage }) {
       <div
         className="shadow bg-white rounded"
         style={{
-          padding: isMobile ? "1rem" : "5rem", // Padding lebih kecil di mobile
-          margin: isMobile ? "1rem" : "8rem", // Margin lebih kecil di mobile
+          padding: isMobile ? "1rem" : "5rem",
+          margin: isMobile ? "1rem" : "8rem",
         }}
       >
         <HeaderText

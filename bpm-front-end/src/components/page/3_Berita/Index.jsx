@@ -21,7 +21,7 @@ export default function Index({ onChangePage }) {
   const [beritaData, setBeritaData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [selectedYear, setSelectedYear] = useState(""); // Tambahkan state untuk filter tahun
+  const [selectedYear, setSelectedYear] = useState("");
   const [pageCurrent, setPageCurrent] = useState(1);
   const [totalData, setTotalData] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -277,10 +277,10 @@ export default function Index({ onChangePage }) {
               <Loading />
             ) : (
               <div className="container">
-                {currentData.length === 0 ? ( // Gunakan "===" untuk perbandingan
+                {currentData.length === 0 ? (
                   <div className="row">
                     <p> Berita tidak ditemukan</p>
-                  </div> // Gunakan kurung buka-tutup dengan benar untuk ternary operator
+                  </div>
                 ) : (
                   <div className="container">
                     <div className="row">
@@ -372,10 +372,10 @@ export default function Index({ onChangePage }) {
                           cursor: "pointer",
                           textDecoration: "none",
                           color: "black",
-                          transition: "color 0.3s", // Untuk transisi halus
+                          transition: "color 0.3s",
                         }}
-                        onMouseEnter={(e) => (e.target.style.color = "#007bff")} // Warna biru saat hover
-                        onMouseLeave={(e) => (e.target.style.color = "black")} // Kembalikan ke warna hitam saat keluar hover
+                        onMouseEnter={(e) => (e.target.style.color = "#007bff")}
+                        onMouseLeave={(e) => (e.target.style.color = "black")}
                       >
                         <HeaderText
                           label={newsItem.title}

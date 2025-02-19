@@ -24,11 +24,11 @@ export default function Read({ onChangePage }) {
   const [pageSize] = useState(10);
   const isMobile = useIsMobile();
   const [pageCurrent, setPageCurrent] = useState(1);
-  const [filteredData, setFilteredData] = useState([]); // Data setelah difilter
+  const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchKeyword, setSearchKeyword] = useState(""); // Keyword pencarian
-  const [selectedYear, setSelectedYear] = useState(""); // Filter tahun
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
   const [selectedDate, setSelectedDate] = useState("tglBerita DESC");
   const [totalData, setTotalData] = useState(0);
   const [isBerita, setIsBerita] = useState(false);

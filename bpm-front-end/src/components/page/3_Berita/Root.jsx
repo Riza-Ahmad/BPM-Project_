@@ -12,7 +12,7 @@ import Edit from "./Edit";
 import Detail from "./Detail";
 import LihatBerita from "./LihatBerita";
 import ScrollToTop from "../../part/ScrollToTop";
-import ProtectedRoute from "../../util/ProtectedRoute"; // Import the ProtectedRoute component
+import ProtectedRoute from "../../util/ProtectedRoute";
 
 export default function Berita() {
   const navigate = useNavigate();

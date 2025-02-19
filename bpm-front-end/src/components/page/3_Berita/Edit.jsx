@@ -145,7 +145,7 @@ export default function Edit({ onChangePage }) {
           );
         }
 
-        uploadedPaths = await uploadResponse.json(); // Asumsikan ini array path
+        uploadedPaths = await uploadResponse.json();
       }
 
       const finalImagePaths = [...existingPaths, ...uploadedPaths];

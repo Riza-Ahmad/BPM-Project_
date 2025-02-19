@@ -45,16 +45,13 @@ export default function Read({ onChangePage }) {
   };
 
   const handleToggle = (id) => {
-    // Cari item dengan ID yang sesuai
     const item = data.find((data) => data.idTentang === id);
 
     if (!item) {
-      // Jika ID tidak ditemukan, tampilkan SweetAlert peringatan
       SweetAlert("Peringatan", "ID file tidak tersedia.", "warning");
       return;
     }
 
-    // Tampilkan konfirmasi menggunakan SweetAlert sebelum toggle status
     SweetAlert(
       "Konfirmasi",
       `Apakah Anda yakin ingin ${
@@ -64,10 +61,9 @@ export default function Read({ onChangePage }) {
       "Ya",
       null,
       "",
-      true // Tampilkan tombol batal
+      true
     ).then((result) => {
       if (result) {
-        // Jika pengguna mengonfirmasi, hanya simpan idDok dan status yang diperbarui
         const updatedData = data
           .filter((data) => data.idTentang === id)
           .map((data) => ({

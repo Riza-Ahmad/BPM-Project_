@@ -180,9 +180,9 @@ export default function Index() {
             padding: "3rem",
             display: "flex",
             flexDirection: "column",
-            justifyContent: "center", // memastikan teks berada di tengah vertikal
-            textAlign: "left", // teks tetap rata kiri
-            alignItems: "flex-start", // menjaga rata kiri
+            justifyContent: "center",
+            textAlign: "left",
+            alignItems: "flex-start",
             order: isMobile ? 1 : 0,
           }}
         >

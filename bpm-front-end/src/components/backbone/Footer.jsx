@@ -1,7 +1,34 @@
 import React from "react";
+import { useLocation } from "react-router-dom";
 import Icon from "../part/Icon";
 
 function Footer() {
+  const location = useLocation();
+  let copyrightText = "© 2025. Politeknik Astra / Badan Penjaminan Mutu";
+
+  // Cek jika path termasuk dalam kategori tertentu
+  if (location.pathname.startsWith("/evaluasi/ami/")) {
+    copyrightText =
+      "© 2025. Revalina Azahra Prinawan | Manajemen Informatika - Audit Mutu Internal";
+  } else if (location.pathname.startsWith("/tentang")) {
+    copyrightText =
+      "© 2025. Revalina Azahra Prinawan | Manajemen Informatika - Tentang";
+  } else if (location.pathname.startsWith("/berita")) {
+    copyrightText =
+      "© 2025. Revalina Azahra Prinawan | Manajemen Informatika - Berita";
+  } else if (location.pathname.startsWith("/kegiatan")) {
+    copyrightText =
+      "© 2025. Revalina Azahra Prinawan | Manajemen Informatika - Kegiatan";
+  } else if (location.pathname.startsWith("/peraturan")) {
+    copyrightText =
+      "© 2025. Maritza Alfiani, Fakhri Fauriza Ahmad | Manajemen Informatika - Peraturan";
+  } else {
+    const pageTitles = {
+      "/": "© 2025. Revalina Azahra Prinawan | Manajemen Informatika - Beranda",
+    };
+
+    copyrightText = pageTitles[location.pathname] || copyrightText;
+  }
   return (
     <footer
       className="py-4"
@@ -24,9 +51,7 @@ function Footer() {
               dalam mewujudkan visi dan misi institusi, serta memenuhi kebutuhan
               <i> stakeholders</i>.
             </p>
-            <p className="pull-left mt-3 mb-0">
-              © 2024. Politeknik Astra / Badan Penjaminan Mutu
-            </p>
+            <p className="pull-left mt-3 mb-0">{copyrightText}</p>
           </div>
 
           {/* Column 2: Related Links */}

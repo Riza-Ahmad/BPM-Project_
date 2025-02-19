@@ -1,23 +1,28 @@
 import Button from "./Button";
 import HeaderText from "./HeaderText";
 import { useIsMobile } from "../util/useIsMobile";
-import { PRODIGAMBAR_LINK } from "../util/Constants";
 import Hiasan from "../../assets/element/hiasan.png";
 import Hiasan2 from "../../assets/element/hiasan2.png";
+import { DOKUMEN_LINK } from "../util/Constants";
 const SliderProgramStudi = ({ akreditasiData }) => {
   const isMobile = useIsMobile();
+  const handleDownloadClick = (sertifikat) => {
+    const url = `${DOKUMEN_LINK}${sertifikat}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
   return (
     <>
       <div
         className="flex-grow-1"
         style={{
           backgroundColor: "#193756",
-          backgroundImage: `url(${Hiasan2}), url(${Hiasan})`, // Two images
-          backgroundPosition: "left center, right center", // Position left and right
-          backgroundRepeat: "no-repeat, no-repeat", // Prevent repeating
+          backgroundImage: `url(${Hiasan2}), url(${Hiasan})`,
+          backgroundPosition: "left center, right center",
+          backgroundRepeat: "no-repeat, no-repeat",
           backgroundSize: isMobile
             ? "10rem 10rem, 15rem 20rem"
-            : "40rem 40rem, 32rem 40rem", // Different sizes for each image
+            : "40rem 40rem, 32rem 40rem",
           padding: isMobile ? "1rem" : "4rem",
         }}
       >
@@ -59,7 +64,7 @@ const SliderProgramStudi = ({ akreditasiData }) => {
                 }}
               >
                 <img
-                  src={PRODIGAMBAR_LINK + item.foto}
+                  src={`/programStudi/${item.foto}`}
                   style={{
                     width: isMobile ? "60%" : "52%", // Gambar akan mengisi lebar card
                     height: "10.5rem", // Menetapkan tinggi gambar agar sama
@@ -96,6 +101,7 @@ const SliderProgramStudi = ({ akreditasiData }) => {
                   iconName="download"
                   classType="success"
                   label="Sertifikat"
+                  onClick={() => handleDownloadClick(item.sertifikat)}
                 />
               </div>
             );

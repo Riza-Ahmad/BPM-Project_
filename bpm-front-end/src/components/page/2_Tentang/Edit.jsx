@@ -60,7 +60,7 @@ export default function Edit({ onChangePage }) {
   };
 
   const handleFileChange = (file) => {
-    setSelectedFile(file); // Store file in state
+    setSelectedFile(file);
   };
 
   const renderContent = () => {
