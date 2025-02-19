@@ -512,15 +512,9 @@ export default function Pertanyaan_Survei({ onChangePage }) {
   // Fungsi membaca file Excel dan parsing data
   const handleFileChange = (file) => {
     if (!file) {
-      SweetAlert(
-        "Error",
-        "File tidak ditemukan. Silakan pilih file.",
-        "error",
-        "OK"
-      );
+      alert("Error: File tidak ditemukan. Silakan pilih file.");
       return;
     }
-
     setSelectedFile(file);
 
     const reader = new FileReader();
@@ -532,30 +526,18 @@ export default function Pertanyaan_Survei({ onChangePage }) {
 
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-
         if (!worksheet) {
-          SweetAlert(
-            "Error",
-            "Sheet tidak ditemukan dalam file Excel.",
-            "error",
-            "OK"
-          ).then(() => {
-            window.location.reload();
-          });
+          alert("Error: Sheet tidak ditemukan dalam Excel");
+          window.location.reload();
           return;
         }
 
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
         if (!jsonData || jsonData.length < 2) {
-          SweetAlert(
-            "Error",
-            "File Excel kosong atau tidak valid.",
-            "error",
-            "OK"
-          ).then(() => {
-            window.location.reload();
-          });
+          alert("Error: Tidak ada data dalam file");
+          window.location.reload();
+
           return;
         }
 
@@ -566,14 +548,9 @@ export default function Pertanyaan_Survei({ onChangePage }) {
         );
 
         if (!isValidTemplate) {
-          SweetAlert(
-            "Error",
-            "File tidak sesuai dengan template. Pastikan Anda menggunakan template yang benar.",
-            "error",
-            "OK"
-          ).then(() => {
-            window.location.reload();
-          });
+          alert("Error: File tidak sesuai dengan template");
+          window.location.reload();
+
           return;
         }
 
@@ -591,16 +568,8 @@ export default function Pertanyaan_Survei({ onChangePage }) {
             .slice(1)
             .map((row, index) => {
               if (!isValidRow(row)) {
-                SweetAlert(
-                  "Error",
-                  `Data tidak valid pada baris ${
-                    index + 1
-                  }. Pastikan semua kolom terisi dengan benar.`,
-                  "error",
-                  "OK"
-                ).then(() => {
-                  window.location.reload();
-                });
+                alert("Error: Sheet tidak ditemukan dalam Excel");
+                window.location.reload();
                 return null; // Jika baris tidak valid, return null
               }
               return {
@@ -616,14 +585,8 @@ export default function Pertanyaan_Survei({ onChangePage }) {
         console.log(parsedData);
 
         if (parsedData.length === 0) {
-          SweetAlert(
-            "Error",
-            "Tidak ada data yang valid untuk diproses.",
-            "error",
-            "OK"
-          ).then(() => {
-            window.location.reload();
-          });
+          alert("Error: Tidak ada data yang valid untuk diproses");
+          window.location.reload();
           return;
         }
       } catch (error) {
@@ -634,14 +597,8 @@ export default function Pertanyaan_Survei({ onChangePage }) {
 
     reader.onerror = (error) => {
       console.error("Error membaca file:", error.message);
-      SweetAlert(
-        "Error",
-        "Gagal membaca file. Silakan coba lagi.",
-        "error",
-        "OK"
-      ).then(() => {
-        window.location.reload();
-      });
+      alert("Error: Gagal membaca file. Silakan coba lagi.");
+      window.location.reload();
     };
 
     reader.readAsArrayBuffer(file);
@@ -686,12 +643,9 @@ export default function Pertanyaan_Survei({ onChangePage }) {
 
     setLoading(false);
 
-    SweetAlert(
-      "Berhasil!",
-      "Semua data berhasil ditambahkan.",
-      "success",
-      "OK"
-    ).then(() => onChangePage("index"));
+    alert("Success: Data berhasil disimpan");
+    importModalRef.current.close();
+    window.location.reload();
   };
 
   // Fungsi navigasi paging
