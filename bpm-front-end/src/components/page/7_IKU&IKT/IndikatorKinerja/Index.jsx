@@ -239,28 +239,6 @@ export default function Index({ onChangePage, isIkuIkt }) {
     }
   };
 
-  const calculateDepth = (data) => {
-    const getDepth = (items) => {
-      if (!items || items.length === 0) return 0; // No children, depth is 0
-      return (
-        1 + Math.max(...items.map((item) => getDepth(item.children || [])))
-      );
-    };
-
-    return getDepth(data);
-  };
-
-  const handleOpenModal = (type, data = null) => {
-    setModalType(type);
-    setDetail(data);
-    ModalRef.current?.open();
-  };
-
-  const handlePreview = (item) => {
-    const selected = filteredData.find((obj) => obj.idDok == item.Key);
-    handleOpenModal("preview", selected);
-  };
-
   const handleDetail = (item) => {
     onChangePage("detail", {
       idData: item.Key,
@@ -275,30 +253,6 @@ export default function Index({ onChangePage, isIkuIkt }) {
       idSta: activeSide?.idSta || activeTab?.idSta,
       dataName: activeSide?.judulSta || activeTab?.judulSta,
       modew: item.jenis === "IKU" ? "utama" : "tambahan",
-      breadcrumbs: breadcrumbs,
-    });
-  };
-
-  const handleUpdateHistory = (item) => {
-    onChangePage("updHistory", {
-      idData: item.Key,
-      idMenu: idMenu,
-      breadcrumbs: breadcrumbs,
-    });
-  };
-
-  const handleDownloadHistory = (item) => {
-    onChangePage("downHistory", {
-      idData: item.Key,
-      idMenu: idMenu,
-      breadcrumbs: breadcrumbs,
-    });
-  };
-
-  const handleUpload = (item) => {
-    onChangePage("editFile", {
-      idData: item.Key,
-      idMenu: idMenu,
       breadcrumbs: breadcrumbs,
     });
   };
@@ -385,6 +339,53 @@ export default function Index({ onChangePage, isIkuIkt }) {
         )}
       </div>
     ));
+  };
+
+  const handleToggle = (item) => {
+    // Tampilkan konfirmasi menggunakan SweetAlert sebelum toggle status
+    SweetAlert(
+      "Konfirmasi",
+      `Apakah Anda yakin ingin menghapus data ini?`,
+      "question",
+      "Ya",
+      null,
+      "",
+      true // Tampilkan tombol batal
+    ).then((result) => {
+      if (result) {
+        // Jika pengguna mengonfirmasi, hanya simpan idDok dan status yang diperbarui
+        const updatedData = filteredData
+          .filter((data) => data.idIka === item.Key)
+          .map((data) => ({
+            idDok: data.idIka,
+            status: data.status === "Aktif" ? "Tidak Aktif" : "Aktif",
+          }));
+
+        useFetch(`${API_LINK}/MasterIndikatorKinerja/EditStatusIndikatorKinerja`, updatedData[0])
+          .then((response) => {
+            if (response === "ERROR") {
+              throw new Error("Gagal memperbarui data");
+            }
+            SweetAlert(
+              "Berhasil!",
+              updatedData[0].status === "Aktif"
+                ? "Data Standar berhasil diaktifkan"
+                : "Data Standar berhasil dinonaktifkan",
+              "success",
+              "OK"
+            ).then(() => {
+              // Panggil fetchEvents untuk memperbarui data tanpa reload halaman
+              fetchDokumen();
+            });
+          })
+          .catch((error) => {
+            SweetAlert("Gagal!", error.message, "error", "OK");
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+      }
+    });
   };
 
   if (error) return <p className="text-center">{error}</p>;
@@ -582,18 +583,11 @@ export default function Index({ onChangePage, isIkuIkt }) {
                                 jenis: item.jenisIka,
                                 status: item.status,
                               }))}
-                              actions={(row) => {
-                                // Jika status "Tidak Aktif", hanya tampilkan Toggle
-                                if (row.status === "Tidak Aktif") {
-                                  return ["Toggle"];
-                                }
-                                // Jika status selain "Tidak Aktif", tampilkan semua actions
-                                return ["Detail", "Edit", "Toggle"];
-                              }}
+                              actions={["Detail", "Edit", "Delete"]}
                               aksiIs={role === "ROL01" ? true : false}
                               onEdit={handleEdit}
                               onDetail={handleDetail}
-                              //   onToggle={handleToggle}
+                              onDelete={handleToggle}
                             />
                             <Paging
                               pageSize={pageSize}

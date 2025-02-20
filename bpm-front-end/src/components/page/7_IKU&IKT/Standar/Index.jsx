@@ -148,17 +148,6 @@ export default function Index({ onChangePage }) {
     setBreadcrumbs(tempBradcrumps);
   }, [title]);
 
-  const handleOpenModal = (type, data = null) => {
-    setModalType(type);
-    setDetail(data);
-    ModalRef.current?.open();
-  };
-
-  const handlePreview = (item) => {
-    const selected = filteredData.find((obj) => obj.idDok == item.Key);
-    handleOpenModal("preview", selected);
-  };
-
   const handleDetail = (item) => {
     onChangePage("detail", {
       idData: item.Key,
@@ -169,30 +158,6 @@ export default function Index({ onChangePage }) {
 
   const handleEdit = (item) => {
     onChangePage("edit", {
-      idData: item.Key,
-      idMenu: idMenu,
-      breadcrumbs: breadcrumbs,
-    });
-  };
-
-  const handleUpdateHistory = (item) => {
-    onChangePage("updHistory", {
-      idData: item.Key,
-      idMenu: idMenu,
-      breadcrumbs: breadcrumbs,
-    });
-  };
-
-  const handleDownloadHistory = (item) => {
-    onChangePage("downHistory", {
-      idData: item.Key,
-      idMenu: idMenu,
-      breadcrumbs: breadcrumbs,
-    });
-  };
-
-  const handleUpload = (item) => {
-    onChangePage("editFile", {
       idData: item.Key,
       idMenu: idMenu,
       breadcrumbs: breadcrumbs,

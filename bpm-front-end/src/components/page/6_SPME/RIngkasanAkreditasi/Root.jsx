@@ -37,13 +37,13 @@ export default function RingkasanAkre() {
         <Route
           path="/"
           element={
-            <ProtectedRoute>
+            <>
               {mode === "editKonten" ? (
                 <EditKonten onChangePage={handlePageChange} />
               ) : (
                 <Akreditasi onChangePage={handlePageChange} />
               )}
-            </ProtectedRoute>
+            </>
           }
         />
       </Routes>

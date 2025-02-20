@@ -198,6 +198,17 @@ export default function Index({ onChangePage }) {
     });
   };
 
+  const handleOpenModal = (type, data = null) => {
+    setModalType(type);
+    setDetail(data);
+    ModalRef.current?.open();
+  };
+
+  const handleDetail = (item) => {
+    const selected = filteredData.find((obj) => obj.idSta == item.Key);
+    handleOpenModal("detail", selected);
+  };
+
   useEffect(() => {
     let tempBradcrumps = [{ label: "SPMI" }, { label: "Siklus SPMI" }];
 
@@ -209,6 +220,13 @@ export default function Index({ onChangePage }) {
 
     setBreadcrumbs(tempBradcrumps);
   }, [menuData]);
+
+  const truncateText = (text, maxLength) => {
+    if (!text) return ""; // Handle null or undefined input
+    return text.length > maxLength
+      ? text.substring(0, maxLength) + "..."
+      : text;
+  };
 
   //   if (loading) return <Loading />;
 
@@ -340,23 +358,27 @@ export default function Index({ onChangePage }) {
                           Key: item.idSta,
                           No: (pageCurrent - 1) * pageSize + index + 1,
                           "Nama Standar": item.judulSta,
-                          "Bentuk Peningkatan":
+                          "Bentuk Peningkatan": truncateText(
                             decodeHtml(decodeHtml(item.peningkatanSta)).replace(
                               /<\/?[^>]+(>|$)/g,
                               ""
-                            ) || "-",
+                            ),
+                            100
+                          ),
+                          // decodeHtml(decodeHtml(item.peningkatanSta)).replace(
+                          //   /<\/?[^>]+(>|$)/g,
+                          //   ""
+                          // ) || "-",
                           status: item.status,
                         }))}
                         actions={(row) => {
-                          // Jika status "Tidak Aktif", hanya tampilkan Toggle
-                          if (row.status === "Tidak Aktif") {
-                            return ["Toggle"];
+                          if (role === "ROL01") {
+                            return ["Detail", "Edit"];
                           }
-                          // Jika status selain "Tidak Aktif", tampilkan semua actions
-                          return ["Edit"];
+                          return ["Detail"];
                         }}
-                        aksiIs={role === "ROL01" ? true : false}
                         onEdit={handleEdit}
+                        onDetail={handleDetail}
                       />
 
                       <Paging
@@ -376,8 +398,8 @@ export default function Index({ onChangePage }) {
         {modalType === "detail" && (
           <Modal
             ref={ModalRef}
-            title="Detail Dokumen"
-            size="full"
+            title="Detail Peningkatan"
+            size="medium"
             Button2={
               <Button
                 classType="secondary"
@@ -386,144 +408,27 @@ export default function Index({ onChangePage }) {
               />
             }
           >
-            <div className="p-5 mt-0 bg-white rounded shadow">
+            <div className="p-3 mt-0 bg-white">
               <div className="row">
                 <div className="col-lg-12 col-md-12">
                   <DetailData
-                    label="Judul Dokumen"
-                    isi={detail.judulDok ? detail.judulDok : "-"}
+                    label="Nama Standar"
+                    isi={detail.judulSta ? detail.judulSta : "-"}
                   />
                 </div>
-                <div className="col-lg-6 col-md-6">
+                <div className="col-lg-12 col-md-12">
                   <DetailData
-                    label="Nomor Dokumen"
-                    isi={detail.noDok ? detail.noDok : "-"}
-                  />
-                  <DetailData
-                    label="Jenis Dokumen"
-                    isi={detail.controlDok ? detail.controlDok : "-"}
-                  />
-                </div>
-                <div className="col-lg-6 col-md-6">
-                  <DetailData
-                    label="Tanggal Berlaku"
+                    label="Bentuk Peningkatan"
                     isi={
-                      detail.tglDok
-                        ? new Date(detail.tglDok).toLocaleDateString("id-ID", {
-                            weekday: "long",
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          })
-                        : "-"
-                    }
-                  />
-                  <DetailData
-                    label="Tanggal Kadaluwarsa"
-                    isi={
-                      detail.expDok
-                        ? new Date(detail.expDok).toLocaleDateString("id-ID", {
-                            weekday: "long",
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          })
-                        : "-"
-                    }
-                  />
-                </div>
-              </div>
-              <div className="row">
-                <div className="col-lg-6 col-md-6">
-                  <DetailData
-                    label="Dibuat Oleh"
-                    isi={detail.createdBy ? detail.createdBy : "-"}
-                  />
-                  <DetailData
-                    label="Dibuat Tanggal"
-                    isi={
-                      detail.createdDate
-                        ? new Date(detail.createdDate).toLocaleDateString(
-                            "id-ID",
-                            {
-                              weekday: "long",
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                            }
+                      detail.peningkatanSta
+                        ? decodeHtml(decodeHtml(detail.peningkatanSta)).replace(
+                            /<\/?[^>]+(>|$)/g,
+                            ""
                           )
                         : "-"
                     }
                   />
                 </div>
-                <div className="col-lg-6 col-md-6">
-                  <DetailData
-                    label="Dimodifikasi Oleh"
-                    isi={detail.modifiedBy ? detail.modifiedBy : "-"}
-                  />
-                  <DetailData
-                    label="Dimodifikasi Tanggal"
-                    isi={
-                      detail.modifiedDate
-                        ? new Date(detail.modifiedDate).toLocaleDateString(
-                            "id-ID",
-                            {
-                              weekday: "long",
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                            }
-                          )
-                        : "-"
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-          </Modal>
-        )}
-        {modalType === "preview" && (
-          <Modal
-            ref={ModalRef}
-            title={detail.judulDok}
-            size="full"
-            Button2={
-              <Button
-                classType="secondary"
-                label="Tutup"
-                onClick={() => ModalRef.current.close()}
-              />
-            }
-          >
-            <div className="p-3 mt-0 bg-white rounded shadow">
-              <div style={{ width: "80vh", height: "70vh" }}>
-                <canvas resource={DOKUMEN_LINK + detail.fileDok}></canvas>
-                {loading ? (
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      backgroundColor: "white",
-                      minHeight: "50vh",
-                      margin: 0,
-                    }}
-                  >
-                    <SyncLoader color="#0d6efd" loading={true} />
-                  </div>
-                ) : (
-                  <embed
-                    src={DOKUMEN_LINK + detail.fileDok}
-                    type="application/pdf"
-                    width="100%"
-                    height="100%"
-                    style={{
-                      border: "none",
-                    }}
-                    onLoad={() => setLoading(true)}
-                    onLoadedData={() => setLoading(false)}
-                  />
-                )}
               </div>
             </div>
           </Modal>
