@@ -63,7 +63,7 @@ export default function Index({ onChangePage }) {
         );
 
         const formattedData = [
-          { Value: "", Text: "Semua" }, // Opsi default
+          { Value: "", Text: "Semua" },
           ...data.map((item) => ({
             Value: item.Value,
             Text: item.Text,
@@ -130,7 +130,7 @@ export default function Index({ onChangePage }) {
       "Ya",
       null,
       "",
-      true // Tampilkan tombol batal
+      true
     ).then((result) => {
       if (result) {
         const updatedData = filteredData

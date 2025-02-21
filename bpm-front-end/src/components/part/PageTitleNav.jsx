@@ -1,16 +1,16 @@
 import React from "react";
 import PropTypes from "prop-types";
 import Icon from "./Icon";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 
 const PageTitleNav = ({
   title,
-  breadcrumbs = null, // Allow breadcrumbs to be null
+  breadcrumbs = null,
   color = "#2654A1",
   onClick = () => {},
 }) => {
-  const navigate = useNavigate(); // Initialize navigate function
+  const navigate = useNavigate();
   const location = useLocation();
   const idMenu = location.state?.idMenu;
 
@@ -78,7 +78,7 @@ PageTitleNav.propTypes = {
       label: PropTypes.string,
       href: PropTypes.string,
     })
-  ), // Removed `.isRequired` to make it optional
+  ),
   color: PropTypes.string,
   onClick: PropTypes.func,
 };

@@ -5,7 +5,7 @@ import { DOKUMEN_LINK } from "../util/Constants";
 const ImagesCarousel = ({ images = [], link = DOKUMEN_LINK }) => {
   const defaultImages = [Mahasiswa, Mahasiswa, Mahasiswa];
 
-  const validImages = images.filter((item) => item !== ""); // Removes empty strings
+  const validImages = images.filter((item) => item !== "");
   const carouselImages = validImages.length > 0 ? validImages : defaultImages;
 
   const styles = {

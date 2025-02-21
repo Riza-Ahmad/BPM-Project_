@@ -72,7 +72,7 @@ export default function Detail({ onChangePage }) {
         );
 
         const formattedData = [
-          { Value: "", Text: "Semua" }, // Opsi default
+          { Value: "", Text: "Semua" },
           ...data.map((item) => ({
             Value: item.Value,
             Text: item.Text,
@@ -135,10 +135,8 @@ export default function Detail({ onChangePage }) {
     pertanyaan: [],
   });
 
-  // Track when instrumen fetch is completed
   const [isInstrumenFetched, setIsInstrumenFetched] = useState(false);
 
-  // GET DATA BY ID
   useEffect(() => {
     const fetchInstrumen = async () => {
       const body = {
@@ -198,14 +196,13 @@ export default function Detail({ onChangePage }) {
         console.error("Error fetching data:", err);
       } finally {
         setLoading(false);
-        setIsInstrumenFetched(true); // Mark as fetched
+        setIsInstrumenFetched(true);
       }
     };
 
     fetchInstrumen();
   }, [idData]);
 
-  // GET LIST PERTANYAAN
   const [pertanyaan, setPertanyaan] = useState([]);
 
   const fetchData = async () => {
@@ -259,6 +256,7 @@ export default function Detail({ onChangePage }) {
   }, []);
 
   if (error) return <p>{error}</p>;
+  if (loading) return <Loading />;
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -291,7 +289,7 @@ export default function Detail({ onChangePage }) {
                   label="Bagian Auditee"
                   name="bagianAuditee"
                   isRequired={true}
-                  values={formData.bagianAuditee || []} // Set default selected values here
+                  values={formData.bagianAuditee || []}
                   onChange={undefined}
                   errorMessage="Please select at least one option."
                   col="col-2"

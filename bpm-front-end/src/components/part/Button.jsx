@@ -8,7 +8,7 @@ export default function Button({
   type = "button",
   isDisabled = false,
   width = "auto",
-  boxShadow = "0px 4px 6px rgba(0, 0, 0, 0.1)", // Example shadow
+  boxShadow = "0px 4px 6px rgba(0, 0, 0, 0.1)",
   style = {},
   ...props
 }) {

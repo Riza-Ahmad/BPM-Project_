@@ -8,15 +8,15 @@ import React, {
 
 const FileUpload = forwardRef(function FileUpload(
   {
-    formatFile = ".pdf", // Allowed formats as a string, e.g., ".pdf,.docx"
+    formatFile = ".pdf",
     label = "",
     forInput = "",
     isRequired = false,
     isDisabled = false,
     errorMessage,
     hasExisting,
-    maxSizeFile = 10 * 1024 * 1024, // Default 10 MB
-    onChange, // Function to send file to parent
+    maxSizeFile = 10 * 1024 * 1024,
+    onChange,
     ...props
   },
   ref
@@ -26,7 +26,6 @@ const FileUpload = forwardRef(function FileUpload(
   const [selectedFile, setSelectedFile] = useState(null);
   const inputRef = useRef(null);
 
-  // Drag and drop handlers
   const handleDragOver = useCallback((e) => {
     e.preventDefault();
     setDragActive(true);
@@ -44,14 +43,12 @@ const FileUpload = forwardRef(function FileUpload(
 
     const fileExtension = file.name.split(".").pop().toLowerCase();
 
-    // Validate file type
     if (!allowedExtensions.includes(fileExtension)) {
       error = `Format tidak didukung: ${
         file.type || file.name
       }. Format diizinkan: ${formatFile}`;
     }
 
-    // Validate file size
     if (file.size > maxSizeFile) {
       error = `Ukuran berkas tidak boleh lebih dari ${
         maxSizeFile / (1024 * 1024)
@@ -90,9 +87,8 @@ const FileUpload = forwardRef(function FileUpload(
       setFileError("");
       setSelectedFile(file);
 
-      // Jika onChange diteruskan sebagai prop, panggil dan kirim file ke parent
       if (onChange) {
-        onChange(file); // Mengirim file ke komponen parent
+        onChange(file);
       }
     }
   };

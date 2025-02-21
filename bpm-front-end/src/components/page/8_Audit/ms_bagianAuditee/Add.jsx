@@ -38,7 +38,7 @@ const arrStatus = [
 ];
 export default function Add({ onChangePage }) {
   const activeUser = Cookies.get("activeUser");
-  let role = ""; // Jika undefined, gunakan nilai default
+  let role = "";
   let roleNama = "";
   let namaPengguna = "";
   if (activeUser) {

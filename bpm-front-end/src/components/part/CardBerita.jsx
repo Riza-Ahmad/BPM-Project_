@@ -50,7 +50,7 @@ const CardBerita = ({
   };
 
   const textContentStyle = {
-    flex: "1 1 auto", // Untuk memastikan teks fleksibel
+    flex: "1 1 auto",
     display: "flex",
     flexDirection: "column",
   };

@@ -42,7 +42,6 @@ const Modal = forwardRef(function Modal(
     },
   }));
 
-  // Fungsi untuk memeriksa apakah form anak memiliki nilai atau tidak
   const checkFormValues = () => {
     const formElements = formRef.current ? formRef.current.elements : null;
 

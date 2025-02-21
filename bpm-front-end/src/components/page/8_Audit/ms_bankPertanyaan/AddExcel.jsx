@@ -13,13 +13,12 @@ import { useFetch } from "../../../util/useFetch";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 
-// Definisikan struktur header yang diharapkan
 const expectedHeaders = [
-  "ID Kriteria", // Kolom 1
-  "Pertanyaan", // Kolom 2
-  "Dokumen Pendukung", // Kolom 3
-  "Dokumen Pendukung Keterangan", // Kolom 4
-  "Jenis IKT?", // Kolom 5
+  "ID Kriteria",
+  "Pertanyaan",
+  "Dokumen Pendukung",
+  "Dokumen Pendukung Keterangan",
+  "Jenis IKT?",
 ];
 
 let parsedData = [];
@@ -72,11 +71,9 @@ export default function Add({ onChangePage }) {
   }, []);
 
   const handleDownload = async () => {
-    // Buat workbook dan worksheet
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Pertanyaan");
 
-    // Data untuk sheet "Pertanyaan"
     const sheet1Data = [
       [
         "Daftar ID Kriteria dapat dilihat pada Sheet Daftar Kriteria",
@@ -96,12 +93,10 @@ export default function Add({ onChangePage }) {
       [15, "Pertanyaan2", 0, "", 1],
     ];
 
-    // Tambahkan data ke worksheet
     sheet1Data.forEach((row) => {
       worksheet.addRow(row);
     });
 
-    // Atur lebar kolom
     worksheet.columns = [
       { width: 15 },
       { width: 70 },
@@ -116,7 +111,7 @@ export default function Add({ onChangePage }) {
         horizontal: "center",
         vertical: "middle",
         wrapText: true,
-      }; // Wrap Text Aktif
+      };
       cell.border = {
         top: { style: "thin" },
         left: { style: "thin" },
@@ -136,7 +131,7 @@ export default function Add({ onChangePage }) {
         horizontal: "center",
         vertical: "middle",
         wrapText: true,
-      }; // Wrap Text Aktif
+      };
       cell.border = {
         top: { style: "thin" },
         left: { style: "thin" },
@@ -145,7 +140,6 @@ export default function Add({ onChangePage }) {
       };
     });
 
-    // Atur alignment untuk kolom A, C, dan E di baris 1 dan 2
     worksheet.getColumn(1).eachCell((cell) => {
       cell.alignment = {
         horizontal: "center",
@@ -170,7 +164,6 @@ export default function Add({ onChangePage }) {
       };
     });
 
-    // Buat sheet kedua "Daftar Kriteria"
     const sheetKriteria = workbook.addWorksheet("Daftar Kriteria");
     sheetKriteria.addRow(["ID Kriteria", "Nama Kriteria"]);
     kriteria.forEach((item) => {
@@ -189,7 +182,7 @@ export default function Add({ onChangePage }) {
         horizontal: "center",
         vertical: "middle",
         wrapText: true,
-      }; // Wrap Text Aktif
+      };
       cell.border = {
         top: { style: "thin" },
         left: { style: "thin" },
@@ -206,7 +199,6 @@ export default function Add({ onChangePage }) {
       };
     });
 
-    // Simpan file
     const buffer = await workbook.xlsx.writeBuffer();
     saveAs(
       new Blob([buffer], { type: "application/octet-stream" }),
@@ -263,7 +255,6 @@ export default function Add({ onChangePage }) {
           return;
         }
 
-        // Validasi header
         const fileHeaders = jsonData[1];
         const isValidTemplate = expectedHeaders.every(
           (header, index) => header === fileHeaders[index]
@@ -281,13 +272,8 @@ export default function Add({ onChangePage }) {
           return;
         }
 
-        // Validasi data per baris
         const isValidRow = (row) => {
-          return (
-            row.length >= expectedHeaders.length && // Jumlah kolom sesuai
-            row[0] && // Kriteria tidak boleh kosong
-            row[1] // Pertanyaan tidak boleh kosong
-          );
+          return row.length >= expectedHeaders.length && row[0] && row[1];
         };
 
         parsedData = jsonData
@@ -304,7 +290,7 @@ export default function Add({ onChangePage }) {
               ).then(() => {
                 window.location.reload();
               });
-              return null; // Jika baris tidak valid, return null
+              return null;
             }
             return {
               kriteria: row[0] || "",

@@ -38,10 +38,8 @@ export default function Detail({ onChangePage }) {
 
         if (result === "ERROR" || result === null || result.length === 0) {
         } else {
-          // Asumsi result adalah array
-          const fetchedData = result[0]; // Karena hanya ada satu objek dalam array
+          const fetchedData = result[0];
 
-          // Menangani pemetaan dan decode HTML
           setFormData({
             id: idData,
             auditee: fetchedData.BagianAuditee,

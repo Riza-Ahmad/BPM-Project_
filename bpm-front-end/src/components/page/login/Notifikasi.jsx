@@ -20,7 +20,6 @@ export default function Notifikasi() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // State untuk paging
   const [pageCurrent, setPageCurrent] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalData, setTotalData] = useState(0);
@@ -111,7 +110,7 @@ export default function Notifikasi() {
                 title="Set Sudah Dibaca"
                 onClick={() => {
                   if (item.StatusBaca === "Belum") {
-                    handleUpdateStatusBaca(item.idNotifikasi); // Memanggil fungsi saat ikon diklik
+                    handleUpdateStatusBaca(item.idNotifikasi);
                   }
                 }}
               ></i>
@@ -127,7 +126,7 @@ export default function Notifikasi() {
                 }
               >
                 <HeaderText
-                  label={item.PesanNotifikasi} // Data dari API
+                  label={item.PesanNotifikasi}
                   ukuran="1.2rem"
                   warna="#2654a1"
                   alignText="left"
@@ -136,7 +135,7 @@ export default function Notifikasi() {
                 />
 
                 <Text
-                  isi={item.BodyPesan} // Data dari API
+                  isi={item.BodyPesan}
                   ukuran="0.9rem"
                   warna="#575050"
                   alignText="left"
@@ -156,7 +155,7 @@ export default function Notifikasi() {
                     ) +
                     " Oleh " +
                     item.AsalNotifikasi
-                  } // Data dari API
+                  }
                   ukuran="0.8rem"
                   warna="#575050"
                   alignText="left"

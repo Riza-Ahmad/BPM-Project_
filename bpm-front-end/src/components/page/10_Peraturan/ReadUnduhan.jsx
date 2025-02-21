@@ -2,18 +2,12 @@ import React, { useEffect, useState, useRef } from "react";
 import Table from "../../part/Table";
 import Paging from "../../part/Paging";
 import PageTitleNav from "../../part/PageTitleNav";
-import Button from "../../part/Button";
 import { useLocation, useNavigate } from "react-router-dom";
 import { API_LINK } from "../../util/Constants";
 import { useFetch } from "../../util/useFetch";
 import Loading from "../../part/Loading";
-import Filter from "../../part/Filter";
-import SearchField from "../../part/SearchField";
-import DropDown from "../../part/Dropdown";
-import moment from "moment";
 import { useIsMobile } from "../../util/useIsMobile";
 
-// Dynamically set title and breadcrumbs based on idMenu
 let title = "Hallo";
 let breadcrumbs = [];
 
@@ -76,7 +70,7 @@ export default function Read({ onChangePage }) {
         );
 
         if (data.length > 0 && data[0].TotalCount !== undefined) {
-          setTotalData(data[0].TotalCount); // Set hanya sekali
+          setTotalData(data[0].TotalCount);
         }
         const formattedEvents = data.map((item) => {
           return {
@@ -92,7 +86,7 @@ export default function Read({ onChangePage }) {
                 new Date(item.tglUnduhan).toLocaleTimeString("id-ID", {
                   hour: "2-digit",
                   minute: "2-digit",
-                  hour12: false, // Menggunakan format 24 jam
+                  hour12: false,
                 }) +
                 " WIB" || "",
             judulDok: item.judulDok,
@@ -139,7 +133,6 @@ export default function Read({ onChangePage }) {
       ];
     }
 
-    // Set loading to false once idMenu is determined
     setLoading(false);
   }, [idMenu]);
 

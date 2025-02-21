@@ -332,7 +332,6 @@ export default function Edit({ onChangePage }) {
     const waktuAwal = waktuAwalRef.current?.value;
     const waktuAkhir = waktuAkhirRef.current?.value;
 
-    // Validate that waktuAwal is not greater than waktuAkhir
     if (
       new Date(`1970-01-01T${waktuAwal}`) > new Date(`1970-01-01T${waktuAkhir}`)
     ) {

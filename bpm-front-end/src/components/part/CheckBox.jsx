@@ -19,7 +19,6 @@ const CheckBox = forwardRef(function CheckBox(
   const [error, setError] = useState(false);
   const inputRef = useRef("");
 
-  // Expose reset, validate, and get value methods to the parent
   useImperativeHandle(ref, () => ({
     reset() {
       setError(false);
@@ -41,7 +40,7 @@ const CheckBox = forwardRef(function CheckBox(
   }));
 
   const handleChange = (e, checkedValue) => {
-    if (!onChange) return; // Jangan lakukan apa pun jika onChange tidak didefinisikan
+    if (!onChange) return;
 
     const newValue = e.target.checked
       ? [...values, checkedValue]

@@ -80,7 +80,6 @@ export default function EditSelfAssessment({ onChangePage }) {
     const folderName = "Audit";
     const updatedFormData = { ...formData };
 
-    // Unggah file secara paralel
     await Promise.all(
       Object.entries(files).map(async ([key, fileArray]) => {
         const dokumenBerkasArrayPromises = fileArray.map(async (file) => {
@@ -103,7 +102,6 @@ export default function EditSelfAssessment({ onChangePage }) {
       })
     );
 
-    // Kirim data secara paralel
     await Promise.all(
       Object.entries(updatedFormData).map(async ([key, value]) => {
         const updatedObject = {

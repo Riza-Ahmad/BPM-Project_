@@ -18,9 +18,9 @@ export const uploadFile = async (selectedFile, folderName, filePrefix) => {
       throw new Error("Gagal mengunggah file");
     }
 
-    return await uploadResponse.json(); // Assuming the server returns JSON response
+    return await uploadResponse.json();
   } catch (error) {
     console.error("Error during file upload:", error);
-    throw error; // Re-throw the error to be handled by the caller
+    throw error;
   }
 };

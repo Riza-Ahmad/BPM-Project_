@@ -10,8 +10,6 @@ export default function Paging({
   function generatePageButton(pageSize, pageCurrent, totalData) {
     const totalPage = Math.ceil(totalData / pageSize);
     let pageButtons = [];
-
-    // Tombol "Sebelumnya"
     pageButtons.push(
       <Button
         key="previous"
@@ -57,10 +55,7 @@ export default function Paging({
         pageButtons.push(
           <Button key="dots1" label="..." classType="light border disabled" />
         );
-      }
-
-      // Untuk halaman saat ini 2
-      else if (pageCurrent === 2) {
+      } else if (pageCurrent === 2) {
         pageButtons.push(
           <Button
             key="page1"
@@ -107,12 +102,11 @@ export default function Paging({
               classType="light border"
               onClick={() => {
                 navigation(pageCurrent + 1);
-                window.scrollTo(0, 0); // Scroll to top on page change
+                window.scrollTo(0, 0);
               }}
             />
           );
 
-          // Jika tidak berada di halaman terakhir, tampilkan "..."
           if (pageCurrent < totalPage - 2) {
             pageButtons.push(
               <Button
@@ -126,7 +120,6 @@ export default function Paging({
       }
     }
 
-    // Tombol "Selanjutnya"
     pageButtons.push(
       <Button
         key="next"
@@ -137,7 +130,7 @@ export default function Paging({
         onClick={() => {
           if (pageCurrent < totalPage) {
             navigation(pageCurrent + 1);
-            window.scrollTo(0, 0); // Scroll to top on page change
+            window.scrollTo(0, 0);
           }
         }}
       />

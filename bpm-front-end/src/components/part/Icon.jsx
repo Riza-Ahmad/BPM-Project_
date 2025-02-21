@@ -2,8 +2,8 @@ export default function Icon({
   type = "Reguler",
   name,
   cssClass = "",
-  ukuran = "1.2rem", // default ukuran
-  margin = "0px", // default margin
+  ukuran = "1.2rem",
+  margin = "0px",
   ...props
 }) {
   const prefix =

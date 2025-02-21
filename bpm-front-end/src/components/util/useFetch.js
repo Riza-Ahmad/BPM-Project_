@@ -31,7 +31,6 @@ export const useFetch = async (url, param = {}, method = "POST") => {
       return "ERROR";
     }
   } catch (err) {
-    // console.error("Fetch error:", err);
     return "ERROR";
   }
 };

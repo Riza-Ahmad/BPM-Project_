@@ -18,7 +18,6 @@ const RadioButton = forwardRef(function RadioButton(
 ) {
   const [error, setError] = useState(false);
 
-  // Expose reset, validate, and get value methods to the parent
   useImperativeHandle(ref, () => ({
     reset() {
       setError(false);

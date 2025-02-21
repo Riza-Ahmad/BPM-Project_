@@ -13,7 +13,7 @@ import Loading from "../../part/Loading";
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
-  return date.toISOString().split("T")[0]; // Mengambil hanya bagian tanggal
+  return date.toISOString().split("T")[0];
 };
 
 export default function Edit({ onChangePage }) {
@@ -25,7 +25,7 @@ export default function Edit({ onChangePage }) {
   const rootPath = currentPath.split("/")[2];
   const idMenu = location.state?.idMenu;
   const idData = location.state?.idData;
-  const [loading, setLoading] = useState(true); // New loading state
+  const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState("");
   const [titleHeader, setTitleHeader] = useState("");
   const [breadcrumbs, setBreadcrumbs] = useState([]);
@@ -38,7 +38,6 @@ export default function Edit({ onChangePage }) {
     jenisDokumen: "",
   });
 
-  // Refs for validation
   const judulDokumenRef = useRef();
   const nomorIndukRef = useRef();
   const tahunDokumenRef = useRef();
@@ -56,13 +55,12 @@ export default function Edit({ onChangePage }) {
           "POST"
         );
         if (data.length > 0) {
-          // Mengubah format tanggal untuk tahunDokumen dan tahunKadaluarsa
           setFormData({
             idDok: data[0].idDok || "",
             judulDokumen: data[0].judulDokumen || "",
             nomorInduk: data[0].nomorInduk || "",
-            tahunDokumen: formatDate(data[0].tahunDokumen) || "", // Memformat tanggal
-            tahunKadaluarsa: formatDate(data[0].tahunKadaluarsa) || "", // Memformat tanggal
+            tahunDokumen: formatDate(data[0].tahunDokumen) || "",
+            tahunKadaluarsa: formatDate(data[0].tahunKadaluarsa) || "",
             jenisDokumen: data[0].jenisDokumen || "",
           });
         }

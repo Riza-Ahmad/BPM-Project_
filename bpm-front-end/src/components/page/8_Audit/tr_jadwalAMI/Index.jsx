@@ -146,17 +146,16 @@ export default function Index({ onChangePage }) {
         SweetAlert("Berhasil", "Data Berhasil dikirim", "success");
 
         setFilteredData((prevData) =>
-          prevData.map(
-            (data) =>
-              data.idJadwal === id
-                ? {
-                    ...data, // Salin data lama
-                    status:
-                      data.status === "DRAFT"
-                        ? "Self Assesment (Belum)" // Ubah status jika kondisi terpenuhi
-                        : data.status, // Pertahankan status jika kondisi tidak terpenuhi
-                  }
-                : data // Pertahankan data lain yang tidak berubah
+          prevData.map((data) =>
+            data.idJadwal === id
+              ? {
+                  ...data,
+                  status:
+                    data.status === "DRAFT"
+                      ? "Self Assesment (Belum)"
+                      : data.status,
+                }
+              : data
           )
         );
       } catch (err) {

@@ -13,7 +13,6 @@ import SweetAlert from "../../util/SweetAlert";
 import { useIsMobile } from "../../util/useIsMobile";
 import { useFetch } from "../../util/useFetch";
 
-// Dynamically set title and breadcrumbs based on idMenu
 let title = "";
 let titleHeader = "Formulir";
 let breadcrumbs = [];
@@ -24,7 +23,7 @@ export default function Add({ onChangePage }) {
   const currentPath = location.pathname;
   const rootPath = currentPath.split("/")[2];
   const idMenu = location.state?.idMenu;
-  const [loading, setLoading] = useState(true); // New loading state
+  const [loading, setLoading] = useState(true);
   const [selectedFile, setSelectedFile] = useState(null);
   const [formData, setFormData] = useState({
     idMenu: idMenu,
@@ -39,7 +38,6 @@ export default function Add({ onChangePage }) {
     setSelectedFile(file);
   };
 
-  // Refs for validation
   const judulDokumenRef = useRef();
   const nomorIndukRef = useRef();
   const tahunDokumenRef = useRef();

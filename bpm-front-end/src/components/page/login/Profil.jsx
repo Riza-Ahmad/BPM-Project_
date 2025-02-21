@@ -1,15 +1,15 @@
-import Swal from "sweetalert2"; // Import SweetAlert2
+import Swal from "sweetalert2";
 import Bangunan from "../../../assets/element/bangunan.png";
 import Logo from "../../../assets/bpm-logo-biru.png";
-import Cookies from "js-cookie"; // Import js-cookie for cookie handling
-import { useNavigate } from "react-router-dom"; // Import useNavigate untuk navigasi
+import Cookies from "js-cookie";
+import { useNavigate } from "react-router-dom";
 import HeaderText from "../../part/HeaderText";
 import { useEffect, useState } from "react";
 import { useFetch } from "../../util/useFetch";
 import { API_LINK } from "../../util/Constants";
 
 export default function Profil() {
-  const navigate = useNavigate(); // Hook untuk navigasi
+  const navigate = useNavigate();
   let activeUser = "";
   let username = "";
   let lastLogin = "";
@@ -44,7 +44,7 @@ export default function Profil() {
     });
 
     if (result.isConfirmed) {
-      navigate("/logout"); // Navigasi ke halaman logout
+      navigate("/logout");
     }
   };
 
@@ -63,7 +63,7 @@ export default function Profil() {
           throw new Error("Gagal mengambil data");
         }
 
-        setJumlahNotifikasi(data[0].JumlahNotifikasiBelum || 0); // Safely access the count
+        setJumlahNotifikasi(data[0].JumlahNotifikasiBelum || 0);
       } catch (error) {
         console.error("Error fetching notifications:", error.message);
       }
@@ -201,7 +201,7 @@ export default function Profil() {
         <div
           className="card-header p-2 mb-2 rounded-4 bg-danger d-flex justify-content-between align-items-center"
           style={{ cursor: "pointer", textDecoration: "none" }}
-          onClick={handleLogout} // Tambahkan event handler
+          onClick={handleLogout}
         >
           <div className="d-flex align-items-center me-4">
             <i

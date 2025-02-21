@@ -81,7 +81,7 @@ export default function Edit({ onChangePage }) {
         );
 
         const formattedData = [
-          { Value: "", Text: "Semua" }, // Opsi default
+          { Value: "", Text: "Semua" },
           ...data.map((item) => ({
             Value: item.Value,
             Text: item.Text,
@@ -145,10 +145,8 @@ export default function Edit({ onChangePage }) {
     pertanyaan: [],
   });
 
-  // Track when instrumen fetch is completed
   const [isInstrumenFetched, setIsInstrumenFetched] = useState(false);
 
-  // GET DATA BY ID
   useEffect(() => {
     const fetchInstrumen = async () => {
       const body = {
@@ -187,14 +185,13 @@ export default function Edit({ onChangePage }) {
         console.error("Error fetching data:", err);
       } finally {
         setLoading(false);
-        setIsInstrumenFetched(true); // Mark as fetched
+        setIsInstrumenFetched(true);
       }
     };
 
     fetchInstrumen();
   }, [idData]);
 
-  // GET LIST PERTANYAAN
   const [pertanyaan, setPertanyaan] = useState([]);
 
   const fetchData = async () => {
@@ -259,9 +256,8 @@ export default function Edit({ onChangePage }) {
         [name]: value,
       };
 
-      // Reset pertanyaanLanjutan jika butuhDokumen kosong
       if (name === "butuhDokumen" && value.length === 0) {
-        updatedData.pertanyaanLanjutan = ""; // Reset ke nilai default
+        updatedData.pertanyaanLanjutan = "";
       }
 
       return updatedData;
@@ -373,13 +369,11 @@ export default function Edit({ onChangePage }) {
     }
 
     try {
-      // Kirim permintaan ke backend menggunakan useFetch
       const createResponse = await useFetch(
         `${API_LINK}/MasterInstrumenAudit/EditDataInstrumenAuditPertanyaan`,
         { idEdit: idEdit, pertanyaanBaru: pertanyaanBaru }
       );
 
-      // Tangani hasil dari useFetch
       if (createResponse === "ERROR") {
         throw new Error("Gagal menambah data");
       }
@@ -394,8 +388,8 @@ export default function Edit({ onChangePage }) {
         window.location.reload();
       });
     } catch (error) {
-      console.error("Error:", error.message); // Log kesalahan
-      SweetAlert("Gagal!", error.message, "error", "OK"); // Tampilkan kesalahan kepada pengguna
+      console.error("Error:", error.message);
+      SweetAlert("Gagal!", error.message, "error", "OK");
     }
   };
 
@@ -454,9 +448,8 @@ export default function Edit({ onChangePage }) {
         bagianAuditee: formData.bagianAuditee,
       };
 
-      // Reset pertanyaanLanjutan jika butuhDokumen kosong
       if (name === "butuhDokumen" && value.length === 0) {
-        updatedData.pertanyaanLanjutan = ""; // Reset ke nilai default
+        updatedData.pertanyaanLanjutan = "";
       }
 
       return updatedData;
@@ -556,7 +549,7 @@ export default function Edit({ onChangePage }) {
                   label="Bagian Auditee"
                   name="bagianAuditee"
                   isRequired={true}
-                  values={formData.bagianAuditee || []} // Set default selected values here
+                  values={formData.bagianAuditee || []}
                   onChange={handleChange}
                   errorMessage="Please select at least one option."
                   col="col-2"
@@ -612,8 +605,8 @@ export default function Edit({ onChangePage }) {
                         label="Dari Bank Pertanyaan"
                         width="100%"
                         onClick={() => {
-                          handleOpenModal(); // Memanggil fungsi untuk membuka modal
-                          setAksiIs(false); // Mengubah nilai state `aksiIs`
+                          handleOpenModal();
+                          setAksiIs(false);
                         }}
                         style={{ minWidth: "15rem" }}
                       />
@@ -657,8 +650,8 @@ export default function Edit({ onChangePage }) {
                     }))}
                     actions={["Edit", "Delete"]}
                     onEdit={(item) => {
-                      handleOpenModal(item.Key); // Fungsi untuk membuka modal
-                      setAksiIs(true); // Jika Anda ingin memperbarui state `aksiIs`
+                      handleOpenModal(item.Key);
+                      setAksiIs(true);
                       setIdPertanyaan(item.idPer);
                       setIdEdit(item.Key);
                     }}
@@ -691,7 +684,7 @@ export default function Edit({ onChangePage }) {
           tabIndex="-1"
           aria-labelledby="exampleModalLabel"
           aria-hidden={!showModal}
-          style={{ display: showModal ? "block" : "none" }} // Manually controlling modal visibility
+          style={{ display: showModal ? "block" : "none" }}
         >
           <div className="modal-xl modal-dialog modal-dialog-centered">
             <div className="modal-content">
@@ -854,7 +847,7 @@ export default function Edit({ onChangePage }) {
                     arrData={butuhDokumen}
                     label="Dokumen Pendukung"
                     name="butuhDokumen"
-                    values={formPertanyaan.butuhDokumen || ""} // Set default selected values here
+                    values={formPertanyaan.butuhDokumen || ""}
                     onChange={handleChangeBank}
                     col="col-12"
                   />

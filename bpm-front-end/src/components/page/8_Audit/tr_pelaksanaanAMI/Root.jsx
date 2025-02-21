@@ -19,7 +19,6 @@ export default function bankPertanyaan() {
   const location = useLocation();
   const currentPath = location.pathname;
 
-  // Handler for page navigation
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
       case "index":

@@ -1,12 +1,12 @@
 export default function HeaderText({
-  label, // Properti 'isi' akan digunakan untuk teks HTML
+  label,
   warna = "#5F5858",
   ukuran = "30px",
   alignText = "center",
   marginBottom = "40px",
-  fontWeight = "600", // Default ketebalan teks adalah normal
+  fontWeight = "600",
   marginTop = "10px",
-  width = "auto", // Default lebar jika tidak ditentukan
+  width = "auto",
 }) {
   return (
     <h3
@@ -15,11 +15,11 @@ export default function HeaderText({
         fontSize: ukuran,
         textAlign: alignText,
         marginBottom: marginBottom,
-        fontWeight: fontWeight, // Mengatur ketebalan teks
+        fontWeight: fontWeight,
         marginTop: marginTop,
-        width: width, // Mengatur lebar elemen
+        width: width,
       }}
-      dangerouslySetInnerHTML={{ __html: label }} // Menampilkan isi HTML
+      dangerouslySetInnerHTML={{ __html: label }}
     />
   );
 }

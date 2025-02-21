@@ -1,11 +1,9 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 
-const Breadcrumbs = ({
-  breadcrumbs = null
-}) => {
-  const navigate = useNavigate(); // Initialize navigate function
+const Breadcrumbs = ({ breadcrumbs = null }) => {
+  const navigate = useNavigate();
 
   return (
     <header>
@@ -25,7 +23,7 @@ const Breadcrumbs = ({
                       textDecoration: "none",
                       cursor: "pointer",
                     }}
-                    onClick={() => navigate(breadcrumb.href)} // Use navigate for programmatic routing
+                    onClick={() => navigate(breadcrumb.href)}
                   >
                     {breadcrumb.label}
                   </span>
@@ -46,7 +44,7 @@ Breadcrumbs.propTypes = {
       label: PropTypes.string,
       href: PropTypes.string,
     })
-  )
+  ),
 };
 
 export default Breadcrumbs;

@@ -310,7 +310,7 @@ export default function Index({ onChangePage }) {
                         ) {
                           return ["Self Assessment", "Edit"];
                         } else {
-                          return ["Self Assessment"]; // Default return if the condition is not met
+                          return ["Self Assessment"];
                         }
                       case "Self Assessment (Draft)":
                         if (
@@ -320,7 +320,7 @@ export default function Index({ onChangePage }) {
                         ) {
                           return ["Self Assessment", "Edit", "Send"];
                         } else {
-                          return ["Self Assessment"]; // Default return if the condition is not met
+                          return ["Self Assessment"];
                         }
 
                       case "Self Assessment (Selesai)":
@@ -330,7 +330,7 @@ export default function Index({ onChangePage }) {
                         ) {
                           return ["Self Assessment", "Temuan", "Edit"];
                         } else {
-                          return ["Self Assessment"]; // Default return if the condition is not met
+                          return ["Self Assessment"];
                         }
 
                       case "Temuan (Draft)":

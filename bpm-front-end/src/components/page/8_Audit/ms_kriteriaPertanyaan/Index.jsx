@@ -31,7 +31,7 @@ const breadcrumbs = [{ label: "Evaluasi" }, { label: "Kriteria" }];
 export default function Index({ onChangePage }) {
   const isMobile = useIsMobile();
   const activeUser = Cookies.get("activeUser");
-  let role = ""; // Jika undefined, gunakan nilai default
+  let role = "";
   let roleNama = "";
   let namaPengguna = "";
   if (activeUser) {
@@ -55,7 +55,7 @@ export default function Index({ onChangePage }) {
     param5: pageCurrent,
   });
 
-  const [modalType, setModalType] = useState(""); // "add", "edit", "detail", "preview"
+  const [modalType, setModalType] = useState("");
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -117,7 +117,6 @@ export default function Index({ onChangePage }) {
   };
 
   const handleToggle = (item) => {
-    // Tampilkan konfirmasi menggunakan SweetAlert sebelum toggle status
     SweetAlert(
       "Konfirmasi",
       `Apakah Anda yakin ingin ${
@@ -127,10 +126,9 @@ export default function Index({ onChangePage }) {
       "Ya",
       null,
       "",
-      true // Tampilkan tombol batal
+      true
     ).then((result) => {
       if (result) {
-        // Jika pengguna mengonfirmasi, hanya simpan idKri dan status yang diperbarui
         const updatedData = filteredData
           .filter((data) => data.idKri === item.Key)
           .map((data) => ({
@@ -275,11 +273,10 @@ export default function Index({ onChangePage }) {
                       status: item.status,
                     }))}
                     actions={(row) => {
-                      // Jika status "Tidak Aktif", hanya tampilkan Toggle
                       if (row.status === "Tidak Aktif") {
                         return ["Toggle"];
                       }
-                      // Jika status selain "Tidak Aktif", tampilkan semua actions
+
                       return ["Detail", "Edit", "Toggle"];
                     }}
                     onEdit={handleEdit}

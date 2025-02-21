@@ -53,7 +53,7 @@ export default function Read({ onChangePage }) {
         );
 
         const formattedData = [
-          { Value: "", Text: "Semua" }, // Opsi default
+          { Value: "", Text: "Semua" },
           ...data.map((item) => ({
             Value: item.idJenisKegiatan,
             Text: item.namaJenisKegiatan,
@@ -87,7 +87,7 @@ export default function Read({ onChangePage }) {
         );
 
         if (data.length > 0 && data[0].TotalCount !== undefined) {
-          setTotalData(data[0].TotalCount); // Set hanya sekali
+          setTotalData(data[0].TotalCount);
         }
 
         setFilteredData(data);

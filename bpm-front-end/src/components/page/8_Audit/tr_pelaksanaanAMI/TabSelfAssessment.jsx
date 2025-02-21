@@ -28,7 +28,7 @@ const TabSelfAssessment = ({
   mode = "editSA",
   isDraftandAuditor = false,
 }) => {
-  const [expandedIndexes, setExpandedIndexes] = useState([]); // Mengubah state menjadi array
+  const [expandedIndexes, setExpandedIndexes] = useState([]);
   const isMobile = useIsMobile();
   const [files, setFiles] = useState({});
   const styleHeader = {
@@ -98,9 +98,9 @@ const TabSelfAssessment = ({
   const handleExpandToggle = (index) => {
     setExpandedIndexes((prevIndexes) => {
       if (prevIndexes.includes(index)) {
-        return prevIndexes.filter((i) => i !== index); // Tutup jika sudah dibuka
+        return prevIndexes.filter((i) => i !== index);
       }
-      return [...prevIndexes, index]; // Tambahkan jika belum dibuka
+      return [...prevIndexes, index];
     });
   };
 

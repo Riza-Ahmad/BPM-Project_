@@ -164,7 +164,6 @@ export default function Index({ onChangePage }) {
         throw new Error(`Failed to download file: ${response.statusText}`);
       }
 
-      // Konversi response ke Blob
       const blob = await response.blob();
 
       const contentDisposition = response.headers.get("content-disposition");
@@ -174,13 +173,12 @@ export default function Index({ onChangePage }) {
             .split("filename=")[1]
             ?.split(";")[0]
             ?.replace(/"/g, "")
-        : "download.xlsx"; // Default jika nama file tidak ditemukan
+        : "download.xlsx";
 
-      // Buat URL dari Blob dan trigger download
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = decodeURIComponent(fileName); // Gunakan nama file dari server
+      a.download = decodeURIComponent(fileName);
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -374,7 +372,7 @@ export default function Index({ onChangePage }) {
                           ) {
                             return ["Edit"];
                           } else {
-                            return ["Detail"]; // Default return if the condition is not met
+                            return ["Detail"];
                           }
                         case "Analisa Temuan (Draft)":
                           if (
@@ -384,7 +382,7 @@ export default function Index({ onChangePage }) {
                           ) {
                             return ["Edit"];
                           } else {
-                            return ["Detail"]; // Default return if the condition is not met
+                            return ["Detail"];
                           }
                         case "Menunggu Monitoring":
                           if (
@@ -393,7 +391,7 @@ export default function Index({ onChangePage }) {
                           ) {
                             return ["Edit", "Send"];
                           } else {
-                            return ["Detail"]; // Default return if the condition is not met
+                            return ["Detail"];
                           }
 
                         case "Menunggu Verifikasi":

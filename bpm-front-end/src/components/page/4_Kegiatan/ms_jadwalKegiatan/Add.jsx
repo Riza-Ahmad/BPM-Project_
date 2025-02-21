@@ -56,7 +56,6 @@ export default function Add({ onChangePage }) {
     fetchJenisKegiatan();
   }, []);
 
-  // Refs for validation
   const namaRef = useRef();
   const deskripsiRef = useRef();
   const tempatRef = useRef();
@@ -101,7 +100,6 @@ export default function Add({ onChangePage }) {
       return;
     }
 
-    // Combine date and time values into Date objects
     const startDate = new Date(
       `${tglMulaiRef.current.value} ${jamMulaiRef.current.value}`
     );
@@ -109,7 +107,6 @@ export default function Add({ onChangePage }) {
       `${tglSelesaiRef.current.value} ${jamSelesaiRef.current.value}`
     );
 
-    // Validate that start date is less than end date
     if (startDate >= endDate) {
       SweetAlert(
         "Gagal!",

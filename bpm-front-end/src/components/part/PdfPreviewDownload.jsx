@@ -13,15 +13,15 @@ const PdfPreviewDownload = ({ judul, handleClick }) => {
   };
 
   const iconStyle = {
-    fontSize: "5rem", // Menggunakan fontSize untuk ikon besar
+    fontSize: "5rem",
     color: "red",
-    marginBottom: "0rem", // Jarak ikon dengan elemen berikutnya
+    marginBottom: "0rem",
   };
 
   const titleStyle = {
     fontSize: "0.8rem",
     fontWeight: "bold",
-    margin: "10px 0", // Jarak judul dengan elemen atas dan bawah
+    margin: "10px 0",
     textAlign: "center",
     marginTop: "0rem",
   };
@@ -49,7 +49,7 @@ const PdfPreviewDownload = ({ judul, handleClick }) => {
         <h3 style={titleStyle}>{judul.toUpperCase()}</h3>
         <button
           onClick={(e) => {
-            e.preventDefault(); // Mencegah default behavior
+            e.preventDefault();
             handleClick();
           }}
           style={buttonStyle}

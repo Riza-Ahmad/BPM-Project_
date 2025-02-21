@@ -12,7 +12,6 @@ export default function bankPertanyaan() {
   const location = useLocation();
   const currentPath = location.pathname;
 
-  // Handler for page navigation
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
       case "index":
@@ -44,7 +43,6 @@ export default function bankPertanyaan() {
     <>
       <ScrollToTop />
       <Routes>
-        {/* Public Route */}
         <Route
           path="/"
           element={

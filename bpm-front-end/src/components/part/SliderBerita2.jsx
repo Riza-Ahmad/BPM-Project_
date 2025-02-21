@@ -9,7 +9,6 @@ const SliderBerita2 = ({ beritaItems }) => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  // Function to truncate description to 150 characters
   const truncateDescription = (description, maxLength = 90) => {
     return description.length > maxLength
       ? description.substring(0, maxLength) + "..."
@@ -49,8 +48,8 @@ const SliderBerita2 = ({ beritaItems }) => {
               date={item.formattedDate}
               description={
                 !isMobile ? truncateDescription(item.description) : ""
-              } // Truncated description
-              image={BERITAFOTO_LINK + item.images[0]} // Only the first image is used
+              }
+              image={BERITAFOTO_LINK + item.images[0]}
               size="small"
               onClick={() => handleCardClick(item)}
             />

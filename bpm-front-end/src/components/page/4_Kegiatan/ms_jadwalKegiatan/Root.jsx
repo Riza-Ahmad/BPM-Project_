@@ -11,7 +11,7 @@ import Add from "./Add";
 import Edit from "./Edit";
 import Detail from "./Detail";
 import ScrollToTop from "../../../part/ScrollToTop";
-import ProtectedRoute from "../../../util/ProtectedRoute"; // Import the ProtectedRoute component
+import ProtectedRoute from "../../../util/ProtectedRoute";
 
 export default function JadwalKegiatan() {
   const navigate = useNavigate();
@@ -44,7 +44,6 @@ export default function JadwalKegiatan() {
     }
   };
 
-  // Mengambil mode dari location.state
   const { mode } = location.state || { mode: "read" };
 
   return (

@@ -10,7 +10,6 @@ const SliderBerita = ({ beritaItems }) => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  // Function to truncate description to 150 characters
   const truncateDescription = (description, maxLength = 90) => {
     return description.length > maxLength
       ? description.substring(0, maxLength) + "..."
@@ -46,9 +45,9 @@ const SliderBerita = ({ beritaItems }) => {
   };
 
   const iconStyle = {
-    fontSize: "23px", // Ukuran simbol
-    fontWeight: "bold", // Menambah ketebalan simbol
-    transform: "scale(1.5)", // Membesarkan simbol
+    fontSize: "23px",
+    fontWeight: "bold",
+    transform: "scale(1.5)",
   };
 
   return (
@@ -92,8 +91,8 @@ const SliderBerita = ({ beritaItems }) => {
                 date={item.formattedDate}
                 description={
                   !isMobile ? truncateDescription(item.description) : ""
-                } // Truncated description
-                image={BERITAFOTO_LINK + item.images[0]} // Only the first image is used
+                }
+                image={BERITAFOTO_LINK + item.images[0]}
                 size="small"
                 onClick={() => handleCardClick(item)}
               />

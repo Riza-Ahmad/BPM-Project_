@@ -10,7 +10,7 @@ import DetailData from "../../part/DetailData";
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
-  return date.toISOString().split("T")[0]; // Mengambil hanya bagian tanggal
+  return date.toISOString().split("T")[0];
 };
 
 export default function Detail({ onChangePage }) {
@@ -23,7 +23,7 @@ export default function Detail({ onChangePage }) {
   const navigate = useNavigate();
   const idMenu = location.state?.idMenu;
   const idData = location.state?.idData;
-  const [loading, setLoading] = useState(true); // New loading state
+  const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState("");
   const [titleHeader, setTitleHeader] = useState("");
   const [breadcrumbs, setBreadcrumbs] = useState([]);
@@ -53,7 +53,6 @@ export default function Detail({ onChangePage }) {
           "POST"
         );
         if (data.length > 0) {
-          // Mengubah format tanggal untuk tahunDokumen dan tahunKadaluarsa
           setFormData({
             idDok: data[0].idDok || "",
             judulDokumen: data[0].judulDokumen || "",
@@ -64,14 +63,14 @@ export default function Detail({ onChangePage }) {
                 day: "numeric",
                 month: "long",
                 year: "numeric",
-              }) || "", // Memformat tanggal
+              }) || "",
             tahunKadaluarsa:
               new Date(data[0].tahunKadaluarsa).toLocaleDateString("id-ID", {
                 weekday: "long",
                 day: "numeric",
                 month: "long",
                 year: "numeric",
-              }) || "", // Memformat tanggal
+              }) || "",
             jenisDokumen: data[0].jenisDokumen || "",
             dibuatOleh: data[0].dibuatOleh,
             dibuatTgl: new Date(data[0].dibuatTgl).toLocaleDateString("id-ID", {

@@ -55,9 +55,8 @@ export default function Add({ onChangePage }) {
         [name]: value,
       };
 
-      // Reset pertanyaanLanjutan jika butuhDokumen kosong
       if (name === "butuhDokumen" && value.length === 0) {
-        updatedData.pertanyaanLanjutan = ""; // Reset ke nilai default
+        updatedData.pertanyaanLanjutan = "";
       }
 
       return updatedData;
@@ -163,7 +162,7 @@ export default function Add({ onChangePage }) {
                 label="Bagian Auditee"
                 name="bagianAuditee"
                 isRequired={true}
-                values={formData.bagianAuditee || []} // Set default selected values here
+                values={formData.bagianAuditee || []}
                 onChange={handleChange}
                 errorMessage="Please select at least one option."
                 col="col-2"

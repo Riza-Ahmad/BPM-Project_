@@ -5,7 +5,7 @@ import Logo from "../../../assets/bpm-logo-biru.png";
 import InputField from "../../part/InputField";
 import { useRef, useState } from "react";
 import Button from "../../part/Button";
-import Cookies from "js-cookie"; // Import js-cookie for cookie handling
+import Cookies from "js-cookie";
 import { API_LINK } from "../../util/Constants";
 import { useFetch } from "../../util/useFetch";
 import SweetAlert from "../../util/SweetAlert";
@@ -82,9 +82,9 @@ export default function Login() {
                 ? logRec[1].lastLogin
                 : new Date().toISOString().split("T")[0] +
                   " " +
-                  new Date().toISOString().split("T")[1], // Mendapatkan waktu saat ini dalam format ISO
+                  new Date().toISOString().split("T")[1],
             }),
-            { expires: 1 } // 1 hari masa berlaku cookie
+            { expires: 1 }
           );
 
           navigate("/");
@@ -134,7 +134,7 @@ export default function Login() {
           left: "50%",
           transform: "translate(-50%, -50%)",
           width: "30rem",
-          maxWidth: "90%", // Tambahkan fallback jika layar kecil
+          maxWidth: "90%",
           height: "30rem",
           backgroundColor: "white",
           boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
@@ -149,8 +149,8 @@ export default function Login() {
           style={{
             width: "200px",
             height: "auto",
-            display: "block", // Memastikan elemen menjadi block
-            margin: "0 auto", // Mengatur margin horizontal auto agar rata tengah
+            display: "block",
+            margin: "0 auto",
             marginBottom: "3rem",
           }}
         />

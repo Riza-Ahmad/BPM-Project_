@@ -38,7 +38,7 @@ const UploadFileMulti = forwardRef(function UploadFileMulti(
 
       const allFiles = Object.values(initialFiles).flatMap((fileGroup) =>
         fileGroup
-          .filter((file) => typeof file === "string" || file instanceof File) // Ambil string dan File
+          .filter((file) => typeof file === "string" || file instanceof File)
           .map((file) => {
             if (typeof file === "string") {
               return {
@@ -83,7 +83,6 @@ const UploadFileMulti = forwardRef(function UploadFileMulti(
     setError(false);
     const selectedFiles = Array.from(event.target.files);
 
-    // Validasi format file
     const allowedExtensions = formatFile
       .split(",")
       .map((ext) => ext.trim().replace(/^\./, "").toLowerCase());
@@ -96,11 +95,10 @@ const UploadFileMulti = forwardRef(function UploadFileMulti(
         `Format file tidak diizinkan. Format yang diizinkan: ${allowedFormats}`
       );
       setError(true);
-      inputRef.current.value = ""; // Kosongkan input field
+      inputRef.current.value = "";
       return;
     }
 
-    // Validasi ukuran file
     const oversizedFiles = selectedFiles.filter(
       (file) => file.size > maxSizeFile
     );
@@ -109,16 +107,15 @@ const UploadFileMulti = forwardRef(function UploadFileMulti(
         `Ukuran File tidak boleh melebihi ${maxSizeFile / (1024 * 1024)} MB.`
       );
       setError(true);
-      inputRef.current.value = ""; // Kosongkan input field
+      inputRef.current.value = "";
       return;
     }
 
-    // Validasi nama file yang duplikat
     const duplicateFiles = selectedFiles.filter((file) =>
       files.some((existingFile) => existingFile.name === file.name)
     );
     if (duplicateFiles.length > 0) {
-      inputRef.current.value = ""; // Kosongkan input field
+      inputRef.current.value = "";
       return;
     }
 
@@ -134,7 +131,7 @@ const UploadFileMulti = forwardRef(function UploadFileMulti(
       return updatedFiles;
     });
 
-    inputRef.current.value = ""; // Kosongkan input setelah memproses file
+    inputRef.current.value = "";
     if (isRequired) setError(false);
   };
 
@@ -148,21 +145,19 @@ const UploadFileMulti = forwardRef(function UploadFileMulti(
 
   const handleDownload = (file) => {
     if (file.type === "path") {
-      // Untuk file dengan tipe path, buka di tab baru
       const link = document.createElement("a");
-      link.href = `${baseURL}${file.value}`; // Gabungkan base URL dengan nama file
-      link.target = "_blank"; // Buka di tab baru
-      link.rel = "noopener noreferrer"; // Tambahan untuk keamanan
+      link.href = `${baseURL}${file.value}`;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
       link.click();
     } else if (file.type === "file") {
-      // Untuk file tipe File (Blob), tetap gunakan cara lama (unduhan langsung)
       const url = URL.createObjectURL(file.value);
       const link = document.createElement("a");
       link.href = url;
-      link.target = "_blank"; // Buka di tab baru
-      link.rel = "noopener noreferrer"; // Tambahan untuk keamanan
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
       link.click();
-      URL.revokeObjectURL(url); // Bersihkan URL Blob
+      URL.revokeObjectURL(url);
     }
   };
 

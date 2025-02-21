@@ -45,7 +45,7 @@ const SliderKegiatan = ({ dataKegiatan }) => {
               onClick={() =>
                 navigate("/kegiatan/jadwal", {
                   state: {
-                    idData: item.id, // Use item.id here instead of selectedEvent.id
+                    idData: item.id,
                   },
                 })
               }

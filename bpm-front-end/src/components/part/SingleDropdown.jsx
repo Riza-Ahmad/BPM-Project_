@@ -18,7 +18,6 @@ const SingleDropDown = forwardRef(function DropDown(
   const [error, setError] = useState(false);
   const selectRef = useRef(null);
 
-// Expose reset, validate, and get value methods to the parent
   useImperativeHandle(ref, () => ({
     reset() {
       setError(false);
@@ -77,7 +76,7 @@ const SingleDropDown = forwardRef(function DropDown(
         name={forInput}
         disabled={isDisabled}
         value={value}
-        onChange={handleChange} // Call the parent onChange
+        onChange={handleChange}
         {...props}
       >
         {placeholder}

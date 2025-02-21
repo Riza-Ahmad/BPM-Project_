@@ -93,7 +93,7 @@ const TextArea = React.forwardRef(
             toolbarStickyOffset: 0,
             height: 300,
             style: {
-              overflow: "auto", // Mengaktifkan scroll
+              overflow: "auto",
             },
             toolbarButtonSize: "middle",
             placeholder: "Start typing here...",

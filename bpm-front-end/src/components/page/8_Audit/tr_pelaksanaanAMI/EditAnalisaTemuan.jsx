@@ -125,7 +125,7 @@ export default function EditAnalisaTemuan({ onChangePage }) {
       const isValid = ref.current?.validate();
       if (!isValid) {
         ref.current?.focus();
-        return; // Jika ada yang tidak valid, berhenti di sini
+        return;
       }
     }
 

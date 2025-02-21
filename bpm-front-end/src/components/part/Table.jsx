@@ -35,13 +35,13 @@ export default function Table({
       ? [...selectedKeys, key]
       : selectedKeys.filter((k) => k !== key);
     setSelectedKeys(updatedKeys);
-    onSelect(updatedKeys); // Kirim daftar key yang dipilih ke parent
+    onSelect(updatedKeys);
   };
 
   const handleSelectAll = (isChecked) => {
     const allKeys = isChecked ? data.map((row) => row.Key) : [];
     setSelectedKeys(allKeys);
-    onSelect(allKeys); // Kirim daftar key yang dipilih ke parent
+    onSelect(allKeys);
   };
 
   function generateActionButton(actionType, id, status = "Aktif") {
@@ -237,7 +237,6 @@ export default function Table({
             onClick={() => onChoose(id)}
           >
             <span style={{ fontWeight: 600 }}>PILIH</span>
-            
           </button>
         );
       default:
@@ -286,7 +285,7 @@ export default function Table({
                 {header}
               </th>
             ))}
-            {aksiIs && ( // Render kolom aksi hanya jika aksiIs adalah false
+            {aksiIs && (
               <th
                 className="text-center align-middle"
                 style={{
@@ -337,7 +336,7 @@ export default function Table({
                     )}
                   </td>
                 ))}
-                {aksiIs && ( // Render kolom aksi hanya jika aksiIs adalah false
+                {aksiIs && (
                   <td
                     className="text-center align-middle"
                     style={{ minWidth: "5rem" }}

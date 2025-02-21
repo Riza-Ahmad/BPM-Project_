@@ -63,17 +63,15 @@ const UploadFotoMulti = forwardRef(function UploadFotoMulti(
   const handleFileChange = async (event) => {
     const selectedFiles = Array.from(event.target.files);
 
-    // Validasi file gambar
     const invalidFiles = selectedFiles.filter(
       (file) => !file.type.startsWith("image/")
     );
     if (invalidFiles.length > 0) {
       SweetAlert("Gagal!", "File harus berupa gambar", "error", "OK");
-      inputRef.current.value = ""; // Kosongkan input field
-      return; // Batalkan proses jika ada file yang tidak valid
+      inputRef.current.value = "";
+      return;
     }
 
-    // Validasi ukuran file
     const oversizedFiles = selectedFiles.filter(
       (file) => file.size > maxSizeFile
     );
@@ -84,16 +82,15 @@ const UploadFotoMulti = forwardRef(function UploadFotoMulti(
         "error",
         "OK"
       );
-      inputRef.current.value = ""; // Kosongkan input field
-      return; // Batalkan proses jika ada file yang ukurannya melebihi batas
+      inputRef.current.value = "";
+      return;
     }
 
-    // File valid diproses
     const validFiles = selectedFiles.filter((file) =>
       file.type.startsWith("image/")
     );
     if (validFiles.length === 0) {
-      inputRef.current.value = ""; // Kosongkan input field jika tidak ada file valid
+      inputRef.current.value = "";
       return;
     }
 
@@ -120,7 +117,6 @@ const UploadFotoMulti = forwardRef(function UploadFotoMulti(
       return updatedPreviews;
     });
 
-    // Kosongkan nilai input setelah selesai memproses file
     inputRef.current.value = "";
 
     if (isRequired) setError(false);

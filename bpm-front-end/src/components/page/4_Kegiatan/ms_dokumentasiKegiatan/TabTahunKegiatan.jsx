@@ -34,7 +34,6 @@ const TabTahunKegiatan = ({ year, kegiatanList, selectedId }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const isMobile = useIsMobile();
 
-  // Use effect to scroll the selected card into view when selected
   useEffect(() => {
     if (selectedId) {
       const selectedElement = document.getElementById(`kegiatan-${selectedId}`);
@@ -85,7 +84,7 @@ const TabTahunKegiatan = ({ year, kegiatanList, selectedId }) => {
                 .map((kegiatan) => (
                   <div
                     key={kegiatan.id}
-                    id={`kegiatan-${kegiatan.id}`} // Ensure each card has a unique ID for scrolling
+                    id={`kegiatan-${kegiatan.id}`}
                     className="mb-2"
                   >
                     <CardKegiatan
@@ -111,7 +110,7 @@ const TabTahunKegiatan = ({ year, kegiatanList, selectedId }) => {
                 .map((kegiatan) => (
                   <div
                     key={kegiatan.id}
-                    id={`kegiatan-${kegiatan.id}`} // Ensure each card has a unique ID for scrolling
+                    id={`kegiatan-${kegiatan.id}`}
                     className="mb-2"
                   >
                     <CardKegiatan

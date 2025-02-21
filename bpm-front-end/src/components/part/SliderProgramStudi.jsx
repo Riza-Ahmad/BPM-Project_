@@ -55,20 +55,20 @@ const SliderProgramStudi = ({ akreditasiData }) => {
                 style={{
                   padding: isMobile ? "1rem" : "2rem",
                   minWidth: isMobile ? "19rem" : "23.5rem",
-                  minHeight: "30rem", // Menjaga tinggi minimum card agar konsisten
+                  minHeight: "30rem",
                   overflow: "hidden",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  justifyContent: "space-between", // Menjaga jarak antar elemen
+                  justifyContent: "space-between",
                 }}
               >
                 <img
                   src={`/programStudi/${item.foto}`}
                   style={{
-                    width: isMobile ? "60%" : "52%", // Gambar akan mengisi lebar card
-                    height: "10.5rem", // Menetapkan tinggi gambar agar sama
-                    objectFit: "cover", // Memastikan gambar tidak terdistorsi dan mengisi area dengan baik
+                    width: isMobile ? "60%" : "52%",
+                    height: "10.5rem",
+                    objectFit: "cover",
                   }}
                   alt={item.programStudi}
                 />

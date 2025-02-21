@@ -49,9 +49,9 @@ const InputArea = forwardRef(function TextField(
   const handleChange = (e) => {
     const newValue = e.target.value;
     if (maxChar && newValue.length <= maxChar) {
-      onChange(e); // panggil onChange yang diberikan oleh induk
+      onChange(e);
     } else if (!maxChar) {
-      onChange(e); // panggil onChange yang diberikan oleh induk
+      onChange(e);
     }
     if (isRequired) setError(!newValue.trim());
   };
@@ -72,12 +72,9 @@ const InputArea = forwardRef(function TextField(
         className={`form-control ${sizeClass} ${error ? "is-invalid" : ""}`}
         placeholder={placeHolder}
         disabled={isDisabled}
-        value={value} // nilai dikendalikan oleh induk
-        onChange={handleChange} // event perubahan dikendalikan oleh induk
+        value={value}
+        onChange={handleChange}
         onBlur={() => {
-          /**
-           * Changed for handling non text input
-           */
           if (isRequired && !value.trim()) {
             setError(true);
           } else {

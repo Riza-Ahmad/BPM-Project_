@@ -63,10 +63,8 @@ export default function Detail({ onChangePage }) {
             bagianAuditee: [],
           });
         } else {
-          // Asumsi result adalah array
-          const fetchedData = result[0]; // Karena hanya ada satu objek dalam array
+          const fetchedData = result[0];
 
-          // Menangani pemetaan dan decode HTML
           setFormData({
             idBankPertanyaan: idData,
             kriteria: fetchedData.kriteriaNama,
@@ -77,8 +75,8 @@ export default function Detail({ onChangePage }) {
             butuhDokumen:
               fetchedData.butuhDokumen === "Ya"
                 ? [fetchedData.butuhDokumen]
-                : [], // Asumsi butuhDokumen adalah string yang bisa dikonversi menjadi array
-            jenisIKT: [fetchedData.jenisIKT], // Sama seperti butuhDokumen
+                : [],
+            jenisIKT: [fetchedData.jenisIKT],
             bagianAuditee: fetchedData.bagianAuditee
               .split(",")
               .map((id) => parseInt(id)),
@@ -197,7 +195,7 @@ export default function Detail({ onChangePage }) {
                 label="Bagian Auditee"
                 name="bagianAuditee"
                 isRequired={true}
-                values={formData.bagianAuditee || []} // Set default selected values here
+                values={formData.bagianAuditee || []}
                 errorMessage="Please select at least one option."
                 onChange={undefined}
                 col="col-2"
@@ -207,7 +205,7 @@ export default function Detail({ onChangePage }) {
                 arrData={butuhDokumen}
                 label="Dokumen Pendukung"
                 name="butuhDokumen"
-                values={formData.butuhDokumen || []} // Set default selected values here
+                values={formData.butuhDokumen || []}
                 onChange={undefined}
                 col="col-12"
               />
@@ -216,7 +214,7 @@ export default function Detail({ onChangePage }) {
                 arrData={jenisIKT}
                 label="Apakah berjenis IKT?"
                 name="jenisIKT"
-                values={formData.jenisIKT || []} // Set default selected values here
+                values={formData.jenisIKT || []}
                 onChange={undefined}
                 col="col-12"
               />

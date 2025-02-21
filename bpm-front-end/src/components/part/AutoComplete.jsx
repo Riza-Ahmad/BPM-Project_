@@ -50,7 +50,6 @@ const AutoComplete = forwardRef(function AutoComplete(
   }));
 
   useEffect(() => {
-    // Jika ada value yang valid, otomatis isi searchTerm
     const matchedData = arrData?.find((data) => data.Value === value);
     if (matchedData) {
       setSearchTerm(matchedData.Text);
@@ -73,10 +72,10 @@ const AutoComplete = forwardRef(function AutoComplete(
   const filteredData =
     Array.isArray(arrData) && arrData.length > 0
       ? !firstOpen
-        ? arrData // Tampilkan semua data ketika dropdown dibuka
+        ? arrData
         : arrData.filter((data) =>
             data.Text.toLowerCase().includes(searchTerm.toLowerCase())
-          ) // Filter data berdasarkan searchTerm jika dropdown tidak terbuka
+          )
       : [];
 
   return (
