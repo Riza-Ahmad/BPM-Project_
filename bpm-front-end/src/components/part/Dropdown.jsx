@@ -18,7 +18,7 @@ const DropDown = forwardRef(function DropDown(
 ) {
   const [error, setError] = useState(false);
   const selectRef = useRef(null);
-  t;
+
   useImperativeHandle(ref, () => ({
     reset() {
       setError(false);

@@ -24,11 +24,16 @@ export default function Notifikasi() {
   const [pageSize, setPageSize] = useState(10);
   const [totalData, setTotalData] = useState(0);
 
-  let activeUser = "";
   const cookie = Cookies.get("activeUser");
-  if (cookie) activeUser = JSON.parse(cookie).username;
+  const activeUser = cookie ? JSON.parse(cookie).username : "";
 
   const fetchData = async () => {
+    if (!activeUser) {
+      setError("User tidak ditemukan.");
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       const result = await useFetch(
@@ -37,12 +42,16 @@ export default function Notifikasi() {
         "POST"
       );
 
-      setData(result);
-
-      setTotalData(result[0].TotalCount);
+      if (result && Array.isArray(result) && result.length > 0) {
+        setData(result);
+        setTotalData(result[0].TotalCount || 0);
+      } else {
+        setData([]);
+        setTotalData(0);
+      }
     } catch (err) {
       console.error("Fetch error:", err);
-      setError("Gagal mengambil data");
+      setError("Gagal mengambil data.");
     } finally {
       setLoading(false);
     }
@@ -60,7 +69,7 @@ export default function Notifikasi() {
         "POST"
       );
       if (result !== "ERROR") {
-        await fetchData(pageCurrent);
+        fetchData();
       } else {
         console.error("Gagal memperbarui status:", result?.message);
       }
@@ -82,89 +91,96 @@ export default function Notifikasi() {
         ]}
         onClick={() => navigate("/profile")}
       />
+
       <div className="p-3">
-        {data.map((item, index) => (
-          <div
-            key={index}
-            className="card-header p-3 mb-2 rounded-4 d-flex justify-content-between align-items-center"
-            style={{
-              backgroundColor:
-                item.StatusBaca === "Belum"
-                  ? "rgba(181, 202, 251, 0.3)"
-                  : "rgba(108, 117, 125, 0.1)",
-            }}
-          >
-            <div className="d-flex align-items-center me-4">
-              <i
-                className={
+        {data.length > 0 ? (
+          data.map((item, index) => (
+            <div
+              key={index}
+              className="card-header p-3 mb-2 rounded-4 d-flex justify-content-between align-items-center"
+              style={{
+                backgroundColor:
                   item.StatusBaca === "Belum"
-                    ? `fi fi-rr-envelope`
-                    : `fi fi-rr-envelope-open`
-                }
-                style={{
-                  fontSize: "3.5rem",
-                  margin: "0.5rem 1rem 0rem 1rem",
-                  color: "#2654a1",
-                  cursor: item.StatusBaca === "Belum" ? "pointer" : "none",
-                }}
-                title="Set Sudah Dibaca"
-                onClick={() => {
-                  if (item.StatusBaca === "Belum") {
-                    handleUpdateStatusBaca(item.idNotifikasi);
+                    ? "rgba(181, 202, 251, 0.3)"
+                    : "rgba(108, 117, 125, 0.1)",
+              }}
+            >
+              <div className="d-flex align-items-center me-4">
+                <i
+                  className={
+                    item.StatusBaca === "Belum"
+                      ? "fi fi-rr-envelope"
+                      : "fi fi-rr-envelope-open"
                   }
-                }}
-              ></i>
-              <div
-                className="d-flex flex-column align-items-start me-4 gap-2"
-                style={{ cursor: "pointer" }}
-                onClick={() =>
-                  navigate(item.LinkNotifikasi, {
-                    state: {
-                      idData: item.kegiatanNotifikasi,
-                    },
-                  })
-                }
-              >
-                <HeaderText
-                  label={item.PesanNotifikasi}
-                  ukuran="1.2rem"
-                  warna="#2654a1"
-                  alignText="left"
-                  marginTop="0rem"
-                  marginBottom="0rem"
-                />
-
-                <Text
-                  isi={item.BodyPesan}
-                  ukuran="0.9rem"
-                  warna="#575050"
-                  alignText="left"
-                  style={{ marginBottom: "0rem" }}
-                />
-
-                <Text
-                  isi={
-                    new Date(item.tanggalNotifikasi).toLocaleDateString(
-                      "id-ID",
-                      {
-                        weekday: "long",
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      }
-                    ) +
-                    " Oleh " +
-                    item.AsalNotifikasi
+                  style={{
+                    fontSize: "3.5rem",
+                    margin: "0.5rem 1rem 0rem 1rem",
+                    color: "#2654a1",
+                    cursor: item.StatusBaca === "Belum" ? "pointer" : "default",
+                  }}
+                  title="Set Sudah Dibaca"
+                  onClick={() => {
+                    if (item.StatusBaca === "Belum") {
+                      handleUpdateStatusBaca(item.idNotifikasi);
+                    }
+                  }}
+                ></i>
+                <div
+                  className="d-flex flex-column align-items-start me-4 gap-2"
+                  style={{ cursor: "pointer" }}
+                  onClick={() =>
+                    navigate(item.LinkNotifikasi, {
+                      state: {
+                        idData: item.kegiatanNotifikasi,
+                      },
+                    })
                   }
-                  ukuran="0.8rem"
-                  warna="#575050"
-                  alignText="left"
-                  style={{ marginBottom: "0rem" }}
-                />
+                >
+                  <HeaderText
+                    label={item.PesanNotifikasi || "Pesan tidak tersedia"}
+                    ukuran="1.2rem"
+                    warna="#2654a1"
+                    alignText="left"
+                    marginTop="0rem"
+                    marginBottom="0rem"
+                  />
+
+                  <Text
+                    isi={item.BodyPesan || "Tidak ada isi pesan"}
+                    ukuran="0.9rem"
+                    warna="#575050"
+                    alignText="left"
+                    style={{ marginBottom: "0rem" }}
+                  />
+
+                  <Text
+                    isi={
+                      item.tanggalNotifikasi
+                        ? new Date(item.tanggalNotifikasi).toLocaleDateString(
+                            "id-ID",
+                            {
+                              weekday: "long",
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            }
+                          ) +
+                          " Oleh " +
+                          (item.AsalNotifikasi || "Tidak diketahui")
+                        : "Tanggal tidak tersedia"
+                    }
+                    ukuran="0.8rem"
+                    warna="#575050"
+                    alignText="left"
+                    style={{ marginBottom: "0rem" }}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <p className="text-center text-muted">Tidak ada notifikasi.</p>
+        )}
 
         <div className="mt-4">
           <Paging

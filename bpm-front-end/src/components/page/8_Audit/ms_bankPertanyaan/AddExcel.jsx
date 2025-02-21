@@ -336,6 +336,15 @@ export default function Add({ onChangePage }) {
   };
 
   const handleSubmit = async () => {
+    if (kriteria.length === 0) {
+      SweetAlert(
+        "Perhatian!",
+        "Harap tambahkan data kriteria terlebih dahulu",
+        "warning",
+        "OK"
+      );
+      return;
+    }
     if (parsedData.length === 0) {
       SweetAlert("Error", "Tidak ada data untuk disimpan.", "error", "OK");
       return;
