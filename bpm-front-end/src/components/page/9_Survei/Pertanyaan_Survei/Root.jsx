@@ -32,6 +32,8 @@ export default function Pertanyaan_Survei() {
     }
   };
 
+  const { mode } = location.state || { mode: "index" };
+
   return (
     <>
       <ScrollToTop />
