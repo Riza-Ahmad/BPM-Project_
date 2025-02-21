@@ -248,8 +248,8 @@ export default function Add({ onChangePage }) {
                     Value: 0,
                     Text: "Dosen dan Instruktur",
                   },
-                  { Value: 1, Text: "Tenaga Pendidik" },
-                  { Value: 2, Text: "Mitra Kerjasama" },
+                  { Value: 1, Text: "Tenaga Kependidikan" },
+                  { Value: 2, Text: "Mitra Kerja sama" },
                 ]}
                 label="Responden"
                 name="responden"

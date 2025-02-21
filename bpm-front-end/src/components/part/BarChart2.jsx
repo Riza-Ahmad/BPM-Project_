@@ -51,7 +51,7 @@ const BarChart2 = ({ judul, sourceData }) => {
     labels: validData.map((item) => item.label),
     datasets: [
       {
-        label: "Data " + judul,
+        label: judul,
         data: validData.map((item) => item.value),
         backgroundColor: COLORS,
         borderColor: COLORS.map((color) => color.replace("1)", "0.8)")), // Sedikit lebih gelap
@@ -91,7 +91,7 @@ const BarChart2 = ({ judul, sourceData }) => {
       className="bg-white mt-2 mb-2 p-5 bg-light border rounded d-flex flex-column justify-content-center align-items-center"
       style={{ maxHeight: "25rem" }}
     >
-      <h2 className="text-center text-black mb-3">{judul}</h2>
+      <h2 className="text-center text-black">{"Pertanyaan: " + judul}</h2>
       <Bar data={salesChartData} options={options} />
     </div>
   );

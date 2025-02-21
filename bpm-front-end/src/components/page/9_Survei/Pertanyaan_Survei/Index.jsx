@@ -88,6 +88,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
         setIsError(true);
         setCurrentData([]);
       } else {
+        console.log("data json:", dataJson);
         setCurrentData(dataJson || []);
         setIsError(false);
       }
@@ -774,7 +775,6 @@ export default function Pertanyaan_Survei({ onChangePage }) {
                         Text: "Waktu Dibuat [↓]",
                       },
                     ]}
-                    defaultValue="[pty_created_date] DESC"
                     onChange={handleSortFilterChange}
                   />
                   <Dropdown
@@ -785,21 +785,18 @@ export default function Pertanyaan_Survei({ onChangePage }) {
                       { Value: "Aktif", Text: "Aktif" },
                       { Value: "Tidak Aktif", Text: "Tidak Aktif" },
                     ]}
-                    defaultValue=""
                     onChange={handleStatusFilterChange}
                   />
                   <Dropdown
                     label="Kriteria Survei"
                     type="pilih"
                     arrData={[{ Value: "", Text: "Semua" }, ...ksrOptions]}
-                    defaultValue=""
                     onChange={handleKriteriaFilterChange}
                   />
                   <Dropdown
                     label="Skala Penilaian"
                     type="pilih"
                     arrData={[{ Value: "", Text: "Semua" }, ...skpOptions]}
-                    defaultValue=""
                     onChange={handleSkalaFilterChange}
                   />
                 </Filter>
@@ -831,7 +828,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
                     No: indexOfFirstData + index + 1,
                     Pertanyaan: item.pty_pertanyaan ?? "Tidak Ada",
                     "Kriteria Survei": item.ksr_nama ?? "Tidak Ada",
-                    "Skala Penilaian": item.skp_id ?? "Tidak Ada",
+                    "Skala Penilaian": item.skp_skala ?? "Tidak Ada",
                     Status: item.pty_status === "Aktif",
                   }))}
                   actions={(row) =>
@@ -840,9 +837,9 @@ export default function Pertanyaan_Survei({ onChangePage }) {
                       : ["Detail", "Edit", "Toggle"]
                   }
                   onDetail={(item) =>
-                    onChangePage("detail", { detailId: item.Key })
+                    onChangePage("detail", { idData: item.Key })
                   }
-                  onEdit={(item) => onChangePage("edit", { id: item.Key })}
+                  onEdit={(item) => onChangePage("edit", { idData: item.Key })}
                   onToggle={(item) => handleToggle(item.Key)}
                 />
                 <Paging

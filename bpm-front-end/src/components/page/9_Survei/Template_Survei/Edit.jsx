@@ -491,8 +491,8 @@ export default function EditTemplateSurvei({ onChangePage }) {
                       Value: "Dosen dan Instruktur",
                       Text: "Dosen dan Instruktur",
                     },
-                    { Value: "Tenaga Pendidik", Text: "Tenaga Pendidik" },
-                    { Value: "Mitra Kerjasama", Text: "Mitra Kerjasama" },
+                    { Value: "Tenaga Pendidik", Text: "Tenaga Kependidikan" },
+                    { Value: "Mitra Kerjasama", Text: "Mitra Kerja sama" },
                   ]}
                   label="Responden"
                   name="responden"

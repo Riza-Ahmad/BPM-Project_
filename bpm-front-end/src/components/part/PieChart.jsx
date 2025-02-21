@@ -83,7 +83,7 @@ const PieChart = ({ judul, sourceData }) => {
       className="bg-white mt-2 mb-5 p-5 bg-light border rounded d-flex flex-column justify-content-center align-items-center"
       style={{ maxHeight: "25rem" }}
     >
-      <h2 className="text-center text-black mb-3">{judul}</h2>
+      <h2 className="text-center text-black mb-3">{"Pertanyaan: " + judul}</h2>
       <Pie data={pieChartData} options={options} />
     </div>
   );

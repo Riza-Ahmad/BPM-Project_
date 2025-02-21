@@ -14,6 +14,7 @@ import { saveAs } from "file-saver";
 
 const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [] }) => {
   const [selectedQuestion, setSelectedQuestion] = useState("");
+  const [selectedQuestionName, setSelectedQuestionName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [formDataJawaban, setFormDataJawaban] = useState([]);
@@ -28,7 +29,7 @@ const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [] }) => {
 
   const handleDataChange = (e) => {
     setSelectedQuestion(e.target.value);
-    console.log("Terpilih :", selectedQuestion);
+    setSelectedQuestionName(e.target.options[e.target.selectedIndex].text); // Ambil teks dari option yang dipilih
   };
 
   useEffect(() => {
@@ -306,14 +307,14 @@ const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [] }) => {
 
         {tipeFilter === "CheckBox" && (
           <BarChart2
-            judul={formDataJawaban?.[1]?.pertanyaanSurvei}
+            judul={selectedQuestionName}
             sourceData={filterFormDataJawaban || []}
           />
         )}
 
         {tipeFilter === "RadioButton" && (
           <PieChart
-            judul={formDataJawaban?.[1]?.pertanyaanSurvei}
+            judul={selectedQuestionName}
             sourceData={filterFormDataJawaban || []}
           />
         )}

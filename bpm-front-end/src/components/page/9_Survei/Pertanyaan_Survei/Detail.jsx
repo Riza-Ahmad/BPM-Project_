@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 import PageTitleNav from "../../../part/PageTitleNav";
@@ -21,6 +21,8 @@ const formatTanggal = (tanggal) =>
 
 export default function Detail() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const idData = location.state?.idData;
   const { detailId } = useParams();
   const isMobile = useIsMobile();
   const [detailData, setDetailData] = useState(null);
@@ -34,7 +36,7 @@ export default function Detail() {
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ p1: detailId }),
+            body: JSON.stringify({ p1: idData }),
           }
         );
 
@@ -43,6 +45,7 @@ export default function Detail() {
         }
 
         const result = await response.json();
+        console.log("Result: ", result);
         if (result.length > 0) {
           const data = result[0]; // Ambil data pertama dari array
           setDetailData({
@@ -77,7 +80,7 @@ export default function Detail() {
     };
 
     fetchDetail();
-  }, [detailId, navigate]);
+  }, [idData, navigate]);
 
   if (loading) return <Loading />;
   if (!detailData) return <p>Data tidak ditemukan atau tidak aktif</p>;

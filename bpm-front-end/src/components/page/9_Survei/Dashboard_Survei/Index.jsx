@@ -93,8 +93,8 @@ export default function Dashboard_Survei({ onChangePage }) {
             className={isMobile ? "p-2 m-2 mt-2 mb-0" : "p-3 m-5 mt-2 mb-0"}
             style={{ marginLeft: "50px" }}
           >
-            <div className="row mt-4 col-12">
-              <div className="col-md-6">
+            <div className="row mt-4">
+              <div className="col-12">
                 <div className="form-control">
                   <BarChart
                     labels={"Survei Tenaga Pendidik All"}
@@ -102,7 +102,7 @@ export default function Dashboard_Survei({ onChangePage }) {
                   />
                 </div>
               </div>
-              <div className="col-md-6">
+              <div className="col-12">
                 <div className="form-control">
                   <BarChart
                     labels={"Survei Dosen All"}
@@ -110,7 +110,7 @@ export default function Dashboard_Survei({ onChangePage }) {
                   />
                 </div>
               </div>
-              <div className="col-md-6">
+              <div className="col-12">
                 <div className="form-control">
                   <BarChart
                     labels={"Survei Mitra Kerjasama"}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import PageTitleNav from "../../../part/PageTitleNav";
 import InputField from "../../../part/InputField";
 import HeaderForm from "../../../part/HeaderText";
@@ -15,6 +15,8 @@ import Loading from "../../../part/Loading";
 
 export default function Edit({ onChangePage }) {
   const { id } = useParams();
+  const location = useLocation();
+  const idData = location.state?.idData;
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const title = "Edit Bank Pertanyaan Survei";
@@ -22,12 +24,12 @@ export default function Edit({ onChangePage }) {
     { label: "Bank Pertanyaan Survei", href: "/survei/pertanyaan" },
     {
       label: "Edit Bank Pertanyaan Survei",
-      href: `/survei/pertanyaan/edit/${id}`,
+      href: `/survei/pertanyaan/edit/`,
     },
   ];
 
   const [formData, setFormData] = useState({
-    ptyId: id,
+    ptyId: idData,
     pertanyaan: "",
     ksrId: "",
     skpId: "",
@@ -44,10 +46,10 @@ export default function Edit({ onChangePage }) {
     const fetchDokumenById = async () => {
       setLoading(true);
       try {
-        const body = { id: id };
+        const body = { id: idData };
 
         const result = await useFetch(
-          `${API_LINK}/MasterPertanyaan/GetDataPertanyaanById`,
+          `${API_LINK}/MasterPertanyaan/GetDataPertanyaanByIdDetail`,
           body,
           "POST"
         );
@@ -58,9 +60,11 @@ export default function Edit({ onChangePage }) {
           "POST"
         );
 
+        console.log("Parameter :", body); // Debug respons API
         console.log("API Response:", result); // Debug respons API
         console.log("API ResponseResponden:", result1); // Debug respons API
         const valuesArray = result1.map((item) => item.Value);
+        console.log("API ResponseResponden Array:", valuesArray); // Debug respons API
 
         if (!result || result === "ERROR" || result.length === 0) {
           Swal.fire("Error", "Data tidak ditemukan", "error");
@@ -72,7 +76,7 @@ export default function Edit({ onChangePage }) {
           return;
         }
 
-        const { pty_pertanyaan, ksr_id, skp_id } = result[0];
+        const { pertanyaan, ksr_id, skp_id } = result[0];
 
         let parsedResponden = [];
 
@@ -91,8 +95,8 @@ export default function Edit({ onChangePage }) {
         // console.log("dtl_responden (parsed):", parsedResponden); // Debug setelah parsing
 
         setFormData({
-          ptyId: id,
-          pertanyaan: pty_pertanyaan,
+          ptyId: idData,
+          pertanyaan: pertanyaan,
           ksrId: ksr_id,
           skpId: skp_id,
           responden: valuesArray || [],
@@ -105,7 +109,7 @@ export default function Edit({ onChangePage }) {
     };
 
     fetchDokumenById();
-  }, [id]);
+  }, [idData]);
 
   // Fetch the data for Kriteria Survei
   useEffect(() => {
@@ -142,7 +146,7 @@ export default function Edit({ onChangePage }) {
             skpResponse
               .filter((item) => item.skp_status === "Aktif")
               .map((item) => ({
-                value: item.skp_id,
+                Value: item.skp_id,
                 Text: `${item.skp_skala} (${item.skp_deskripsi})`,
               }))
           );
@@ -192,7 +196,7 @@ export default function Edit({ onChangePage }) {
 
       console.log(formData);
       console.log("Jalan");
-      console.log(payload);
+      console.log("Payload:", formData);
       const result = await useFetch(
         `${API_LINK}/MasterPertanyaan/EditPertanyaan`,
         formData,
@@ -226,9 +230,11 @@ export default function Edit({ onChangePage }) {
       "Perubahan belum disimpan, yakin batal?",
       "warning",
       "Ya, batalkan",
-      "Tidak"
+      null,
+      "",
+      true
     ).then((result) => {
-      if (result) navigate("/survei/pertanyaan");
+      if (result) onChangePage("index");
     });
   };
 
@@ -243,7 +249,7 @@ export default function Edit({ onChangePage }) {
             <PageTitleNav
               title={title}
               breadcrumbs={breadcrumbs}
-              onClick={() => navigate("/survei/pertanyaan")}
+              onClick={() => onChangePage("index")}
             />
           </div>
           <div className="shadow p-5 m-5 mt-0 bg-white rounded">
@@ -285,11 +291,11 @@ export default function Edit({ onChangePage }) {
               <CheckBox
                 arrData={[
                   {
-                    Value: 0,
+                    Value: "Dosen dan Instruktur",
                     Text: "Dosen dan Instruktur",
                   },
-                  { Value: 1, Text: "Tenaga Pendidik" },
-                  { Value: 2, Text: "Mitra Kerjasama" },
+                  { Value: "Tenaga Pendidik", Text: "Tenaga Kependidikan" },
+                  { Value: "Mitra Kerjasama", Text: "Mitra Kerja sama" },
                 ]}
                 label="Responden"
                 name="responden"
