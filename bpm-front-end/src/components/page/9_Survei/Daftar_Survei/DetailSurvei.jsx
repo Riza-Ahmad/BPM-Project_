@@ -6,13 +6,14 @@ import Button from "../../../part/Button";
 import Loading from "../../../part/Loading";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
+import { decodeHtml } from "../../../util/DecodeHtml.js";
 import { useFetch } from "../../../util/useFetch";
 import SweetAlert from "../../../util/SweetAlert";
 import { useLocation, useNavigate } from "react-router-dom";
 import TabPreviewSurvei from "./TabPreviewSurvei";
 import Cookies from "js-cookie";
 
-export default function EditSurvei({ onChangePage }) {
+export default function DetailSurvei({ onChangePage }) {
   const activeUser = Cookies.get("activeUser");
   let role = ""; // Jika undefined, gunakan nilai default
   let roleNama = "";
@@ -180,79 +181,36 @@ export default function EditSurvei({ onChangePage }) {
   };
 
   const handleSubmit = async () => {
-    console.log("Data Tab: ", formDataTab);
-    console.log("Data Pertanyaan: ", pertanyaan);
-
-    // Ambil semua idDetailJawabanSurvei dari pertanyaan
-    const requiredIds = pertanyaan.map((p) => p.idDetailJawabanSurvei);
-
-    // Cari ID yang tidak memiliki jawaban atau jawabannya kosong
-    const missingIds = requiredIds.filter((id) => {
-      const jawaban = formDataTab[id]?.jawaban;
-
-      // Jika jawaban tidak ada (undefined/null), tandai sebagai belum diisi
-      if (jawaban === undefined || jawaban === null) return true;
-
-      // Jika jawaban adalah array, pastikan arraynya tidak kosong
-      if (Array.isArray(jawaban)) return jawaban.length === 0;
-
-      // Jika jawaban adalah string, pastikan tidak hanya whitespace
-      if (typeof jawaban === "string") return jawaban.trim() === "";
-
-      return false; // Jika format lain, anggap sudah terisi
-    });
-
-    if (missingIds.length > 0) {
-      SweetAlert(
-        "Peringatan!",
-        "Semua pertanyaan harus diisi sebelum menyimpan.",
-        "warning",
-        "OK"
-      );
-      return;
-    }
-
     setLoading(true);
-
-    try {
-      const createResponse = await useFetch(
-        `${API_LINK}/TransaksiSurvei/UpdateDaftarSurveiByUserxx`,
-        { idTransaksi: formData.idTransaksi }
-      );
-
-      if (createResponse === "ERROR") {
-        throw new Error("Gagal menambah data");
-      }
-
-      await Promise.all(
-        Object.entries(formDataTab).map(async ([key, value]) => {
-          const updatedObject = {
-            id: Number(key),
-            jawaban: value.jawaban,
-          };
-          console.log("Data Ke- ", updatedObject);
-
-          const createResponseJawaban = await useFetch(
-            `${API_LINK}/TransaksiSurvei/UpdateDaftarSurveiJawabanByUserxx`,
-            updatedObject
-          );
-          if (createResponseJawaban === "ERROR") {
-            throw new Error("Gagal menambah data");
-          }
-        })
-      );
-
-      setLoading(false);
-      SweetAlert(
-        "Berhasil!",
-        "Data berhasil diperbarui.",
-        "success",
-        "OK"
-      ).then(() => onChangePage("index"));
-    } catch (error) {
-      setLoading(false);
-      SweetAlert("Error!", error.message, "error", "OK");
+    const createResponse = await useFetch(
+      `${API_LINK}/TransaksiSurvei/UpdateDaftarSurveiByUserxx`,
+      { idTransaksi: formData.idTransaksi }
+    );
+    if (createResponse === "ERROR") {
+      throw new Error("Gagal menambah data");
     }
+
+    await Promise.all(
+      Object.entries(formDataTab).map(async ([key, value]) => {
+        const updatedObject = {
+          id: Number(key),
+          jawaban: value.jawaban,
+        };
+
+        const createResponseJawaban = await useFetch(
+          `${API_LINK}/TransaksiSurvei/UpdateDaftarSurveiJawabanByUserxx`,
+          updatedObject
+        );
+        if (createResponseJawaban === "ERROR") {
+          throw new Error("Gagal menambah data");
+        }
+      })
+    );
+
+    setLoading(false);
+    SweetAlert("Berhasil!", "Data berhasil diperbarui.", "success", "OK").then(
+      () => onChangePage("index")
+    );
   };
 
   if (loading) return <Loading />;
@@ -326,27 +284,8 @@ export default function EditSurvei({ onChangePage }) {
                 header={kriteria}
                 pertanyaan={pertanyaan}
                 onDataChange={handleDataChange}
+                mode="detailSurvei"
               />
-              <div className="d-flex justify-content-between align-items-center">
-                <div className="flex-grow-1 m-2">
-                  <Button
-                    classType="primary"
-                    type="submit"
-                    label="Simpan"
-                    width="100%"
-                    onClick={handleSubmit}
-                  />
-                </div>
-                <div className="flex-grow-1 m-2">
-                  <Button
-                    classType="danger"
-                    type="button"
-                    label="Batal"
-                    width="100%"
-                    onClick={() => onChangePage("index")}
-                  />
-                </div>
-              </div>
             </div>
           </div>
         </div>

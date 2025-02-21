@@ -14,9 +14,17 @@ import { API_LINK, TEMPLATE_LINK } from "../../../util/Constants";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { useFetch } from "../../../util/useFetch";
+import ExcelJS from "exceljs";
+import FileUpload from "../../../part/FileUpload";
+import SweetAlert from "../../../util/SweetAlert";
 
 const title = "Bank Pertanyaan Survei";
 const breadcrumbs = [{ label: "Bank Pertanyaan Survei" }];
+const expectedHeaders = [
+  "Pertanyaan",
+  "ID Kriteria (Lihat pada sheet kriteria)",
+  "ID Skala (Lihat pada sheet skala)",
+];
 
 export default function Pertanyaan_Survei({ onChangePage }) {
   // Konfigurasi paging dan state data
@@ -27,6 +35,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
   const [isError, setIsError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   // State untuk pencarian dan filter (client-side)
   const [searchQuery, setSearchQuery] = useState("");
@@ -79,6 +88,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
         setIsError(true);
         setCurrentData([]);
       } else {
+        console.log("data json:", dataJson);
         setCurrentData(dataJson || []);
         setIsError(false);
       }
@@ -97,7 +107,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
       setLoading(true);
       try {
         const data = await useFetch(
-          `${API_LINK}/MasterPertanyaan/GetAllKriteriaSurveiAktif`,
+          `${API_LINK}/MasterKriteriaSurvei/GetAllKriteriaSurveiAktif`,
           {},
           "POST"
         );
@@ -201,11 +211,12 @@ export default function Pertanyaan_Survei({ onChangePage }) {
   // ===========================
   // Fungsi export ke Excel (modifikasi export berdasarkan kriteria survei)
   // ===========================
+
   const handleExportQuestionsByCriteria = () => {
     // Gunakan data yang sudah terfilter agar ekspor sesuai dengan filter yang aktif
     const dataSource = dataToDisplay;
     const dataToExport = exportKriteria
-      ? dataSource.filter((item) => item.ksr_nama === exportKriteria)
+      ? dataSource.filter((item) => item.ksr_id === Number(exportKriteria))
       : dataSource;
 
     if (dataToExport.length === 0) {
@@ -242,7 +253,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
     const dataQuestions = sortedDataQuestions.map((item) => [
       item.pty_id,
       item.pty_pertanyaan,
-      item.krs_id,
+      item.ksr_id,
       item.skp_id,
       item.pty_status,
       item.pty_created_by,
@@ -261,7 +272,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
     // ==========================
     const headersKriteria = [["ID Kriteria", "Nama Kriteria"]];
     const uniqueKriteriaMap = new Map(
-      dataToExport.map((item) => [item.krs_id, item.ksr_nama])
+      dataToExport.map((item) => [item.ksr_id, item.ksr_nama])
     );
     const uniqueKriteria = Array.from(uniqueKriteriaMap.entries()).sort(
       (a, b) => Number(a[0]) - Number(b[0])
@@ -380,105 +391,262 @@ export default function Pertanyaan_Survei({ onChangePage }) {
     exportModalRef.current.close();
   };
 
-  // Variabel global untuk parsedData (data impor)
-  let parsedData = [];
-
-  // Fungsi import pertanyaan dari file Excel
-  const handleImportQuestions = async () => {
-    if (!parsedData || parsedData.length === 0) {
-      Swal.fire(
-        "Perhatian",
-        "Tidak ada data yang valid untuk diimpor.",
-        "warning"
-      );
-      return;
-    }
+  /// fetch kriteria
+  const [kriteria, setKriteria] = useState({});
+  const fetchKriteria = async () => {
+    setLoading(true);
     try {
-      for (let index = 0; index < parsedData.length; index++) {
-        try {
-          const createResponse = await useFetch(
-            `${API_LINK}/MasterPertanyaan/CreatePertanyaan`,
-            parsedData[index],
-            "POST"
-          );
-          console.log("response", createResponse);
-          if (createResponse === "ERROR") {
-            throw new Error(`Gagal menambah data pada indeks ${index}`);
-          } else {
-            console.log(`Data pada indeks ${index} berhasil ditambahkan.`);
-          }
-        } catch (error) {
-          console.error("Error pada indeks", index, ":", error.message);
-          Swal.fire(
-            "Gagal!",
-            `Error pada data ke-${index + 1}: ${error.message}`,
-            "error",
-            "OK"
-          );
-          break; // Hentikan proses jika ada error
-        }
-      }
-      // Refresh data setelah impor
-      await fetchData();
-      Swal.fire("Sukses", "Pertanyaan berhasil diimpor!", "success");
-      importModalRef.current.close();
-    } catch (error) {
-      console.error("Error:", error.message);
-      Swal.fire(
-        "Gagal",
-        "Terjadi kesalahan saat mengimpor pertanyaan.",
-        "error"
+      const result = await useFetch(
+        `${API_LINK}/MasterKriteriaSurvei/GetDataKriteriaSurvei`,
+        {
+          param1: "Aktif",
+          param2: "",
+          param3: "idKri ASC",
+          param4: 100,
+          param5: 1,
+        },
+        "POST"
       );
+      if (result === "ERROR" || result === null || result.length === 0) {
+        setKriteria([]);
+      } else {
+        const arrResult = Object.values(result);
+        setKriteria(arrResult);
+      }
+    } catch (err) {
+      setError("Gagal mengambil data: " + err);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
+
+  //fetch skala
+  const [skala, setSkala] = useState({});
+  const fetchSkala = async () => {
+    setLoading(true);
+    try {
+      const result = await useFetch(
+        `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
+        {
+          param1: null,
+        },
+        "POST"
+      );
+
+      if (result === "ERROR" || result === null || result.length === 0) {
+        setSkala([]);
+      } else {
+        const arrResult = Object.values(result);
+        setSkala(arrResult);
+      }
+    } catch (err) {
+      setError("Gagal mengambil data: " + err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSkala();
+    fetchKriteria();
+  }, []);
+
+  const handleDownload = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Pertanyaan");
+
+    const sheet1Data = [
+      [
+        "Pertanyaan",
+        "ID Kriteria (Lihat pada sheet kriteria)",
+        "ID Skala (Lihat pada sheet skala)",
+      ],
+      ["Pertanyaannya adalah", "2", "3"],
+    ];
+    sheet1Data.forEach((row) => {
+      worksheet.addRow(row);
+    });
+
+    worksheet.columns = [{ width: 70 }, { width: 20 }, { width: 20 }];
+
+    worksheet.getRow(1).eachCell((cell) => {
+      cell.font = { bold: false };
+      cell.alignment = {
+        horizontal: "center",
+        vertical: "middle",
+        wrapText: true,
+      }; // Wrap Text Aktif
+      cell.border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+    });
+
+    const sheetKriteria = workbook.addWorksheet("Daftar Kriteria");
+    sheetKriteria.addRow(["ID Kriteria", "Nama Kriteria"]);
+    kriteria.forEach((item) => {
+      sheetKriteria.addRow([item.idKri, item.namaKri]);
+    });
+
+    sheetKriteria.columns = [{ width: 15 }, { width: 70 }];
+
+    const sheetSkala = workbook.addWorksheet("Daftar Skala");
+    sheetSkala.addRow(["ID Skala", "Tipe Skala", "Deskripsi"]);
+    skala.forEach((item) => {
+      sheetSkala.addRow([item.skp_id, item.skp_tipe, item.skp_deskripsi]);
+    });
+
+    sheetSkala.columns = [{ width: 15 }, { width: 30 }, { width: 50 }];
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(
+      new Blob([buffer], { type: "application/octet-stream" }),
+      "Template_Bank_Pertanyaan.xlsx"
+    );
+  };
+
+  // Variabel global untuk parsedData (data impor)
+  let [parsedData, setParsedData] = useState({});
 
   // Fungsi membaca file Excel dan parsing data
   const handleFileChange = (file) => {
     if (!file) {
-      console.error("File tidak ditemukan");
+      alert("Error: File tidak ditemukan. Silakan pilih file.");
       return;
     }
+    setSelectedFile(file);
+
     const reader = new FileReader();
+
     reader.onload = (e) => {
       try {
-        const dataBuffer = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(dataBuffer, { type: "array" });
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         if (!worksheet) {
-          console.error("Sheet tidak ditemukan dalam file Excel.");
+          alert("Error: Sheet tidak ditemukan dalam Excel");
+          window.location.reload();
           return;
         }
+
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-        if (!jsonData || jsonData.length <= 1) {
-          console.error("Data di dalam sheet kosong atau tidak valid.");
+
+        if (!jsonData || jsonData.length < 2) {
+          alert("Error: Tidak ada data dalam file");
+          window.location.reload();
+
           return;
         }
-        console.log("Data JSON mentah:", jsonData);
-        parsedData = jsonData
-          .map((row, index) => {
-            if (index > 0 && row[0]) {
+
+        // Validasi header
+        const fileHeaders = jsonData[0];
+        const isValidTemplate = expectedHeaders.every(
+          (header, index) => header === fileHeaders[index]
+        );
+
+        if (!isValidTemplate) {
+          alert("Error: File tidak sesuai dengan template");
+          window.location.reload();
+
+          return;
+        }
+
+        // Validasi data per baris
+        const isValidRow = (row) => {
+          return (
+            row.length >= expectedHeaders.length && // Jumlah kolom sesuai
+            row[0] && // Kriteria tidak boleh kosong
+            row[1] // Pertanyaan tidak boleh kosong
+          );
+        };
+
+        setParsedData(
+          jsonData
+            .slice(1)
+            .map((row, index) => {
+              if (!isValidRow(row)) {
+                alert("Error: Sheet tidak ditemukan dalam Excel");
+                window.location.reload();
+                return null; // Jika baris tidak valid, return null
+              }
               return {
                 pertanyaan: row[0] || "",
                 kriteria: row[1] || "",
                 skala: row[2] || "",
-                // Ubah isActive menjadi status string ("Aktif" atau "Tidak Aktif")
-                pty_status: row[3] === "Aktif" ? "Aktif" : "Tidak Aktif",
+                responden: [],
               };
-            }
-          })
-          .filter(Boolean);
-        console.log("Parsed Data:", parsedData);
+            })
+            .filter(Boolean)
+        );
+
+        console.log(parsedData);
+
+        if (parsedData.length === 0) {
+          alert("Error: Tidak ada data yang valid untuk diproses");
+          window.location.reload();
+          return;
+        }
       } catch (error) {
         console.error("Error saat membaca file Excel:", error.message);
+        SweetAlert("Error", "Gagal membaca file Excel.", "error", "OK");
       }
     };
+
     reader.onerror = (error) => {
       console.error("Error membaca file:", error.message);
+      alert("Error: Gagal membaca file. Silakan coba lagi.");
+      window.location.reload();
     };
+
     reader.readAsArrayBuffer(file);
+  };
+
+  const handleSubmit = async () => {
+    console.log(parsedData);
+
+    if (parsedData.length === 0) {
+      SweetAlert("Error", "Tidak ada data untuk disimpan.", "error", "OK");
+      return;
+    }
+
+    console.log("masuk");
+
+    setLoading(true);
+
+    for (let index = 0; index < parsedData.length; index++) {
+      try {
+        const createResponse = await useFetch(
+          `${API_LINK}/MasterPertanyaan/CreatePertanyaan`,
+          parsedData[index],
+          "POST"
+        );
+
+        if (createResponse === "ERROR") {
+          throw new Error(`Gagal menambah data pada indeks ${index}`);
+        } else {
+          console.log(`Data pada indeks ${index} berhasil ditambahkan.`);
+        }
+      } catch (error) {
+        console.error("Error pada indeks", index, ":", error.message);
+        SweetAlert(
+          "Gagal!",
+          `Error pada data ke-${index + 1}: ${error.message}`,
+          "error",
+          "OK"
+        );
+        break;
+      }
+    }
+
+    setLoading(false);
+
+    alert("Success: Data berhasil disimpan");
+    importModalRef.current.close();
+    window.location.reload();
   };
 
   // Fungsi navigasi paging
@@ -607,7 +775,6 @@ export default function Pertanyaan_Survei({ onChangePage }) {
                         Text: "Waktu Dibuat [↓]",
                       },
                     ]}
-                    defaultValue="[pty_created_date] DESC"
                     onChange={handleSortFilterChange}
                   />
                   <Dropdown
@@ -618,21 +785,18 @@ export default function Pertanyaan_Survei({ onChangePage }) {
                       { Value: "Aktif", Text: "Aktif" },
                       { Value: "Tidak Aktif", Text: "Tidak Aktif" },
                     ]}
-                    defaultValue=""
                     onChange={handleStatusFilterChange}
                   />
                   <Dropdown
                     label="Kriteria Survei"
                     type="pilih"
                     arrData={[{ Value: "", Text: "Semua" }, ...ksrOptions]}
-                    defaultValue=""
                     onChange={handleKriteriaFilterChange}
                   />
                   <Dropdown
                     label="Skala Penilaian"
                     type="pilih"
                     arrData={[{ Value: "", Text: "Semua" }, ...skpOptions]}
-                    defaultValue=""
                     onChange={handleSkalaFilterChange}
                   />
                 </Filter>
@@ -664,7 +828,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
                     No: indexOfFirstData + index + 1,
                     Pertanyaan: item.pty_pertanyaan ?? "Tidak Ada",
                     "Kriteria Survei": item.ksr_nama ?? "Tidak Ada",
-                    "Skala Penilaian": item.skp_id ?? "Tidak Ada",
+                    "Skala Penilaian": item.skp_skala ?? "Tidak Ada",
                     Status: item.pty_status === "Aktif",
                   }))}
                   actions={(row) =>
@@ -673,9 +837,9 @@ export default function Pertanyaan_Survei({ onChangePage }) {
                       : ["Detail", "Edit", "Toggle"]
                   }
                   onDetail={(item) =>
-                    onChangePage("detail", { detailId: item.Key })
+                    onChangePage("detail", { idData: item.Key })
                   }
-                  onEdit={(item) => onChangePage("edit", { id: item.Key })}
+                  onEdit={(item) => onChangePage("edit", { idData: item.Key })}
                   onToggle={(item) => handleToggle(item.Key)}
                 />
                 <Paging
@@ -706,7 +870,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
               fontSize: "15px",
               margin: "10px 0",
             }}
-            onClick={handleImportQuestions}
+            onClick={handleSubmit}
           />
         }
         Button2={
@@ -735,26 +899,14 @@ export default function Pertanyaan_Survei({ onChangePage }) {
           <label>
             Silahkan unduh format template pertanyaan terlebih dahulu, <br />
             <a
-              style={{ color: "blue", textDecoration: "underline" }}
+              href="#"
               onClick={(e) => {
                 e.preventDefault();
-                const templateDokumen = "Template_Survei.xlsx";
-                const url = TEMPLATE_LINK + templateDokumen;
-                fetch(url, { method: "GET" })
-                  .then((response) => {
-                    if (response.ok) {
-                      window.open(url, "_blank");
-                    } else {
-                      alert("Gagal mengunduh file.");
-                    }
-                  })
-                  .catch((error) => {
-                    console.error("Error:", error);
-                    alert("Terjadi kesalahan saat mengakses file.");
-                  });
+                handleDownload();
               }}
+              style={{ textDecoration: "none", cursor: "pointer" }}
             >
-              Klik disini
+              Unduh Template Pertanyaan Excel
             </a>
           </label>
           <label>
@@ -762,18 +914,12 @@ export default function Pertanyaan_Survei({ onChangePage }) {
               Berkas Pertanyaan <span style={{ color: "red" }}>*</span>
             </strong>
           </label>
-          <input
-            type="file"
-            onChange={(e) => handleFileChange(e.target.files[0])}
-            style={{
-              width: "100%",
-              padding: "10px",
-              border: "2px solid",
-              borderRadius: "10px",
-              marginTop: "5px",
-            }}
-            name="import-file"
-            className="form-control"
+          <FileUpload
+            label="Upload Excel Pertanyaan (harus sesuai template)"
+            forInput="fileDokumen"
+            formatFile=".xlsx"
+            onChange={(file) => handleFileChange(file)}
+            isRequired={true}
           />
         </div>
       </Modal>
@@ -824,8 +970,8 @@ export default function Pertanyaan_Survei({ onChangePage }) {
           <Dropdown
             label="Kriteria Survei"
             type="pilih"
+            value={exportKriteria}
             arrData={[{ Value: "", Text: "Semua" }, ...ksrOptions]}
-            defaultValue=""
             onChange={(e) => setExportKriteria(e.target.value)}
           />
         </div>

@@ -1,117 +1,42 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import React, { useState, useRef, useEffect } from "react";
 import PageTitleNav from "../../../part/PageTitleNav";
 import InputField from "../../../part/InputField";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
 import Dropdown from "../../../part/Dropdown";
 import CheckBox from "../../../part/CheckBox";
+import { useNavigate, useLocation } from "react-router-dom";
 import SweetAlert from "../../../util/SweetAlert";
-import Swal from "sweetalert2";
 import { API_LINK } from "../../../util/Constants";
 import { useFetch } from "../../../util/useFetch";
-import { useIsMobile } from "../../../util/useIsMobile";
 import Loading from "../../../part/Loading";
 
-export default function Edit({ onChangePage }) {
-  const { id } = useParams();
+export default function Add({ onChangePage }) {
+  const navigate = useNavigate();
   const location = useLocation();
   const idData = location.state?.idData;
-  const navigate = useNavigate();
-  const isMobile = useIsMobile();
-  const title = "Edit Bank Pertanyaan Survei";
+  const title = "Tambah Bank Pertanyaan Survei";
   const breadcrumbs = [
-    { label: "Bank Pertanyaan Survei", href: "/survei/pertanyaan" },
-    {
-      label: "Edit Bank Pertanyaan Survei",
-      href: `/survei/pertanyaan/edit/`,
-    },
+    { label: "Template Survei", href: "/survei/template" },
+    { label: "Edit Template Survei" },
   ];
 
   const [formData, setFormData] = useState({
-    ptyId: idData,
     pertanyaan: "",
     ksrId: "",
     skpId: "",
-    responden: [], // Menyimpan data responden
+    responden: [],
   });
 
   const [ksrOptions, setKsrOptions] = useState([]);
   const [skpOptions, setSkpOptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const pertanyaanRef = useRef();
+  const kriteriaSurveiRef = useRef();
+  const skalaPenilaianRef = useRef();
+  const respondenRef = useRef();
 
-  // Mengambil data pertanyaan dan responden dari API
-  useEffect(() => {
-    const fetchDokumenById = async () => {
-      setLoading(true);
-      try {
-        const body = { id: idData };
-
-        const result = await useFetch(
-          `${API_LINK}/MasterPertanyaan/GetDataPertanyaanByIdDetail`,
-          body,
-          "POST"
-        );
-
-        const result1 = await useFetch(
-          `${API_LINK}/MasterPertanyaan/GetDataPertanyaanRespondenById`,
-          body,
-          "POST"
-        );
-
-        console.log("Parameter :", body); // Debug respons API
-        console.log("API Response:", result); // Debug respons API
-        console.log("API ResponseResponden:", result1); // Debug respons API
-        const valuesArray = result1.map((item) => item.Value);
-        console.log("API ResponseResponden Array:", valuesArray); // Debug respons API
-
-        if (!result || result === "ERROR" || result.length === 0) {
-          Swal.fire("Error", "Data tidak ditemukan", "error");
-          return;
-        }
-
-        if (!result1 || result1 === "ERROR" || result1.length === 0) {
-          Swal.fire("Error", "Data tidak ditemukan", "error");
-          return;
-        }
-
-        const { pertanyaan, ksr_id, skp_id } = result[0];
-
-        let parsedResponden = [];
-
-        // Pastikan dtl_responden tidak null atau kosong
-        // if (dtl_responden) {
-        //   try {
-        //     const jsonArray = JSON.parse(dtl_responden);
-        //     parsedResponden = jsonArray.map((item) =>
-        //       parseInt(item.dtl_responden, 10)
-        //     );
-        //   } catch (error) {
-        //     console.error("Error parsing JSON dtl_responden:", error);
-        //   }
-        // }
-
-        // console.log("dtl_responden (parsed):", parsedResponden); // Debug setelah parsing
-
-        setFormData({
-          ptyId: idData,
-          pertanyaan: pertanyaan,
-          ksrId: ksr_id,
-          skpId: skp_id,
-          responden: valuesArray || [],
-        });
-      } catch (err) {
-        Swal.fire("Error", "Gagal mengambil data: " + err.message, "error");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDokumenById();
-  }, [idData]);
-
-  // Fetch the data for Kriteria Survei
   useEffect(() => {
     const fetchKriteria = async () => {
       setLoading(true);
@@ -123,7 +48,7 @@ export default function Edit({ onChangePage }) {
         );
         setKsrOptions(data);
       } catch (err) {
-        setError("Gagal mengambil data Kriteria Survei: " + err.message);
+        setError("Gagal mengambil data: " + err.message);
       } finally {
         setLoading(false);
       }
@@ -131,10 +56,10 @@ export default function Edit({ onChangePage }) {
     fetchKriteria();
   }, []);
 
-  // Fetch the data for Skala Penilaian
   useEffect(() => {
     const fetchSkalaPenilaian = async () => {
       setLoading(true);
+      setError(null);
       try {
         const skpResponse = await useFetch(
           `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
@@ -142,13 +67,14 @@ export default function Edit({ onChangePage }) {
           "POST"
         );
         if (skpResponse && Array.isArray(skpResponse)) {
+          const filteredSkp = skpResponse.filter(
+            (item) => item.skp_status === "Aktif"
+          );
           setSkpOptions(
-            skpResponse
-              .filter((item) => item.skp_status === "Aktif")
-              .map((item) => ({
-                Value: item.skp_id,
-                Text: `${item.skp_skala} (${item.skp_deskripsi})`,
-              }))
+            filteredSkp.map((item) => ({
+              value: item.skp_id,
+              Text: item.skp_skala + " (" + item.skp_deskripsi + ")",
+            }))
           );
         }
       } catch (error) {
@@ -158,69 +84,96 @@ export default function Edit({ onChangePage }) {
       }
     };
     fetchSkalaPenilaian();
-    console.log(formData);
   }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    console.log("Checkbox Change:", name, value, checked);
+    console.log("Responden Saat Ini:", formData.responden);
 
     if (type === "checkbox") {
-      const parsedValue = value; // Ensure the value is an integer
-
       setFormData((prevFormData) => {
-        const updatedResponden = checked
-          ? [...prevFormData.responden, parsedValue] // Add to the array if checked
-          : prevFormData.responden.filter((item) => item !== parsedValue); // Remove from the array if unchecked
+        const updatedResponden = prevFormData.responden || [];
+        const newResponden = checked
+          ? [...updatedResponden, value] // Tambahkan jika di-check
+          : updatedResponden.filter((item) => item !== value); // Hapus jika di-uncheck
 
-        return {
-          ...prevFormData,
-          responden: updatedResponden,
-        };
+        return { ...prevFormData, responden: newResponden };
       });
     } else {
-      setFormData((prevFormData) => ({
-        ...prevFormData,
-        [name]: value,
-      }));
+      setFormData((prevFormData) => ({ ...prevFormData, [name]: value }));
     }
   };
 
   const handleSubmit = async () => {
+    // Validasi tiap field menggunakan ref
+    const isPertanyaanValid = pertanyaanRef.current?.validate();
+    const isKriteriaValid = kriteriaSurveiRef.current?.validate();
+    const isSkalaValid = skalaPenilaianRef.current?.validate();
+
+    // Validasi responden
+    const isRespondenValid = formData.responden.length > 0;
+
+    // Cek validasi untuk setiap input
+    if (!isPertanyaanValid) {
+      pertanyaanRef.current?.focus();
+      return;
+    }
+    if (!isKriteriaValid) {
+      kriteriaSurveiRef.current?.focus();
+      return;
+    }
+    if (!isSkalaValid) {
+      skalaPenilaianRef.current?.focus();
+      return;
+    }
+
+    if (!isRespondenValid) {
+      SweetAlert(
+        "Gagal!",
+        "Harap pilih setidaknya satu responden.",
+        "error",
+        "OK"
+      );
+      respondenRef.current?.focus();
+      return;
+    }
+
+    // Jika semua validasi lulus, lanjutkan dengan pengiriman data
     try {
       const payload = {
         pertanyaan: formData.pertanyaan,
         ksrId: parseInt(formData.ksrId, 10),
         skpId: parseInt(formData.skpId, 10),
-        responden: formData.responden,
+        responden: formData.responden || [],
       };
 
-      console.log(formData);
-      console.log("Jalan");
-      console.log("Payload:", formData);
+      console.log("Payload:", payload);
+
       const result = await useFetch(
-        `${API_LINK}/MasterPertanyaan/EditPertanyaan`,
-        formData,
+        `${API_LINK}/MasterPertanyaan/CreatePertanyaan`,
+        payload,
         "POST"
       );
+
+      console.log("API Result:", result);
 
       if (result === "ERROR") {
         throw new Error("Terjadi kesalahan server");
       } else {
-        SweetAlert(
-          "Berhasil!",
-          "Pertanyaan berhasil diperbarui",
-          "success",
-          "OK"
-        );
-        navigate("/survei/pertanyaan");
+        SweetAlert("Berhasil!", "Pertanyaan berhasil dibuat", "success", "OK");
+        onChangePage("edit", { idData: idData });
       }
     } catch (error) {
+      console.error("Submit Error:", error);
       SweetAlert(
         "Gagal!",
         error.message || "Terjadi kesalahan saat menyimpan",
         "error",
         "OK"
       );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -230,11 +183,9 @@ export default function Edit({ onChangePage }) {
       "Perubahan belum disimpan, yakin batal?",
       "warning",
       "Ya, batalkan",
-      null,
-      "",
-      true
+      "Tidak"
     ).then((result) => {
-      if (result) onChangePage("index");
+      if (result) onChangePage("edit", { idData: idData });
     });
   };
 
@@ -249,13 +200,14 @@ export default function Edit({ onChangePage }) {
             <PageTitleNav
               title={title}
               breadcrumbs={breadcrumbs}
-              onClick={() => onChangePage("index")}
+              onClick={() => onChangePage("edit", { idData: idData })}
             />
           </div>
           <div className="shadow p-5 m-5 mt-0 bg-white rounded">
             <HeaderForm label="Formulir Bank Pertanyaan" />
             <div className="mb-4">
               <Dropdown
+                ref={kriteriaSurveiRef}
                 label="Kriteria Survei"
                 arrData={ksrOptions}
                 value={formData.ksrId}
@@ -267,8 +219,9 @@ export default function Edit({ onChangePage }) {
             </div>
             <div className="mb-4">
               <InputField
+                ref={pertanyaanRef}
                 label="Pertanyaan"
-                value={formData.pertanyaan}
+                value={formData.pertanyaan || ""}
                 name="pertanyaan"
                 onChange={handleChange}
                 isRequired={true}
@@ -278,6 +231,7 @@ export default function Edit({ onChangePage }) {
             </div>
             <div className="mb-4">
               <Dropdown
+                ref={skalaPenilaianRef}
                 label="Skala Penilaian"
                 arrData={skpOptions}
                 value={formData.skpId}
@@ -291,15 +245,16 @@ export default function Edit({ onChangePage }) {
               <CheckBox
                 arrData={[
                   {
-                    Value: "Dosen dan Instruktur",
+                    Value: 0,
                     Text: "Dosen dan Instruktur",
                   },
-                  { Value: "Tenaga Pendidik", Text: "Tenaga Kependidikan" },
-                  { Value: "Mitra Kerjasama", Text: "Mitra Kerja sama" },
+                  { Value: 1, Text: "Tenaga Kependidikan" },
+                  { Value: 2, Text: "Mitra Kerja sama" },
                 ]}
                 label="Responden"
                 name="responden"
                 isRequired={true}
+                errorMessage="Harap pilih setidaknya satu responden."
                 values={formData.responden || []}
                 onChange={handleChange}
                 col="col-4"

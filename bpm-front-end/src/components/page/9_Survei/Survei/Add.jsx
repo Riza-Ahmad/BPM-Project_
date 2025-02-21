@@ -285,8 +285,8 @@ export default function Add({ onChangePage }) {
                 ref={respondenRef}
                 arrData={[
                   { Value: "ROL09", Text: "Dosen" },
-                  { Value: "ROL03", Text: "Tenaga Pendidik" },
-                  { Value: "ROLXX", Text: "Mitra Kerjasama" },
+                  { Value: "ROL03", Text: "Tenaga Kependidikan" },
+                  { Value: "ROLXX", Text: "Mitra Kerja sama" },
                 ]}
                 label="Pilih Responden"
                 name="responden"

@@ -287,7 +287,7 @@ const routeList = [
     protected: true,
   },
   {
-    path: "/survei/dashboard_survei/*",
+    path: "/survei/dashboard/*",
     element: <Dashboard_Survei />,
     protected: true,
   },

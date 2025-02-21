@@ -4,8 +4,9 @@ import ProtectedRoute from "../../../util/ProtectedRoute";
 import { ROOT_LINK } from "../../../util/Constants";
 import Index from "./Index";
 // import Add from "./Add";
+import Detail from "./DetailSurvei";
 import Edit from "./EditSurvei";
-// import Detail from "./Detail";
+import Preview from "./Preview";
 
 export default function Daftar_Survei() {
   const navigate = useNavigate();
@@ -18,15 +19,19 @@ export default function Daftar_Survei() {
       case "index":
         navigate(`${currentPath}`, { state: { mode: "index", ...withState } });
         break;
-      // case "add":
-      //   navigate(`${currentPath}`, { state: { mode: "add", ...withState } });
-      //   break;
       case "edit":
         navigate(`${currentPath}`, { state: { mode: "edit", ...withState } });
         break;
-      // case "detail":
-      //   navigate(`${currentPath}`, { state: { mode: "detail", ...withState } });
-      //   break;
+      case "preview":
+        navigate(`${currentPath}`, {
+          state: { mode: "preview", ...withState },
+        });
+        break;
+      case "detail":
+        navigate(`${currentPath}`, {
+          state: { mode: "detail", ...withState },
+        });
+        break;
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
         break;
@@ -44,10 +49,10 @@ export default function Daftar_Survei() {
           path="/"
           element={
             <ProtectedRoute isRole={false}>
-              {mode === "add" ? (
-                <Add onChangePage={handlePageChange} />
-              ) : mode === "edit" ? (
+              {mode === "edit" ? (
                 <Edit onChangePage={handlePageChange} />
+              ) : mode === "preview" ? (
+                <Preview onChangePage={handlePageChange} />
               ) : mode === "detail" ? (
                 <Detail onChangePage={handlePageChange} />
               ) : (

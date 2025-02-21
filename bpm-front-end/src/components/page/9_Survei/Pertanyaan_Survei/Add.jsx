@@ -64,13 +64,15 @@ export default function Add({ onChangePage }) {
           {},
           "POST"
         );
+
+        console.log("Skala Response:", skpResponse);
         if (skpResponse && Array.isArray(skpResponse)) {
           const filteredSkp = skpResponse.filter(
             (item) => item.skp_status === "Aktif"
           );
           setSkpOptions(
             filteredSkp.map((item) => ({
-              value: item.skp_id,
+              Value: item.skp_id,
               Text: item.skp_skala + " (" + item.skp_deskripsi + ")",
             }))
           );
@@ -246,8 +248,8 @@ export default function Add({ onChangePage }) {
                     Value: 0,
                     Text: "Dosen dan Instruktur",
                   },
-                  { Value: 1, Text: "Tenaga Pendidik" },
-                  { Value: 2, Text: "Mitra Kerjasama" },
+                  { Value: 1, Text: "Tenaga Kependidikan" },
+                  { Value: 2, Text: "Mitra Kerja sama" },
                 ]}
                 label="Responden"
                 name="responden"

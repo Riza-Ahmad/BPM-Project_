@@ -80,22 +80,17 @@ export default function Daftar_Survei({ onChangePage }) {
   const fetchSurvei = async () => {
     setLoading(true);
     try {
-      console.log(activeUser);
-      console.log("hahaha");
-      console.log(currentFilter);
       const result = await useFetch(
         `${API_LINK}/TransaksiSurvei/GetDataDaftarSurveixx`,
         currentFilter,
         "POST"
       );
-      console.log("jalan");
-      console.log(result);
       if (result === "ERROR" || result === null || result.length === 0) {
         setFilteredData([]);
         setTotalData(0);
       } else {
         const arrResult = Object.values(result);
-        // console.log(arrResult);
+        console.log("Status nih:", arrResult);
         setFilteredData(arrResult);
         setTotalData(arrResult[0].TotalCount);
       }
@@ -158,7 +153,7 @@ export default function Daftar_Survei({ onChangePage }) {
                       arrData={dataFilterSort}
                       label="Urut Berdasarkan"
                       type="pilih"
-                      defaultValue="[namaBad] ASC"
+                      // defaultValue="[namaBad] ASC"
                       forInput="sortFilter"
                       onChange={(e) =>
                         setCurrentFilter((prevFilter) => {
@@ -186,25 +181,33 @@ export default function Daftar_Survei({ onChangePage }) {
               <Table
                 arrHeader={["No", "Nama Survei", "Tanggal Awal", "Status"]}
                 data={filteredData.map((item, index) => ({
-                  key: item.idSurvei,
+                  Key: item.idSurvei,
                   No: (pageCurrent - 1) * pageSize + index + 1,
                   "Nama Survei": item.namaSurvei,
                   "Tanggal Awal": item.tanggalAwalSurvei,
                   Status: item.statusSurvei,
                 }))}
                 actions={["Preview"]}
-                onPreview={handlePreview}
+                onPreview={(item) =>
+                  onChangePage("preview", { idData: item.Key })
+                }
               />
             ) : (
               <Table
                 arrHeader={["No", "Nama Survei"]}
                 data={filteredData.map((item, index) => ({
-                  key: item.idSurvei,
+                  Key: item.idSurvei,
                   No: (pageCurrent - 1) * pageSize + index + 1,
                   "Nama Survei": item.namaSurvei,
+                  Status: item.statusTerjawab,
                 }))}
-                actions={["Edit"]}
-                onEdit={handleEdit}
+                actions={(item) =>
+                  item.Status === "Belum Terjawab" ? ["Edit"] : ["Detail"]
+                }
+                onEdit={(item) => onChangePage("edit", { idData: item.Key })}
+                onDetail={(item) =>
+                  onChangePage("detail", { idData: item.Key })
+                }
               />
             )}
 

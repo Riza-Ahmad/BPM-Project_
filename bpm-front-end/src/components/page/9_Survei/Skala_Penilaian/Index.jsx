@@ -203,17 +203,18 @@ export default function Index() {
 
                   <button
                     className="btn btn-secondary mt-2"
-                    onClick={handleResetFilter}>
+                    onClick={handleResetFilter}
+                  >
                     Reset Filter
                   </button>
                 </Filter>
               </div>
             </div>
           </div>
-
           <div
             className="table-container bg-white p-3 mt-0 rounded"
-            style={marginStyle}>
+            style={marginStyle}
+          >
             <Table
               arrHeader={tableHeaders}
               data={currentPageData.map((item, index) => ({
@@ -224,11 +225,11 @@ export default function Index() {
                 Deskripsi: item.skp_deskripsi,
                 Status: item.skp_status === "Aktif" ? "Aktif" : "Tidak Aktif",
               }))}
-              actions={(item) => {
-                const actions = ["Detail", "Toggle"];
-                if (item.Status === "Aktif") actions.push("Edit");
-                return actions;
-              }}
+              actions={(item) =>
+                item.Status === "Aktif"
+                  ? ["Detail", "Edit", "Toggle"]
+                  : ["Detail", "Toggle"]
+              }
               onDetail={(item) => handleNavigation.toDetail(item.key)}
               onToggle={(item) => handleDelete(item.key)}
               onEdit={(item) => handleNavigation.toEdit(item.key)}

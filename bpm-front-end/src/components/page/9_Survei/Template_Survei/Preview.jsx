@@ -7,9 +7,10 @@ import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { useFetch } from "../../../util/useFetch";
 import { useLocation, useNavigate } from "react-router-dom";
+import TabPreviewSurvei from "./TabPreviewSurvei";
 
-export default function Detail({ onChangePage }) {
-  const title = "Detail Template Survei";
+export default function Preview({ onChangePage }) {
+  const title = "Preview Template Survei";
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -28,8 +29,53 @@ export default function Detail({ onChangePage }) {
 
   // Track when template fetch is completed
   const [isTemplateFetched, setIsTemplateFetched] = useState(false);
+  const [kriteria, setKriteria] = useState([]);
+  const [pertanyaan, setPertanyaan] = useState({});
 
   // GET DATA BY ID
+  useEffect(() => {
+    const fetchKriteria = async () => {
+      setLoading(true);
+      try {
+        const data = await useFetch(
+          `${API_LINK}/TemplateSurvei/GetTemplateDataKriteriaSurveiByIdxx`,
+          { id: idData },
+          "POST"
+        );
+        console.log("Kriteria Survei :", data);
+        setKriteria(data);
+      } catch (err) {
+        setError("Gagal mengambil data: " + err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchKriteria();
+  }, []);
+
+  useEffect(() => {
+    const fetchPertanyaan = async () => {
+      setLoading(true);
+      try {
+        const data = await useFetch(
+          `${API_LINK}/TemplateSurvei/GetTemplateDataSPertanyaanSurveiByIdxx`,
+          { id: idData },
+          "POST"
+        );
+
+        console.log("Pertanyaan Survei :", data);
+        setPertanyaan(data);
+      } catch (err) {
+        setError("Gagal mengambil data: " + err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPertanyaan();
+  }, []);
+
   useEffect(() => {
     const fetchTemplateData = async () => {
       const body = { idData: idData };
@@ -41,7 +87,7 @@ export default function Detail({ onChangePage }) {
           body,
           "POST"
         );
-
+        console.log("Preview: ", result);
         if (result === "ERROR" || result === null || result.length === 0) {
           setFormData({
             templateName: "",
@@ -54,29 +100,27 @@ export default function Detail({ onChangePage }) {
         } else {
           const fetchedData = result[0];
           setFormData({
-            templateName: fetchedData.tsu_nama,
-            createdBy: fetchedData.tsu_created_by,
-            createdDate: new Date(
-              fetchedData.tsu_created_date
-            ).toLocaleDateString("id-ID", {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            }),
-            modifiedBy: fetchedData.tsu_modif_by || "-",
-            modifiedDate: fetchedData.tsu_modif_date
-              ? new Date(fetchedData.tsu_modif_date).toLocaleDateString(
-                  "id-ID",
-                  {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  }
-                )
+            templateName: fetchedData.namaTemplate,
+            createdBy: fetchedData.dibuatOleh,
+            createdDate: new Date(fetchedData.dibuatTgl).toLocaleDateString(
+              "id-ID",
+              {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              }
+            ),
+            modifiedBy: fetchedData.dimodifOleh || "-",
+            modifiedDate: fetchedData.dimodifTgl
+              ? new Date(fetchedData.dimodifTgl).toLocaleDateString("id-ID", {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })
               : "-",
-            status: fetchedData.tsu_status || "-",
+            status: fetchedData.statusTemplate || "-",
           });
         }
       } catch (err) {
@@ -90,6 +134,9 @@ export default function Detail({ onChangePage }) {
     fetchTemplateData();
   }, [idData]);
 
+  const handleDataChange = (updatedFormData, updatedFiles) => {};
+
+  if (loading) return <Loading />;
   if (error) return <p>{error}</p>;
 
   return (
@@ -113,13 +160,15 @@ export default function Detail({ onChangePage }) {
                   : "shadow p-5 m-5 mt-0 bg-white rounded"
               }
             >
-              <HeaderForm label="Formulir Template Survei" />
+              <HeaderForm label="Preview Template Survei" />
 
               <div className="border bg-white rounded mt-5 p-3">
-                <DetailData label="Nama Template" isi={formData.templateName} />
-
                 <div className="row">
                   <div className="col-lg-6 col-md-6">
+                    <DetailData
+                      label="Nama Template"
+                      isi={formData.templateName}
+                    />
                     <DetailData label="Dibuat Oleh" isi={formData.createdBy} />
                     <DetailData
                       label="Dibuat Tanggal"
@@ -127,6 +176,7 @@ export default function Detail({ onChangePage }) {
                     />
                   </div>
                   <div className="col-lg-6 col-md-6">
+                    <DetailData label="Status" isi={formData.status} />
                     <DetailData
                       label="Dimodifikasi Oleh"
                       isi={formData.modifiedBy}
@@ -137,14 +187,15 @@ export default function Detail({ onChangePage }) {
                     />
                   </div>
                 </div>
-
-                <DetailData label="Status" isi={formData.status} />
               </div>
+              <TabPreviewSurvei
+                header={kriteria}
+                pertanyaan={pertanyaan}
+                mode="detailSurvei"
+              />
             </div>
           </div>
         </div>
-
-        {loading && <Loading />}
       </main>
     </div>
   );
