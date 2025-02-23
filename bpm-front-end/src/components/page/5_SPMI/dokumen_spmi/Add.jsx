@@ -16,6 +16,7 @@ const arrData = [
   { Value: "Controlled Copy", Text: "Controlled Copy" },
   { Value: "Uncontrolled Copy", Text: "Uncontrolled Copy" },
 ];
+
 export default function Add({ onChangePage }) {
   const isMobile = useIsMobile();
   const title = "Tambah Data";
@@ -140,7 +141,6 @@ export default function Add({ onChangePage }) {
         );
       }
     } catch (error) {
-      console.error("Error:", error.message);
       SweetAlert("Gagal!", error.message, "error", "OK");
     }
   };
@@ -149,9 +149,8 @@ export default function Add({ onChangePage }) {
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          <div className="container mb-3">
-            {/* Breadcrumbs and Page Title */}
-            <div className="p-3">
+          <div className={isMobile ? "p-0 mb-3" : "container mb-3"}>
+            <div className={isMobile ? "p-0" : "p-3"}>
               <PageTitleNav
                 title={title}
                 breadcrumbs={location.state.breadcrumbs}

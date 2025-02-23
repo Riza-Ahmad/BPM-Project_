@@ -361,7 +361,10 @@ export default function Index({ onChangePage, isIkuIkt }) {
             status: data.status === "Aktif" ? "Tidak Aktif" : "Aktif",
           }));
 
-        useFetch(`${API_LINK}/MasterIndikatorKinerja/EditStatusIndikatorKinerja`, updatedData[0])
+        useFetch(
+          `${API_LINK}/MasterIndikatorKinerja/EditStatusIndikatorKinerja`,
+          updatedData[0]
+        )
           .then((response) => {
             if (response === "ERROR") {
               throw new Error("Gagal memperbarui data");
@@ -395,7 +398,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
       <div className="d-flex flex-column min-vh-100">
         <main className="flex-grow-1 p-3" style={{ marginTop: "60px" }}>
           <div className="d-flex flex-column">
-            <div className="m-4 px-4">
+            <div className={isMobile ? "p-3" : "px-5 mx-5"}>
               <h1 style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}>
                 Indikator Kinerja
               </h1>
@@ -405,7 +408,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
                   { label: "Indikator Kinerja" },
                 ]}
               />
-              <div className="mt-5">
+              <div className={isMobile ? "mt-3" : "mt-5"}>
                 <div className="row m-0 g-1" style={{ overflowX: "auto" }}>
                   {[
                     "Indikator Kinerja Utama",

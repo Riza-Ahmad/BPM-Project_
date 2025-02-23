@@ -1,21 +1,23 @@
 import React, { useState, useRef } from "react";
 import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { useIsMobile } from "../../../util/useIsMobile";
+import { useFetch } from "../../../util/useFetch";
+import { API_LINK } from "../../../util/Constants";
 import PageTitleNav from "../../../part/PageTitleNav";
 import InputField from "../../../part/InputField";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
 import DropDown from "../../../part/Dropdown";
-import { useLocation } from "react-router-dom";
 import SweetAlert from "../../../util/SweetAlert";
-import { useIsMobile } from "../../../util/useIsMobile";
-import { API_LINK } from "../../../util/Constants";
-import { useFetch } from "../../../util/useFetch";
 import Loading from "../../../part/Loading";
+import DetailData from "../../../part/DetailData";
 
 const arrData = [
   { Value: "Controlled Copy", Text: "Controlled Copy" },
   { Value: "Uncontrolled Copy", Text: "Uncontrolled Copy" },
 ];
+
 export default function Edit({ onChangePage }) {
   const isMobile = useIsMobile();
   const title = "Edit Data";
@@ -25,7 +27,6 @@ export default function Edit({ onChangePage }) {
   const idData = location.state?.idData;
   const breadcrumbs = location.state?.breadcrumbs;
 
-  const [file, setFile] = useState(null);
   const [formData, setFormData] = useState({
     idKdo: idData,
     judulDok: "",
@@ -36,11 +37,9 @@ export default function Edit({ onChangePage }) {
   });
 
   const judulDokRef = useRef();
-  const nomorDokRef = useRef();
   const tanggalDokRef = useRef();
   const kadaluarsaDokRef = useRef();
   const jenisDokRef = useRef();
-  const fileRef = useRef();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -84,17 +83,12 @@ export default function Edit({ onChangePage }) {
 
   const handleSubmit = async () => {
     const isJudulDokValid = judulDokRef.current?.validate();
-    const isNomorDokValid = nomorDokRef.current?.validate();
     const isTanggalDokValid = tanggalDokRef.current?.validate();
     const isKadaluarsaDokValid = kadaluarsaDokRef.current?.validate();
     const isJenisDokValid = jenisDokRef.current?.validate();
 
     if (!isJudulDokValid) {
       judulDokRef.current?.focus();
-      return;
-    }
-    if (!isNomorDokValid) {
-      nomorDokRef.current?.focus();
       return;
     }
     if (!isTanggalDokValid) {
@@ -152,7 +146,6 @@ export default function Edit({ onChangePage }) {
         );
       }
     } catch (error) {
-      console.error("Error:", error.message);
       SweetAlert("Gagal!", error.message, "error", "OK");
     }
   };
@@ -164,7 +157,7 @@ export default function Edit({ onChangePage }) {
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
           <div className="container mb-3">
-            <div className="p-3">
+            <div className={isMobile ? "p-0" : "p-3"}>
               <PageTitleNav
                 title={title}
                 breadcrumbs={breadcrumbs}
@@ -175,8 +168,7 @@ export default function Edit({ onChangePage }) {
                 }
               />
             </div>
-            <div className={isMobile ? "m-0" : "m-3"}>
-              {/* Main Content Section */}
+            <div className={isMobile ? "m-0 p-0" : "m-3"}>
               <div
                 className={
                   isMobile
@@ -184,18 +176,10 @@ export default function Edit({ onChangePage }) {
                     : "shadow p-5 m-5 mt-0 bg-white rounded"
                 }
               >
-                {" "}
                 <HeaderForm label="Formulir Dokumen" />
-                <InputField
-                  ref={nomorDokRef}
+                <DetailData
                   label="Nomor Dokumen"
-                  value={formData.nomorDok || ""}
-                  onChange={handleChange}
-                  isRequired={true}
-                  name="nomorDok"
-                  type="text"
-                  maxChar="50"
-                  isDisabled={true}
+                  isi={formData.nomorDok || ""}
                 />
                 <div className="row">
                   <div className="col-lg-6 col-md-6 ">
@@ -241,9 +225,11 @@ export default function Edit({ onChangePage }) {
                     <InputField
                       ref={kadaluarsaDokRef}
                       label="Tanggal Kadaluwarsa"
-                      value={formData.kadaluarsaDok
-                        ? formData.kadaluarsaDok.toString().split("T")[0]
-                        : null}
+                      value={
+                        formData.kadaluarsaDok
+                          ? formData.kadaluarsaDok.toString().split("T")[0]
+                          : null
+                      }
                       onChange={handleChange}
                       isRequired={true}
                       name="kadaluarsaDok"

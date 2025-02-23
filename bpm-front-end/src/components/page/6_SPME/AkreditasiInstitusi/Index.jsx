@@ -2,11 +2,9 @@ import React, { useState, useRef, useEffect } from "react";
 import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
 import SearchField from "../../../part/SearchField";
-import HeaderText from "../../../part/HeaderText";
 import Button from "../../../part/Button";
 import Filter from "../../../part/Filter";
 import { useFetch } from "../../../util/useFetch";
-import { useLocation, useNavigate } from "react-router-dom";
 import { API_LINK } from "../../../util/Constants";
 import Loading from "../../../part/Loading";
 import SweetAlert from "../../../util/SweetAlert";
@@ -74,7 +72,6 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
       setData(result);
       setFilteredData(result);
     } catch (err) {
-      console.error("Fetch error:", err);
       setError("Gagal mengambil data");
     } finally {
       setLoading(false);
@@ -115,7 +112,7 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
   const handleToggle = async (id) => {
     const confirm = await SweetAlert(
       "Konfirmasi",
-      "Apakah Anda yakin ingin mengubah status data ini?",
+      "Apakah Anda yakin ingin menghapus data ini?",
       "warning",
       "Ya, Ubah",
       null,
@@ -147,7 +144,6 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
           )
         );
       } catch (err) {
-        console.error(err);
         SweetAlert(
           "Gagal",
           "Terjadi kesalahan saat mengubah status dokumen",
@@ -212,7 +208,7 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
                   <Button
                     iconName="add"
                     classType="primary"
-                    label="Tambah Akreditasi"
+                    label="Tambah Data"
                     onClick={() => onChangePage("add")}
                   />
                 ) : (
@@ -280,15 +276,15 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
                       actions={(row) => {
                         // Jika status "Tidak Aktif", hanya tampilkan Toggle
                         if (row.status === "Tidak Aktif") {
-                          return ["Toggle"];
+                          return ["Delete"];
                         }
                         // Jika status selain "Tidak Aktif", tampilkan semua actions
-                        return ["Detail", "Edit", "Toggle"];
+                        return ["Detail", "Edit", "Delete"];
                       }}
                       aksiIs={role === "ROL01" ? true : false}
                       onDetail={handleDetail}
                       onEdit={handleEdit}
-                      onToggle={(item) => handleToggle(item.key)}
+                      onDelete={(item) => handleToggle(item.key)}
                     />
 
                     <Paging

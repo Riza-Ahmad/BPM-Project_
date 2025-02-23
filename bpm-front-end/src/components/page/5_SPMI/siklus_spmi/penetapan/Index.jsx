@@ -54,7 +54,7 @@ export default function Index({ onChangePage }) {
   const location = useLocation();
   const idMenu = location.state?.idMenu;
   const activeUser = Cookies.get("activeUser");
-  let role = ""; // Jika undefined, gunakan nilai default
+  let role = ""; 
   let roleNama = "";
   let namaPengguna = "";
   if (activeUser) {
@@ -73,12 +73,13 @@ export default function Index({ onChangePage }) {
   const [activeTab, setActiveTab] = useState(null);
   const [activeSide, setActiveSide] = useState(null);
   const [error, setError] = useState("");
-
+  
   const [pageSize] = useState(10);
   const [pageCurrent, setPageCurrent] = useState(1);
   const [totalData, setTotalData] = useState(0);
   const [filteredData, setFilteredData] = useState([]);
-
+  
+  const [standarFilter, setStandarFilter] = useState(new Date().getFullYear());
   const [currentFilter, setCurrentFilter] = useState({
     param1: activeSide?.idSta || "",
     param2: "",
@@ -88,7 +89,6 @@ export default function Index({ onChangePage }) {
     param6: "IKU",
   });
 
-  const [standarFilter, setStandarFilter] = useState(new Date().getFullYear());
 
   useEffect(() => {
     setCurrentFilter((prevFilter) => ({
@@ -134,7 +134,7 @@ export default function Index({ onChangePage }) {
   }, []);
 
   useEffect(() => {
-    const fetchStandar = async () => {
+    const fetchStandarBytahun = async () => {
       setLoading(true);
       try {
         const result = await useFetch(
@@ -157,8 +157,6 @@ export default function Index({ onChangePage }) {
 
         const arrResult = Object.values(result) || [];
         const listStandar = CreateMenu(arrResult) || [];
-
-        // Ensure that listStandar[0] exists before accessing .children
         const sideMenuTransformed =
           listStandar.length > 0 ? listStandar[0]?.children || [] : [];
 
@@ -166,11 +164,8 @@ export default function Index({ onChangePage }) {
         setActiveTab(0);
         setSideMenu(listStandar);
 
-        // Ensure sideMenuTransformed[0] exists before setting active side
         if (sideMenuTransformed.length > 0) {
           setActiveSide(sideMenuTransformed[0]);
-
-          // Ensure idSta exists before updating the filter
           if (sideMenuTransformed[0]?.idSta) {
             setCurrentFilter((prevFilter) => ({
               ...prevFilter,
@@ -178,45 +173,41 @@ export default function Index({ onChangePage }) {
             }));
           }
         } else {
-          // Handle case where there is no valid side menu data
           setActiveSide(null);
         }
       } catch (err) {
         window.scrollTo(0, 0);
-        // console.error("Error fetching kategori:", err);
-        // setError("Gagal mengambil data: " + err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchStandar();
+    fetchStandarBytahun();
   }, [standarFilter]);
 
-  const fetchIndikatorKinerja = async () => {
-    setLoading(true);
-    try {
-      const result = await useFetch(
-        `${API_LINK}/MasterIndikatorKinerja/GetDataIndikatorKinerja`,
-        currentFilter,
-        "POST"
-      );
-      if (result === "ERROR" || result === null || result.length === 0) {
-        setFilteredData([]);
-        setTotalData(0);
-      } else {
-        const dokumenArray = Object.values(result);
-        setFilteredData(dokumenArray);
-        setTotalData(dokumenArray[0].TotalCount);
-      }
-    } catch (err) {
-      setError("Gagal mengambil data: " + err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchIndikatorKinerja = async () => {
+      setLoading(true);
+      try {
+        const result = await useFetch(
+          `${API_LINK}/MasterIndikatorKinerja/GetDataIndikatorKinerja`,
+          currentFilter,
+          "POST"
+        );
+        if (result === "ERROR" || result === null || result.length === 0) {
+          setFilteredData([]);
+          setTotalData(0);
+        } else {
+          const dokumenArray = Object.values(result);
+          setFilteredData(dokumenArray);
+          setTotalData(dokumenArray[0].TotalCount);
+        }
+      } catch (err) {
+        setError("Gagal mengambil data: " + err);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchIndikatorKinerja();
   }, [currentFilter, standarFilter]);
 
@@ -239,15 +230,14 @@ export default function Index({ onChangePage }) {
 
       return menuHierarchy;
     } catch (err) {
-      // console.error(err);
       return [];
     }
   };
 
   const renderStandar = (sideMenu) => {
-    if (listStandar.length === 0)
+    if (sideMenu.length === 0)
       return <p className="text-danger text-center">No data available</p>;
-    return listStandar.map((menu) => (
+    return sideMenu.map((menu) => (
       <div className="col-lg-4 " key={menu.idSta}>
         <div className="mt-3 shadow rounded-4 ">
           <div
@@ -311,14 +301,12 @@ export default function Index({ onChangePage }) {
             className="text-start"
             onClick={() => {
               if (menu.children?.length > 0) {
-                // Toggle submenu visibility for items with children
                 setActiveSide(menu);
                 setCurrentFilter((prevFilter) => ({
                   ...prevFilter,
                   param1: menu.idSta,
                 }));
               } else {
-                // Set the clicked menu as active for items without children
                 setActiveSide(menu);
                 setCurrentFilter((prevFilter) => ({
                   ...prevFilter,
@@ -350,7 +338,6 @@ export default function Index({ onChangePage }) {
           )}
         </div>
 
-        {/* Submenu Section */}
         {menu.children?.length > 0 && menu.isExpanded && (
           <div className="dropdown">
             {menu.children.map((sub) => (
@@ -363,7 +350,6 @@ export default function Index({ onChangePage }) {
                 }`}
                 style={{ paddingLeft: "16px", cursor: "pointer" }}
                 onClick={() => {
-                  // Set submenu as active
                   setActiveSide(sub);
                   setCurrentFilter((prevFilter) => ({
                     ...prevFilter,
@@ -396,10 +382,10 @@ export default function Index({ onChangePage }) {
       <div className="d-flex flex-column min-vh-100">
         <main className="flex-grow-1 p-3" style={{ marginTop: "60px" }}>
           <div className="d-flex flex-column">
-            <div className="px-5 mx-5">
+            <div className={isMobile ? "p-3" : "px-5 mx-5"}>
               <ImagesCarousel images={menuData.images} />
 
-              <div className="mt-5">
+              <div className={isMobile ? "mt-3" : "mt-5"}>
                 <div className="d-flex justify-content-between align-items-center">
                   <h1
                     style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}
@@ -479,13 +465,13 @@ export default function Index({ onChangePage }) {
                   </h3>
                 </div>
                 <hr />
-                <div className="mb-5 ">
+                <div className="mb-3">
                   <div className="row">{renderStandar(listStandar)}</div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-3 px-5 mx-5">
+            <div className={isMobile ? "p-3" : "mt-3 px-5 mx-5"}>
               <h3 style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}>
                 Daftar Indikator Kinerja
               </h3>
@@ -507,9 +493,9 @@ export default function Index({ onChangePage }) {
                         style={{
                           backgroundColor: activeTab === index ? "#2654A1" : "",
                           color: activeTab === index ? "white" : "#AAA7A7",
-                          fontSize: "16px",
+                          fontSize: isMobile ? "12px" : "16px",
                           padding: "10px 15px",
-                          fontWeight: "650",
+                          fontWeight: isMobile ? "200":"650",
                           width: "auto",
                           whiteSpace: "nowrap",
                         }}
@@ -532,12 +518,12 @@ export default function Index({ onChangePage }) {
               <div className="shadow p-3 mb-5 bg-white rounded">
                 <div className="row">
                   <div
-                    className="col-lg-3"
+                    className="col-lg-3 col-sm-3"
                     style={{ overflowY: "auto", maxHeight: "65vh" }}
                   >
                     {renderSide(sideMenu)}
                   </div>
-                  <div className="col-lg">
+                  <div className="col-lg col-sm mt-5">
                     <div className="text-center">
                       <h3
                         style={{
@@ -611,14 +597,12 @@ export default function Index({ onChangePage }) {
                                   /<\/?[^>]+(>|$)/g,
                                   ""
                                 ) || "-",
-                              //   PIC: item.picIka,
                               jenis: item.jenisIka,
                               status: item.status,
                             }))}
                             aksiIs={false}
                             onEdit={handleEdit}
                             onDetail={handleDetail}
-                            //   onToggle={handleToggle}
                           />
                           <Paging
                             pageSize={pageSize}

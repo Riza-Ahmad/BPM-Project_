@@ -83,6 +83,7 @@ export default function Index({ onChangePage }) {
   const [totalData, setTotalData] = useState(0);
   const [filteredData, setFilteredData] = useState([]);
 
+  const [standarFilter, setStandarFilter] = useState(new Date().getFullYear());
   const [currentFilter, setCurrentFilter] = useState({
     param1: activeSide?.idSta || "",
     param2: "",
@@ -91,7 +92,6 @@ export default function Index({ onChangePage }) {
     param5: pageCurrent,
     param6: "IKU",
   });
-  const [standarFilter, setStandarFilter] = useState(new Date().getFullYear());
 
   useEffect(() => {
     setCurrentFilter((prevFilter) => ({
@@ -157,18 +157,15 @@ export default function Index({ onChangePage }) {
         const arrResult = Object.values(result) || [];
         const listStandar = CreateMenu(arrResult) || [];
 
-        // Ensure that listStandar[0] exists before accessing .children
         const sideMenuTransformed =
           listStandar.length > 0 ? listStandar[0]?.children || [] : [];
 
         setActiveTab(0);
         setSideMenu(listStandar);
 
-        // Ensure sideMenuTransformed[0] exists before setting active side
         if (sideMenuTransformed.length > 0) {
           setActiveSide(sideMenuTransformed[0]);
 
-          // Ensure idSta exists before updating the filter
           if (sideMenuTransformed[0]?.idSta) {
             setCurrentFilter((prevFilter) => ({
               ...prevFilter,
@@ -176,11 +173,9 @@ export default function Index({ onChangePage }) {
             }));
           }
         } else {
-          // Handle case where there is no valid side menu data
           setActiveSide(null);
         }
       } catch (err) {
-        console.error("Error fetching kategori:", err);
         setError("Gagal mengambil data: " + err.message);
       } finally {
         setLoading(false);
@@ -257,14 +252,12 @@ export default function Index({ onChangePage }) {
             className="text-start"
             onClick={() => {
               if (menu.children?.length > 0) {
-                // Toggle submenu visibility for items with children
                 setActiveSide(menu);
                 setCurrentFilter((prevFilter) => ({
                   ...prevFilter,
                   param1: menu.idSta,
                 }));
               } else {
-                // Set the clicked menu as active for items without children
                 setActiveSide(menu);
                 setCurrentFilter((prevFilter) => ({
                   ...prevFilter,
@@ -296,7 +289,6 @@ export default function Index({ onChangePage }) {
           )}
         </div>
 
-        {/* Submenu Section */}
         {menu.children?.length > 0 && menu.isExpanded && (
           <div className="dropdown">
             {menu.children.map((sub) => (
@@ -309,7 +301,6 @@ export default function Index({ onChangePage }) {
                 }`}
                 style={{ paddingLeft: "16px", cursor: "pointer" }}
                 onClick={() => {
-                  // Set submenu as active
                   setActiveSide(sub);
                   setCurrentFilter((prevFilter) => ({
                     ...prevFilter,
@@ -345,7 +336,6 @@ export default function Index({ onChangePage }) {
     });
   };
 
-  // if (loading) return <Loading />;
 
   if (error) return <p className="text-center">{error}</p>;
 
@@ -354,11 +344,9 @@ export default function Index({ onChangePage }) {
       <div className="d-flex flex-column min-vh-100">
         <main className="flex-grow-1 p-3" style={{ marginTop: "60px" }}>
           <div className="d-flex flex-column">
-            <div className="px-5 mx-5">
-              {/* CAROUSEL */}
+            <div className={isMobile ? "p-3" : "px-5 mx-5"}>
               <ImagesCarousel images={menuData.images} />
-
-              <div className="mt-5">
+              <div className={isMobile ? "mt-3" : "mt-5"}>
                 <div className="d-flex justify-content-between align-items-center">
                   <h1
                     style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}
@@ -403,7 +391,7 @@ export default function Index({ onChangePage }) {
                                 textDecoration: "none",
                                 cursor: "pointer",
                               }}
-                              onClick={() => navigate(breadcrumb.href)} // Use navigate for programmatic routing
+                              onClick={() => navigate(breadcrumb.href)}
                             >
                               {breadcrumb.label}
                             </span>
@@ -445,9 +433,9 @@ export default function Index({ onChangePage }) {
                         style={{
                           backgroundColor: activeTab === index ? "#2654A1" : "",
                           color: activeTab === index ? "white" : "#AAA7A7",
-                          fontSize: "16px",
+                          fontSize: isMobile ? "12px" : "16px",
                           padding: "10px 15px",
-                          fontWeight: "650",
+                          fontWeight: isMobile ? "200" : "650",
                           width: "auto",
                           whiteSpace: "nowrap",
                         }}
@@ -467,11 +455,11 @@ export default function Index({ onChangePage }) {
                   )
                 )}
               </div>
-              <div className="shadow p-3 mb-5  bg-white rounded">
+              <div className="shadow p-3 mb-3 bg-white rounded">
                 <div className="row">
                   {sideMenu && (
                     <div
-                      className="col-lg-3"
+                      className="col-lg-3 col-sm-3"
                       style={{ overflowY: "auto", height: "65vh" }}
                     >
                       {renderSide(sideMenu)}

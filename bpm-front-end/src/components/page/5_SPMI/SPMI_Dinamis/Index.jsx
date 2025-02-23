@@ -154,8 +154,6 @@ export default function Index({ onChangePage }) {
 
         const arrResult = Object.values(result);
         const firstResult = arrResult[0];
-
-        // Set Menu Data
         setMenuData({
           idKdo: firstResult.idKdo,
           idMen: firstResult.idMen,
@@ -207,7 +205,6 @@ export default function Index({ onChangePage }) {
             break;
         }
       } catch (err) {
-        console.error("Error fetching kategori:", err);
         setError("Gagal mengambil data: " + err.message);
       } finally {
         setLoading(false);
@@ -275,14 +272,13 @@ export default function Index({ onChangePage }) {
 
       return menuHierarchy;
     } catch (err) {
-      // console.error(err);
       return [];
     }
   };
 
   const calculateDepth = (data) => {
     const getDepth = (items) => {
-      if (!items || items.length === 0) return 0; // No children, depth is 0
+      if (!items || items.length === 0) return 0; 
       return (
         1 + Math.max(...items.map((item) => getDepth(item.children || [])))
       );
@@ -340,7 +336,6 @@ export default function Index({ onChangePage }) {
   };
 
   const handleToggle = (item) => {
-    // Tampilkan konfirmasi menggunakan SweetAlert sebelum toggle status
     SweetAlert(
       "Konfirmasi",
       `Apakah Anda yakin ingin ${
@@ -350,10 +345,9 @@ export default function Index({ onChangePage }) {
       "Ya",
       null,
       "",
-      true // Tampilkan tombol batal
+      true 
     ).then((result) => {
       if (result) {
-        // Jika pengguna mengonfirmasi, hanya simpan idDok dan status yang diperbarui
         const updatedData = filteredData
           .filter((data) => data.idDok === item.Key)
           .map((data) => ({
@@ -374,7 +368,6 @@ export default function Index({ onChangePage }) {
               "success",
               "OK"
             ).then(() => {
-              // Panggil fetchEvents untuk memperbarui data tanpa reload halaman
               fetchDokumen();
             });
           })
@@ -472,12 +465,12 @@ export default function Index({ onChangePage }) {
   };
 
   const handleTabClick = (idKdo, item) => {
-    setSideMenu(item?.children || []); // Set children of the clicked item as the new side menu
-    setActiveTab(item); // Update the active tab
+    setSideMenu(item?.children || []);
+    setActiveTab(item);
     setActiveSide(item?.children[0] || null);
     setCurrentFilter((prevFilter) => ({
       ...prevFilter,
-      param1: idKdo, // Update the filter with the clicked tab's ID
+      param1: idKdo, 
     }));
   };
 
@@ -497,21 +490,12 @@ export default function Index({ onChangePage }) {
           <span
             onClick={() => {
               if (menu.children?.length > 0) {
-                // Toggle submenu visibility for items with children
                 setActiveSide(menu);
                 setCurrentFilter((prevFilter) => ({
                   ...prevFilter,
                   param1: menu.idKdo,
                 }));
-                // setSideMenu((prevSideMenu) =>
-                //   prevSideMenu.map((item) =>
-                //     item.idKdo === menu.idKdo
-                //       ? { ...item, isExpanded: !item.isExpanded }
-                //       : item
-                //   )
-                // );
               } else {
-                // Set the clicked menu as active for items without children
                 setActiveSide(menu);
                 setCurrentFilter((prevFilter) => ({
                   ...prevFilter,
@@ -543,7 +527,6 @@ export default function Index({ onChangePage }) {
           )}
         </div>
 
-        {/* Submenu Section */}
         {menu.children?.length > 0 && menu.isExpanded && (
           <div className="dropdown">
             {menu.children.map((sub) => (
@@ -556,7 +539,6 @@ export default function Index({ onChangePage }) {
                 }`}
                 style={{ paddingLeft: "16px", cursor: "pointer" }}
                 onClick={() => {
-                  // Set submenu as active
                   setActiveSide(sub);
                   setCurrentFilter((prevFilter) => ({
                     ...prevFilter,
@@ -582,9 +564,9 @@ export default function Index({ onChangePage }) {
       <div className="d-flex flex-column min-vh-100">
         <main className="flex-grow-1 p-3" style={{ marginTop: "60px" }}>
           <div className="d-flex flex-column">
-            <div className="px-5 mx-5">
+            <div className={isMobile ? "p-3" : "px-5 mx-5"}>
               <ImagesCarousel images={menuData.images} />
-              <div className="mt-5 mb-3">
+              <div className={isMobile ? "mt-3" : "mt-5"}>
                 <div className="d-flex justify-content-between align-items-center">
                   <h1
                     style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}
@@ -629,7 +611,7 @@ export default function Index({ onChangePage }) {
 
               <hr />
 
-              <div className="mt-5">
+              <div className="mt-3">
                 <div
                   className="nav nav-underline ms-2"
                   style={{ overflowX: "auto" }}
@@ -638,9 +620,9 @@ export default function Index({ onChangePage }) {
                 </div>
                 <div className="p-3 mb-5 bg-white rounded shadow">
                   <div className="row">
-                    <div className="col-lg-2">{renderSide(sideMenu)}</div>
-                    <div className="col">
-                      <div className="text-center">
+                    <div className="col-lg-2 col-sm-2 mb-3">{renderSide(sideMenu)}</div>
+                    <div className="col mb-3">
+                      <div className="text-center mb-3">
                         <h3
                           style={{
                             color: "#2654A1",

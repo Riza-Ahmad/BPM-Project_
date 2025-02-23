@@ -4,9 +4,6 @@ import { useIsMobile } from "../../../../util/useIsMobile";
 import { API_LINK } from "../../../../util/Constants";
 import { useFetch } from "../../../../util/useFetch";
 import { decodeHtml } from "../../../../util/DecodeHtml";
-import { SyncLoader } from "react-spinners";
-import { DOKUMEN_LINK } from "../../../../util/Constants";
-import SweetAlert from "../../../../util/SweetAlert";
 import ImagesCarousel from "../../../../part/ImagesCarousel";
 import DropDown from "../../../../part/Dropdown";
 import Breadcrumbs from "../../../../part/Breadcrumbs";
@@ -29,11 +26,6 @@ const arrSort = [
   { Value: "[jenisSta] DESC", Text: "Jenis Standar [↓]" },
   { Value: "[parentSta] ASC", Text: "Parent Standar [↑]" },
   { Value: "[parentSta] DESC", Text: "Parent Standar [↓]" },
-];
-
-const arrStatus = [
-  { Value: "Aktif", Text: "Aktif" },
-  { Value: "Tidak Aktif", Text: "Tidak Aktif" },
 ];
 
 const inisialisasiMenuData = {
@@ -78,8 +70,6 @@ export default function Index({ onChangePage }) {
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const [menuData, setMenuData] = useState(inisialisasiMenuData);
-  const [tabMenu, setTabMenu] = useState(inisialisasiSideMenuData);
-  const [sideMenu, setSideMenu] = useState(inisialisasiSideMenuData);
   const [activeTab, setActiveTab] = useState(null);
   const [activeSide, setActiveSide] = useState(null);
 
@@ -222,13 +212,11 @@ export default function Index({ onChangePage }) {
   }, [menuData]);
 
   const truncateText = (text, maxLength) => {
-    if (!text) return ""; // Handle null or undefined input
+    if (!text) return ""; 
     return text.length > maxLength
       ? text.substring(0, maxLength) + "..."
       : text;
   };
-
-  //   if (loading) return <Loading />;
 
   if (error) return <p className="text-center">{error}</p>;
   return (
@@ -236,9 +224,9 @@ export default function Index({ onChangePage }) {
       <div className="d-flex flex-column min-vh-100">
         <main className="flex-grow-1 p-3" style={{ marginTop: "60px" }}>
           <div className="d-flex flex-column">
-            <div className="px-5 mx-5">
+            <div className={isMobile ? "p-3" : "px-5 mx-5"}>
               <ImagesCarousel images={menuData.images} />
-              <div className="mt-5 mb-3">
+              <div className={isMobile ? "mt-3" : "mt-5"}>
                 <div className="d-flex justify-content-between align-items-center">
                   <h1
                     style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}
@@ -283,7 +271,7 @@ export default function Index({ onChangePage }) {
 
               {/* <hr /> */}
 
-              <div className="p-3 mb-5 bg-white">
+              <div className="mb-5 bg-white">
                 <div className="text-center">
                   <h3
                     style={{
@@ -312,7 +300,7 @@ export default function Index({ onChangePage }) {
                         />
                       </div>
 
-                      <div className="">
+                      <div className="flex-grow-1">
                         <Filter>
                           <DropDown
                             arrData={arrSort}
@@ -365,10 +353,6 @@ export default function Index({ onChangePage }) {
                             ),
                             100
                           ),
-                          // decodeHtml(decodeHtml(item.peningkatanSta)).replace(
-                          //   /<\/?[^>]+(>|$)/g,
-                          //   ""
-                          // ) || "-",
                           status: item.status,
                         }))}
                         actions={(row) => {

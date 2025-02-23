@@ -2,26 +2,16 @@ import React from "react";
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import PageTitleNav from "../../../../part/PageTitleNav";
-import TextField from "../../../../part/TextField";
 import HeaderForm from "../../../../part/HeaderText";
 import InputField from "../../../../part/InputField";
-import FileUpload from "../../../../part/FileUpload";
 import Button from "../../../../part/Button";
-import DropDown from "../../../../part/Dropdown";
 import { useFetch } from "../../../../util/useFetch";
 import TextArea from "../../../../part/TextArea";
-import { uploadFile } from "../../../../util/UploadFile";
 import { API_LINK } from "../../../../util/Constants";
-import DocUpload from "../../../../part/DocUpload";
 import { useIsMobile } from "../../../../util/useIsMobile";
 import Loading from "../../../../part/Loading";
 import SweetAlert from "../../../../util/SweetAlert";
 import { decodeHtml } from "../../../../util/DecodeHtml";
-
-const arrData = [
-  { Value: "Nasional", Text: "Nasional" },
-  { Value: "Pelampauan", Text: "Pelampauan" },
-];
 
 export default function Edit({ onChangePage }) {
   const title = "Tambah Data";
@@ -48,10 +38,6 @@ export default function Edit({ onChangePage }) {
   const [loading, setLoading] = useState(true);
   const namaStaRef = useRef();
   const peningkatanStaRef = useRef();
-  const tahunStaRef = useRef();
-  const urutanStaRef = useRef();
-  const jenisStaRef = useRef();
-  const parentStaRef = useRef();
 
   useEffect(() => {
     const fetchTahunDokumen = async () => {
@@ -145,7 +131,6 @@ export default function Edit({ onChangePage }) {
         );
       }
     } catch (error) {
-      console.error("Error:", error.message);
       SweetAlert("Gagal!", error.message, "error", "OK");
     }
   };

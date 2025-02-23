@@ -119,7 +119,6 @@ export default function Add({ onChangePage }) {
         ).then(() => onChangePage("index"));
       }
     } catch (error) {
-      console.error("Error:", error.message);
       SweetAlert("Gagal!", error.message, "error", "OK");
     }
   };
@@ -129,7 +128,6 @@ export default function Add({ onChangePage }) {
       <main className="flex-grow-1 mb-5" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
           <div className="container mb-3">
-            {/* Breadcrumbs and Page Title */}
             <div className="mt-4">
               <PageTitleNav
                 title={title}
@@ -137,8 +135,6 @@ export default function Add({ onChangePage }) {
                 onClick={() => onChangePage("index")}
               />
             </div>
-
-            {/* Main Content Section */}
             <div className="shadow p-5 mt-0 bg-white rounded">
               <HeaderForm label={"Formulir " + title} />
               <div className="row">

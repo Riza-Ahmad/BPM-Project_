@@ -7,7 +7,6 @@ import { decodeHtml } from "../../../util/DecodeHtml";
 import { SyncLoader } from "react-spinners";
 import { DOKUMEN_LINK } from "../../../util/Constants";
 import SweetAlert from "../../../util/SweetAlert";
-import ImagesCarousel from "../../../part/ImagesCarousel";
 import DropDown from "../../../part/Dropdown";
 import Breadcrumbs from "../../../part/Breadcrumbs";
 import Button from "../../../part/Button";
@@ -155,7 +154,6 @@ export default function Index({ onChangePage, isIkuIkt }) {
         const arrResult = Object.values(result);
         const firstResult = arrResult[0];
 
-        // Set Menu Data
         setMenuData({
           idKdo: firstResult.idKdo,
           idMen: firstResult.idMen,
@@ -217,7 +215,6 @@ export default function Index({ onChangePage, isIkuIkt }) {
             break;
         }
       } catch (err) {
-        console.error("Error fetching kategori:", err);
         setError("Gagal mengambil data: " + err.message);
       } finally {
         setLoading(false);
@@ -292,7 +289,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
 
   const calculateDepth = (data) => {
     const getDepth = (items) => {
-      if (!items || items.length === 0) return 0; // No children, depth is 0
+      if (!items || items.length === 0) return 0;
       return (
         1 + Math.max(...items.map((item) => getDepth(item.children || [])))
       );
@@ -350,7 +347,6 @@ export default function Index({ onChangePage, isIkuIkt }) {
   };
 
   const handleToggle = (item) => {
-    // Tampilkan konfirmasi menggunakan SweetAlert sebelum toggle status
     SweetAlert(
       "Konfirmasi",
       `Apakah Anda yakin ingin ${
@@ -360,10 +356,9 @@ export default function Index({ onChangePage, isIkuIkt }) {
       "Ya",
       null,
       "",
-      true // Tampilkan tombol batal
+      true 
     ).then((result) => {
       if (result) {
-        // Jika pengguna mengonfirmasi, hanya simpan idDok dan status yang diperbarui
         const updatedData = filteredData
           .filter((data) => data.idDok === item.Key)
           .map((data) => ({
@@ -384,7 +379,6 @@ export default function Index({ onChangePage, isIkuIkt }) {
               "success",
               "OK"
             ).then(() => {
-              // Panggil fetchEvents untuk memperbarui data tanpa reload halaman
               fetchDokumen();
             });
           })
@@ -494,12 +488,12 @@ export default function Index({ onChangePage, isIkuIkt }) {
   };
 
   const handleTabClick = (idKdo, item) => {
-    setSideMenu(item?.children || []); // Set children of the clicked item as the new side menu
-    setActiveTab(item); // Update the active tab
+    setSideMenu(item?.children || []); 
+    setActiveTab(item);
     setActiveSide(item?.children[0] || null);
     setCurrentFilter((prevFilter) => ({
       ...prevFilter,
-      param1: idKdo, // Update the filter with the clicked tab's ID
+      param1: idKdo,
     }));
   };
 
@@ -519,21 +513,12 @@ export default function Index({ onChangePage, isIkuIkt }) {
           <span
             onClick={() => {
               if (menu.children?.length > 0) {
-                // Toggle submenu visibility for items with children
                 setActiveSide(menu);
                 setCurrentFilter((prevFilter) => ({
                   ...prevFilter,
                   param1: menu.idKdo,
                 }));
-                // setSideMenu((prevSideMenu) =>
-                //   prevSideMenu.map((item) =>
-                //     item.idKdo === menu.idKdo
-                //       ? { ...item, isExpanded: !item.isExpanded }
-                //       : item
-                //   )
-                // );
               } else {
-                // Set the clicked menu as active for items without children
                 setActiveSide(menu);
                 setCurrentFilter((prevFilter) => ({
                   ...prevFilter,
@@ -565,7 +550,6 @@ export default function Index({ onChangePage, isIkuIkt }) {
           )}
         </div>
 
-        {/* Submenu Section */}
         {menu.children?.length > 0 && menu.isExpanded && (
           <div className="dropdown">
             {menu.children.map((sub) => (
@@ -578,7 +562,6 @@ export default function Index({ onChangePage, isIkuIkt }) {
                 }`}
                 style={{ paddingLeft: "16px", cursor: "pointer" }}
                 onClick={() => {
-                  // Set submenu as active
                   setActiveSide(sub);
                   setCurrentFilter((prevFilter) => ({
                     ...prevFilter,

@@ -2,16 +2,11 @@ import React from "react";
 import { useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import PageTitleNav from "../../../part/PageTitleNav";
-import TextField from "../../../part/TextField";
 import HeaderForm from "../../../part/HeaderText";
 import InputField from "../../../part/InputField";
-import FileUpload from "../../../part/FileUpload";
 import Button from "../../../part/Button";
-import DropDown from "../../../part/Dropdown";
 import { useFetch } from "../../../util/useFetch";
-import { uploadFile } from "../../../util/UploadFile";
 import { API_LINK } from "../../../util/Constants";
-import DocUpload from "../../../part/DocUpload";
 import { useIsMobile } from "../../../util/useIsMobile";
 import SweetAlert from "../../../util/SweetAlert";
 
@@ -152,7 +147,6 @@ export default function Add({ onChangePage }) {
         );
       }
     } catch (error) {
-      console.error("Error:", error.message);
       SweetAlert("Gagal!", error.message, "error", "OK");
     }
   };

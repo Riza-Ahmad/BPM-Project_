@@ -26,10 +26,6 @@ const Penetapan = lazy(() =>
 const Peningkatan = lazy(() =>
   import("../page/5_SPMI/siklus_spmi/peningkatan/Root")
 );
-const Pengendalian = lazy(() =>
-  import("../page/5_SPMI/siklus_spmi/pengendalian/Root")
-);
-const Evaluasi = lazy(() => import("../page/5_SPMI/siklus_spmi/evaluasi/Root"));
 const SPMI_Dinamis = lazy(() => import("../page/5_SPMI/SPMI_Dinamis/Root"));
 const Dokumen = lazy(() => import("../page/5_SPMI/dokumen_spmi/Root"));
 const DokumenE = lazy(() => import("../page/6_SPME/Dokumen/Root"));
@@ -44,7 +40,6 @@ const PanduanAkreditasi = lazy(() =>
   import("../page/6_SPME/PanduanAkreditasi/Root")
 );
 const Standar = lazy(() => import("../page/7_IKU&IKT/Standar/Root"));
-const IKUIKT = lazy(() => import("../page/7_IKU&IKT/IKUIKT/Root"));
 const Capaian = lazy(() => import("../page/7_IKU&IKT/Capaian/Root"));
 const IndikatorKinerja = lazy(() =>
   import("../page/7_IKU&IKT/IndikatorKinerja/Root")
@@ -52,7 +47,7 @@ const IndikatorKinerja = lazy(() =>
 const Kriteria = lazy(() => import("../page/8_Audit/Kriteria/Root"));
 const Auditee = lazy(() => import("../page/8_Audit/BagianAuditee/Root"));
 const KategoriDokumen = lazy(() =>
-  import("../page/MasterKategoriDokumen/Root")
+  import("../page/5_SPMI/MasterKategoriDokumen/Root")
 );
 const Peraturan = lazy(() =>
   import("../page/10_Peraturan/ms_kebijakanPeraturan/Root")
@@ -69,7 +64,6 @@ const KriteriaSurvei = lazy(() =>
 const SkalaSurvei = lazy(() => import("../page/9_Survei/Skala_Penilaian/Root"));
 const NotFound = lazy(() => import("../page/not-found/Index"));
 
-// Define route list
 const routeList = [
   {
     path: "/login",
@@ -126,16 +120,6 @@ const routeList = [
     path: "/spmi/siklus/peningkatan/*",
     element: <Peningkatan />,
   },
-  // {
-  //   path: "/spmi/siklus/pengendalian/*",
-  //   element: <Pengendalian />,
-  //   protected: true,
-  // },
-  // {
-  //   path: "/spmi/siklus/evaluasi/*",
-  //   element: <Evaluasi />,
-  //   protected: true,
-  // },
   {
     path: "/spmi/dokumen/*",
     element: <Dokumen />,

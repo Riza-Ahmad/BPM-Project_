@@ -1,7 +1,6 @@
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import ScrollToTop from "../../../part/ScrollToTop";
 import ProtectedRoute from "../../../util/ProtectedRoute";
-import { ROOT_LINK } from "../../../util/Constants";
 import Index from "./Index";
 import Add from "./Add";
 import Edit from "./Edit";
@@ -39,7 +38,6 @@ export default function AkreditasiProdi() {
     <>
       <ScrollToTop />
       <Routes>
-        {/* Public Route */}
         <Route
           path="/"
           element={

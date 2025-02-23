@@ -222,7 +222,7 @@ export default function Index({ onChangePage }) {
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "60px" }}>
         <div className="d-flex flex-column">
-          <div className="p-3 m-5 mt-0 mb-0">
+          <div className={isMobile ? "mt-3 p-2" : "p-3 m-5 mt-0 mb-0"}>
             <h1 style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}>
               {title}
             </h1>
@@ -230,7 +230,7 @@ export default function Index({ onChangePage }) {
           </div>
 
           {role === "ROL01" ? (
-            <div className="p-3" style={{ marginLeft: "50px" }}>
+            <div className={isMobile ? "p-3" : "p-3 ms-5 "}>
               <Button
                 iconName="add"
                 classType="primary"

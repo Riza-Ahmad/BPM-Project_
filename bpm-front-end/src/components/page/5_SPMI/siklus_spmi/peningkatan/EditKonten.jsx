@@ -141,20 +141,13 @@ export default function EditKonten({ onChangePage }) {
     try {
       const folderName = "Dokumen";
       const filePrefix = "FOTO";
-
-      // Filter new files from images
       const newFiles = images.filter((img) => img instanceof File);
-
-      // Determine update status for each image
       const updated = images.map((item) => (item !== "" ? "updated" : "still"));
 
       let uploadedPaths = [];
       if (newFiles.length > 0) {
-        // Prepare FormData for upload
         const photos = new FormData();
         newFiles.forEach((file) => photos.append("files", file));
-
-        // Upload new files
         const uploadResponse = await fetch(
           `${API_LINK}/Upload/UploadFiles?folderName=${encodeURIComponent(
             folderName
@@ -174,7 +167,6 @@ export default function EditKonten({ onChangePage }) {
         uploadedPaths = await uploadResponse.json();
       }
 
-      // Map final image paths using previous and uploaded paths
       const prevPaths = [
         formData.foto1Kdo,
         formData.foto2Kdo,
@@ -184,7 +176,6 @@ export default function EditKonten({ onChangePage }) {
         status === "updated" ? uploadedPaths.shift() : prevPaths[index]
       );
 
-      // Construct the payload for the update request
       const dokData = {
         idKdo: formData.idKdo,
         idMen: parseInt(idMenRef.current.value, 10),
@@ -194,10 +185,8 @@ export default function EditKonten({ onChangePage }) {
         foto2: finalImagePaths[1],
         foto3: finalImagePaths[2],
         urutanKdo: parseInt(urutanKdoRef.current.value, 10),
-        modifBy: "User404",
       };
 
-      // Submit updated data
       const createResponse = await useFetch(
         `${API_LINK}/MasterKategoriDokumen/EditDataKategoriDokumenHeader`,
         dokData,
@@ -208,11 +197,9 @@ export default function EditKonten({ onChangePage }) {
         throw new Error("Gagal memperbarui data");
       }
 
-      // Success notification
       await SweetAlert("Berhasil!", "Data berhasil diubah.", "success", "OK");
       onChangePage("index", { idMenu: idMenu });
     } catch (error) {
-      console.error("Error:", error.message);
       SweetAlert("Gagal!", error.message, "error", "OK");
     }
   };
@@ -221,8 +208,7 @@ export default function EditKonten({ onChangePage }) {
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="container d-flex flex-column">
-          {/* Breadcrumbs and Page Title */}
-          <div className="p-3">
+          <div className={isMobile ? "p-0" : "p-3"}>
             <PageTitleNav
               title="Edit Data"
               breadcrumbs={breadcrumbs}
@@ -230,7 +216,6 @@ export default function EditKonten({ onChangePage }) {
             />
           </div>
           <div className={isMobile ? "m-0" : "m-3"}>
-            {/* Main Content Section */}
             {loading ? (
               <Loading />
             ) : (
@@ -247,7 +232,7 @@ export default function EditKonten({ onChangePage }) {
                   label="Nama Kategori"
                   value={formData.namaKdo}
                   onChange={handleChange}
-                  isRequired={true}
+                  isRequired={false}
                   isDisabled={true}
                   name="namaKdo"
                   type="text"

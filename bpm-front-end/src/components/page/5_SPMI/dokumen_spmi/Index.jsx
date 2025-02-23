@@ -41,12 +41,21 @@ export default function Index({ onChangePage }) {
   }
   const location = useLocation();
   const isMobile = useIsMobile();
+  const idMenu = location.state?.idMenu;
 
   const [pageSize] = useState(10);
   const [pageCurrent, setPageCurrent] = useState(1);
   const [totalData, setTotalData] = useState(0);
   const [filteredData, setFilteredData] = useState([]);
-  const idMenu = location.state?.idMenu;
+  const [modalType, setModalType] = useState("");
+  const [detail, setDetail] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [breadcrumbs, setBreadcrumbs] = useState([]);
+  const [arrTahun, setArrTahun] = useState([]);
+  const { jenis } = useParams();
+  const ModalRef = useRef();
+  const title = jenis.toUpperCase() || "Title";
 
   const [currentFilter, setCurrentFilter] = useState({
     param1: idMenu,
@@ -57,17 +66,6 @@ export default function Index({ onChangePage }) {
     param6: pageCurrent,
     param7: "[judulDok] ASC",
   });
-
-  const [modalType, setModalType] = useState("");
-  const [detail, setDetail] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [breadcrumbs, setBreadcrumbs] = useState([]);
-  const [arrTahun, setArrTahun] = useState([]);
-  const { jenis } = useParams();
-  const ModalRef = useRef();
-
-  const title = jenis.toUpperCase();
 
   useEffect(() => {
     const fetchTahunDokumen = async () => {
@@ -135,7 +133,6 @@ export default function Index({ onChangePage }) {
 
   useEffect(() => {
     let tempBradcrumps = [{ label: "SPMI" }, { label: "Dokumen SPMI" }];
-
     if (
       !tempBradcrumps.some(
         (item) =>
@@ -251,7 +248,6 @@ export default function Index({ onChangePage }) {
       SweetAlert("Peringatan", "ID file tidak tersedia.", "warning");
       return;
     }
-
     try {
       const foundItem = filteredData.find((obj) => obj.idDok === id);
       const namaInformasi =
@@ -320,14 +316,14 @@ export default function Index({ onChangePage }) {
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "60px" }}>
         <div className="d-flex flex-column">
-          <div className="p-3 m-5 mt-0 mb-0">
+          <div className={isMobile ? "mt-3 p-2" : "p-3 m-5 mt-0 mb-0"}>
             <h1 style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}>
               {"DOKUMEN " + title}
             </h1>
             <Breadcrumbs breadcrumbs={breadcrumbs} />
           </div>
           {role === "ROL01" ? (
-            <div className="p-3" style={{ marginLeft: "50px" }}>
+            <div className={isMobile ? "p-3" : "p-3 ms-5 "}>
               <Button
                 iconName="add"
                 classType="primary"

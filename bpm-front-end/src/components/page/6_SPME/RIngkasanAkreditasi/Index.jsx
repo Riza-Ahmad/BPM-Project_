@@ -6,16 +6,19 @@ import { Bar } from "react-chartjs-2";
 import "chart.js/auto";
 import HeaderText from "../../../part/HeaderText";
 import Text from "../../../part/Text";
+import { useIsMobile } from "../../../util/useIsMobile";
 import { useLocation } from "react-router-dom";
 import { decodeHtml } from "../../../util/DecodeHtml";
 import Button from "../../../part/Button";
+import Breadcrumbs from "../../../part/Breadcrumbs";
 import Cookies from "js-cookie";
 
 export default function Akreditasi({ onChangePage }) {
   const location = useLocation();
   const idMenu = location.state?.idMenu;
   const activeUser = Cookies.get("activeUser");
-  let role = ""; // Jika undefined, gunakan nilai default
+  const isMobile = useIsMobile();
+  let role = "";
   let roleNama = "";
   let namaPengguna = "";
   if (activeUser) {
@@ -23,7 +26,6 @@ export default function Akreditasi({ onChangePage }) {
     roleNama = JSON.parse(activeUser).Role;
     namaPengguna = JSON.parse(activeUser).Nama;
   }
-  const [institusiData, setInstitusiData] = useState(null);
   const [menuData, setMenuData] = useState(null);
   const [prodiData, setProdiData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -54,9 +56,8 @@ export default function Akreditasi({ onChangePage }) {
     fetchMenu();
   }, [location.state?.idMenu]);
 
-  const title = "Status Akreditasi";
   const normalizePredikat = (predikat) => {
-    if (!predikat) return "BELUM TERAKREDITASI"; // Jika data null atau tidak ada
+    if (!predikat) return "BELUM TERAKREDITASI";
     const normalized = predikat.trim().toUpperCase();
     switch (normalized) {
       case "A":
@@ -72,26 +73,13 @@ export default function Akreditasi({ onChangePage }) {
       case "BAIK":
         return "BAIK";
       default:
-        return "BELUM TERAKREDITASI"; // Default jika tidak cocok
+        return "BELUM TERAKREDITASI";
     }
   };
 
   useEffect(() => {
     const fetchAkreditasiData = async () => {
       try {
-        // Fetch data akreditasi institusi
-        const responseInstitusi = await useFetch(
-          `${API_LINK}/MasterAkreditasi/GetAkreditasiInstitusiLatest`,
-          {},
-          "POST"
-        );
-        if (responseInstitusi && responseInstitusi.length > 0) {
-          setInstitusiData(responseInstitusi[0]);
-        } else {
-          setInstitusiData(null);
-          // setError("Data akreditasi institusi tidak tersedia.");
-        }
-
         const responseProdi = await useFetch(
           `${API_LINK}/MasterAkreditasi/GetAkreditasiProdiForChart`,
           {},
@@ -118,16 +106,12 @@ export default function Akreditasi({ onChangePage }) {
 
   const getProdiByPredikat = (predikat) => {
     const normalizedPredikat = normalizePredikat(predikat);
-    // Ambil nama program studi (namaAkr) yang sesuai dengan predikat
     return prodiData
       .filter(
         (item) => normalizePredikat(item.peringkatAkr) === normalizedPredikat
       )
-      .map((item) => item.namaAkr); // Mengembalikan hanya nama program studi
+      .map((item) => item.namaAkr);
   };
-  // const getProdiByPredikat = (predikat) => {
-  //     return prodiData.filter((item) => item.peringkatAkr === predikat).map((item) => item.namaAkr);
-  //   };
 
   const chartData = {
     labels,
@@ -136,7 +120,6 @@ export default function Akreditasi({ onChangePage }) {
         label: "Jumlah Program Studi",
         data: labels.map((label) => getProdiByPredikat(label).length),
         backgroundColor: labels.map((_, index) => {
-          // Array of unique colors for each bar
           const colors = [
             "#002147",
             "#00509E",
@@ -146,9 +129,9 @@ export default function Akreditasi({ onChangePage }) {
             "#F0F8FF",
             "#001F3F",
           ];
-          return colors[index % colors.length]; // Cycle through the colors array
+          return colors[index % colors.length];
         }),
-        barThickness: 100,
+        barThickness: isMobile ? 40 : 150,
       },
     ],
   };
@@ -170,23 +153,33 @@ export default function Akreditasi({ onChangePage }) {
       },
       legend: {
         display: false,
-        // labels: {
-        //   color: "rgb(255, 99, 132)",
-        // },
         position: "top",
+        labels: {
+          font: {
+            size: isMobile ? 8 : 16,
+          },
+        },
       },
     },
     responsive: true,
     maintainAspectRatio: false,
     scales: {
       x: {
-        categoryPercentage: 0.5, // Mengatur persentase lebar kategori
-        barPercentage: 0.5, // Mengatur persentase lebar batang dalam kategori
+        categoryPercentage: 0.5,
+        barPercentage: 0.5,
+        ticks: {
+          font: {
+            size: isMobile ? 8 : 16,
+          },
+        },
       },
       y: {
         ticks: {
-          beginAtZero: true, // Memulai skala dari 0
-          stepSize: 1, // Menampilkan angka bulat dengan langkah 1
+          beginAtZero: true,
+          stepSize: 1,
+          font: {
+            size: isMobile ? 8 : 16,
+          },
         },
       },
     },
@@ -208,47 +201,50 @@ export default function Akreditasi({ onChangePage }) {
       >
         <div className="d-flex flex-column mt-1">
           <div className="container mb-3">
-            <div className="d-flex justify-content-between align-items-center">
-              <h1 style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}>
-                {menuData?.namaKdo
-                  ? decodeHtml(menuData.namaKdo)
-                  : "Page Title"}
-              </h1>
-              {role === "ROL01" ? (
-                <Button
-                  classType="btn btn-primary"
-                  title="Edit Cover"
-                  label="Edit Cover"
-                  onClick={() =>
-                    onChangePage("editKonten", {
-                      breadcrumbs: breadcrumbs,
-                      idData: menuData.idKdo,
-                      idMenu: idMenu,
-                    })
-                  }
+            <div className="row">
+              <div className="col-sm-10">
+                <h1
+                  style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}
+                >
+                  {menuData?.namaKdo
+                    ? decodeHtml(menuData.namaKdo)
+                    : "Page Title"}
+                </h1>
+                <Breadcrumbs
+                  breadcrumbs={[
+                    { label: "SPME" },
+                    { label: "Status Akreditasi" },
+                    { label: "Ringkasan" },
+                  ]}
                 />
+              </div>
+              {role === "ROL01" ? (
+                <div className="col-sm-2">
+                  <Button
+                    classType="btn btn-primary"
+                    title="Edit Cover"
+                    label="Edit Cover"
+                    onClick={() =>
+                      onChangePage("editKonten", {
+                        breadcrumbs: breadcrumbs,
+                        idData: menuData.idKdo,
+                        idMenu: idMenu,
+                      })
+                    }
+                  />
+                </div>
               ) : (
                 ""
               )}
             </div>
             <div className="rounded-4 shadow bg-primary bg-gradient text-white mt-4 mb-5">
               <div className="p-4 mx-2">
-                {/* <HeaderText
-                  label={`Politeknik Astra Memperoleh Predikat ${
-                    institusiData?.peringkatAkr || "-"
-                  }`}
-                  alignText="left"
-                  warna="#2654A1b"
-                  fontWeight="650"
-                  ukuran="2rem"
-                /> */}
                 <Text
                   warna="white"
                   isi={menuData.deskripsiKdo}
                   ukuran="1.2rem"
                 />
               </div>
-              {/* ${institusiData.akr_tahun_SK || "Tidak Tersedia"} */}
             </div>
             <div className="rounded-4 shadow mt-5">
               <div className="p-4 mx-2">
@@ -257,11 +253,11 @@ export default function Akreditasi({ onChangePage }) {
                   alignText="left"
                   warna="#2654A1b"
                   fontWeight="650"
-                  ukuran="2rem"
+                  ukuran={isMobile ? "1.5rem" : "2rem"}
                 />
-                <div>
+                <div style={{ overflowX: "auto", width: "100%" }}>
                   <Bar
-                    style={{ minHeight: "40vh" }}
+                    style={{ minHeight: "40vh", minWidth: "100%" }}
                     data={chartData}
                     options={chartOptions}
                   />
@@ -269,7 +265,7 @@ export default function Akreditasi({ onChangePage }) {
               </div>
             </div>
             <div className="mt-5">
-              <p className="fs-6 fst-italic">
+              <p className="fs-6 fw-100 fst-italic">
                 * Dokumen SK dan Sertifikat Akreditasi dapat diunduh pada menu
                 SPME / Dokumen SPME
               </p>

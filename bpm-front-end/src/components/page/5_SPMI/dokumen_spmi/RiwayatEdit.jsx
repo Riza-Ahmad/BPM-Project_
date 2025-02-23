@@ -62,7 +62,7 @@ export default function RiwayatEdit({ onChangePage }) {
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          <div className="m-3 mb-0">
+          <div className={isMobile ? "p-0" : "p-3"}>
             <PageTitleNav
               title="Riwayat Pembaharuan Dokumen"
               breadcrumbs={location.state?.breadcrumbs}

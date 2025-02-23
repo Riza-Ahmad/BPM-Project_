@@ -17,7 +17,6 @@ export default function Peningkatan() {
   const location = useLocation();
   const currentPath = location.pathname;
 
-  // Handler for page navigation
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
       case "index":
@@ -43,7 +42,6 @@ export default function Peningkatan() {
     <>
       <ScrollToTop />
       <Routes>
-        {/* Public Route */}
         <Route
           path="/"
           element={
