@@ -83,7 +83,7 @@ export default function Preview({ onChangePage }) {
         console.log("Hallo Pertanyaan :", { id: idData, nama: username });
         const data = await useFetch(
           `${API_LINK}/TransaksiSurvei/GetDataPertanyaanTransaksiSurveiByIdAdminxx`,
-          { id: idData, nama: username },
+          { id: idData, role: role },
           "POST"
         );
 
@@ -175,7 +175,7 @@ export default function Preview({ onChangePage }) {
     };
 
     const fetchTemplateDataChart = async () => {
-      const body = { idData: idData };
+      const body = { idData: idData, role: role };
       setLoading(true);
 
       try {
@@ -189,6 +189,7 @@ export default function Preview({ onChangePage }) {
           setDataBarChart([]);
         } else {
           const fetchedData = result;
+
           console.log("Data BarChart : ", fetchedData);
           setDataBarChart(fetchedData);
         }
@@ -313,9 +314,14 @@ export default function Preview({ onChangePage }) {
               <BarChart
                 labels={formData.namaTemplateSurvei}
                 sourceData={dataBarChart}
+                role={"ROL01"}
               />
 
-              <TabPreviewJawaban idTransaksi={idData} pertanyaan={pertanyaan} />
+              <TabPreviewJawaban
+                idTransaksi={idData}
+                pertanyaan={pertanyaan}
+                role={role}
+              />
               {/* <PieChart /> */}
               {/* <TabPreviewSurvei
                 header={kriteria}

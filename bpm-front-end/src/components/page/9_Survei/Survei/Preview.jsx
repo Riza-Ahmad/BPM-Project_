@@ -80,7 +80,7 @@ export default function Preview({ onChangePage }) {
         console.log("Hallo Pertanyaan :", { id: idData, nama: username });
         const data = await useFetch(
           `${API_LINK}/TransaksiSurvei/GetDataPertanyaanTransaksiSurveiByIdAdminxx`,
-          { id: idData, nama: username },
+          { id: idData, role: role },
           "POST"
         );
 

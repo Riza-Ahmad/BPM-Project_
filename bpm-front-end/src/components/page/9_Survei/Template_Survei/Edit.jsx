@@ -16,13 +16,12 @@ import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
 import HeaderText from "../../../part/HeaderText";
 import { decodeHtml } from "../../../util/DecodeHtml";
+import { param } from "jquery";
 
 // Opsi sorting untuk pertanyaan di modal
 const arrSort = [
   { Value: "namaPertanyaan ASC", Text: "Nama Pertanyaan [↑]" },
   { Value: "namaPertanyaan DESC", Text: "Nama Pertanyaan [↓]" },
-  { Value: "tanggalBuat ASC", Text: "Waktu Dibuat [↑]" },
-  { Value: "tanggalBuat DESC", Text: "Waktu Dibuat [↓]" },
 ];
 
 export default function EditTemplateSurvei({ onChangePage }) {
@@ -107,7 +106,7 @@ export default function EditTemplateSurvei({ onChangePage }) {
       } else {
         setKsrOptions(
           result.map((item) => ({
-            value: item.idKri,
+            Value: item.idKri,
             Text: item.namaKri,
           }))
         );
@@ -132,7 +131,7 @@ export default function EditTemplateSurvei({ onChangePage }) {
       if (skpResponse && Array.isArray(skpResponse)) {
         setSkpOptions(
           skpResponse.map((item) => ({
-            value: item.skp_id,
+            Value: item.skp_id,
             Text: `${item.skp_skala} (${item.skp_deskripsi})`,
           }))
         );
@@ -217,6 +216,8 @@ export default function EditTemplateSurvei({ onChangePage }) {
   const fetchPertanyaanBank = async () => {
     setIsLoading(true);
     const idBankArray = pertanyaan.map((item) => item.idBank);
+    console.log("ID Value Skala: ", selectedSkala);
+    console.log("ID Value Kriteria: ", selectedKriteria);
     try {
       const result = await useFetch(
         `${API_LINK}/MasterPertanyaan/GetDataBankPertanyaanSurvei`,
@@ -226,6 +227,8 @@ export default function EditTemplateSurvei({ onChangePage }) {
           param3: pageSize,
           param4: pageCurrent,
           param5: idBankArray,
+          param6: selectedKriteria,
+          param7: selectedSkala,
           // Tambahkan parameter lain jika diperlukan (misal status atau kriteria)
         },
         "POST"
@@ -254,7 +257,14 @@ export default function EditTemplateSurvei({ onChangePage }) {
     if (showModal) {
       fetchPertanyaanBank();
     }
-  }, [searchKeyword, selectedSort, pageCurrent, showModal]);
+  }, [
+    searchKeyword,
+    selectedSort,
+    pageCurrent,
+    showModal,
+    selectedKriteria,
+    selectedSkala,
+  ]);
 
   // // Panggil fetch opsi dan data template saat komponen mount
   useEffect(() => {
@@ -447,6 +457,12 @@ export default function EditTemplateSurvei({ onChangePage }) {
         );
       }
     }
+  };
+
+  const resetFilter = () => {
+    setSearchKeyword("");
+    setSelectedSkala("");
+    setSelectedKriteria("");
   };
 
   return (
@@ -678,6 +694,13 @@ export default function EditTemplateSurvei({ onChangePage }) {
                               value={selectedSkala}
                               forInput="skalaPenilaian"
                               onChange={(e) => setSelectedSkala(e.target.value)}
+                            />
+
+                            <Button
+                              classType="btn btn-secondary"
+                              title="Reset Filter"
+                              label="Reset"
+                              onClick={resetFilter}
                             />
                           </Filter>
                         </div>

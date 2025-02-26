@@ -20,7 +20,12 @@ ChartJS.register(
   Legend
 );
 
-const ProductPerformance = ({ labels, sourceData, maxHeight = "100%" }) => {
+const ProductPerformance = ({
+  labels,
+  sourceData,
+  maxHeight = "100%",
+  role = null,
+}) => {
   // Pastikan sourceData berbentuk array
   const dataArray = Array.isArray(sourceData) ? sourceData : [];
 
@@ -39,26 +44,49 @@ const ProductPerformance = ({ labels, sourceData, maxHeight = "100%" }) => {
   console.log("Source Data :", sourceData);
   console.log("Labellss :", labelss);
 
-  // Data chart
+  // Ambil nilai tertinggi dari dataset
+  const allValues = dataArray.flatMap((item) =>
+    role === "ROL01"
+      ? [
+          item.totalSurvei,
+          item.totalStatusSudahTerjawab,
+          item.totalStatusBelumTerjawab,
+        ]
+      : [item.totalStatusSudahTerjawab]
+  );
+
+  const maxValue = Math.max(...allValues, 0); // Ambil nilai tertinggi
+  const yMax = maxValue > 0 ? maxValue + 5 : 10; // Jika maxValue > 0, tambahkan 5, jika tidak, set default 10
+
+  // Data chart sesuai dengan role
   const productPerformanceData = {
     labels: labelss,
-    datasets: [
-      {
-        label: "Total Responden",
-        data: dataArray.map((item) => item.totalSurvei),
-        backgroundColor: "rgb(128, 111, 255)",
-      },
-      {
-        label: "Sudah Terjawab",
-        data: dataArray.map((item) => item.totalStatusSudahTerjawab),
-        backgroundColor: "rgba(10, 57, 129, 1)",
-      },
-      {
-        label: "Belum Terjawab",
-        data: dataArray.map((item) => item.totalStatusBelumTerjawab),
-        backgroundColor: "rgba(128, 196, 233, 1)",
-      },
-    ],
+    datasets:
+      role === "ROL01"
+        ? [
+            {
+              label: "Total Responden",
+              data: dataArray.map((item) => item.totalSurvei),
+              backgroundColor: "rgb(128, 111, 255)",
+            },
+            {
+              label: "Sudah Terjawab",
+              data: dataArray.map((item) => item.totalStatusSudahTerjawab),
+              backgroundColor: "rgba(10, 57, 129, 1)",
+            },
+            {
+              label: "Belum Terjawab",
+              data: dataArray.map((item) => item.totalStatusBelumTerjawab),
+              backgroundColor: "rgba(128, 196, 233, 1)",
+            },
+          ]
+        : [
+            {
+              label: "Sudah Terjawab",
+              data: dataArray.map((item) => item.totalStatusSudahTerjawab),
+              backgroundColor: "rgba(10, 57, 129, 1)",
+            },
+          ],
   };
 
   // Opsi chart
@@ -77,13 +105,23 @@ const ProductPerformance = ({ labels, sourceData, maxHeight = "100%" }) => {
       x: {
         ticks: {
           autoSkip: false,
-          maxRotation: 0, // Jangan miringkan teks
+          maxRotation: 0,
           minRotation: 0,
           font: {
             size: 12,
           },
-          callback: function (value, index, values) {
-            return this.getLabelForValue(value).split("\n"); // Memecah label ke bawah
+          callback: function (value) {
+            return this.getLabelForValue(value).split("\n");
+          },
+        },
+      },
+      y: {
+        beginAtZero: true,
+        suggestedMax: yMax, // Set nilai maksimum Y
+        ticks: {
+          stepSize: 1, // Paksa Y agar hanya bilangan bulat
+          callback: function (value) {
+            return Number.isInteger(value) ? value : null; // Hanya tampilkan bilangan bulat
           },
         },
       },
@@ -108,7 +146,7 @@ const ProductPerformance = ({ labels, sourceData, maxHeight = "100%" }) => {
         <div
           style={{
             minWidth:
-              labelss.length > 4 ? `${labelss.length * 150}px` : "800px", // Lebar chart mengikuti jumlah label
+              labelss.length > 4 ? `${labelss.length * 150}px` : "800px",
             height: "400px",
           }}
         >
