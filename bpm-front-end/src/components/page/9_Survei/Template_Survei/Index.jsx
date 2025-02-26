@@ -364,9 +364,9 @@ export default function Template_Survei({ onChangePage }) {
                   item.Status === "Draft"
                     ? ["Detail", "Edit", "Delete", "Preview", "Final"]
                     : item.Status === "Final"
-                    ? ["Detail", "Preview", "Toggle"] // Actions for 'Final' status
+                    ? ["Detail", "Preview"] // Actions for 'Final' status
                     : item.Status === "Tidak Aktif"
-                    ? ["Detail", "Preview", "Toggle"] // Actions for 'Tidak Aktif' status
+                    ? ["Detail", "Preview"] // Actions for 'Tidak Aktif' status
                     : [] // Default case if needed
               }
               onEdit={(item) => {

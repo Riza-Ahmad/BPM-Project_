@@ -91,7 +91,7 @@ const TabPreviewSurvei = ({
     if (arrData.skalaTipe === "RadioButton") {
       return (
         <RadioButton
-          id="Pilih salah satu yang cocok!"
+          id="Pilih salah satu yang Sesuai!"
           label="Jawaban"
           arrData={arrData.arrData}
           name={`jawaban-${arrData.idPertanyaan}`}

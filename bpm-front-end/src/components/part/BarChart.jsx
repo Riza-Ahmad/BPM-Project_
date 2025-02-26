@@ -49,12 +49,12 @@ const ProductPerformance = ({ labels, sourceData, maxHeight = "100%" }) => {
         backgroundColor: "rgb(128, 111, 255)",
       },
       {
-        label: "Sudah Terjawab",
+        label: "Sudah Menjawab",
         data: dataArray.map((item) => item.totalStatusSudahTerjawab),
         backgroundColor: "rgba(10, 57, 129, 1)",
       },
       {
-        label: "Belum Terjawab",
+        label: "Belum Menjawab",
         data: dataArray.map((item) => item.totalStatusBelumTerjawab),
         backgroundColor: "rgba(128, 196, 233, 1)",
       },

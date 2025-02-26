@@ -147,7 +147,7 @@ const TabPreviewSurvei = ({
       return (
         <RadioButton
           id="jawaban"
-          label="Pilih salah satu yang cocok!"
+          label="Pilih salah satu yang sesuai!"
           arrData={arrData.arrData}
           name={`jawaban-${arrData.idPertanyaan}`}
           value={formData[arrData.idPertanyaan]?.jawaban || ""}
@@ -176,7 +176,7 @@ const TabPreviewSurvei = ({
       return (
         <CheckBox
           ref={CheckBoxRef}
-          label="Bebas pilih lebih dari satu!"
+          label="Jawaban boleh lebih dari satu!"
           arrData={arrData.arrData}
           name={`jawaban-${arrData.idPertanyaan}`}
           values={formData[arrData.idPertanyaan]?.jawaban || []}

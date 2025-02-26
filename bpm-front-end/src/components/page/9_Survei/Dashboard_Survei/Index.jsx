@@ -94,7 +94,7 @@ export default function Dashboard_Survei({ onChangePage }) {
             style={{ marginLeft: "50px" }}
           >
             <div className="row mt-4">
-              <div className="col-12">
+              <div className="col-12 mb-5">
                 <div className="form-control">
                   <BarChart
                     labels={"Survei Tenaga Pendidik All"}
@@ -102,7 +102,7 @@ export default function Dashboard_Survei({ onChangePage }) {
                   />
                 </div>
               </div>
-              <div className="col-12">
+              <div className="col-12 mb-5">
                 <div className="form-control">
                   <BarChart
                     labels={"Survei Dosen All"}
