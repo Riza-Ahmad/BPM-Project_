@@ -12,7 +12,7 @@ import * as XLSX from "xlsx";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 
-const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [] }) => {
+const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [], role = null }) => {
   const [selectedQuestion, setSelectedQuestion] = useState("");
   const [selectedQuestionName, setSelectedQuestionName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -236,18 +236,20 @@ const TabPreviewSurvei = ({ idTransaksi, pertanyaan = [] }) => {
 
   return (
     <div className="border rounded-3 shadow-sm p-3 mb-3">
-      <div className="row">
-        <div className="p-3">
-          <Button
-            iconName="download"
-            classType="success"
-            type="submit"
-            label="Ekspor Jawaban Survei"
-            width="15rem"
-            onClick={handleDownload}
-          />
+      {role === "ROL01" ? (
+        <div className="row">
+          <div className="p-3">
+            <Button
+              iconName="download"
+              classType="success"
+              type="submit"
+              label="Ekspor Jawaban Survei"
+              width="15rem"
+              onClick={handleDownload}
+            />
+          </div>
         </div>
-      </div>
+      ) : null}
       {/* Dropdown untuk memilih pertanyaan */}
       <div
         className="card p-3 text-white d-flex flex-column"

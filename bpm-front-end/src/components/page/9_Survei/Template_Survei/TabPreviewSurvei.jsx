@@ -97,6 +97,7 @@ const TabPreviewSurvei = ({
           name={`jawaban-${arrData.idPertanyaan}`}
           onChange={undefined}
           isRequired="true"
+          col="col-12"
           disabled={true}
         />
       );
@@ -108,6 +109,7 @@ const TabPreviewSurvei = ({
           initialValue={formData.Isi}
           onChange={undefined}
           isRequired="true"
+          col="col-12"
           disabled={true}
         />
       );
@@ -130,6 +132,7 @@ const TabPreviewSurvei = ({
           initialValue={formData.Isi}
           onChange={undefined}
           isRequired="true"
+          col="col-12"
           disabled={true}
         />
       );

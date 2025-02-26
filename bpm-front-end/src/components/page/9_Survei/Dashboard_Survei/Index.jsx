@@ -6,9 +6,22 @@ import { useFetch } from "../../../util/useFetch";
 import BarChart from "../../../part/BarChart";
 import Loading from "../../../part/Loading";
 import Breadcrumbs from "../../../part/Breadcrumbs";
+import Cookies from "js-cookie";
 
 const breadcrumbs = [{ label: "Dashboard Survei" }];
 export default function Dashboard_Survei({ onChangePage }) {
+  const activeUser = Cookies.get("activeUser");
+  let role = ""; // Jika undefined, gunakan nilai default
+  let roleNama = "";
+  let namaPengguna = "";
+  let username = "";
+  if (activeUser) {
+    role = JSON.parse(activeUser).RoleID.slice(0, 5);
+    roleNama = JSON.parse(activeUser).Role;
+    namaPengguna = JSON.parse(activeUser).Nama;
+    username = JSON.parse(activeUser).username;
+  }
+
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -99,6 +112,7 @@ export default function Dashboard_Survei({ onChangePage }) {
                   <BarChart
                     labels={"Survei Tenaga Pendidik All"}
                     sourceData={dataBarChartTenagaPendidik}
+                    role={role}
                   />
                 </div>
               </div>
@@ -107,6 +121,7 @@ export default function Dashboard_Survei({ onChangePage }) {
                   <BarChart
                     labels={"Survei Dosen All"}
                     sourceData={dataBarChartDosen}
+                    role={role}
                   />
                 </div>
               </div>
@@ -115,6 +130,7 @@ export default function Dashboard_Survei({ onChangePage }) {
                   <BarChart
                     labels={"Survei Mitra Kerjasama"}
                     sourceData={dataBarChartMitra}
+                    role={role}
                   />
                 </div>
               </div>

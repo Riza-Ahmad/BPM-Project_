@@ -111,6 +111,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
           {},
           "POST"
         );
+        console.log("Data Kriteria:", data);
         setKsrOptions(data);
       } catch (err) {
         setError("Gagal mengambil data: " + err.message);
@@ -138,7 +139,7 @@ export default function Pertanyaan_Survei({ onChangePage }) {
           );
           setSkpOptions(
             filteredSkp.map((item) => ({
-              value: item.skp_id,
+              Value: item.skp_id,
               Text: item.skp_skala + " (" + item.skp_deskripsi + ")",
             }))
           );
@@ -171,13 +172,12 @@ export default function Pertanyaan_Survei({ onChangePage }) {
     if (filterStatus) {
       data = data.filter((item) => item.pty_status === filterStatus);
     }
-    // Filter berdasarkan Kriteria Survei jika dipilih
     if (filterKriteria) {
-      data = data.filter((item) => item.ksr_nama === filterKriteria);
+      data = data.filter((item) => item.ksr_id === Number(filterKriteria));
     }
     // Filter berdasarkan Skala Penilaian jika dipilih
     if (filterSkala) {
-      data = data.filter((item) => item.skp_id === filterSkala);
+      data = data.filter((item) => item.skp_id === Number(filterSkala));
     }
     // Urutkan data berdasarkan filterSort
     if (filterSort === "[pty_created_date] ASC") {
@@ -714,6 +714,13 @@ export default function Pertanyaan_Survei({ onChangePage }) {
     }
   };
 
+  const resetFilter = () => {
+    setFilterStatus("Aktif");
+    setFilterKriteria("");
+    setFilterSkala("");
+    setFilterSort("[pty_created_date] ASC");
+  };
+
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
@@ -775,29 +782,38 @@ export default function Pertanyaan_Survei({ onChangePage }) {
                         Text: "Waktu Dibuat [↓]",
                       },
                     ]}
+                    value={filterSort}
                     onChange={handleSortFilterChange}
                   />
                   <Dropdown
                     label="Status"
                     type="pilih"
                     arrData={[
-                      { Value: "", Text: "Semua" },
                       { Value: "Aktif", Text: "Aktif" },
                       { Value: "Tidak Aktif", Text: "Tidak Aktif" },
                     ]}
+                    value={filterStatus}
                     onChange={handleStatusFilterChange}
                   />
                   <Dropdown
                     label="Kriteria Survei"
                     type="pilih"
                     arrData={[{ Value: "", Text: "Semua" }, ...ksrOptions]}
+                    value={filterKriteria}
                     onChange={handleKriteriaFilterChange}
                   />
                   <Dropdown
                     label="Skala Penilaian"
                     type="pilih"
+                    value={filterSkala}
                     arrData={[{ Value: "", Text: "Semua" }, ...skpOptions]}
                     onChange={handleSkalaFilterChange}
+                  />
+                  <Button
+                    classType="btn btn-secondary"
+                    title="Reset Filter"
+                    label="Reset"
+                    onClick={resetFilter}
                   />
                 </Filter>
               </div>

@@ -177,7 +177,7 @@ export default function Daftar_Survei({ onChangePage }) {
                 : "table-container bg-white p-3 m-5 mt-0 rounded"
             }
           >
-            {role === "ROL01" || role === "ROL02" ? (
+            {role === "ROL01" ? (
               <Table
                 arrHeader={["No", "Nama Survei", "Tanggal Awal", "Status"]}
                 data={filteredData.map((item, index) => ({
@@ -202,11 +202,16 @@ export default function Daftar_Survei({ onChangePage }) {
                   Status: item.statusTerjawab,
                 }))}
                 actions={(item) =>
-                  item.Status === "Belum Terjawab" ? ["Edit"] : ["Detail"]
+                  item.Status === "Belum Terjawab"
+                    ? ["Edit"]
+                    : ["Detail", "Preview"]
                 }
                 onEdit={(item) => onChangePage("edit", { idData: item.Key })}
                 onDetail={(item) =>
                   onChangePage("detail", { idData: item.Key })
+                }
+                onPreview={(item) =>
+                  onChangePage("preview", { idData: item.Key })
                 }
               />
             )}
