@@ -34,7 +34,7 @@ const TabPreviewSurvei = ({
   mode = "editSurvei",
   isDraftandAuditor = false,
 }) => {
-  const [expandedIndexes, setExpandedIndexes] = useState([]); // Mengubah state menjadi array
+  const [expandedIndexes, setExpandedIndexes] = useState([]);
   const isMobile = useIsMobile();
   const styleHeader = {
     backgroundColor: "#2654A1",
@@ -78,14 +78,13 @@ const TabPreviewSurvei = ({
   const handleExpandToggle = (index) => {
     setExpandedIndexes((prevIndexes) => {
       if (prevIndexes.includes(index)) {
-        return prevIndexes.filter((i) => i !== index); // Tutup jika sudah dibuka
+        return prevIndexes.filter((i) => i !== index);
       }
-      return [...prevIndexes, index]; // Tambahkan jika belum dibuka
+      return [...prevIndexes, index];
     });
   };
 
   const arrDataList = generateArrData(pertanyaan);
-  console.log("arrDataList :", arrDataList);
 
   const renderContent = (arrData) => {
     if (arrData.skalaTipe === "RadioButton") {
@@ -212,17 +211,6 @@ const TabPreviewSurvei = ({
                               __html: decodeHtml(item.namaPertanyaan),
                             }}
                           ></div>
-
-                          {/* {item.pertanyaanLanjutan && (
-                            <>
-                              <p>Dokumen Pendukung:</p>
-                              <div
-                                dangerouslySetInnerHTML={{
-                                  __html: decodeHtml(item.pertanyaanLanjutan),
-                                }}
-                              ></div>
-                            </>
-                          )} */}
                         </td>
                         <td
                           style={{

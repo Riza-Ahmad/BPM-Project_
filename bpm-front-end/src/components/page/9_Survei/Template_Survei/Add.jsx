@@ -15,7 +15,6 @@ export default function AddTemplateSurvei({ onChangePage }) {
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
   const [formData, setFormData] = useState({
     namaTemplate: "",
     responden: [],
@@ -26,7 +25,7 @@ export default function AddTemplateSurvei({ onChangePage }) {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    console.log(value);
+
     if (type === "checkbox") {
       setFormData((prev) => {
         const updatedResponden = checked
@@ -58,7 +57,6 @@ export default function AddTemplateSurvei({ onChangePage }) {
     }
 
     try {
-      // Payload untuk dikirim ke API
       const payload = {
         namaTemplate: formData.namaTemplate,
         responden: formData.responden,
@@ -109,7 +107,6 @@ export default function AddTemplateSurvei({ onChangePage }) {
               }
             >
               <HeaderForm label="Formulir Template Survei" />
-              {/* InputField untuk Nama Template */}
               <InputField
                 ref={namaTemplateRef}
                 label="Nama Template"

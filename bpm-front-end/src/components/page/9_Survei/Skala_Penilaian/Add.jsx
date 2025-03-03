@@ -36,7 +36,6 @@ export default function Add({ onChangePage }) {
       skp_deskripsi: false,
     };
 
-    // Validate descriptions for RadioButton and CheckBox
     if (
       formData.skp_tipe === "RadioButton" ||
       formData.skp_tipe === "CheckBox"
@@ -53,7 +52,6 @@ export default function Add({ onChangePage }) {
         hasDuplicates;
     }
 
-    // Validate TextBox and TextArea
     if (formData.skp_tipe === "TextBox" || formData.skp_tipe === "TextArea") {
       newErrors.skp_deskripsi = !formData.skp_deskripsi.trim();
     }
@@ -83,7 +81,7 @@ export default function Add({ onChangePage }) {
       }
     } catch (error) {
       console.error("Error checking duplicate:", error);
-      return false; // Jika ada error, anggap tidak duplikat (default)
+      return false;
     }
   };
 
@@ -136,7 +134,7 @@ export default function Add({ onChangePage }) {
       }
     } catch (error) {
       console.error("Error checking duplicate scale:", error);
-      return false; // Jika ada error, anggap tidak duplikat (default)
+      return false;
     }
   };
 
@@ -151,7 +149,6 @@ export default function Add({ onChangePage }) {
       return;
     }
 
-    // Validasi duplikasi skala
     const isDuplicate = await isScaleDuplicate(formData.scale);
     if (isDuplicate) {
       await SweetAlert(
@@ -193,7 +190,7 @@ export default function Add({ onChangePage }) {
           "success",
           "OK"
         );
-        navigate("/survei/skala"); // Kembali ke halaman survei/skala
+        navigate("/survei/skala");
       }
     } catch (error) {
       console.error("Error saving skala penilaian:", error);
@@ -223,7 +220,8 @@ export default function Add({ onChangePage }) {
                 isMobile
                   ? "shadow p-4 m-2 mt-0 bg-white rounded"
                   : "shadow p-5 m-5 mt-0 bg-white rounded"
-              }>
+              }
+            >
               <HeaderForm label="Tambah Skala Penilaian" />
 
               <DropDown
@@ -344,7 +342,8 @@ export default function Add({ onChangePage }) {
                             marginRight: "15px",
                             display: "inline-flex",
                             alignItems: "center",
-                          }}>
+                          }}
+                        >
                           <input
                             type="radio"
                             name="preview"
@@ -398,7 +397,8 @@ export default function Add({ onChangePage }) {
                       marginTop: "10px",
                       color: "#555",
                       fontStyle: "italic",
-                    }}>
+                    }}
+                  >
                     {formData.name
                       ? formData.descriptions[Number(formData.name) - 1] ||
                         "Deskripsi belum diisi."
@@ -453,7 +453,8 @@ export default function Add({ onChangePage }) {
                             marginRight: "15px",
                             display: "inline-flex",
                             alignItems: "center",
-                          }}>
+                          }}
+                        >
                           <input
                             type="checkbox"
                             value={value}
@@ -520,7 +521,8 @@ export default function Add({ onChangePage }) {
                       marginTop: "10px",
                       color: "#555",
                       fontStyle: "italic",
-                    }}>
+                    }}
+                  >
                     {formData.checkedValues?.length > 0
                       ? `Nilai dipilih: ${formData.checkedValues.join(", ")}`
                       : "Tidak ada nilai yang dipilih."}

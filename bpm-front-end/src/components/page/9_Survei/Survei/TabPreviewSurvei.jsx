@@ -34,7 +34,7 @@ const TabPreviewSurvei = ({
   mode = "editSurvei",
   isDraftandAuditor = false,
 }) => {
-  const [expandedIndexes, setExpandedIndexes] = useState([]); // Mengubah state menjadi array
+  const [expandedIndexes, setExpandedIndexes] = useState([]);
   const isMobile = useIsMobile();
   const styleHeader = {
     backgroundColor: "#2654A1",
@@ -71,36 +71,6 @@ const TabPreviewSurvei = ({
     onDataChange(updatedFormData);
   };
 
-  // const handleChange = (e, id, field) => {
-  //   const { value, checked, valueNow } = e.target;
-  //   // Jika value adalah array, ambil elemen pertamanya sebagai string
-  //   console.log("Checked awal: ", checked);
-  //   setFormData((prev) => {
-  //     const prevData = prev[id]?.[field] || []; // Ambil data sebelumnya atau array kosong
-  //     let updatedResponden;
-  //     setTimeout(() => console.log("PrevData awal: ", prevData), 0);
-  //     setTimeout(() => console.log("Value awal: ", value), 0);
-
-  //     if (checked) {
-  //       updatedResponden = [value]; // Tambahkan value jika dicentang
-  //     } else {
-  //       updatedResponden = prevData.filter(
-  //         (item) => String(item) !== String(valueNow)
-  //       );
-  //     }
-  //     setTimeout(() => console.log("hasilnya : ", updatedResponden), 0);
-
-  //     return {
-  //       ...prev,
-  //       [id]: {
-  //         ...prev[id],
-  //         [field]: Array.from(new Set(updatedResponden.flat())), // Hapus duplikat & pastikan array tetap satu dimensi
-  //       },
-  //     };
-  //   });
-  //   console.log(formData);
-  // };
-
   const handleChange = (e, id, field) => {
     const { value, checked, valueNow } = e.target;
     setFormData((prev) => {
@@ -110,7 +80,7 @@ const TabPreviewSurvei = ({
       return {
         ...prev,
         [id]: {
-          [field]: updatedResponden, // Hapus duplikat & pastikan array tetap satu dimensi
+          [field]: updatedResponden,
         },
       };
     });
@@ -122,7 +92,7 @@ const TabPreviewSurvei = ({
       return {
         ...prev,
         [id]: {
-          [field]: updatedResponden, // Hapus duplikat & pastikan array tetap satu dimensi
+          [field]: updatedResponden,
         },
       };
     });
@@ -131,16 +101,14 @@ const TabPreviewSurvei = ({
   const handleExpandToggle = (index) => {
     setExpandedIndexes((prevIndexes) => {
       if (prevIndexes.includes(index)) {
-        return prevIndexes.filter((i) => i !== index); // Tutup jika sudah dibuka
+        return prevIndexes.filter((i) => i !== index);
       }
-      return [...prevIndexes, index]; // Tambahkan jika belum dibuka
+      return [...prevIndexes, index];
     });
   };
 
   const arrDataList = generateArrData(pertanyaan);
   const CheckBoxRef = useRef();
-
-  //console.log("arrDataList :", arrDataList);
 
   const renderContent = (arrData) => {
     if (arrData.skalaTipe === "RadioButton") {
@@ -276,17 +244,6 @@ const TabPreviewSurvei = ({
                               __html: decodeHtml(item.pertanyaanSurvei),
                             }}
                           ></div>
-
-                          {/* {item.pertanyaanLanjutan && (
-                            <>
-                              <p>Dokumen Pendukung:</p>
-                              <div
-                                dangerouslySetInnerHTML={{
-                                  __html: decodeHtml(item.pertanyaanLanjutan),
-                                }}
-                              ></div>
-                            </>
-                          )} */}
                         </td>
                         <td
                           style={{

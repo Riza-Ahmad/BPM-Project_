@@ -10,7 +10,7 @@ import Loading from "../../../part/Loading";
 import { API_LINK } from "../../../util/Constants";
 import SweetAlert from "../../../util/SweetAlert";
 import { useIsMobile } from "../../../util/useIsMobile";
-import { useFetch } from "../../../util/useFetch"; // Pastikan hook ini tersedia
+import { useFetch } from "../../../util/useFetch";
 import { useNavigate } from "react-router-dom";
 
 export default function Add({ onChangePage }) {
@@ -21,21 +21,13 @@ export default function Add({ onChangePage }) {
   ];
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-
-  // State untuk template survei
   const [templateOptions, setTemplateOptions] = useState([]);
-  const [selectedTemplate, setSelectedTemplate] = useState(""); // p1: tsu_id
+  const [selectedTemplate, setSelectedTemplate] = useState("");
   const [loadingTemplate, setLoadingTemplate] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // State untuk checkbox (responden)
   const [selectedValues, setSelectedValues] = useState([]);
-
-  // State untuk field "Dibuat Oleh" (p3: trs_created_by)
   const [dibuatOleh, setDibuatOleh] = useState("");
-
-  // State untuk memicu pemanggilan API (submit data)
   const [submitData, setSubmitData] = useState(null);
   const [formData, setFormData] = useState({
     templateSurvei: "",
@@ -45,14 +37,13 @@ export default function Add({ onChangePage }) {
     kataPembuka: "",
     kataPenutup: "",
   });
-
   const templateSurveiRef = useRef();
   const tanggalAwalRef = useRef();
   const tanggalAkhirRef = useRef();
   const respondenRef = useRef();
   const kataPembukaRef = useRef();
   const kataPenutupRef = useRef();
-  // Ambil data template survei
+
   useEffect(() => {
     const fetchTemplate = async () => {
       try {
@@ -73,7 +64,7 @@ export default function Add({ onChangePage }) {
           Value: item.tsu_id,
           Text: item.tsu_nama,
         }));
-        console.log(formattedTemplate);
+
         setTemplateOptions(formattedTemplate);
       } catch (error) {
         SweetAlert("Error", error.message, "error");
@@ -84,12 +75,9 @@ export default function Add({ onChangePage }) {
     fetchTemplate();
   }, []);
 
-  // === Pilih salah satu opsi handler checkbox berikut ===
-
-  // Opsi 1: Jika CheckBox mengirim 2 parameter: value dan isChecked
   const handleCheckBoxChange = (e) => {
     const { name, value, type, checked } = e.target;
-    console.log(value);
+
     if (type === "checkbox") {
       setFormData((prev) => {
         const updatedResponden = checked
@@ -104,7 +92,7 @@ export default function Add({ onChangePage }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    console.log(value);
+
     setFormData((prevData) => {
       const updatedData = {
         ...prevData,
@@ -115,21 +103,6 @@ export default function Add({ onChangePage }) {
     });
   };
 
-  /* 
-  // Opsi 2: Jika CheckBox mengirim event object (gunakan jika diperlukan)
-  const handleCheckBoxChange = (e) => {
-    const { value, checked } = e.target;
-    setSelectedValues((prevValues) => {
-      if (checked) {
-        return [...prevValues, value];
-      } else {
-        return prevValues.filter((item) => item !== value);
-      }
-    });
-  };
-  */
-
-  // Logika handleSubmit untuk transaksi survei
   const handleSubmit = async () => {
     if (!templateSurveiRef.current?.validate()) {
       templateSurveiRef.current?.focus();
@@ -139,10 +112,6 @@ export default function Add({ onChangePage }) {
       tanggalAwalRef.current?.focus();
       return;
     }
-    // if (!tanggalAkhirRef.current?.validate()) {
-    //   tanggalAkhirRef.current?.focus();
-    //   return;
-    // }
     if (!respondenRef.current?.validate()) {
       respondenRef.current?.focus();
       return;
@@ -157,20 +126,9 @@ export default function Add({ onChangePage }) {
     }
 
     const startDate = new Date(`${tanggalAwalRef.current.value}`);
-    // const endDate = new Date(`${tanggalAkhirRef.current.value}`);
 
-    // if (startDate >= endDate) {
-    //   SweetAlert(
-    //     "Gagal!",
-    //     "Tanggal dan waktu mulai harus lebih awal dari tanggal dan waktu selesai.",
-    //     "error",
-    //     "OK"
-    //   );
-    //   return;
-    // }
     setLoading(true);
     try {
-      console.log(formData);
       const createResponse = await useFetch(
         `${API_LINK}/TransaksiSurvei/CreateTransaksiSurvei`,
         formData,
@@ -191,7 +149,6 @@ export default function Add({ onChangePage }) {
     }
   };
 
-  // useEffect untuk memanggil API CreateTransaksiSurvei saat submitData terisi
   useEffect(() => {
     const submitSurvey = async () => {
       if (submitData) {
@@ -268,17 +225,6 @@ export default function Add({ onChangePage }) {
                     isRequired={true}
                     type="date"
                   />
-
-                  {/* <InputField
-                    ref={tanggalAkhirRef}
-                    label="Tanggal Akhir"
-                    value={formData.tanggalAkhir}
-                    onChange={(e) =>
-                      setFormData({ ...formData, tanggalAkhir: e.target.value })
-                    }
-                    isRequired={true}
-                    type="date"
-                  /> */}
                 </div>
               </div>
               <CheckBox

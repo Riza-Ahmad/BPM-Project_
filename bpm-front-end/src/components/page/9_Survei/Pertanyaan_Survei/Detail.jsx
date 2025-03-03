@@ -45,9 +45,9 @@ export default function Detail() {
         }
 
         const result = await response.json();
-        console.log("Result: ", result);
+
         if (result.length > 0) {
-          const data = result[0]; // Ambil data pertama dari array
+          const data = result[0]; 
           setDetailData({
             idBank: data.idBank || "-",
             pertanyaan: data.pertanyaan || "-",

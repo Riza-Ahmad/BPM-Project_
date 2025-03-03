@@ -1,20 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-
-// Komponen UI
 import PageTitleNav from "../../../part/PageTitleNav";
 import DetailData from "../../../part/DetailData";
 import HeaderForm from "../../../part/HeaderText";
 import Loading from "../../../part/Loading";
 import Button from "../../../part/Button";
-
-// Utilitas
 import Swal from "sweetalert2";
 import { API_LINK } from "../../../util/Constants";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { useFetch } from "../../../util/useFetch";
 
-// Format tanggal untuk Indonesia
 const formatTanggal = (tanggal) => {
   if (!tanggal) return "-";
   return new Date(tanggal).toLocaleDateString("id-ID", {
@@ -26,12 +21,9 @@ const formatTanggal = (tanggal) => {
 };
 
 export default function DetailSkalaPenilaian() {
-  // Hooks
   const { detailId } = useParams();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-
-  // State
   const [loading, setLoading] = useState(true);
   const [detailData, setDetailData] = useState({
     skp_skala: "",
@@ -44,7 +36,6 @@ export default function DetailSkalaPenilaian() {
     skp_modif_date: "",
   });
 
-  // Fungsi untuk mengambil data detail dari API
   const ambilDetailSkala = async () => {
     try {
       const hasil = await useFetch(
@@ -52,8 +43,6 @@ export default function DetailSkalaPenilaian() {
         { p1: detailId },
         "POST"
       );
-
-      console.log("Response API:", hasil);
 
       if (hasil && hasil.length > 0) {
         setDetailData(hasil[0]);
@@ -72,12 +61,10 @@ export default function DetailSkalaPenilaian() {
     }
   };
 
-  // Effect untuk memuat data saat komponen dimuat
   useEffect(() => {
     ambilDetailSkala();
   }, [detailId, navigate]);
 
-  // Komponen untuk menampilkan kolom kiri detail
   const KolomKiriDetail = () => (
     <div className="col-lg-6 col-md-6">
       <DetailData label="Skala" isi={detailData.skp_skala || "-"} />
@@ -94,7 +81,6 @@ export default function DetailSkalaPenilaian() {
     </div>
   );
 
-  // Komponen untuk menampilkan kolom kanan detail
   const KolomKananDetail = () => (
     <div className="col-lg-6 col-md-6">
       <DetailData
@@ -112,14 +98,12 @@ export default function DetailSkalaPenilaian() {
     </div>
   );
 
-  // Tampilkan loading jika data sedang dimuat
   if (loading) return <Loading />;
 
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          {/* Navigasi dan Judul */}
           <PageTitleNav
             title="Detail Skala Penilaian"
             breadcrumbs={[
@@ -129,17 +113,14 @@ export default function DetailSkalaPenilaian() {
             onClick={() => navigate("/survei/skala")}
           />
 
-          {/* Kartu Detail */}
           <div className="shadow p-5 mt-4 bg-white rounded">
             <HeaderForm label="Detail Skala Penilaian" />
 
-            {/* Konten Detail */}
             <div className="row">
               <KolomKiriDetail />
               <KolomKananDetail />
             </div>
 
-            {/* Tombol Aksi */}
             <div className="d-flex justify-content-between align-items-center">
               <div className="flex-grow-1 m-2">
                 <Button

@@ -54,7 +54,7 @@ export default function Add() {
       );
     } catch (error) {
       console.error("Error checking duplicate:", error);
-      return false; // Jika terjadi error, asumsi tidak duplikat
+      return false; 
     }
   };
 

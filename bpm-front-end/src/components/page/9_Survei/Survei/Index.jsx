@@ -28,7 +28,7 @@ export default function Survei({ onChangePage }) {
   const [totalData, setTotalData] = useState(0);
   const [data, setData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [allData, setAllData] = useState([]); // Data asli dari API
+  const [allData, setAllData] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -49,9 +49,9 @@ export default function Survei({ onChangePage }) {
         ...prevFilter,
         param1: searchTerm,
       }));
-    }, 500); // Delay 500ms sebelum update currentFilter
+    }, 500);
 
-    return () => clearTimeout(delaySearch); // Hapus timeout jika user mengetik lagi
+    return () => clearTimeout(delaySearch);
   }, [searchTerm]);
 
   useEffect(() => {
@@ -64,20 +64,16 @@ export default function Survei({ onChangePage }) {
   const fetchSurvei = async () => {
     setLoading(true);
     try {
-      console.log(currentFilter);
       const result = await useFetch(
         `${API_LINK}/TransaksiSurvei/GetDataSurveixx`,
         currentFilter,
         "POST"
       );
-      console.log("jalan");
-      console.log(result);
       if (result === "ERROR" || result === null || result.length === 0) {
         setFilteredData([]);
         setTotalData(0);
       } else {
         const arrResult = Object.values(result);
-        // console.log(arrResult);
         setFilteredData(arrResult);
         setTotalData(arrResult[0].TotalCount);
       }
@@ -92,10 +88,7 @@ export default function Survei({ onChangePage }) {
     fetchSurvei();
   }, [currentFilter]);
 
-  const handlePreview = (item) => {
-    // const selected = filteredData.find((obj) => obj.idBad == item.Key);
-    // handleOpenModal("detail", selected);
-  };
+  const handlePreview = (item) => {};
 
   if (loading) return <Loading />;
   if (error)

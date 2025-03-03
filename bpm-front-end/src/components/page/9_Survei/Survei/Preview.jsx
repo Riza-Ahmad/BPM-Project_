@@ -14,7 +14,7 @@ import Cookies from "js-cookie";
 
 export default function Preview({ onChangePage }) {
   const activeUser = Cookies.get("activeUser");
-  let role = ""; // Jika undefined, gunakan nilai default
+  let role = "";
   let roleNama = "";
   let namaPengguna = "";
   let username = "";
@@ -43,15 +43,11 @@ export default function Preview({ onChangePage }) {
     diubahTanggal: "",
     statusTransaksi: "",
   });
-
   const idData = location.state?.idData;
-
-  // Track when template fetch is completed
   const [isTemplateFetched, setIsTemplateFetched] = useState(false);
   const [kriteria, setKriteria] = useState([]);
   const [pertanyaan, setPertanyaan] = useState({});
 
-  // GET DATA BY ID
   useEffect(() => {
     const fetchKriteria = async () => {
       setLoading(true);
@@ -61,7 +57,6 @@ export default function Preview({ onChangePage }) {
           { id: idData },
           "POST"
         );
-        console.log("Kriteria Survei :", data);
         setKriteria(data);
       } catch (err) {
         setError("Gagal mengambil data: " + err);
@@ -77,14 +72,11 @@ export default function Preview({ onChangePage }) {
     const fetchPertanyaan = async () => {
       setLoading(true);
       try {
-        console.log("Hallo Pertanyaan :", { id: idData, nama: username });
         const data = await useFetch(
           `${API_LINK}/TransaksiSurvei/GetDataPertanyaanTransaksiSurveiByIdAdminxx`,
           { id: idData, role: role },
           "POST"
         );
-
-        console.log("Pertanyaan Survei :", data);
         setPertanyaan(data);
       } catch (err) {
         setError("Gagal mengambil data: " + err);
@@ -107,7 +99,7 @@ export default function Preview({ onChangePage }) {
           body,
           "POST"
         );
-        console.log("Transaksi Survei: ", result);
+
         if (result === "ERROR" || result === null || result.length === 0) {
           setFormData({
             idTransaksi: "",
@@ -167,7 +159,7 @@ export default function Preview({ onChangePage }) {
         setError("Gagal mengambil data: " + err);
       } finally {
         setLoading(false);
-        setIsTemplateFetched(true); // Mark as fetched
+        setIsTemplateFetched(true);
       }
     };
 
@@ -195,8 +187,6 @@ export default function Preview({ onChangePage }) {
           id: Number(key),
           jawaban: value.jawaban,
         };
-        console.log("Data Ke- ", updatedObject);
-
         const createResponseJawaban = await useFetch(
           `${API_LINK}/TransaksiSurvei/UpdateDaftarSurveiJawabanByUserxx`,
           updatedObject
@@ -220,7 +210,6 @@ export default function Preview({ onChangePage }) {
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          {/* Breadcrumbs and Page Title */}
           <div className="p-3">
             <PageTitleNav
               title={title}
@@ -229,7 +218,6 @@ export default function Preview({ onChangePage }) {
             />
           </div>
           <div className={isMobile ? "m-0" : "m-3"}>
-            {/* Main Content Section */}
             <div
               className={
                 isMobile

@@ -65,7 +65,6 @@ export default function Add({ onChangePage }) {
           "POST"
         );
 
-        console.log("Skala Response:", skpResponse);
         if (skpResponse && Array.isArray(skpResponse)) {
           const filteredSkp = skpResponse.filter(
             (item) => item.skp_status === "Aktif"
@@ -88,15 +87,13 @@ export default function Add({ onChangePage }) {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    console.log("Checkbox Change:", name, value, checked);
-    console.log("Responden Saat Ini:", formData.responden);
 
     if (type === "checkbox") {
       setFormData((prevFormData) => {
         const updatedResponden = prevFormData.responden || [];
         const newResponden = checked
-          ? [...updatedResponden, value] // Tambahkan jika di-check
-          : updatedResponden.filter((item) => item !== value); // Hapus jika di-uncheck
+          ? [...updatedResponden, value]
+          : updatedResponden.filter((item) => item !== value);
 
         return { ...prevFormData, responden: newResponden };
       });
@@ -106,15 +103,11 @@ export default function Add({ onChangePage }) {
   };
 
   const handleSubmit = async () => {
-    // Validasi tiap field menggunakan ref
     const isPertanyaanValid = pertanyaanRef.current?.validate();
     const isKriteriaValid = kriteriaSurveiRef.current?.validate();
     const isSkalaValid = skalaPenilaianRef.current?.validate();
-
-    // Validasi responden
     const isRespondenValid = formData.responden.length > 0;
 
-    // Cek validasi untuk setiap input
     if (!isPertanyaanValid) {
       pertanyaanRef.current?.focus();
       return;
@@ -139,7 +132,6 @@ export default function Add({ onChangePage }) {
       return;
     }
 
-    // Jika semua validasi lulus, lanjutkan dengan pengiriman data
     try {
       const payload = {
         pertanyaan: formData.pertanyaan,
@@ -148,15 +140,11 @@ export default function Add({ onChangePage }) {
         responden: formData.responden || [],
       };
 
-      console.log("Payload:", payload);
-
       const result = await useFetch(
         `${API_LINK}/MasterPertanyaan/CreatePertanyaan`,
         payload,
         "POST"
       );
-
-      console.log("API Result:", result);
 
       if (result === "ERROR") {
         throw new Error("Terjadi kesalahan server");

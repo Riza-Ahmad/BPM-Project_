@@ -26,7 +26,6 @@ export default function Edit() {
     }));
   };
 
-  // Fetch initial data
   useEffect(() => {
     const fetchDokumenById = async () => {
       setLoading(true);
@@ -72,15 +71,13 @@ export default function Edit() {
       }
     } catch (error) {
       console.error("Error checking duplicate:", error);
-      return false; // Jika ada error, anggap tidak duplikat (default)
+      return false;
     }
   };
 
-  // Handle save edit dengan validasi duplikasi
   const handleSaveEdit = async () => {
     setLoading(true);
 
-    // Cek apakah nama sudah ada di database
     const isDuplicate = await isNameDuplicate(formData.namaKri);
     if (isDuplicate) {
       Swal.fire("Peringatan", "Nama kriteria sudah ada!", "warning");
@@ -127,7 +124,8 @@ export default function Edit() {
                 isMobile
                   ? "shadow p-4 m-2 mt-0 bg-white rounded"
                   : "shadow p-5 m-5 mt-0 bg-white rounded"
-              }>
+              }
+            >
               <div className="row">
                 <InputField
                   label="Nama Kriteria"

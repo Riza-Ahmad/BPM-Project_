@@ -4,14 +4,13 @@ import Add from "./Add";
 import Edit from "./Edit";
 import Detail from "./Detail";
 import ScrollToTop from "../../../part/ScrollToTop";
-import Swal from "sweetalert2"; // Import Swal for alert
+import Swal from "sweetalert2";
 
 export default function Kriteria_Survei() {
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
 
-  // Handler for page navigation with dynamic state management
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
       case "index":

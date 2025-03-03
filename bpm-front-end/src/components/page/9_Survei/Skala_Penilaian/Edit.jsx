@@ -36,8 +36,6 @@ export default function Edit({ onChangePage }) {
         { formData: key }
       );
 
-      console.log("Response from GetDataSkalaPenilaianById:", result); // Debug log
-
       if (result === "ERROR") {
         SweetAlert(
           "Error",
@@ -262,16 +260,11 @@ export default function Edit({ onChangePage }) {
         }),
       };
 
-      console.log("Data to send:", skalaPenilaianData); // Debug log sebelum pengiriman
-
-      // Pemanggilan useFetch dengan data yang disesuaikan
       const response = await useFetch(
         `${API_LINK}/SkalaPenilaian/UpdateSkalaPenilaian`,
-        skalaPenilaianData, // Kirim langsung objek data
+        skalaPenilaianData,
         "POST"
       );
-
-      console.log("Response from UpdateSkalaPenilaian:", response); // Debug log respons
 
       if (response === "ERROR") throw new Error("Gagal menyimpan data");
 

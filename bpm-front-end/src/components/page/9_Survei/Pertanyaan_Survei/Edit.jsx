@@ -33,7 +33,7 @@ export default function Edit({ onChangePage }) {
     pertanyaan: "",
     ksrId: "",
     skpId: "",
-    responden: [], // Menyimpan data responden
+    responden: [],
   });
 
   const [ksrOptions, setKsrOptions] = useState([]);
@@ -41,7 +41,6 @@ export default function Edit({ onChangePage }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Mengambil data pertanyaan dan responden dari API
   useEffect(() => {
     const fetchDokumenById = async () => {
       setLoading(true);
@@ -60,11 +59,7 @@ export default function Edit({ onChangePage }) {
           "POST"
         );
 
-        console.log("Parameter :", body); // Debug respons API
-        console.log("API Response:", result); // Debug respons API
-        console.log("API ResponseResponden:", result1); // Debug respons API
         const valuesArray = result1.map((item) => item.Value);
-        console.log("API ResponseResponden Array:", valuesArray); // Debug respons API
 
         if (!result || result === "ERROR" || result.length === 0) {
           Swal.fire("Error", "Data tidak ditemukan", "error");
@@ -111,7 +106,6 @@ export default function Edit({ onChangePage }) {
     fetchDokumenById();
   }, [idData]);
 
-  // Fetch the data for Kriteria Survei
   useEffect(() => {
     const fetchKriteria = async () => {
       setLoading(true);
@@ -131,7 +125,6 @@ export default function Edit({ onChangePage }) {
     fetchKriteria();
   }, []);
 
-  // Fetch the data for Skala Penilaian
   useEffect(() => {
     const fetchSkalaPenilaian = async () => {
       setLoading(true);
@@ -158,19 +151,18 @@ export default function Edit({ onChangePage }) {
       }
     };
     fetchSkalaPenilaian();
-    console.log(formData);
   }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
     if (type === "checkbox") {
-      const parsedValue = value; // Ensure the value is an integer
+      const parsedValue = value;
 
       setFormData((prevFormData) => {
         const updatedResponden = checked
-          ? [...prevFormData.responden, parsedValue] // Add to the array if checked
-          : prevFormData.responden.filter((item) => item !== parsedValue); // Remove from the array if unchecked
+          ? [...prevFormData.responden, parsedValue]
+          : prevFormData.responden.filter((item) => item !== parsedValue);
 
         return {
           ...prevFormData,
@@ -194,9 +186,6 @@ export default function Edit({ onChangePage }) {
         responden: formData.responden,
       };
 
-      console.log(formData);
-      console.log("Jalan");
-      console.log("Payload:", formData);
       const result = await useFetch(
         `${API_LINK}/MasterPertanyaan/EditPertanyaan`,
         formData,

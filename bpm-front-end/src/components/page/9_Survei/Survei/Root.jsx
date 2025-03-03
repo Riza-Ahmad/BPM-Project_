@@ -11,17 +11,14 @@ import Add from "./Add";
 import Detail from "./Detail";
 import Preview from "./Preview";
 import ScrollToTop from "../../../part/ScrollToTop";
-import Swal from "sweetalert2"; // Import Swal for alert
+import Swal from "sweetalert2";
 
 export default function Survei() {
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
 
-  // Handler for page navigation with state management
   const handlePageChange = (page, withState = {}) => {
-    console.log(page);
-    console.log(currentPath);
     switch (page) {
       case "index":
         navigate(`${currentPath}`, { state: { mode: "index", ...withState } });

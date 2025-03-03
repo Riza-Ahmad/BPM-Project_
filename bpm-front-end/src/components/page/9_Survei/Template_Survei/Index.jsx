@@ -22,9 +22,9 @@ export default function Template_Survei({ onChangePage }) {
   const [sortOrder, setSortOrder] = useState("asc");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [sortDate, setSortDate] = useState(""); // Untuk sort tanggal
-  const [filterStatus, setFilterStatus] = useState(""); // Untuk filter status
-  const [filteredData, setFilteredData] = useState(data); // Data yang akan ditampilkan
+  const [sortDate, setSortDate] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filteredData, setFilteredData] = useState(data);
   const indexOfLastData = pageCurrent * pageSize;
   const indexOfFirstData = indexOfLastData - pageSize;
   const currentData = filteredData.slice(indexOfFirstData, indexOfLastData);
@@ -35,14 +35,12 @@ export default function Template_Survei({ onChangePage }) {
   const fetchTemplateSurvei = async () => {
     setLoading(true);
     try {
-      // Panggil useFetch yang sudah disesuaikan
       const result = await useFetch(
         `${API_LINK}/TemplateSurvei/GetTemplateSurvei`,
         {},
         "POST"
       );
 
-      // Jika result error, tampilkan pesan error
       if (result === "ERROR") {
         throw new Error("Gagal mengambil data template survei!");
       }
@@ -59,9 +57,9 @@ export default function Template_Survei({ onChangePage }) {
         id: item.tsu_id,
         name: item.tsu_nama,
         finalDate: item.tsu_modif_date
-          ? new Date(item.tsu_modif_date).toISOString() // Perbaiki bagian ini tanpa parameter
+          ? new Date(item.tsu_modif_date).toISOString()
           : "-",
-        status: item.tsu_status, // Status sudah dalam format "Draft" atau "Final"
+        status: item.tsu_status,
       }));
 
       setData(formattedTemplates);
@@ -90,7 +88,6 @@ export default function Template_Survei({ onChangePage }) {
   useEffect(() => {
     let filtered = [...data];
 
-    // Filter berdasarkan query pencarian di semua atribut
     if (searchQuery) {
       filtered = filtered.filter((item) =>
         Object.values(item)
@@ -357,17 +354,16 @@ export default function Template_Survei({ onChangePage }) {
                   item.finalDate === "-"
                     ? "-"
                     : new Date(item.finalDate).toLocaleDateString(),
-                Status: item.status, // Directly using the string status
+                Status: item.status,
               }))}
-              actions={
-                (item) =>
-                  item.Status === "Draft"
-                    ? ["Detail", "Edit", "Delete", "Preview", "Final"]
-                    : item.Status === "Final"
-                    ? ["Detail", "Preview"] // Actions for 'Final' status
-                    : item.Status === "Tidak Aktif"
-                    ? ["Detail", "Preview"] // Actions for 'Tidak Aktif' status
-                    : [] // Default case if needed
+              actions={(item) =>
+                item.Status === "Draft"
+                  ? ["Detail", "Edit", "Delete", "Preview", "Final"]
+                  : item.Status === "Final"
+                  ? ["Detail", "Preview"]
+                  : item.Status === "Tidak Aktif"
+                  ? ["Detail", "Preview"]
+                  : []
               }
               onEdit={(item) => {
                 onChangePage("edit", { idData: item.Key });

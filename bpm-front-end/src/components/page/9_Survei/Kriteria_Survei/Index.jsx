@@ -24,7 +24,7 @@ const breadcrumbs = [{ label: "Kriteria" }];
 
 export default function KriteriaSurvei({ onChangePage }) {
   const activeUser = Cookies.get("activeUser");
-  let role = ""; // Jika undefined, gunakan nilai default
+  let role = "";
   let roleNama = "";
   let namaPengguna = "";
   if (activeUser) {
@@ -100,7 +100,6 @@ export default function KriteriaSurvei({ onChangePage }) {
   };
 
   const handleToggle = (item) => {
-    // Tampilkan konfirmasi menggunakan SweetAlert sebelum toggle status
     SweetAlert(
       "Konfirmasi",
       `Apakah Anda yakin ingin ${
@@ -110,10 +109,9 @@ export default function KriteriaSurvei({ onChangePage }) {
       "Ya",
       null,
       "",
-      true // Tampilkan tombol batal
+      true
     ).then((result) => {
       if (result) {
-        // Perbarui data yang akan dikirim
         const updatedData = {
           idData: item.Key,
           status: item.status === "Aktif" ? "Tidak Aktif" : "Aktif",
@@ -136,7 +134,7 @@ export default function KriteriaSurvei({ onChangePage }) {
               "success",
               "OK"
             ).then(() => {
-              fetchKriteria(); // Panggil ulang data setelah pembaruan berhasil
+              fetchKriteria();
             });
           })
           .catch((error) => {
@@ -163,7 +161,8 @@ export default function KriteriaSurvei({ onChangePage }) {
           </div>
           <div
             className={isMobile ? "p-2 m-2 mt-2 mb-0" : "p-3 m-5 mt-2 mb-0"}
-            style={{ marginLeft: "50px" }}>
+            style={{ marginLeft: "50px" }}
+          >
             <Button
               iconName="add"
               classType="primary"
@@ -178,7 +177,7 @@ export default function KriteriaSurvei({ onChangePage }) {
                   onInput={(e) =>
                     setCurrentFilter((prevFilter) => ({
                       ...prevFilter,
-                      param2: e.target.value, // Mengambil nilai input dari e.target.value
+                      param2: e.target.value,
                     }))
                   }
                 />
@@ -237,11 +236,10 @@ export default function KriteriaSurvei({ onChangePage }) {
               status: item.status,
             }))}
             actions={(item) => {
-              // Jika status "Tidak Aktif", hanya tampilkan Toggle
               if (item.status === "Tidak Aktif") {
                 return ["Toggle"];
               }
-              // Jika status selain "Tidak Aktif", tampilkan semua actions
+
               return ["Detail", "Edit", "Toggle"];
             }}
             onEdit={handleEdit}
