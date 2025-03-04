@@ -40,8 +40,8 @@ export default function Index({ onChangePage }) {
   const [totalIKTByStandarUtama, setTotalIKTByStandarUtama] = useState(0);
 
   const years = Array.from(
-    { length: currentYear - 1995 + 1 },
-    (_, i) => 1995 + i
+    { length: currentYear - 2024 + 1 },
+    (_, i) => 2024 + i
   );
   const title1 = "Capaian Aktual IKU dan IKT Politeknik Astra";
   const optionIndikatorKinerja = {
@@ -51,20 +51,20 @@ export default function Index({ onChangePage }) {
         title: {
           display: true,
           text: "Kategori Standar",
-          font: { size: 16, weight: "bold" },
+          font: { size: isMobile ? 9 : 16, weight: "bold" },
         },
         ticks: {
-          font: { size: 14 },
+          font: { size: isMobile ? 9 : 14 },
         },
       },
       y: {
         title: {
           display: true,
           text: "Jumlah Capaian",
-          font: { size: 16, weight: "bold" },
+          font: { size: isMobile ? 9 : 16, weight: "bold" },
         },
         ticks: {
-          font: { size: 14 },
+          font: { size: isMobile ? 9 : 14 },
           stepSize: 1,
         },
       },
@@ -208,21 +208,15 @@ export default function Index({ onChangePage }) {
   return (
     <>
       <div className="d-flex flex-column min-vh-100">
-        <main className="flex-grow-1 p-3" style={{ marginTop: "60px" }}>
-          <div className="container">
+        <main className="flex-grow-1" style={{ marginTop: "60px" }}>
+          <div className="container mt-5">
             <div className="d-flex justify-content-center align-items-center text-center">
               <h1 style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}>
                 {title1}
               </h1>
             </div>
-            <div className="p-4">
-              <div
-                className="shadow bg-white rounded"
-                style={{
-                  padding: isMobile ? "2rem" : "2rem", // Padding lebih kecil di mobile
-                  margin: isMobile ? "2rem" : "2rem", // Margin lebih kecil di mobile
-                }}
-              >
+            <div className={isMobile ? "p-3" : "px-5 mx-5"}>
+              <div className="shadow bg-white rounded p-3 m-3">
                 <div className="row mt-3">
                   <div className="col-lg-4">
                     <HeaderText
@@ -272,8 +266,8 @@ export default function Index({ onChangePage }) {
                         onClick={() => handleSelectStandar(item.idStandarUtama)}
                         className={`btn ${
                           selectedStandar === item.idStandarUtama
-                            ? "btn-primary"
-                            : "btn-light"
+                            ? "text-start btn-primary"
+                            : "text-start btn-light"
                         } mb-2`}
                       >
                         {item.judulStandarUtama}
@@ -295,8 +289,8 @@ export default function Index({ onChangePage }) {
                   <div
                     className="shadow bg-white rounded"
                     style={{
-                      padding: isMobile ? "2rem" : "2rem",
-                      margin: isMobile ? "2rem" : "2rem",
+                      padding: isMobile ? "1rem" : "2rem",
+                      margin: isMobile ? "1rem" : "2rem",
                     }}
                   >
                     <div
@@ -322,7 +316,7 @@ export default function Index({ onChangePage }) {
                             alignText="center"
                             warna="#ffffff"
                             fontWeight="650"
-                            ukuran="2rem"
+                            ukuran={isMobile ? "1rem" : "2rem"}
                           />
                           <Text
                             isi={`${totalIKU}`}
@@ -348,7 +342,7 @@ export default function Index({ onChangePage }) {
                             alignText="center"
                             warna="#ffffff"
                             fontWeight="650"
-                            ukuran="2rem"
+                            ukuran={isMobile ? "1rem" : "2rem"}
                           />
                           <Text
                             isi={`${totalIKTByStandarUtama}`}
@@ -363,8 +357,8 @@ export default function Index({ onChangePage }) {
                   <div
                     className="shadow bg-white rounded"
                     style={{
-                      padding: isMobile ? "2rem" : "2rem", // Padding lebih kecil di mobile
-                      margin: isMobile ? "2rem" : "2rem", // Margin lebih kecil di mobile
+                      padding: isMobile ? "1rem" : "2rem",
+                      margin: isMobile ? "1rem" : "2rem",
                     }}
                   >
                     <div className="mt-5">
@@ -373,13 +367,12 @@ export default function Index({ onChangePage }) {
                         alignText="center"
                         warna="#2654A1"
                         fontWeight="650"
-                        ukuran="2rem"
+                        ukuran={isMobile ? "1rem" : "2rem"}
                       />
                       {standarUtama.length > 0 ? (
                         <div
                           style={{
-                            width: "90%",
-                            height: "500px",
+                            width: "100%",
                             margin: "0 auto",
                           }}
                         >
@@ -390,7 +383,9 @@ export default function Index({ onChangePage }) {
                               maxWidth: "100%",
                             }}
                           >
-                            <div style={{ minWidth: "900px" }}>
+                            <div
+                              style={{ minWidth: "900px", overflow: "auto" }}
+                            >
                               <Bar
                                 data={generateChartData(
                                   filteredData,
@@ -415,8 +410,8 @@ export default function Index({ onChangePage }) {
                   <div
                     className="shadow bg-white rounded"
                     style={{
-                      padding: isMobile ? "2rem" : "2rem", // Padding lebih kecil di mobile
-                      margin: isMobile ? "2rem" : "2rem", // Margin lebih kecil di mobile
+                      padding: isMobile ? "1rem" : "2rem",
+                      margin: isMobile ? "1rem" : "2rem",
                     }}
                   >
                     <div className="row mt-5">
@@ -433,7 +428,7 @@ export default function Index({ onChangePage }) {
                             <button
                               key={id}
                               onClick={() => handleIKUSelection(id)}
-                              className={`btn ${
+                              className={`text-start btn ${
                                 selectedIKU === id ? "btn-primary" : "btn-light"
                               } w-100 mb-2`}
                             >
@@ -452,8 +447,8 @@ export default function Index({ onChangePage }) {
                           alignText="center"
                           warna="#2654A1"
                           fontWeight="650"
-                          ukuran="2rem"
-                        />
+                          ukuran={isMobile ? "1rem" : "2rem"}
+                          />
                         {!selectedIKU ? (
                           <div className="mb-4">
                             <Text
@@ -473,8 +468,7 @@ export default function Index({ onChangePage }) {
                         ) : (
                           <div
                             style={{
-                              width: "90%",
-                              height: "500px",
+                              width: "100%",
                               margin: "0 auto",
                             }}
                           >

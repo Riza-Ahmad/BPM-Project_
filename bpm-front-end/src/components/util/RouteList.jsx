@@ -41,12 +41,20 @@ const AkreditasiProdi = lazy(() =>
 const AkreditasiInstitusi = lazy(() =>
   import("../page/6_SPME/AkreditasiInstitusi/Root")
 );
+const AkreditasiProdi = lazy(() =>
+  import("../page/6_SPME/AkreditasiProdi/Root")
+);
+const AkreditasiInstitusi = lazy(() =>
+  import("../page/6_SPME/AkreditasiInstitusi/Root")
+);
 const Ringkasan = lazy(() => import("../page/6_SPME/RIngkasanAkreditasi/Root"));
 const PanduanAkreditasi = lazy(() =>
   import("../page/6_SPME/PanduanAkreditasi/Root")
 );
+const PanduanAkreditasi = lazy(() =>
+  import("../page/6_SPME/PanduanAkreditasi/Root")
+);
 const Standar = lazy(() => import("../page/7_IKU&IKT/Standar/Root"));
-const IKUIKT = lazy(() => import("../page/7_IKU&IKT/IKUIKT/Root"));
 const Capaian = lazy(() => import("../page/7_IKU&IKT/Capaian/Root"));
 const IndikatorKinerja = lazy(() =>
   import("../page/7_IKU&IKT/IndikatorKinerja/Root")
@@ -87,7 +95,6 @@ const KriteriaSurvei = lazy(() =>
 const SkalaSurvei = lazy(() => import("../page/9_Survei/Skala_Penilaian/Root"));
 const NotFound = lazy(() => import("../page/not-found/Index"));
 
-// Define route list
 const routeList = [
   {
     path: "/login",
@@ -131,37 +138,22 @@ const routeList = [
   {
     path: "/spmi/siklus/penetapan/*",
     element: <Penetapan />,
-    protected: true,
   },
   {
     path: "/spmi/siklus/pelaksanaan/*",
     element: <Pelaksanaan />,
-    protected: true,
   },
   {
     path: "/spmi/siklus/*",
     element: <SPMI_Dinamis />,
-    protected: true,
   },
   {
     path: "/spmi/siklus/peningkatan/*",
     element: <Peningkatan />,
-    protected: true,
   },
-  // {
-  //   path: "/spmi/siklus/pengendalian/*",
-  //   element: <Pengendalian />,
-  //   protected: true,
-  // },
-  // {
-  //   path: "/spmi/siklus/evaluasi/*",
-  //   element: <Evaluasi />,
-  //   protected: true,
-  // },
   {
     path: "/spmi/dokumen/*",
     element: <Dokumen />,
-    protected: true,
   },
   {
     path: "/evaluasi/ami/kriteria/*",
@@ -200,32 +192,26 @@ const routeList = [
   {
     path: "/spme/status/ringkasan/*",
     element: <Ringkasan />,
-    protected: true,
   },
   {
     path: "/spme/status/program-studi/*",
     element: <AkreditasiProdi />,
-    protected: true,
   },
   {
     path: "/spme/status/institusi/*",
     element: <AkreditasiInstitusi />,
-    protected: true,
   },
   {
     path: "/spme/panduan/*",
     element: <PanduanAkreditasi />,
-    protected: true,
   },
   {
     path: "/spme/dokumen/*",
     element: <DokumenE />,
-    protected: true,
   },
   {
     path: "/iku/dashboard/*",
     element: <Capaian />,
-    protected: true,
   },
   {
     path: "/iku/ikuikt/*",

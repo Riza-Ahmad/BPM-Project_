@@ -4,8 +4,10 @@ import ProtectedRoute from "../../../util/ProtectedRoute";
 import { ROOT_LINK } from "../../../util/Constants";
 import Index from "./Index";
 import Add from "./Add";
-
 import Edit from "./Edit";
+import EditFile from "../../5_SPMI/dokumen_spmi/EditFile";
+import RiwayatEdit from "../../5_SPMI/dokumen_spmi/RiwayatEdit";
+import RiwayatUnduh from "../../5_SPMI/dokumen_spmi/RiwayatUnduh";
 
 export default function PanduanAkreditasi() {
   const navigate = useNavigate();
@@ -24,8 +26,20 @@ export default function PanduanAkreditasi() {
       case "edit":
         navigate(`${currentPath}`, { state: { mode: "edit", ...withState } });
         break;
-      case "detail":
-        navigate(`${currentPath}`, { state: { mode: "detail", ...withState } });
+      case "editFile":
+        navigate(`${currentPath}`, {
+          state: { mode: "editFile", ...withState },
+        });
+        break;
+      case "updHistory":
+        navigate(`${currentPath}`, {
+          state: { mode: "updHistory", ...withState },
+        });
+        break;
+      case "downHistory":
+        navigate(`${currentPath}`, {
+          state: { mode: "downHistory", ...withState },
+        });
         break;
       default:
         console.warn(`Halaman "${page}" tidak dikenali.`);
@@ -48,6 +62,12 @@ export default function PanduanAkreditasi() {
                 <Add onChangePage={handlePageChange} />
               ) : mode === "edit" ? (
                 <Edit onChangePage={handlePageChange} />
+              ) : mode === "updHistory" ? (
+                <RiwayatEdit onChangePage={handlePageChange} />
+              ) : mode === "downHistory" ? (
+                <RiwayatUnduh onChangePage={handlePageChange} />
+              ) : mode === "editFile" ? (
+                <EditFile onChangePage={handlePageChange} />
               ) : (
                 <Index onChangePage={handlePageChange} />
               )}

@@ -4,13 +4,10 @@ import { useLocation } from "react-router-dom";
 import PageTitleNav from "../../../part/PageTitleNav";
 import HeaderForm from "../../../part/HeaderText";
 import InputField from "../../../part/InputField";
-import FileUpload from "../../../part/FileUpload";
 import Button from "../../../part/Button";
 import DropDown from "../../../part/Dropdown";
 import { useFetch } from "../../../util/useFetch";
-import { uploadFile } from "../../../util/UploadFile";
 import { API_LINK } from "../../../util/Constants";
-import DocUpload from "../../../part/DocUpload";
 import { useIsMobile } from "../../../util/useIsMobile";
 import SweetAlert from "../../../util/SweetAlert";
 import Loading from "../../../part/Loading";
@@ -20,7 +17,6 @@ import Filter from "../../../part/Filter";
 import Cookies from "js-cookie";
 import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
-import { DOKUMEN_LINK } from "../../../util/Constants";
 
 const arrSort = [
   { Value: "[judulDok] ASC", Text: "Judul Dokumen [↑]" },
@@ -67,8 +63,6 @@ export default function Edit({ onChangePage }) {
   const location = useLocation();
   const idMenu = location.state?.idMenu;
   const idData = location.state?.idData;
-  console.log(idMenu);
-  console.log(idData);
 
   const [pageSize] = useState(10);
   const [pageCurrent, setPageCurrent] = useState(1);
@@ -125,10 +119,6 @@ export default function Edit({ onChangePage }) {
   const nomorSKAkrRef = useRef();
   const berlakuAkrRef = useRef();
   const kadaluarsaAkrRef = useRef();
-  const judulDokSKAkrRef = useRef();
-  const jenisDokSKAkrRef = useRef();
-  const judulDokSertifAkrRef = useRef();
-  const jenisDokSertifAkrRef = useRef();
   const fileSertifAkrRef = useRef();
   const fileSKAkrRef = useRef();
 
@@ -143,7 +133,6 @@ export default function Edit({ onChangePage }) {
       ...prevData,
       [activeModalFor.current]: e["Judul Dokumen"],
     }));
-    console.log(e);
     document.getElementById("dokModalClose").click();
   };
 
@@ -195,7 +184,6 @@ export default function Edit({ onChangePage }) {
           currentFilter,
           "POST"
         );
-        console.log(currentFilter);
 
         if (result === "ERROR" || result === null || result.length === 0) {
           setFilteredData([]);
@@ -245,7 +233,6 @@ export default function Edit({ onChangePage }) {
       jenjangAkrRef.current?.focus();
       return;
     }
-    console.log("Mau ini");
     if (!isPeringkatAkrValid) {
       peringkatAkrRef.current?.focus();
       return;
@@ -281,8 +268,6 @@ export default function Edit({ onChangePage }) {
         img: formData.img,
       };
 
-      console.log(AkreData);
-
       const createResponse = await useFetch(
         `${API_LINK}/MasterAkreditasi/EditDataAkreditasi`,
         AkreData,
@@ -294,7 +279,7 @@ export default function Edit({ onChangePage }) {
       } else {
         SweetAlert(
           "Berhasil!",
-          "Data berhasil ditambahkan.",
+          "Data berhasil diperbarui.",
           "success",
           "OK"
         ).then(() =>
@@ -304,7 +289,6 @@ export default function Edit({ onChangePage }) {
         );
       }
     } catch (error) {
-      console.error("Error:", error.message);
       SweetAlert("Gagal!", error.message, "error", "OK");
     }
   };

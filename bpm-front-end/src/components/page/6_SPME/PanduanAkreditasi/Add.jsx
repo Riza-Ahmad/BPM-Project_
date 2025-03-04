@@ -53,7 +53,6 @@ export default function Add({ onChangePage }) {
 
   const handleFileChange = (updatedFiles) => {
     setFile(updatedFiles);
-    console.log(file);
   };
 
   const handleSubmit = async () => {
@@ -112,7 +111,9 @@ export default function Add({ onChangePage }) {
       if (file) {
         const folderName = "Dokumen";
         const filePrefix =
-          idData === null ? idMenu : idData + "_" + formData.judulDok;
+          idData === undefined
+            ? idMenu + "_" + formData.judulDok
+            : idData + "_" + formData.judulDok;
         uploadedDokNames = await uploadFile(file, folderName, filePrefix);
       }
 
@@ -123,12 +124,10 @@ export default function Add({ onChangePage }) {
         nomorDok: nomorDokRef.current.value,
         tanggalDok: tanggalDokRef.current.value,
         kadaluarsaDok: kadaluarsaDokRef.current.value,
-        fileDok: uploadedDokNames[0] || "UploadError"+ new Date().getTime(),
+        fileDok: uploadedDokNames[0] || "UploadError" + new Date().getTime(),
         jenisDok: jenisDokRef.current.value,
         jenjangDok: jenjangDokRef.current.value,
       };
-
-      console.log(dokData);
 
       const createResponse = await useFetch(
         `${API_LINK}/MasterDokumen/CreateDataDokumenPanduan`,
@@ -241,7 +240,7 @@ export default function Add({ onChangePage }) {
                   <div className="col-lg-6 col-md-6">
                     <InputField
                       ref={jenjangDokRef}
-                      label="Jenjang Program Studi"
+                      label="Jenjang"
                       value={formData.jenjangDok}
                       onChange={handleChange}
                       isRequired={true}

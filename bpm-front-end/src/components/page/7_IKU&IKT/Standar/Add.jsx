@@ -14,6 +14,7 @@ import { API_LINK } from "../../../util/Constants";
 import DocUpload from "../../../part/DocUpload";
 import { useIsMobile } from "../../../util/useIsMobile";
 import SweetAlert from "../../../util/SweetAlert";
+import { decodeHtml } from "../../../util/DecodeHtml";
 
 const arrData = [
   { Value: "Nasional", Text: "Nasional" },
@@ -109,8 +110,10 @@ export default function Add({ onChangePage }) {
       jenisDokSKAkrRef.current?.focus();
       return;
     }
-
-    console.log(formData);
+    setFormData((prevData) => ({
+      ...prevData,
+      namaSta: decodeHtml(prevData.namaSta),
+    }));
     try {
       const createResponse = await useFetch(
         `${API_LINK}/MasterStandar/CreateDataStandar`,

@@ -1,21 +1,13 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
-import { useLocation, useParams, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
-import SearchField from "../../../part/SearchField";
-import Button from "../../../part/Button";
-import Filter from "../../../part/Filter";
-import Modal from "../../../part/Modal";
-import DetailData from "../../../part/DetailData";
-import { SyncLoader } from "react-spinners";
-import Breadcrumbs from "../../../part/Breadcrumbs";
-import { API_LINK, DOKUMEN_LINK } from "../../../util/Constants";
+import { API_LINK } from "../../../util/Constants";
 import { useFetch } from "../../../util/useFetch";
-import DropDown from "../../../part/Dropdown";
 import { useIsMobile } from "../../../util/useIsMobile";
 import Loading from "../../../part/Loading";
 import PageTitleNav from "../../../part/PageTitleNav";
-import { format } from "date-fns";
+import { formatDate } from "../../../util/Formatting";
 
 export default function RiwayatUnduh({ onChangePage }) {
   const location = useLocation();
@@ -45,15 +37,12 @@ export default function RiwayatUnduh({ onChangePage }) {
           "POST"
         );
 
-        console.log(pageCurrent);
-
         if (result === "ERROR" || result === null || result.length === 0) {
           setFilteredData([]);
         } else {
           const dokumenArray = Object.values(result);
           setFilteredData(dokumenArray);
           setTotalData(dokumenArray[0].TotalCount);
-          console.log(dokumenArray);
         }
       } catch (err) {
         setError("Gagal mengambil data: " + err);
@@ -75,7 +64,7 @@ export default function RiwayatUnduh({ onChangePage }) {
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          <div className="m-3 mb-0">
+          <div className={isMobile ? "p-0" : "p-3"}>
             <PageTitleNav
               title="Riwayat Unduhan"
               breadcrumbs={location.state?.breadcrumbs}
@@ -113,15 +102,7 @@ export default function RiwayatUnduh({ onChangePage }) {
                       Key: item.idUdo,
                       No: (pageCurrent - 1) * pageSize + index + 1,
                       "Tanggal Unduh": item.tglUdo
-                        ? new Date(item.tglUdo).toLocaleDateString("id-ID", {
-                            weekday: "long",
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                            hour: "numeric",
-                            minute: "numeric",
-                            second: "numeric",
-                          })
+                        ? formatDate(item.tglUdo)
                         : "-",
                       "Judul Dokumen": item.judulDok,
                       "Nama Berkas (File)": item.fileDok,

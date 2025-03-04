@@ -3,38 +3,36 @@ import ScrollToTop from "../../../part/ScrollToTop";
 import ProtectedRoute from "../../../util/ProtectedRoute";
 import Index from "./Index";
 import Add from "./Add";
-import Index2 from "./Index2";
+import AddChild from "./AddChild";
+import Edit from "./Edit";
+import EditChild from "./EditChild";
 
-export default function IKUIKT() {
+export default function MasterKategoriDokumen() {
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
 
-  // Handler for page navigation
   const handlePageChange = (page, withState = {}) => {
     switch (page) {
-      case "index":
-        navigate(`${currentPath}`, { state: { mode: "index", ...withState } });
+      case "read":
+        navigate(`${currentPath}`, { state: { mode: "read", ...withState } });
         break;
-      case "add":
-        navigate(`${currentPath}`, { state: { mode: "add", ...withState } });
+      case "addKat":
+        navigate(`${currentPath}`, { state: { mode: "addKat", ...withState } });
+        break;
+      case "addKatChild":
+        navigate(`${currentPath}`, {
+          state: { mode: "addKatChild", ...withState },
+        });
         break;
       case "edit":
-        navigate(`${currentPath}`, { state: { mode: "edit", ...withState } });
-        break;
-      case "editFile":
         navigate(`${currentPath}`, {
-          state: { mode: "editFile", ...withState },
+          state: { mode: "edit", ...withState },
         });
         break;
-      case "updHistory":
+      case "editChild":
         navigate(`${currentPath}`, {
-          state: { mode: "updHistory", ...withState },
-        });
-        break;
-      case "downHistory":
-        navigate(`${currentPath}`, {
-          state: { mode: "downHistory", ...withState },
+          state: { mode: "editChild", ...withState },
         });
         break;
       default:
@@ -53,10 +51,16 @@ export default function IKUIKT() {
           path="/"
           element={
             <ProtectedRoute>
-              {mode === "add" ? (
+              {mode === "addKat" ? (
                 <Add onChangePage={handlePageChange} />
+              ) : mode === "addKatChild" ? (
+                <AddChild onChangePage={handlePageChange} />
+              ) : mode === "edit" ? (
+                <Edit onChangePage={handlePageChange} />
+              ) : mode === "editChild" ? (
+                <EditChild onChangePage={handlePageChange} />
               ) : (
-                <Index2 onChangePage={handlePageChange} />
+                <Index onChangePage={handlePageChange} />
               )}
             </ProtectedRoute>
           }

@@ -1,12 +1,9 @@
 import React, { useState, useRef } from "react";
 import { useEffect } from "react";
 import PageTitleNav from "../../../part/PageTitleNav";
-import InputField from "../../../part/InputField";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
-import DocUpload from "../../../part/DocUpload";
-import DropDown from "../../../part/Dropdown";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import SweetAlert from "../../../util/SweetAlert";
 import FileUpload from "../../../part/FileUpload";
 import { useIsMobile } from "../../../util/useIsMobile";
@@ -16,6 +13,7 @@ import Loading from "../../../part/Loading";
 import moment from "moment";
 import DetailData from "../../../part/DetailData";
 import { uploadFile } from "../../../util/UploadFile";
+import { formatDate } from "../../../util/Formatting";
 
 export default function EditFile({ onChangePage }) {
   const isMobile = useIsMobile();
@@ -54,7 +52,6 @@ export default function EditFile({ onChangePage }) {
       if (result === "ERROR" || result === null || result.length === 0) {
         setFormData(null);
       } else {
-        console.log(result);
         const dokumenArray = Object.values(result);
         setFormData({
           idKdo: 4,
@@ -77,7 +74,6 @@ export default function EditFile({ onChangePage }) {
 
   const handleFileChange = (updatedFiles) => {
     setFile(updatedFiles);
-    console.log(updatedFiles);
   };
 
   const handleSubmit = async () => {
@@ -87,8 +83,6 @@ export default function EditFile({ onChangePage }) {
         fileDokumenRef.current?.focus();
         return;
       }
-
-      console.log(formData.refDok);
 
       setLoading(true);
 
@@ -132,10 +126,9 @@ export default function EditFile({ onChangePage }) {
 
   return (
     <div className="d-flex flex-column min-vh-100">
-      <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
+      <main className="container flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          {/* Breadcrumbs and Page Title */}
-          <div className="p-3">
+          <div className={isMobile ? "p-0" : "p-3"}>
             <PageTitleNav
               title={title}
               breadcrumbs={breadcrumbs}
@@ -146,8 +139,7 @@ export default function EditFile({ onChangePage }) {
               }
             />
           </div>
-          <div className={isMobile ? "m-0" : "m-3"}>
-            {/* Main Content Section */}
+          <div className={isMobile ? "m-0 p-0" : "m-3"}>
             <div
               className={
                 isMobile
@@ -172,7 +164,7 @@ export default function EditFile({ onChangePage }) {
                 <div className="col-lg-6 col-md-6">
                   <DetailData
                     label="Tahun Dokumen"
-                    isi={formData.tanggalDok || ""}
+                    isi={formatDate(formData.tanggalDok || "-", true)}
                   />
                 </div>
                 <div className="col-lg-6 col-md-6">
@@ -184,7 +176,7 @@ export default function EditFile({ onChangePage }) {
                 <div className="col-lg-6 col-md-6">
                   <DetailData
                     label="Tahun Kadaluwarsa"
-                    isi={formData.kadaluarsaDok || ""}
+                    isi={formatDate(formData.kadaluarsaDok || "", true)}
                   />
                 </div>
               </div>

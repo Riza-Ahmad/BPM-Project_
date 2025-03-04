@@ -1,19 +1,19 @@
 import React, { useState, useRef, useEffect } from "react";
-import { API_LINK } from "../../util/Constants";
-import { useFetch } from "../../util/useFetch";
-import { useIsMobile } from "../../util/useIsMobile";
-import SweetAlert from "../../util/SweetAlert";
-import Table from "../../part/Table";
-import Paging from "../../part/Paging";
-import SearchField from "../../part/SearchField";
-import Button from "../../part/Button";
-import Filter from "../../part/Filter";
-import Modal from "../../part/Modal";
-import DetailData from "../../part/DetailData";
-import Breadcrumbs from "../../part/Breadcrumbs";
-import DropDown from "../../part/Dropdown";
-import Loading from "../../part/Loading";
-import PageTitleNav from "../../part/PageTitleNav";
+import { API_LINK } from "../../../util/Constants";
+import { useFetch } from "../../../util/useFetch";
+import { useIsMobile } from "../../../util/useIsMobile";
+import SweetAlert from "../../../util/SweetAlert";
+import Table from "../../../part/Table";
+import Paging from "../../../part/Paging";
+import SearchField from "../../../part/SearchField";
+import Button from "../../../part/Button";
+import Filter from "../../../part/Filter";
+import Modal from "../../../part/Modal";
+import DetailData from "../../../part/DetailData";
+import DropDown from "../../../part/Dropdown";
+import Loading from "../../../part/Loading";
+import PageTitleNav from "../../../part/PageTitleNav";
+import Cookies from "js-cookie";
 
 const arrSort = [
   { Value: "[namaKdo] ASC", Text: "Nama Kategori [↑]" },
@@ -31,7 +31,17 @@ export default function Index({ onChangePage }) {
   const [totalData, setTotalData] = useState(0);
   const [filteredData, setFilteredData] = useState([]);
 
-  const [modalType, setModalType] = useState(""); // "add", "edit", "detail", "preview"
+  const activeUser = Cookies.get("activeUser");
+  let role = "";
+  let roleNama = "";
+  let namaPengguna = "";
+  if (activeUser) {
+    role = JSON.parse(activeUser).RoleID.slice(0, 5);
+    roleNama = JSON.parse(activeUser).Role;
+    namaPengguna = JSON.parse(activeUser).Nama;
+  }
+
+  const [modalType, setModalType] = useState("");
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -81,7 +91,7 @@ export default function Index({ onChangePage }) {
 
   useEffect(() => {
     fetchDokumen();
-  }, [currentFilter]); // Only depend on `currentFilter`
+  }, [currentFilter]);
 
   const handleOpenModal = (type, data = null) => {
     setModalType(type);
@@ -95,15 +105,18 @@ export default function Index({ onChangePage }) {
   };
 
   const handleEdit = (item) => {
-    onChangePage(
-      item.Type === "Header" ? "edit" : "editChild",
-      breadcrumbs,
-      item.Key
-    );
+    onChangePage(item.Type === "Header" ? "edit" : "editChild", {
+      breadcrumbs: breadcrumbs,
+      idData: item.Key,
+    });
+    // onChangePage("edit", {
+    //   idData: item.Key,
+    //   idMenu: idMenu,
+    //   breadcrumbs: breadcrumbs,
+    // });
   };
 
   const handleToggle = (item) => {
-    // Tampilkan konfirmasi menggunakan SweetAlert sebelum toggle status
     SweetAlert(
       "Konfirmasi",
       `Apakah Anda yakin ingin ${
@@ -113,10 +126,9 @@ export default function Index({ onChangePage }) {
       "Ya",
       null,
       "",
-      true // Tampilkan tombol batal
+      true
     ).then((result) => {
       if (result) {
-        // Jika pengguna mengonfirmasi, hanya simpan idDok dan status yang diperbarui
         const updatedData = filteredData
           .filter((data) => data.idKdo === item.Key)
           .map((data) => ({
@@ -141,7 +153,6 @@ export default function Index({ onChangePage }) {
               "success",
               "OK"
             ).then(() => {
-              // Panggil fetchEvents untuk memperbarui data tanpa reload halaman
               fetchDokumen();
             });
           })
@@ -159,12 +170,8 @@ export default function Index({ onChangePage }) {
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "60px" }}>
         <div className="d-flex flex-column">
-          <div className="m-3 mt-4">
-            <PageTitleNav
-              title={title}
-              breadcrumbs={breadcrumbs}
-              // onClick={() => onChangePage("index")}
-            />
+          <div className={isMobile ? "mt-3" : "p-3 m-5 mt-0 mb-0"}>
+            <PageTitleNav title={title} breadcrumbs={breadcrumbs} />
           </div>
 
           <div
@@ -174,91 +181,95 @@ export default function Index({ onChangePage }) {
                 : "table-container bg-white p-3 m-5 mt-0 rounded"
             }
           >
-            <div className="">
-              <Button
-                iconName="add"
-                classType="primary dropdown-toggle px-3 border-start"
-                data-bs-toggle="dropdown"
-                data-bs-auto-close="outside"
-                label="Tambah Data"
-              />
-              <div className="dropdown-menu">
-                {["Kategori Header", "Kategori Child"].map((label, index) => (
-                  <Button
-                    key={index}
-                    type="button"
-                    label={label}
-                    width="100%"
-                    boxShadow="0px 4px 6px rgba(0, 0, 0, 0)"
-                    onClick={() =>
-                      onChangePage(
-                        index === 0 ? "addKat" : "addKatChild",
-                        breadcrumbs
-                      )
-                    }
-                    style={{
-                      color: "#2654A1",
-                      textAlign: "left",
-                      cursor: "pointer",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = "#2654A1";
-                      e.target.style.color = "white";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = "white";
-                      e.target.style.color = "#2654A1";
-                    }}
-                  />
-                ))}
+            {role === "ROL01" ? (
+              <div>
+                <Button
+                  iconName="add"
+                  classType="primary dropdown-toggle px-3 border-start"
+                  data-bs-toggle="dropdown"
+                  data-bs-auto-close="outside"
+                  label="Tambah Data"
+                />
+                <div className="dropdown-menu">
+                  {["Kategori Header", "Kategori Child"].map((label, index) => (
+                    <Button
+                      key={index}
+                      type="button"
+                      label={label}
+                      width="100%"
+                      boxShadow="0px 4px 6px rgba(0, 0, 0, 0)"
+                      onClick={() =>
+                        onChangePage(
+                          index === 0 ? "addKat" : "addKatChild",
+                          breadcrumbs
+                        )
+                      }
+                      style={{
+                        color: "#2654A1",
+                        textAlign: "left",
+                        cursor: "pointer",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = "#2654A1";
+                        e.target.style.color = "white";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = "white";
+                        e.target.style.color = "#2654A1";
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="row mt-3">
-                <div className="col-lg-10">
-                  <SearchField
+            ) : (
+              ""
+            )}
+            <div className="row my-3">
+              <div className="col-lg-10">
+                <SearchField
+                  onChange={(e) =>
+                    setCurrentFilter((prevFilter) => {
+                      return {
+                        ...prevFilter,
+                        param1: e,
+                      };
+                    })
+                  }
+                />
+              </div>
+              <div className="col-lg-2">
+                <Filter>
+                  <DropDown
+                    arrData={arrSort}
+                    type="pilih"
+                    label="Urut Berdasarkan"
+                    defaultValue="[namaKdo] ASC"
+                    forInput="sortFilter"
                     onChange={(e) =>
                       setCurrentFilter((prevFilter) => {
                         return {
                           ...prevFilter,
-                          param1: e,
+                          param3: e.target.value,
                         };
                       })
                     }
                   />
-                </div>
-                <div className="col-lg-2">
-                  <Filter>
-                    <DropDown
-                      arrData={arrSort}
-                      type="pilih"
-                      label="Urut Berdasarkan"
-                      defaultValue="[namaKdo] ASC"
-                      forInput="sortFilter"
-                      onChange={(e) =>
-                        setCurrentFilter((prevFilter) => {
-                          return {
-                            ...prevFilter,
-                            param3: e.target.value,
-                          };
-                        })
-                      }
-                    />
-                    <DropDown
-                      arrData={arrStatus}
-                      label="Status"
-                      type="pilih"
-                      defaultValue="Aktif"
-                      forInput="statusFilter"
-                      onChange={(e) =>
-                        setCurrentFilter((prevFilter) => {
-                          return {
-                            ...prevFilter,
-                            param2: e.target.value,
-                          };
-                        })
-                      }
-                    />
-                  </Filter>
-                </div>
+                  <DropDown
+                    arrData={arrStatus}
+                    label="Status"
+                    type="pilih"
+                    defaultValue="Aktif"
+                    forInput="statusFilter"
+                    onChange={(e) =>
+                      setCurrentFilter((prevFilter) => {
+                        return {
+                          ...prevFilter,
+                          param2: e.target.value,
+                        };
+                      })
+                    }
+                  />
+                </Filter>
               </div>
             </div>
             {loading ? (
@@ -281,6 +292,7 @@ export default function Index({ onChangePage }) {
                     }
                     return ["Detail", "Edit", "Toggle"];
                   }}
+                  aksiIs={role === "ROL01" ? true : false}
                   onEdit={handleEdit}
                   onDetail={handleDetail}
                   onToggle={handleToggle}
@@ -300,7 +312,7 @@ export default function Index({ onChangePage }) {
       {modalType === "detail" && (
         <Modal
           ref={ModalRef}
-          title="Detail Dokumen"
+          title="Detail Data"
           size="medium"
           Button2={
             <Button
@@ -311,7 +323,6 @@ export default function Index({ onChangePage }) {
           }
         >
           <div className="p-5 mt-0 bg-white rounded shadow">
-            {/* <HeaderText label="Detail Dokumen" /> */}
             <div className="row">
               <div className="col-lg-12 col-md-12">
                 <DetailData

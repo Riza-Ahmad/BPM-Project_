@@ -1,20 +1,13 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { useLocation, useParams, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
-import SearchField from "../../../part/SearchField";
-import Button from "../../../part/Button";
-import Filter from "../../../part/Filter";
-import Modal from "../../../part/Modal";
-import DetailData from "../../../part/DetailData";
-import { SyncLoader } from "react-spinners";
-import Breadcrumbs from "../../../part/Breadcrumbs";
 import { API_LINK, DOKUMEN_LINK } from "../../../util/Constants";
 import { useFetch } from "../../../util/useFetch";
-import DropDown from "../../../part/Dropdown";
 import { useIsMobile } from "../../../util/useIsMobile";
 import Loading from "../../../part/Loading";
 import PageTitleNav from "../../../part/PageTitleNav";
+import { formatDate } from "../../../util/Formatting";
 
 export default function RiwayatEdit({ onChangePage }) {
   const location = useLocation();
@@ -26,13 +19,8 @@ export default function RiwayatEdit({ onChangePage }) {
   const [filteredData, setFilteredData] = useState([]);
   const idMenu = location.state?.idMenu;
   const idData = location.state?.idData;
-
-  const [modalType, setModalType] = useState(""); // "add", "edit", "detail", "preview"
-  const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const ModalRef = useRef();
 
   useEffect(() => {
     const fetchDokumen = async () => {
@@ -74,9 +62,9 @@ export default function RiwayatEdit({ onChangePage }) {
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          <div className="m-3 mb-0">
+          <div className={isMobile ? "p-0" : "p-3"}>
             <PageTitleNav
-              title="Riwayat Pembaruan"
+              title="Riwayat Pembaharuan Dokumen"
               breadcrumbs={location.state?.breadcrumbs}
               onClick={() => window.history.back()}
             />
@@ -108,7 +96,7 @@ export default function RiwayatEdit({ onChangePage }) {
                       "Revisi Ke": item.revisiDok,
                       "Judul Dokumen": item.judulDok,
                       "Nama Berkas (File)": item.fileDok,
-                      "Tanggal Unggah": item.createdDate,
+                      "Tanggal Unggah": formatDate(item.createdDate),
                       "Di Unggah Oleh": item.createdBy,
                       status: item.statusDok,
                     }))}

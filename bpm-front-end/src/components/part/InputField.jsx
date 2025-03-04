@@ -11,7 +11,7 @@ const InputField = forwardRef(function InputField(
     isDisabled = false,
     type = "text",
     maxChar,
-    value,
+    value = "",
     onChange,
     ...props
   },
@@ -33,7 +33,10 @@ const InputField = forwardRef(function InputField(
           setError(true);
           return false;
         }
-      } else if (isRequired && (value === null || value === undefined || value === '')) {
+      } else if (
+        isRequired &&
+        (value === null || value === undefined || value === "")
+      ) {
         setError(true);
         return false;
       }
@@ -87,7 +90,10 @@ const InputField = forwardRef(function InputField(
             if (isRequired && !value.trim()) {
               setError(true);
             }
-          } else if (isRequired && (value === null || value === undefined || value === '')) {
+          } else if (
+            isRequired &&
+            (value === null || value === undefined || value === "")
+          ) {
             setError(true);
           }
           setError(false);

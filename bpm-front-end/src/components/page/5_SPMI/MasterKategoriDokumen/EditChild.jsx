@@ -1,30 +1,30 @@
 import React, { useState, useRef } from "react";
 import { useEffect } from "react";
-import PageTitleNav from "../../part/PageTitleNav";
-import InputField from "../../part/InputField";
-import HeaderForm from "../../part/HeaderText";
-import Button from "../../part/Button";
-import DropDown from "../../part/Dropdown";
-import SweetAlert from "../../util/SweetAlert";
-import Loading from "../../part/Loading";
-import { useIsMobile } from "../../util/useIsMobile";
-import { API_LINK } from "../../util/Constants";
-import { useFetch } from "../../util/useFetch";
+import { useLocation } from "react-router-dom";
+import PageTitleNav from "../../../part/PageTitleNav";
+import InputField from "../../../part/InputField";
+import HeaderForm from "../../../part/HeaderText";
+import Button from "../../../part/Button";
+import DropDown from "../../../part/Dropdown";
+import SweetAlert from "../../../util/SweetAlert";
+import { useIsMobile } from "../../../util/useIsMobile";
+import { API_LINK } from "../../../util/Constants";
+import { useFetch } from "../../../util/useFetch";
+import Loading from "../../../part/Loading";
 
-export default function AddChild({ onChangePage, breadcrumbs }) {
+export default function EditChild({ onChangePage }) {
   const isMobile = useIsMobile();
-  const [loading, setLoading] = useState(false);
+  const location = useLocation();
+  const idData = location.state?.idData;
+  const breadcrumbs = location.state?.breadcrumbs;
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
-    namaKat: "",
-    parentKat: "",
-    urutanKat: "",
-    createdBy: "User404",
+    idKdo: null,
+    namaKdo: null,
+    parentKdo: null,
+    urutanKdo: null,
   });
   const [listKdo, setListKdo] = useState([]);
-
-  const namaKatRef = useRef();
-  const parentKatRef = useRef();
-  const urutanKatRef = useRef();
 
   useEffect(() => {
     const fetchMenu = async () => {
@@ -41,11 +41,40 @@ export default function AddChild({ onChangePage, breadcrumbs }) {
         const menuArray = Object.values(result);
         setListKdo(menuArray);
       }
+
       setLoading(false);
     };
 
     fetchMenu();
   }, []);
+
+  useEffect(() => {
+    const fetchKategori = async () => {
+      setLoading(true);
+      const result = await useFetch(
+        `${API_LINK}/MasterKategoriDokumen/GetDataKategoriDokumenById`,
+        { idKdo: idData },
+        "POST"
+      );
+
+      if (result === "ERROR" || result === null || result.length === 0) {
+        setFormData({});
+      } else {
+        setFormData({
+          idKdo: result[0].idKdo,
+          namaKdo: result[0].namaKdo,
+          parentKdo: result[0].parentKdo,
+          urutanKdo: result[0].urutanKdo,
+        });
+      }
+      setLoading(false);
+    };
+    fetchKategori();
+  }, [idData]);
+
+  const namaKdoRef = useRef(formData.namaKdo);
+  const parentKdoRef = useRef(formData.parentKdo);
+  const urutanKdoRef = useRef(formData.urutanKdo);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -56,32 +85,32 @@ export default function AddChild({ onChangePage, breadcrumbs }) {
   };
 
   const handleSubmit = async () => {
-    const isNamaKatValid = namaKatRef.current?.validate();
-    const isParentKatValid = parentKatRef.current?.validate();
-    const isUrutanKatRefValid = urutanKatRef.current?.validate();
+    const isNamaKdoValid = namaKdoRef.current?.validate();
+    const isParentKdoValid = parentKdoRef.current?.validate();
+    const isUrutanKdoRefValid = urutanKdoRef.current?.validate();
 
-    if (!isNamaKatValid) {
-      namaKatRef.current?.focus();
+    if (!isNamaKdoValid) {
+      namaKdoRef.current?.focus();
       return;
     }
-    if (!isParentKatValid) {
-      parentKatRef.current?.focus();
-      return;
-    }
-
-    if (urutanKatRef.current.value < 0) {
-      urutanKatRef.current?.focus();
+    if (!isParentKdoValid) {
+      parentKdoRef.current?.focus();
       return;
     }
 
-    if (!isUrutanKatRefValid) {
-      urutanKatRef.current?.focus();
+    if (urutanKdoRef.current.value < 0) {
+      urutanKdoRef.current?.focus();
+      return;
+    }
+
+    if (!isUrutanKdoRefValid) {
+      urutanKdoRef.current?.focus();
       return;
     }
 
     try {
       const createResponse = await useFetch(
-        `${API_LINK}/MasterKategoriDokumen/CreateDataKategoriDokumenChild`,
+        `${API_LINK}/MasterKategoriDokumen/EditDataKategoriDokumenChild`,
         formData,
         "POST"
       );
@@ -89,12 +118,9 @@ export default function AddChild({ onChangePage, breadcrumbs }) {
       if (createResponse === "ERROR") {
         throw new Error("Gagal memperbarui data");
       } else {
-        SweetAlert(
-          "Berhasil!",
-          "Data berhasil ditambahkan.",
-          "success",
-          "OK"
-        ).then(() => onChangePage("read"));
+        SweetAlert("Berhasil!", "Data berhasil diubah.", "success", "OK").then(
+          () => onChangePage("read")
+        );
       }
     } catch (error) {
       console.error("Error:", error.message);
@@ -102,11 +128,12 @@ export default function AddChild({ onChangePage, breadcrumbs }) {
     }
   };
 
+  if (loading) return <Loading />;
+
   return (
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="container d-flex flex-column">
-          {/* Breadcrumbs and Page Title */}
           <div className="p-3">
             <PageTitleNav
               title="Tambah Data"
@@ -115,7 +142,6 @@ export default function AddChild({ onChangePage, breadcrumbs }) {
             />
           </div>
           <div className={isMobile ? "m-0" : "m-3"}>
-            {/* Main Content Section */}
             {loading ? (
               <Loading />
             ) : (
@@ -130,24 +156,24 @@ export default function AddChild({ onChangePage, breadcrumbs }) {
                 <div className="row">
                   <div className="col-lg-6 col-md-6">
                     <InputField
-                      ref={namaKatRef}
+                      ref={namaKdoRef}
                       label="Nama Kategori"
-                      value={formData.namaKat}
+                      value={formData.namaKdo}
                       onChange={handleChange}
                       isRequired={true}
-                      name="namaKat"
+                      name="namaKdo"
                       type="text"
                       maxChar="100"
                     />
                   </div>
                   <div className="col-lg-6 col-md-6">
                     <InputField
-                      ref={urutanKatRef}
+                      ref={urutanKdoRef}
                       label="Urutan Kategori"
-                      value={formData.urutanKat}
+                      value={formData.urutanKdo}
                       onChange={handleChange}
                       isRequired={true}
-                      name="urutanKat"
+                      name="urutanKdo"
                       type="number"
                       min="0"
                     />
@@ -157,11 +183,11 @@ export default function AddChild({ onChangePage, breadcrumbs }) {
                   arrData={listKdo}
                   type="pilih"
                   label="Parent Kategori"
-                  forInput="parentKat"
+                  forInput="parentKdo"
                   isRequired={true}
                   onChange={handleChange}
-                  value={formData.parentKat}
-                  ref={parentKatRef}
+                  value={formData.parentKdo}
+                  ref={parentKdoRef}
                 />
                 <div className="d-flex justify-content-between align-items-center">
                   <div className="flex-grow-1 m-2">

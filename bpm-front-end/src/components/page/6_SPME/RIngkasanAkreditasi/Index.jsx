@@ -6,9 +6,27 @@ import { Bar } from "react-chartjs-2";
 import "chart.js/auto";
 import HeaderText from "../../../part/HeaderText";
 import Text from "../../../part/Text";
+import { useIsMobile } from "../../../util/useIsMobile";
+import { useLocation } from "react-router-dom";
+import { decodeHtml } from "../../../util/DecodeHtml";
+import Button from "../../../part/Button";
+import Breadcrumbs from "../../../part/Breadcrumbs";
+import Cookies from "js-cookie";
 
-export default function Akreditasi() {
-  const [institusiData, setInstitusiData] = useState(null);
+export default function Akreditasi({ onChangePage }) {
+  const location = useLocation();
+  const idMenu = location.state?.idMenu;
+  const activeUser = Cookies.get("activeUser");
+  const isMobile = useIsMobile();
+  let role = "";
+  let roleNama = "";
+  let namaPengguna = "";
+  if (activeUser) {
+    role = JSON.parse(activeUser).RoleID.slice(0, 5);
+    roleNama = JSON.parse(activeUser).Role;
+    namaPengguna = JSON.parse(activeUser).Nama;
+  }
+  const [menuData, setMenuData] = useState(null);
   const [prodiData, setProdiData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,9 +35,29 @@ export default function Akreditasi() {
     { label: "Status Akreditasi" },
     { label: "Ringkasan Status Akreditasi" },
   ]);
-  const title = "Status Akreditasi";
+
+  useEffect(() => {
+    const fetchMenu = async () => {
+      setLoading(true);
+      const result = await useFetch(
+        `${API_LINK}/MasterKategoriDokumen/GetDataKategoriDokumenHeaderByIdMenu`,
+        { idKdo: location.state?.idMenu },
+        "POST"
+      ).finally(() => setLoading(false));
+
+      if (result === "ERROR") {
+        setMenuData([]);
+      } else {
+        const menuArr = Object.values(result);
+        setMenuData(menuArr[0]);
+      }
+    };
+
+    fetchMenu();
+  }, [location.state?.idMenu]);
+
   const normalizePredikat = (predikat) => {
-    if (!predikat) return "TIDAK TERAKREDITASI"; // Jika data null atau tidak ada
+    if (!predikat) return "BELUM TERAKREDITASI";
     const normalized = predikat.trim().toUpperCase();
     switch (normalized) {
       case "A":
@@ -35,26 +73,13 @@ export default function Akreditasi() {
       case "BAIK":
         return "BAIK";
       default:
-        return "TIDAK TERAKREDITASI"; // Default jika tidak cocok
+        return "BELUM TERAKREDITASI";
     }
   };
 
   useEffect(() => {
     const fetchAkreditasiData = async () => {
       try {
-        // Fetch data akreditasi institusi
-        const responseInstitusi = await useFetch(
-          `${API_LINK}/MasterAkreditasi/GetAkreditasiInstitusiLatest`,
-          {},
-          "POST"
-        );
-        if (responseInstitusi && responseInstitusi.length > 0) {
-          setInstitusiData(responseInstitusi[0]);
-        } else {
-          setInstitusiData(null);
-          // setError("Data akreditasi institusi tidak tersedia.");
-        }
-
         const responseProdi = await useFetch(
           `${API_LINK}/MasterAkreditasi/GetAkreditasiProdiForChart`,
           {},
@@ -65,7 +90,6 @@ export default function Akreditasi() {
         } else {
           setError(responseProdi.message);
         }
-        console.log(responseProdi);
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -77,21 +101,17 @@ export default function Akreditasi() {
   }, []);
 
   const labels = Array.from(
-    new Set(prodiData.map((item) => item.peringkatAkr || "Belum Terakreditasi"))
+    new Set(prodiData.map((item) => item.peringkatAkr || "BELUM TERAKREDITASI"))
   );
 
   const getProdiByPredikat = (predikat) => {
     const normalizedPredikat = normalizePredikat(predikat);
-    // Ambil nama program studi (namaAkr) yang sesuai dengan predikat
     return prodiData
       .filter(
         (item) => normalizePredikat(item.peringkatAkr) === normalizedPredikat
       )
-      .map((item) => item.namaAkr); // Mengembalikan hanya nama program studi
+      .map((item) => item.namaAkr);
   };
-  // const getProdiByPredikat = (predikat) => {
-  //     return prodiData.filter((item) => item.peringkatAkr === predikat).map((item) => item.namaAkr);
-  //   };
 
   const chartData = {
     labels,
@@ -100,7 +120,6 @@ export default function Akreditasi() {
         label: "Jumlah Program Studi",
         data: labels.map((label) => getProdiByPredikat(label).length),
         backgroundColor: labels.map((_, index) => {
-          // Array of unique colors for each bar
           const colors = [
             "#002147",
             "#00509E",
@@ -110,9 +129,9 @@ export default function Akreditasi() {
             "#F0F8FF",
             "#001F3F",
           ];
-          return colors[index % colors.length]; // Cycle through the colors array
+          return colors[index % colors.length];
         }),
-        barThickness: 100,
+        barThickness: isMobile ? 40 : 150,
       },
     ],
   };
@@ -134,23 +153,33 @@ export default function Akreditasi() {
       },
       legend: {
         display: false,
-        // labels: {
-        //   color: "rgb(255, 99, 132)",
-        // },
         position: "top",
+        labels: {
+          font: {
+            size: isMobile ? 8 : 16,
+          },
+        },
       },
     },
     responsive: true,
     maintainAspectRatio: false,
     scales: {
       x: {
-        categoryPercentage: 0.5, // Mengatur persentase lebar kategori
-        barPercentage: 0.5, // Mengatur persentase lebar batang dalam kategori
+        categoryPercentage: 0.5,
+        barPercentage: 0.5,
+        ticks: {
+          font: {
+            size: isMobile ? 8 : 16,
+          },
+        },
       },
       y: {
         ticks: {
-          beginAtZero: true, // Memulai skala dari 0
-          stepSize: 1, // Menampilkan angka bulat dengan langkah 1
+          beginAtZero: true,
+          stepSize: 1,
+          font: {
+            size: isMobile ? 8 : 16,
+          },
         },
       },
     },
@@ -172,75 +201,63 @@ export default function Akreditasi() {
       >
         <div className="d-flex flex-column mt-1">
           <div className="container mb-3">
-            <div className="d-flex justify-content-between align-items-center">
-              <h1 style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}>
-                {title ? title : "Page Title"}
-              </h1>
-            </div>
-            <div
-              className="breadcrumbs"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                margin: 0,
-                padding: 0,
-              }}
-            >
-              {breadcrumbs.map((crumb, index) => (
-                <React.Fragment key={index}>
-                  <span
-                    style={{
-                      color: "#575050",
-                      textDecoration: "none",
-                      margin: 0, // Tambahkan margin 0 di sini juga
-                    }}
-                    onClick={() => navigate(crumb.href)}
-                  >
-                    {crumb.label}
-                  </span>
-                  {index < breadcrumbs.length - 1 && (
-                    <span style={{ margin: "0 0.5rem", color: "#6c757d" }}>
-                      /
-                    </span>
-                  )}
-                </React.Fragment>
-              ))}
+            <div className="row">
+              <div className="col-sm-10">
+                <h1
+                  style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}
+                >
+                  {menuData?.namaKdo
+                    ? decodeHtml(menuData.namaKdo)
+                    : "Page Title"}
+                </h1>
+                <Breadcrumbs
+                  breadcrumbs={[
+                    { label: "SPME" },
+                    { label: "Status Akreditasi" },
+                    { label: "Ringkasan" },
+                  ]}
+                />
+              </div>
+              {role === "ROL01" ? (
+                <div className="col-sm-2">
+                  <Button
+                    classType="btn btn-primary"
+                    title="Edit Cover"
+                    label="Edit Cover"
+                    onClick={() =>
+                      onChangePage("editKonten", {
+                        breadcrumbs: breadcrumbs,
+                        idData: menuData.idKdo,
+                        idMenu: idMenu,
+                      })
+                    }
+                  />
+                </div>
+              ) : (
+                ""
+              )}
             </div>
             <div className="rounded-4 shadow bg-primary bg-gradient text-white mt-4 mb-5">
               <div className="p-4 mx-2">
-                <HeaderText
-                  label={`Politeknik Astra Memperoleh Predikat ${
-                    institusiData?.peringkatAkr || "-"
-                  }`}
-                  alignText="left"
-                  warna="#2654A1b"
-                  fontWeight="650"
-                  ukuran="2rem"
-                />
                 <Text
                   warna="white"
-                  isi={`Sejalan dengan ketentuan Pasal 55 ayat (4) Undang-Undang Republik Indonesia Nomor 12 
-                        Tahun 2012 , tentang Pendidikan Tinggi, akreditasi Perguruan Tinggi dilakukan oleh Badan 
-                        Akreditasi Nasional Perguruan Tinggi. Berdasarkan Surat Keputusan Direktur Dewan Eksekutif BAN-PT No. ${
-                          institusiData?.noAkr || "-"
-                        }`}
+                  isi={menuData.deskripsiKdo}
                   ukuran="1.2rem"
                 />
               </div>
-              {/* ${institusiData.akr_tahun_SK || "Tidak Tersedia"} */}
             </div>
             <div className="rounded-4 shadow mt-5">
               <div className="p-4 mx-2">
                 <HeaderText
-                  label="Akreditasi Program Studi"
+                  label="Program Studi yang Terakreditasi"
                   alignText="left"
                   warna="#2654A1b"
                   fontWeight="650"
-                  ukuran="2rem"
+                  ukuran={isMobile ? "1.5rem" : "2rem"}
                 />
-                <div>
+                <div style={{ overflowX: "auto", width: "100%" }}>
                   <Bar
-                    style={{ minHeight: "40vh" }}
+                    style={{ minHeight: "40vh", minWidth: "100%" }}
                     data={chartData}
                     options={chartOptions}
                   />
@@ -248,7 +265,7 @@ export default function Akreditasi() {
               </div>
             </div>
             <div className="mt-5">
-              <p className="fs-6 fst-italic">
+              <p className="fs-6 fw-100 fst-italic">
                 * Dokumen SK dan Sertifikat Akreditasi dapat diunduh pada menu
                 SPME / Dokumen SPME
               </p>

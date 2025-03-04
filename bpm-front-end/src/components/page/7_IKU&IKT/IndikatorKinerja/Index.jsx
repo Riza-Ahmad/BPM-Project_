@@ -23,8 +23,8 @@ import PdfPreviewDownload from "../../../part/PdfPreviewDownload";
 import Cookies from "js-cookie";
 
 const arrSort = [
-  { Value: "[judulDok] ASC", Text: "Judul Dokumen [↑]" },
-  { Value: "[judulDok] DESC", Text: "Judul Dokumen [↓]" },
+  { Value: "[namaIka] ASC", Text: "Nama Indikator [↑]" },
+  { Value: "[namaIka] DESC", Text: "Nama Indikator [↓]" },
 ];
 
 const arrStatus = [
@@ -58,10 +58,14 @@ const inisialisasiSideMenuData = [
   },
 ];
 
+const arrTahun = [
+  { Value: "2024", Text: "2024" },
+  { Value: "2025", Text: "2025" },
+];
+
 export default function Index({ onChangePage, isIkuIkt }) {
   const location = useLocation();
   const idMenu = location.state?.idMenu;
-  // console.log(location.state.idMenu);
   const activeUser = Cookies.get("activeUser");
   let role = "";
   let roleNama = "";
@@ -79,6 +83,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
   const [sideMenu, setSideMenu] = useState(inisialisasiSideMenuData);
   const [activeTab, setActiveTab] = useState(null);
   const [activeSide, setActiveSide] = useState(null);
+  const [standarYear, setStandarYear] = useState(new Date().getFullYear());
 
   const [pageSize] = useState(10);
   const [pageCurrent, setPageCurrent] = useState(1);
@@ -86,7 +91,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
   const [filteredData, setFilteredData] = useState([]);
 
   const [breadcrumbs, setBreadcrumbs] = useState([]);
-  const [arrTahun, setArrTahun] = useState([]);
+  // const [arrTahun, setArrTahun] = useState([]);
   const [error, setError] = useState("");
 
   const ModalRef = useRef();
@@ -110,32 +115,12 @@ export default function Index({ onChangePage, isIkuIkt }) {
   }, [pageCurrent]);
 
   useEffect(() => {
-    const fetchTahunDokumen = async () => {
-      setLoading(true);
-      const result = await useFetch(
-        `${API_LINK}/MasterDokumen/GetListTahunDokumen`,
-        {},
-        "POST"
-      ).finally(() => setLoading(false));
-
-      if (result === "ERROR") {
-        setArrTahun([]);
-      } else {
-        const tahunArr = Object.values(result);
-        setArrTahun(tahunArr);
-      }
-    };
-
-    fetchTahunDokumen();
-  }, []);
-
-  useEffect(() => {
     const fetchKategori = async () => {
       setLoading(true);
       try {
         const result = await useFetch(
           `${API_LINK}/MasterStandar/GetDataStandarByTahun`,
-          { tahun: new Date().getFullYear() },
+          { tahun: standarYear },
           "POST"
         );
 
@@ -156,37 +141,30 @@ export default function Index({ onChangePage, isIkuIkt }) {
         const firstResult = arrResult[0];
 
         const listMenu = CreateMenu(arrResult);
-        console.log(listMenu);
-        const depth = calculateDepth(listMenu);
-        console.log(depth);
-        const sideMenuTransformed = listMenu[0]?.children;
+        // Ensure that listMenu[0] exists before accessing .children
+        const sideMenuTransformed =
+          listMenu.length > 0 ? listMenu[0]?.children || [] : [];
 
+        setSideMenu(listMenu);
         setTabMenu([]);
         setActiveTab(0);
         setSideMenu(listMenu);
-        setActiveSide(sideMenuTransformed[0]);
-        setCurrentFilter((prevFilter) => ({
-          ...prevFilter,
-          param1: sideMenuTransformed[0].idSta,
-        }));
-        //     break;
-        //   default:
-        //     setTabMenu(sideMenuTransformed);
-        //     const firstTab = sideMenuTransformed[0];
-        //     setActiveTab(firstTab);
-        //     const side = firstTab.children || [];
-        //     setSideMenu(side);
 
-        //     if (side.length > 0) {
-        //       const firstSide = side[0];
-        //       setActiveSide(firstSide);
-        //       setCurrentFilter((prevFilter) => ({
-        //         ...prevFilter,
-        //         param1: firstSide.idSta,
-        //       }));
-        //     }
-        //     break;
-        // }
+        // Ensure sideMenuTransformed[0] exists before setting active side
+        if (sideMenuTransformed.length > 0) {
+          setActiveSide(sideMenuTransformed[0]);
+
+          // Ensure idSta exists before updating the filter
+          if (sideMenuTransformed[0]?.idSta) {
+            setCurrentFilter((prevFilter) => ({
+              ...prevFilter,
+              param1: sideMenuTransformed[0].idSta,
+            }));
+          }
+        } else {
+          // Handle case where there is no valid side menu data
+          setActiveSide(null);
+        }
       } catch (err) {
         console.error("Error fetching kategori:", err);
         setError("Gagal mengambil data: " + err.message);
@@ -196,7 +174,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
     };
 
     fetchKategori();
-  }, [location.state?.idMenu]);
+  }, [standarYear]);
 
   useEffect(() => {
     let tempBradcrumps = [{ label: "SPMI" }, { label: "Siklus SPMI" }];
@@ -213,7 +191,6 @@ export default function Index({ onChangePage, isIkuIkt }) {
   const fetchDokumen = async () => {
     setLoading(true);
     try {
-      console.log(currentFilter);
       const result = await useFetch(
         `${API_LINK}/MasterIndikatorKinerja/GetDataIndikatorKinerja`,
         currentFilter,
@@ -262,28 +239,6 @@ export default function Index({ onChangePage, isIkuIkt }) {
     }
   };
 
-  const calculateDepth = (data) => {
-    const getDepth = (items) => {
-      if (!items || items.length === 0) return 0; // No children, depth is 0
-      return (
-        1 + Math.max(...items.map((item) => getDepth(item.children || [])))
-      );
-    };
-
-    return getDepth(data);
-  };
-
-  const handleOpenModal = (type, data = null) => {
-    setModalType(type);
-    setDetail(data);
-    ModalRef.current?.open();
-  };
-
-  const handlePreview = (item) => {
-    const selected = filteredData.find((obj) => obj.idDok == item.Key);
-    handleOpenModal("preview", selected);
-  };
-
   const handleDetail = (item) => {
     onChangePage("detail", {
       idData: item.Key,
@@ -302,173 +257,6 @@ export default function Index({ onChangePage, isIkuIkt }) {
     });
   };
 
-  const handleUpdateHistory = (item) => {
-    onChangePage("updHistory", {
-      idData: item.Key,
-      idMenu: idMenu,
-      breadcrumbs: breadcrumbs,
-    });
-  };
-
-  const handleDownloadHistory = (item) => {
-    onChangePage("downHistory", {
-      idData: item.Key,
-      idMenu: idMenu,
-      breadcrumbs: breadcrumbs,
-    });
-  };
-
-  const handleUpload = (item) => {
-    onChangePage("editFile", {
-      idData: item.Key,
-      idMenu: idMenu,
-      breadcrumbs: breadcrumbs,
-    });
-  };
-
-  const handleToggle = (item) => {
-    // Tampilkan konfirmasi menggunakan SweetAlert sebelum toggle status
-    SweetAlert(
-      "Konfirmasi",
-      `Apakah Anda yakin ingin ${
-        item.status === "Aktif" ? "menonaktifkan" : "mengaktifkan"
-      } dokumen ini?`,
-      "question",
-      "Ya",
-      null,
-      "",
-      true // Tampilkan tombol batal
-    ).then((result) => {
-      if (result) {
-        // Jika pengguna mengonfirmasi, hanya simpan idDok dan status yang diperbarui
-        const updatedData = filteredData
-          .filter((data) => data.idDok === item.Key)
-          .map((data) => ({
-            idDok: data.idDok,
-            status: data.status === "Aktif" ? "Tidak Aktif" : "Aktif",
-          }));
-
-        useFetch(`${API_LINK}/MasterDokumen/EditStatusDokumen`, updatedData[0])
-          .then((response) => {
-            if (response === "ERROR") {
-              throw new Error("Gagal memperbarui data");
-            }
-            SweetAlert(
-              "Berhasil!",
-              updatedData[0].status === "Aktif"
-                ? "Data dokumen berhasil diaktifkan"
-                : "Data dokumen berhasil dinonaktifkan",
-              "success",
-              "OK"
-            ).then(() => {
-              // Panggil fetchEvents untuk memperbarui data tanpa reload halaman
-              fetchDokumen();
-            });
-          })
-          .catch((error) => {
-            SweetAlert("Gagal!", error.message, "error", "OK");
-          })
-          .finally(() => {
-            setLoading(false);
-          });
-      }
-    });
-  };
-
-  const handleDownload = async (item) => {
-    const id = item.Key;
-    if (!id) {
-      SweetAlert("Peringatan", "ID file tidak tersedia.", "warning");
-      return;
-    }
-
-    try {
-      const foundItem = filteredData.find((obj) => obj.idDok === id);
-      const namaInformasi =
-        foundItem && foundItem["fileDok"] ? foundItem["fileDok"] : `file_${id}`;
-
-      const judulDok = foundItem.judulDok;
-      const controlDok = foundItem.controlDok;
-      const referensi = foundItem.refDok;
-      const tanggal = new Date().toLocaleString();
-
-      const response = await fetch(`${API_LINK}/MasterDokumen/DownloadFile`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fileName: namaInformasi,
-          metadata: {
-            JudulDokumen: judulDok,
-            JenisDokumen: controlDok,
-            DiunduhOleh: namaPengguna,
-            Jabatan: roleNama,
-            TanggalUnduh: tanggal,
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Gagal mengunduh file.");
-      } else {
-        const data = await useFetch(
-          `${API_LINK}/MasterDokumen/CreateUnduhDokumen`,
-          {
-            idDok: id,
-            referensi: referensi,
-            role: role,
-            roleNama: roleNama,
-          },
-          "POST"
-        );
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = namaInformasi;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      SweetAlert("Error", error.message, "error");
-    }
-  };
-
-  const renderTab = (list) => {
-    if (!list || list.length === 0) {
-      return null;
-    }
-
-    return list.map(({ idSta, judulSta }, index) => (
-      <div className="nav-item mx-0" key={idSta}>
-        <button
-          onClick={() => handleTabClick(idSta, list[index])}
-          className={`nav-link ${
-            activeTab?.idSta === idSta ? " active" : ""
-          } text-dark px-3`}
-        >
-          {judulSta || "Unnamed Tab"}
-        </button>
-      </div>
-    ));
-  };
-
-  const handleTabClick = (idSta, item) => {
-    setSideMenu(item?.children || []); // Set children of the clicked item as the new side menu
-    setActiveTab(item); // Update the active tab
-    setActiveSide(item?.children[0] || null);
-    console.log(item?.children[0]);
-    setCurrentFilter((prevFilter) => ({
-      ...prevFilter,
-      param1: idSta, // Update the filter with the clicked tab's ID
-    }));
-  };
-
   const renderSide = (sideMenu) => {
     if (sideMenu.length === 0)
       return <p className="text-danger text-center">No data available</p>;
@@ -485,21 +273,12 @@ export default function Index({ onChangePage, isIkuIkt }) {
           <span
             onClick={() => {
               if (menu.children?.length > 0) {
-                // Toggle submenu visibility for items with children
                 setActiveSide(menu);
                 setCurrentFilter((prevFilter) => ({
                   ...prevFilter,
                   param1: menu.idSta,
                 }));
-                // setSideMenu((prevSideMenu) =>
-                //   prevSideMenu.map((item) =>
-                //     item.idSta === menu.idSta
-                //       ? { ...item, isExpanded: !item.isExpanded }
-                //       : item
-                //   )
-                // );
               } else {
-                // Set the clicked menu as active for items without children
                 setActiveSide(menu);
                 setCurrentFilter((prevFilter) => ({
                   ...prevFilter,
@@ -508,7 +287,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
               }
             }}
           >
-            {menu.judulSta || "Unnamed Menu"}
+            {decodeHtml(menu.judulSta) || "Unnamed Menu"}
           </span>
           {menu.children?.length > 0 && (
             <Icon
@@ -553,7 +332,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
                 }}
               >
                 <Icon name="minus-small" cssClass="me-2 mt-1" />
-                <span>{sub.judulSta || "Unnamed Submenu"}</span>
+                <span>{decodeHtml(sub.judulSta) || "Unnamed Submenu"}</span>
               </div>
             ))}
           </div>
@@ -562,64 +341,110 @@ export default function Index({ onChangePage, isIkuIkt }) {
     ));
   };
 
-  if (loading) return <Loading />;
+  const handleToggle = (item) => {
+    // Tampilkan konfirmasi menggunakan SweetAlert sebelum toggle status
+    SweetAlert(
+      "Konfirmasi",
+      `Apakah Anda yakin ingin menghapus data ini?`,
+      "question",
+      "Ya",
+      null,
+      "",
+      true // Tampilkan tombol batal
+    ).then((result) => {
+      if (result) {
+        // Jika pengguna mengonfirmasi, hanya simpan idDok dan status yang diperbarui
+        const updatedData = filteredData
+          .filter((data) => data.idIka === item.Key)
+          .map((data) => ({
+            idDok: data.idIka,
+            status: data.status === "Aktif" ? "Tidak Aktif" : "Aktif",
+          }));
+
+        useFetch(
+          `${API_LINK}/MasterIndikatorKinerja/EditStatusIndikatorKinerja`,
+          updatedData[0]
+        )
+          .then((response) => {
+            if (response === "ERROR") {
+              throw new Error("Gagal memperbarui data");
+            }
+            SweetAlert(
+              "Berhasil!",
+              updatedData[0].status === "Aktif"
+                ? "Data Standar berhasil diaktifkan"
+                : "Data Standar berhasil dinonaktifkan",
+              "success",
+              "OK"
+            ).then(() => {
+              // Panggil fetchEvents untuk memperbarui data tanpa reload halaman
+              fetchDokumen();
+            });
+          })
+          .catch((error) => {
+            SweetAlert("Gagal!", error.message, "error", "OK");
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+      }
+    });
+  };
 
   if (error) return <p className="text-center">{error}</p>;
+
   return (
     <>
       <div className="d-flex flex-column min-vh-100">
         <main className="flex-grow-1 p-3" style={{ marginTop: "60px" }}>
           <div className="d-flex flex-column">
-            <div className="m-4 px-4">
+            <div className={isMobile ? "p-3" : "px-5 mx-5"}>
               <h1 style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}>
-                IKU & IKT
+                Indikator Kinerja
               </h1>
-              <Breadcrumbs breadcrumbs={breadcrumbs} />
-
-              {/* <div className="mt-4 mb-5">
-                {menuData.deskripsiKdo != "" ? (
-                  <p
-                    style={{ textAlign: "justify" }}
-                    dangerouslySetInnerHTML={{ __html: menuData.deskripsiKdo }}
-                  ></p>
-                ) : (
-                  "Lorem Ipsum dolor sit amet..."
-                )}
-              </div> */}
-
-              <hr />
-
-              <div className="mt-5">
-                <div className="mt-1">
-                  <div
-                    className="nav nav-underline ms-2"
-                    style={{ overflowX: "auto" }}
-                  >
-                    {[
-                      "Indikator Kinerja Utama",
-                      "Indikator Kinerja Tambahan",
-                    ].map((label, index) => (
-                      <div className="nav-item mx-0" key={index}>
-                        <button
-                          onClick={() => {
-                            console.log(index);
-                            setCurrentFilter((prev) => {
-                              return {
-                                ...prev,
-                                param6: index === 0 ? "IKU" : "IKT",
-                              };
-                            });
-                            setActiveTab(index);
-                          }}
-                          className={`nav-link ${
-                            activeTab === index ? " active " : ""
-                          } text-dark px-3`}
-                        >
-                          {label}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+              <Breadcrumbs
+                breadcrumbs={[
+                  { label: "SPME" },
+                  { label: "Indikator Kinerja" },
+                ]}
+              />
+              <div className={isMobile ? "mt-3" : "mt-5"}>
+                <div className="row m-0 g-1" style={{ overflowX: "auto" }}>
+                  {[
+                    "Indikator Kinerja Utama",
+                    "Indikator Kinerja Tambahan",
+                  ].map((label, index) => (
+                    <div
+                      key={index}
+                      className="col-auto mb-0 d-flex justify-content-center"
+                    >
+                      <button
+                        className={`btn ${
+                          activeTab === index ? "shadow" : "btn-outline-white"
+                        } rounded-top-2 rounded-bottom-0`}
+                        style={{
+                          backgroundColor: activeTab === index ? "#2654A1" : "",
+                          color: activeTab === index ? "white" : "#AAA7A7",
+                          fontSize: "16px",
+                          padding: "10px 15px",
+                          fontWeight: "650",
+                          width: "auto",
+                          whiteSpace: "nowrap",
+                        }}
+                        onClick={() => {
+                          setCurrentFilter((prev) => {
+                            return {
+                              ...prev,
+                              param6: index === 0 ? "IKU" : "IKT",
+                            };
+                          });
+                          setActiveTab(index);
+                        }}
+                      >
+                        {label || "Unnamed Tab"}
+                      </button>
+                    </div>
+                  ))}
                 </div>
                 <div className="shadow p-3 mb-5  bg-white rounded">
                   <div className="row">
@@ -638,7 +463,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
                             fontWeight: "700",
                           }}
                         >
-                          {activeSide?.judulSta || activeTab?.judulSta}
+                          {decodeHtml(activeSide?.judulSta || "Lorem Ipsum")}
                         </h3>
                       </div>
 
@@ -705,7 +530,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
                                   setCurrentFilter((prevFilter) => {
                                     return {
                                       ...prevFilter,
-                                      param3: e,
+                                      param2: e,
                                     };
                                   })
                                 }
@@ -724,38 +549,19 @@ export default function Index({ onChangePage, isIkuIkt }) {
                                     setCurrentFilter((prevFilter) => {
                                       return {
                                         ...prevFilter,
-                                        param7: e.target.value,
+                                        param3: e.target.value,
                                       };
                                     })
                                   }
                                 />
                                 <DropDown
-                                  // arrData={arrTahun}
-                                  label="Tahun Dokumen"
-                                  type="semua"
-                                  forInput="yearFilter"
-                                  onChange={(e) =>
-                                    setCurrentFilter((prevFilter) => {
-                                      return {
-                                        ...prevFilter,
-                                        param4: e.target.value,
-                                      };
-                                    })
-                                  }
-                                />
-                                <DropDown
-                                  arrData={arrStatus}
-                                  label="Status"
+                                  arrData={arrTahun}
+                                  label="Tahun"
                                   type="pilih"
-                                  defaultValue="Aktif"
-                                  forInput="statusFilter"
+                                  forInput="yearFilter"
+                                  defaultValue={new Date().getFullYear()}
                                   onChange={(e) =>
-                                    setCurrentFilter((prevFilter) => {
-                                      return {
-                                        ...prevFilter,
-                                        param2: e.target.value,
-                                      };
-                                    })
+                                    setStandarYear(e.target.value)
                                   }
                                 />
                               </Filter>
@@ -780,18 +586,11 @@ export default function Index({ onChangePage, isIkuIkt }) {
                                 jenis: item.jenisIka,
                                 status: item.status,
                               }))}
-                              actions={(row) => {
-                                // Jika status "Tidak Aktif", hanya tampilkan Toggle
-                                if (row.status === "Tidak Aktif") {
-                                  return ["Toggle"];
-                                }
-                                // Jika status selain "Tidak Aktif", tampilkan semua actions
-                                return ["Detail", "Edit", "Toggle"];
-                              }}
+                              actions={["Detail", "Edit", "Delete"]}
                               aksiIs={role === "ROL01" ? true : false}
                               onEdit={handleEdit}
                               onDetail={handleDetail}
-                              //   onToggle={handleToggle}
+                              onDelete={handleToggle}
                             />
                             <Paging
                               pageSize={pageSize}

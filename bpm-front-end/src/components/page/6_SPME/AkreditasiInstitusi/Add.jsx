@@ -1,10 +1,6 @@
 import PageTitleNav from "../../../part/PageTitleNav";
-import TextField from "../../../part/TextField";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
-import DropDown from "../../../part/Dropdown";
-import DocUpload from "../../../part/DocUpload";
-import FileUpload from "../../../part/FileUpload";
 import InputField from "../../../part/InputField";
 import React, { useRef, useState } from "react";
 import { API_LINK } from "../../../util/Constants";
@@ -76,7 +72,6 @@ export default function Add({ onChangePage }) {
       kadaluarsaAkrRef.current?.focus();
       return;
     }
-    console.log("masuk sini");
 
     try {
       const AkreData = {
@@ -91,8 +86,6 @@ export default function Add({ onChangePage }) {
         SKAkr: "",
         SertifAkr: "",
       };
-
-      console.log(AkreData);
 
       const isExist = await useFetch(
         `${API_LINK}/MasterAkreditasi/CheckDataAkreditasiExist`,
@@ -126,7 +119,6 @@ export default function Add({ onChangePage }) {
         ).then(() => onChangePage("index"));
       }
     } catch (error) {
-      console.error("Error:", error.message);
       SweetAlert("Gagal!", error.message, "error", "OK");
     }
   };
@@ -136,7 +128,6 @@ export default function Add({ onChangePage }) {
       <main className="flex-grow-1 mb-5" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
           <div className="container mb-3">
-            {/* Breadcrumbs and Page Title */}
             <div className="mt-4">
               <PageTitleNav
                 title={title}
@@ -144,8 +135,6 @@ export default function Add({ onChangePage }) {
                 onClick={() => onChangePage("index")}
               />
             </div>
-
-            {/* Main Content Section */}
             <div className="shadow p-5 mt-0 bg-white rounded">
               <HeaderForm label={"Formulir " + title} />
               <div className="row">

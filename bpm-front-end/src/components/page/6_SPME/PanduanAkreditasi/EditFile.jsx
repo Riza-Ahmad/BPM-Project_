@@ -54,7 +54,6 @@ export default function EditFile({ onChangePage }) {
       if (result === "ERROR" || result === null || result.length === 0) {
         setFormData(null);
       } else {
-        console.log(result);
         const dokumenArray = Object.values(result);
         setFormData({
           idKdo: 4,
@@ -77,7 +76,6 @@ export default function EditFile({ onChangePage }) {
 
   const handleFileChange = (updatedFiles) => {
     setFile(updatedFiles);
-    console.log(updatedFiles);
   };
 
   const handleSubmit = async () => {
@@ -87,8 +85,6 @@ export default function EditFile({ onChangePage }) {
         fileDokumenRef.current?.focus();
         return;
       }
-
-      console.log(formData.refDok);
 
       setLoading(true);
 

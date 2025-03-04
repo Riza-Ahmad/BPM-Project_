@@ -2,18 +2,27 @@ import React, { useState, useRef, useEffect } from "react";
 import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
 import SearchField from "../../../part/SearchField";
-import HeaderText from "../../../part/HeaderText";
 import Button from "../../../part/Button";
 import Filter from "../../../part/Filter";
 import { useFetch } from "../../../util/useFetch";
-import { useLocation, useNavigate } from "react-router-dom";
 import { API_LINK } from "../../../util/Constants";
 import Loading from "../../../part/Loading";
 import SweetAlert from "../../../util/SweetAlert";
 import Modal from "../../../part/Modal";
 import DetailData from "../../../part/DetailData";
+import Cookies from "js-cookie";
+import { formatDate } from "../../../util/Formatting";
 
 export default function Index({ onChangePage, title, breadcrumbs }) {
+  const activeUser = Cookies.get("activeUser");
+  let role = ""; // Jika undefined, gunakan nilai default
+  let roleNama = "";
+  let namaPengguna = "";
+  if (activeUser) {
+    role = JSON.parse(activeUser).RoleID.slice(0, 5);
+    roleNama = JSON.parse(activeUser).Role;
+    namaPengguna = JSON.parse(activeUser).Nama;
+  }
   const [data, setData] = useState([]);
   const [pageSize] = useState(10);
   const [pageCurrent, setPageCurrent] = useState(1);
@@ -38,7 +47,6 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
 
   const handleEdit = (item) => {
     onChangePage("edit", { state: { idAkre: item.key } });
-    console.log(item);
   };
 
   const handleDetail = (item) => {
@@ -61,11 +69,9 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
         currentFilter,
         "POST"
       );
-      console.log(result);
       setData(result);
       setFilteredData(result);
     } catch (err) {
-      console.error("Fetch error:", err);
       setError("Gagal mengambil data");
     } finally {
       setLoading(false);
@@ -106,7 +112,7 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
   const handleToggle = async (id) => {
     const confirm = await SweetAlert(
       "Konfirmasi",
-      "Apakah Anda yakin ingin mengubah status data ini?",
+      "Apakah Anda yakin ingin menghapus data ini?",
       "warning",
       "Ya, Ubah",
       null,
@@ -128,8 +134,7 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
           "POST"
         );
 
-        if (response === "ERROR")
-          throw new Error("Gagal mengubah status data");
+        if (response === "ERROR") throw new Error("Gagal mengubah status data");
 
         SweetAlert("Berhasil", "Data berhasil dihapus", "success");
 
@@ -139,7 +144,6 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
           )
         );
       } catch (err) {
-        console.error(err);
         SweetAlert(
           "Gagal",
           "Terjadi kesalahan saat mengubah status dokumen",
@@ -149,12 +153,11 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
     }
   };
 
-  
   const indexOfLastData = pageCurrent * pageSize;
   const indexOfFirstData = indexOfLastData - pageSize;
 
   if (error) return <p>{error}</p>;
-  
+
   return (
     <>
       <div className="d-flex flex-column min-vh-100">
@@ -201,12 +204,16 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
               </div>
 
               <div className="mt-5 mb-0">
-                <Button
-                  iconName="add"
-                  classType="primary"
-                  label="Tambah Akreditasi"
-                  onClick={() => onChangePage("add")}
-                />
+                {role === "ROL01" ? (
+                  <Button
+                    iconName="add"
+                    classType="primary"
+                    label="Tambah Data"
+                    onClick={() => onChangePage("add")}
+                  />
+                ) : (
+                  ""
+                )}
                 <div className="row mt-3">
                   <div className="col-lg-10 col-md-6">
                     <SearchField
@@ -250,8 +257,8 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
                         "No",
                         "Nama",
                         "Nomor SK",
-                        "Tahun SK",
                         "Peringkat",
+                        "Tahun SK",
                         "Tanggal Kadaluwarsa",
                       ]}
                       data={filteredData.map((item, index) => ({
@@ -261,7 +268,7 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
                         "Nomor SK": item.nomorSkAkr,
                         "Tahun SK": item.tahunAkr,
                         "Tanggal Kadaluwarsa": item.expAkr
-                          ? item.expAkr.toString().split("T")[0]
+                          ? formatDate(item.expAkr, true)
                           : "-",
                         Peringkat: item.peringkatAkr,
                         status: item.status,
@@ -269,14 +276,15 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
                       actions={(row) => {
                         // Jika status "Tidak Aktif", hanya tampilkan Toggle
                         if (row.status === "Tidak Aktif") {
-                          return ["Toggle"];
+                          return ["Delete"];
                         }
                         // Jika status selain "Tidak Aktif", tampilkan semua actions
-                        return ["Detail", "Edit", "Toggle"];
+                        return ["Detail", "Edit", "Delete"];
                       }}
+                      aksiIs={role === "ROL01" ? true : false}
                       onDetail={handleDetail}
                       onEdit={handleEdit}
-                      onToggle={(item) => handleToggle(item.key)}
+                      onDelete={(item) => handleToggle(item.key)}
                     />
 
                     <Paging
@@ -294,7 +302,7 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
         {modalType === "detail" && (
           <Modal
             ref={ModalRef}
-            title="Detail Dokumen"
+            title="Detail Data"
             size="full"
             Button2={
               <Button
@@ -315,12 +323,7 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
                 <div className="col-lg-6 col-md-6">
                   <DetailData
                     label="Tanggal Kadaluarsa"
-                    isi={new Date(detail.expAkr).toLocaleDateString("id-ID", {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
+                    isi={formatDate(detail.expAkr, true)}
                   />
                 </div>
                 <div className="col-lg-6 col-md-6">
@@ -330,15 +333,7 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
                   />
                   <DetailData
                     label="Dibuat Tanggal"
-                    isi={new Date(detail.createdDate).toLocaleDateString(
-                      "id-ID",
-                      {
-                        weekday: "long",
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      }
-                    )}
+                    isi={formatDate(detail.createdDate, true)}
                   />
                 </div>
                 <div className="col-lg-6 col-md-6">
@@ -348,15 +343,7 @@ export default function Index({ onChangePage, title, breadcrumbs }) {
                   />
                   <DetailData
                     label="Dimodifikasi Tanggal"
-                    isi={new Date(detail.modifiedDate).toLocaleDateString(
-                      "id-ID",
-                      {
-                        weekday: "long",
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      }
-                    )}
+                    isi={formatDate(detail.modifiedDate, true)}
                   />
                 </div>
               </div>

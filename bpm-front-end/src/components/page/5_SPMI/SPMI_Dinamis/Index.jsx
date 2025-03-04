@@ -17,6 +17,7 @@ import Loading from "../../../part/Loading";
 import Table from "../../../part/Table";
 import Paging from "../../../part/Paging";
 import Modal from "../../../part/Modal";
+import Icon from "../../../part/Icon";
 import DetailData from "../../../part/DetailData";
 import PdfPreviewDownload from "../../../part/PdfPreviewDownload";
 import Cookies from "js-cookie";
@@ -51,15 +52,9 @@ const inisialisasiSideMenuData = [
     idKdo: "",
     idMen: "",
     namaKdo: "No Data Available",
-    deskripsiKdo: "",
-    images: [],
     urutanKdo: "",
     parentKdo: null,
     statusKdo: "",
-    createdByKdo: "",
-    createdDateKdo: "",
-    modifByKdo: "",
-    modifDateKdo: "",
   },
 ];
 
@@ -79,8 +74,10 @@ export default function Index({ onChangePage }) {
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const [menuData, setMenuData] = useState(inisialisasiMenuData);
+  const [tabMenu, setTabMenu] = useState(inisialisasiSideMenuData);
   const [sideMenu, setSideMenu] = useState(inisialisasiSideMenuData);
-  const [activeTab, setActiveTab] = useState({});
+  const [activeTab, setActiveTab] = useState(null);
+  const [activeSide, setActiveSide] = useState(null);
 
   const [pageSize] = useState(10);
   const [pageCurrent, setPageCurrent] = useState(1);
@@ -96,7 +93,7 @@ export default function Index({ onChangePage }) {
   const [detail, setDetail] = useState(null);
 
   const [currentFilter, setCurrentFilter] = useState({
-    param1: activeTab,
+    param1: activeSide?.idKdo || idMenu,
     param2: "Aktif",
     param3: "",
     param4: "",
@@ -138,61 +135,84 @@ export default function Index({ onChangePage }) {
       try {
         const result = await useFetch(
           `${API_LINK}/MasterKategoriDokumen/GetDataAllChildKategoriDokumenByIdMenu`,
-          { idMenu: idMenu, childLimit: 3 },
+          { idMenu: idMenu, childLimit: 4 },
           "POST"
         );
 
-        // console.log(result);
-
-        if (result === "ERROR" || result.length === 0) {
+        if (!result || result === "ERROR" || result.length === 0) {
           setMenuData(inisialisasiMenuData);
+          setTabMenu([]);
           setSideMenu([]);
-        } else {
-          const arrResult = Object.values(result);
-          setMenuData({
-            idKdo: arrResult[0].idKdo,
-            idMen: arrResult[0].idMen,
-            namaKdo: arrResult[0].namaKdo,
-            deskripsiKdo: decodeHtml(arrResult[0].deskripsiKdo),
-            images: [
-              arrResult[0].foto1Kdo,
-              arrResult[0].foto2Kdo,
-              arrResult[0].foto3Kdo,
-            ],
-            urutanKdo: arrResult[0].urutanKdo,
-            parentKdo: null,
-            statusKdo: arrResult[0].statusKdo,
-            createdByKdo: arrResult[0].createdByKdo,
-            createdDateKdo: arrResult[0].createdDateKdo,
-            modifByKdo: arrResult[0].modifByKdo,
-            modifDateKdo: arrResult[0].modifDateKdo,
-          });
-          const childrenMenu = buildMenuHierarchy(arrResult);
-          console.log(childrenMenu);
-          switch (childrenMenu.length) {
-            case 1:
-              setSideMenu(childrenMenu[0]);
-              const item = childrenMenu[0][0];
-              setActiveTab(item);
-              setCurrentFilter((prevFilter) => {
-                return {
-                  ...prevFilter,
-                  param1: item.idKdo,
-                };
-              });
-              break;
-            default:
-              break;
-          }
+          setActiveTab(null);
+          setActiveSide(null);
+          setCurrentFilter((prevFilter) => ({
+            ...prevFilter,
+            param1: "",
+          }));
+          return;
+        }
+
+        const arrResult = Object.values(result);
+        const firstResult = arrResult[0];
+        setMenuData({
+          idKdo: firstResult.idKdo,
+          idMen: firstResult.idMen,
+          namaKdo: firstResult.namaKdo,
+          deskripsiKdo: decodeHtml(firstResult.deskripsiKdo),
+          images: [
+            firstResult.foto1Kdo || "",
+            firstResult.foto2Kdo || "",
+            firstResult.foto3Kdo || "",
+          ],
+          urutanKdo: firstResult.urutanKdo,
+          parentKdo: "",
+          statusKdo: firstResult.statusKdo,
+          createdByKdo: firstResult.createdByKdo,
+          createdDateKdo: firstResult.createdDateKdo,
+          modifByKdo: firstResult.modifByKdo,
+          modifDateKdo: firstResult.modifDateKdo,
+        });
+        const listMenu = CreateMenu(arrResult);
+        const depth = calculateDepth(listMenu);
+        const sideMenuTransformed = listMenu[0]?.children;
+
+        switch (depth) {
+          case 2:
+            setTabMenu([]);
+            setActiveTab(null);
+            setSideMenu(sideMenuTransformed);
+            setActiveSide(sideMenuTransformed[0]);
+            setCurrentFilter((prevFilter) => ({
+              ...prevFilter,
+              param1: sideMenuTransformed[0].idKdo,
+            }));
+            break;
+          default:
+            setTabMenu(sideMenuTransformed);
+            const firstTab = sideMenuTransformed[0];
+            setActiveTab(firstTab);
+            const side = firstTab.children || [];
+            setSideMenu(side);
+
+            if (side.length > 0) {
+              const firstSide = side[0];
+              setActiveSide(firstSide);
+              setCurrentFilter((prevFilter) => ({
+                ...prevFilter,
+                param1: firstSide.idKdo,
+              }));
+            }
+            break;
         }
       } catch (err) {
-        setError("Gagal mengambil data: " + err);
+        setError("Gagal mengambil data: " + err.message);
       } finally {
         setLoading(false);
       }
     };
+
     fetchKategori();
-  }, [idMenu]);
+  }, [location.state?.idMenu]);
 
   useEffect(() => {
     let tempBradcrumps = [{ label: "SPMI" }, { label: "Siklus SPMI" }];
@@ -214,9 +234,6 @@ export default function Index({ onChangePage }) {
         currentFilter,
         "POST"
       );
-
-      console.log(currentFilter);
-
       if (result === "ERROR" || result === null || result.length === 0) {
         setFilteredData([]);
         setTotalData(0);
@@ -236,43 +253,38 @@ export default function Index({ onChangePage }) {
     fetchDokumen();
   }, [currentFilter]);
 
-  const buildMenuHierarchy = (data) => {
-    const menuMap = {};
-    const levels = [];
+  const CreateMenu = (data) => {
+    try {
+      const menuMap = {};
+      const menuHierarchy = [];
 
-    // Create a map for all items
-    data.forEach((item) => {
-      menuMap[item.idKdo] = { ...item, children: [], level: 0 };
-    });
+      data.forEach((item) => {
+        menuMap[item.idKdo] = { ...item, children: [] };
+      });
 
-    // Build the hierarchy and set levels
-    data.forEach((item) => {
-      if (item.parentKdo) {
-        const parent = menuMap[item.parentKdo];
-        const child = menuMap[item.idKdo];
-        child.level = parent.level + 1; // Set level based on parent's level
-        parent.children.push(child);
-      }
-    });
+      data.forEach((item) => {
+        if (item.parentKdo) {
+          menuMap[item.parentKdo]?.children.push(menuMap[item.idKdo]);
+        } else {
+          menuHierarchy.push(menuMap[item.idKdo]);
+        }
+      });
 
-    // Collect nodes by level (exclude roots)
-    const collectByLevel = (node) => {
-      if (node.level > 0) {
-        if (!levels[node.level - 1]) levels[node.level - 1] = [];
-        levels[node.level - 1].push(node);
-      }
+      return menuHierarchy;
+    } catch (err) {
+      return [];
+    }
+  };
 
-      node.children.forEach((child) => collectByLevel(child));
+  const calculateDepth = (data) => {
+    const getDepth = (items) => {
+      if (!items || items.length === 0) return 0; 
+      return (
+        1 + Math.max(...items.map((item) => getDepth(item.children || [])))
+      );
     };
 
-    // Process each node in the data
-    Object.values(menuMap).forEach((node) => {
-      if (!node.parentKdo) {
-        node.children.forEach((child) => collectByLevel(child));
-      }
-    });
-
-    return levels;
+    return getDepth(data);
   };
 
   const handleOpenModal = (type, data = null) => {
@@ -324,7 +336,6 @@ export default function Index({ onChangePage }) {
   };
 
   const handleToggle = (item) => {
-    // Tampilkan konfirmasi menggunakan SweetAlert sebelum toggle status
     SweetAlert(
       "Konfirmasi",
       `Apakah Anda yakin ingin ${
@@ -334,10 +345,9 @@ export default function Index({ onChangePage }) {
       "Ya",
       null,
       "",
-      true // Tampilkan tombol batal
+      true 
     ).then((result) => {
       if (result) {
-        // Jika pengguna mengonfirmasi, hanya simpan idDok dan status yang diperbarui
         const updatedData = filteredData
           .filter((data) => data.idDok === item.Key)
           .map((data) => ({
@@ -358,7 +368,6 @@ export default function Index({ onChangePage }) {
               "success",
               "OK"
             ).then(() => {
-              // Panggil fetchEvents untuk memperbarui data tanpa reload halaman
               fetchDokumen();
             });
           })
@@ -436,34 +445,164 @@ export default function Index({ onChangePage }) {
     }
   };
 
-  if (error) return <p className="text-center">{error}</p>;
+  const renderTab = (list) => {
+    if (!list || list.length === 0) {
+      return null;
+    }
 
+    return list.map(({ idKdo, namaKdo }, index) => (
+      <div className="nav-item mx-0" key={idKdo}>
+        <button
+          onClick={() => handleTabClick(idKdo, list[index])}
+          className={`nav-link ${
+            activeTab?.idKdo === idKdo ? " active" : ""
+          } text-dark px-3`}
+        >
+          {namaKdo || "Unnamed Tab"}
+        </button>
+      </div>
+    ));
+  };
+
+  const handleTabClick = (idKdo, item) => {
+    setSideMenu(item?.children || []);
+    setActiveTab(item);
+    setActiveSide(item?.children[0] || null);
+    setCurrentFilter((prevFilter) => ({
+      ...prevFilter,
+      param1: idKdo, 
+    }));
+  };
+
+  const renderSide = (sideMenu) => {
+    if (sideMenu.length === 0)
+      return <p className="text-danger text-center">No data available</p>;
+    return sideMenu.map((menu) => (
+      <div key={menu.idKdo}>
+        <div
+          className={`w-100 px-3 py-1 mt-1 d-flex ${
+            activeSide?.idKdo === menu.idKdo
+              ? "bg-primary text-white"
+              : "bg-light text-dark"
+          } ${menu.children?.length > 0 ? "justify-content-between" : ""}`}
+          style={{ cursor: "pointer" }}
+        >
+          <span
+            onClick={() => {
+              if (menu.children?.length > 0) {
+                setActiveSide(menu);
+                setCurrentFilter((prevFilter) => ({
+                  ...prevFilter,
+                  param1: menu.idKdo,
+                }));
+              } else {
+                setActiveSide(menu);
+                setCurrentFilter((prevFilter) => ({
+                  ...prevFilter,
+                  param1: menu.idKdo,
+                }));
+              }
+            }}
+          >
+            {decodeHtml(menu.namaKdo) || "Unnamed Menu"}
+          </span>
+          {menu.children?.length > 0 && (
+            <Icon
+              type="Bold"
+              name={menu.isExpanded ? "angle-up" : "angle-down"}
+              cssClass="me-2"
+              style={{ marginTop: "2px" }}
+              onClick={() => {
+                if (menu.children?.length > 0) {
+                  setSideMenu((prevSideMenu) =>
+                    prevSideMenu.map((item) =>
+                      item.idKdo === menu.idKdo
+                        ? { ...item, isExpanded: !item.isExpanded }
+                        : item
+                    )
+                  );
+                }
+              }}
+            />
+          )}
+        </div>
+
+        {menu.children?.length > 0 && menu.isExpanded && (
+          <div className="dropdown">
+            {menu.children.map((sub) => (
+              <div
+                key={sub.idKdo}
+                className={`w-100 pe-4 py-1 d-flex fw-medium ${
+                  activeSide?.idKdo === sub.idKdo
+                    ? "bg-primary text-white"
+                    : "bg-light text-dark"
+                }`}
+                style={{ paddingLeft: "16px", cursor: "pointer" }}
+                onClick={() => {
+                  setActiveSide(sub);
+                  setCurrentFilter((prevFilter) => ({
+                    ...prevFilter,
+                    param1: sub.idKdo,
+                  }));
+                }}
+              >
+                <Icon name="minus-small" cssClass="me-2 mt-1" />
+                <span>{decodeHtml(sub.namaKdo) || "Unnamed Submenu"}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    ));
+  };
+
+  if (loading) return <Loading />;
+
+  if (error) return <p className="text-center">{error}</p>;
   return (
     <>
       <div className="d-flex flex-column min-vh-100">
         <main className="flex-grow-1 p-3" style={{ marginTop: "60px" }}>
           <div className="d-flex flex-column">
-            <div className="container mb-3">
+            <div className={isMobile ? "p-3" : "px-5 mx-5"}>
               <ImagesCarousel images={menuData.images} />
-              <div className="mt-5 mb-3">
+              <div className={isMobile ? "mt-3" : "mt-5"}>
                 <div className="d-flex justify-content-between align-items-center">
                   <h1
                     style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}
                   >
-                    {menuData.namaKdo ? menuData.namaKdo : "Page Title"}
+                    {menuData?.namaKdo
+                      ? decodeHtml(menuData.namaKdo)
+                      : "Page Title"}
                   </h1>
+                  {role === "ROL01" ? (
+                    <Button
+                      classType="btn btn-primary"
+                      title="Edit Cover"
+                      label="Edit Cover"
+                      onClick={() =>
+                        onChangePage("editKonten", {
+                          breadcrumbs: breadcrumbs,
+                          idData: menuData.idKdo,
+                          idMenu: idMenu,
+                        })
+                      }
+                    />
+                  ) : (
+                    ""
+                  )}
                 </div>
 
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
               </div>
 
               <div className="mt-4 mb-5">
-                {loading ? (
-                  <Loading />
-                ) : menuData.deskripsiKdo != "" ? (
+                {menuData.deskripsiKdo != "" ? (
                   <p
                     style={{ textAlign: "justify" }}
-                    dangerouslySetInnerHTML={{ __html: menuData.deskripsiKdo }}
+                    dangerouslySetInnerHTML={{
+                      __html: decodeHtml(menuData.deskripsiKdo),
+                    }}
                   ></p>
                 ) : (
                   "Lorem Ipsum dolor sit amet..."
@@ -472,201 +611,182 @@ export default function Index({ onChangePage }) {
 
               <hr />
 
-              <div className="container shadow p-3 mt-5 mb-5 bg-white rounded">
-                <div className="row">
-                  <div className="col-lg-2">
-                    <div
-                      className="row px-2"
-                      style={{ overflow: "auto", maxHeight: "500px" }}
-                    >
-                      {sideMenu.length > 0 ? (
-                        sideMenu.map((item, index) => (
-                          <button
-                            key={item.idKdo || index}
-                            onClick={() => {
-                              setActiveTab(item);
-                              setCurrentFilter((prevFilter) => {
-                                return {
-                                  ...prevFilter,
-                                  param1: item.idKdo,
-                                };
-                              });
-                            }}
-                            className={`btn ${
-                              activeTab.idKdo === item.idKdo
-                                ? "btn-primary"
-                                : ""
-                            } doc-item`}
-                          >
-                            {item.namaKdo || "No data available"}
-                          </button>
-                        ))
-                      ) : (
-                        <p className="btn btn-primary">No data available</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="col-lg-10">
-                    <div className="text-center">
-                      <h3
-                        style={{
-                          color: "#2654A1",
-                          margin: "0",
-                          fontWeight: "700",
-                        }}
-                      >
-                        {activeTab.namaKdo
-                          ? activeTab.namaKdo
-                          : "Nama Kategori"}
-                      </h3>
-                    </div>
-
-                    <div className="table-container bg-white mt-0 rounded">
-                      <div className={isMobile ? "mb-3" : "row"}>
-                        <div className="col-12 d-flex flex-wrap align-items-center gap-1">
-                          {role === "ROL01" && sideMenu.length > 0 ? (
-                            <Button
-                              iconName="add"
-                              classType="primary"
-                              label="Tambah Data"
-                              onClick={() =>
-                                onChangePage("add", {
-                                  idData: activeTab.idKdo,
-                                  idMenu: idMenu,
-                                  breadcrumbs: breadcrumbs,
-                                })
-                              }
-                            />
-                          ) : (
-                            ""
-                          )}
-
-                          <div className="me-auto flex-grow-1 mt-3 me-3">
-                            <SearchField
-                              onChange={(e) =>
-                                setCurrentFilter((prevFilter) => {
-                                  return {
-                                    ...prevFilter,
-                                    param3: e,
-                                  };
-                                })
-                              }
-                            />
-                          </div>
-
-                          <div className="">
-                            <Filter>
-                              <DropDown
-                                arrData={arrSort}
-                                label="Urut Berdasarkan"
-                                type="pilih"
-                                defaultValue="[judulDok] ASC"
-                                forInput="sortFilter"
-                                onChange={(e) =>
-                                  setCurrentFilter((prevFilter) => {
-                                    return {
-                                      ...prevFilter,
-                                      param7: e.target.value,
-                                    };
-                                  })
-                                }
-                              />
-                              <DropDown
-                                arrData={arrTahun}
-                                label="Tahun Dokumen"
-                                type="semua"
-                                forInput="yearFilter"
-                                onChange={(e) =>
-                                  setCurrentFilter((prevFilter) => {
-                                    return {
-                                      ...prevFilter,
-                                      param4: e.target.value,
-                                    };
-                                  })
-                                }
-                              />
-                              <DropDown
-                                arrData={arrStatus}
-                                label="Status"
-                                type="pilih"
-                                defaultValue="Aktif"
-                                forInput="statusFilter"
-                                onChange={(e) =>
-                                  setCurrentFilter((prevFilter) => {
-                                    console.log(e.target.value);
-                                    return {
-                                      ...prevFilter,
-                                      param2: e.target.value,
-                                    };
-                                  })
-                                }
-                              />
-                            </Filter>
-                          </div>
-                        </div>
+              <div className="mt-3">
+                <div
+                  className="nav nav-underline ms-2"
+                  style={{ overflowX: "auto" }}
+                >
+                  {renderTab(tabMenu)}
+                </div>
+                <div className="p-3 mb-5 bg-white rounded shadow">
+                  <div className="row">
+                    <div className="col-lg-2 col-sm-2 mb-3">{renderSide(sideMenu)}</div>
+                    <div className="col mb-3">
+                      <div className="text-center mb-3">
+                        <h3
+                          style={{
+                            color: "#2654A1",
+                            margin: "0",
+                            fontWeight: "700",
+                          }}
+                        >
+                          {decodeHtml(activeSide?.namaKdo) ||
+                            decodeHtml(activeTab?.namaKdo) ||
+                            "Title"}
+                        </h3>
                       </div>
-                      {loading ? (
-                        <Loading />
-                      ) : (
-                        <div>
-                          {role === "ROL01" ? (
-                            <Table
-                              arrHeader={["No", "Judul Dokumen"]}
-                              data={filteredData.map((item, index) => ({
-                                Key: item.idDok,
-                                No: (pageCurrent - 1) * pageSize + index + 1,
-                                "Judul Dokumen": item.judulDok,
-                                status: item.status,
-                              }))}
-                              actions={(row) => {
-                                // Jika status "Tidak Aktif", hanya tampilkan Toggle
-                                if (row.status === "Tidak Aktif") {
-                                  return ["Toggle"];
+
+                      <div className="table-container bg-white mt-0 rounded">
+                        <div className={isMobile ? "mb-3" : "row"}>
+                          <div className="d-flex flex-wrap align-items-center gap-1">
+                            {role === "ROL01" ? (
+                              <Button
+                                iconName="add"
+                                classType="primary"
+                                label="Tambah Data"
+                                onClick={() => {
+                                  onChangePage("add", {
+                                    idData:
+                                      activeSide?.idKdo || activeTab?.idKdo,
+                                    idMenu: idMenu,
+                                    breadcrumbs: breadcrumbs,
+                                  });
+                                }}
+                              />
+                            ) : (
+                              ""
+                            )}
+
+                            <div className="me-auto flex-grow-1 mt-3 me-3">
+                              <SearchField
+                                onChange={(e) =>
+                                  setCurrentFilter((prevFilter) => {
+                                    return {
+                                      ...prevFilter,
+                                      param3: e,
+                                    };
+                                  })
                                 }
-                                // Jika status selain "Tidak Aktif", tampilkan semua actions
-                                return [
-                                  "Detail",
-                                  "Preview",
-                                  "Edit",
-                                  "Upload",
-                                  "Print",
-                                  "UpdateHistory",
-                                  "PrintHistory",
-                                  "Toggle",
-                                ];
-                              }}
-                              onPreview={handlePreview}
-                              onEdit={handleEdit}
-                              onDetail={handleDetail}
-                              onPrint={handleDownload}
-                              onUpload={handleUpload}
-                              onUpdateHistory={handleUpdateHistory}
-                              onPrintHistory={handleDownloadHistory}
-                              onToggle={handleToggle}
-                            />
-                          ) : (
-                            <div className="row p-3 gap-3 mb-2">
-                              {filteredData.length > 0 ? (
-                                filteredData.map((item) => (
-                                  <PdfPreviewDownload
-                                    key={item.id} // Pastikan setiap item memiliki `key` unik
-                                    judul={item.judulDok}
-                                    handleClick={() => handleDownload(item)}
-                                  />
-                                ))
-                              ) : (
-                                <p className="text-center">No data available</p>
-                              )}
+                              />
                             </div>
-                          )}
-                          <Paging
-                            pageSize={pageSize}
-                            pageCurrent={pageCurrent}
-                            totalData={totalData}
-                            navigation={setPageCurrent}
-                          />
+
+                            <div className="">
+                              <Filter>
+                                <DropDown
+                                  arrData={arrSort}
+                                  label="Urut Berdasarkan"
+                                  type="pilih"
+                                  defaultValue="[judulDok] ASC"
+                                  forInput="sortFilter"
+                                  onChange={(e) =>
+                                    setCurrentFilter((prevFilter) => {
+                                      return {
+                                        ...prevFilter,
+                                        param7: e.target.value,
+                                      };
+                                    })
+                                  }
+                                />
+                                <DropDown
+                                  arrData={arrTahun}
+                                  label="Tahun Dokumen"
+                                  type="semua"
+                                  forInput="yearFilter"
+                                  onChange={(e) =>
+                                    setCurrentFilter((prevFilter) => {
+                                      return {
+                                        ...prevFilter,
+                                        param4: e.target.value,
+                                      };
+                                    })
+                                  }
+                                />
+                                <DropDown
+                                  arrData={arrStatus}
+                                  label="Status"
+                                  type="pilih"
+                                  defaultValue="Aktif"
+                                  forInput="statusFilter"
+                                  onChange={(e) =>
+                                    setCurrentFilter((prevFilter) => {
+                                      return {
+                                        ...prevFilter,
+                                        param2: e.target.value,
+                                      };
+                                    })
+                                  }
+                                />
+                              </Filter>
+                            </div>
+                          </div>
                         </div>
-                      )}
+                        {loading ? (
+                          <Loading />
+                        ) : (
+                          <div>
+                            {role === "ROL01" ? (
+                              <Table
+                                arrHeader={["No", "Judul Dokumen"]}
+                                data={filteredData.map((item, index) => ({
+                                  Key: item.idDok,
+                                  No: (pageCurrent - 1) * pageSize + index + 1,
+                                  "Judul Dokumen": item.judulDok,
+                                  status: item.status,
+                                }))}
+                                actions={(row) => {
+                                  // Jika status "Tidak Aktif", hanya tampilkan Toggle
+                                  if (row.status === "Tidak Aktif") {
+                                    return ["Toggle"];
+                                  }
+                                  // Jika status selain "Tidak Aktif", tampilkan semua actions
+                                  return [
+                                    "Detail",
+                                    "Preview",
+                                    "Edit",
+                                    "Upload",
+                                    "Print",
+                                    "UpdateHistory",
+                                    "PrintHistory",
+                                    "Toggle",
+                                  ];
+                                }}
+                                onPreview={handlePreview}
+                                onEdit={handleEdit}
+                                onDetail={handleDetail}
+                                onPrint={handleDownload}
+                                onUpload={handleUpload}
+                                onUpdateHistory={handleUpdateHistory}
+                                onPrintHistory={handleDownloadHistory}
+                                onToggle={handleToggle}
+                              />
+                            ) : (
+                              <div className="row p-3 gap-3 mb-2">
+                                {filteredData.length > 0 ? (
+                                  filteredData.map((item) => (
+                                    <PdfPreviewDownload
+                                      key={item.idDok} // Pastikan setiap item memiliki `key` unik
+                                      judul={item.judulDok}
+                                      handleClick={() =>
+                                        handleDownload({ Key: item.idDok })
+                                      }
+                                    />
+                                  ))
+                                ) : (
+                                  <p className="text-center">
+                                    No data available
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                            <Paging
+                              pageSize={pageSize}
+                              pageCurrent={pageCurrent}
+                              totalData={totalData}
+                              navigation={setPageCurrent}
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -688,68 +808,96 @@ export default function Index({ onChangePage }) {
               />
             }
           >
-            <div className="p-5 mt-0 bg-white rounded shadow">
+            <div className="p-5 mt-0 bg-white">
               <div className="row">
                 <div className="col-lg-12 col-md-12">
-                  <DetailData label="Judul Dokumen" isi={detail.judulDok} />
+                  <DetailData
+                    label="Judul Dokumen"
+                    isi={detail.judulDok ? detail.judulDok : "-"}
+                  />
                 </div>
                 <div className="col-lg-6 col-md-6">
-                  <DetailData label="Nomor Dokumen" isi={detail.noDok} />
-                  <DetailData label="Jenis Dokumen" isi={detail.controlDok} />
+                  <DetailData
+                    label="Nomor Dokumen"
+                    isi={detail.noDok ? detail.noDok : "-"}
+                  />
+                  <DetailData
+                    label="Jenis Dokumen"
+                    isi={detail.controlDok ? detail.controlDok : "-"}
+                  />
                 </div>
                 <div className="col-lg-6 col-md-6">
                   <DetailData
                     label="Tanggal Berlaku"
-                    isi={new Date(detail.tglDok).toLocaleDateString("id-ID", {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
+                    isi={
+                      detail.tglDok
+                        ? new Date(detail.tglDok).toLocaleDateString("id-ID", {
+                            weekday: "long",
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          })
+                        : "-"
+                    }
                   />
                   <DetailData
                     label="Tanggal Kadaluwarsa"
-                    isi={new Date(detail.expDok).toLocaleDateString("id-ID", {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
+                    isi={
+                      detail.expDok
+                        ? new Date(detail.expDok).toLocaleDateString("id-ID", {
+                            weekday: "long",
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          })
+                        : "-"
+                    }
                   />
                 </div>
               </div>
               <div className="row">
                 <div className="col-lg-6 col-md-6">
-                  <DetailData label="Dibuat Oleh" isi={detail.createdBy} />
+                  <DetailData
+                    label="Dibuat Oleh"
+                    isi={detail.createdBy ? detail.createdBy : "-"}
+                  />
                   <DetailData
                     label="Dibuat Tanggal"
-                    isi={new Date(detail.createdDate).toLocaleDateString(
-                      "id-ID",
-                      {
-                        weekday: "long",
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      }
-                    )}
+                    isi={
+                      detail.createdDate
+                        ? new Date(detail.createdDate).toLocaleDateString(
+                            "id-ID",
+                            {
+                              weekday: "long",
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            }
+                          )
+                        : "-"
+                    }
                   />
                 </div>
                 <div className="col-lg-6 col-md-6">
                   <DetailData
                     label="Dimodifikasi Oleh"
-                    isi={detail.modifiedBy}
+                    isi={detail.modifiedBy ? detail.modifiedBy : "-"}
                   />
                   <DetailData
                     label="Dimodifikasi Tanggal"
-                    isi={new Date(detail.modifiedDate).toLocaleDateString(
-                      "id-ID",
-                      {
-                        weekday: "long",
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      }
-                    )}
+                    isi={
+                      detail.modifiedDate
+                        ? new Date(detail.modifiedDate).toLocaleDateString(
+                            "id-ID",
+                            {
+                              weekday: "long",
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            }
+                          )
+                        : "-"
+                    }
                   />
                 </div>
               </div>
@@ -769,7 +917,7 @@ export default function Index({ onChangePage }) {
               />
             }
           >
-            <div className="p-3 mt-0 bg-white rounded shadow">
+            <div className="mt-0 bg-white">
               <div style={{ width: "80vh", height: "70vh" }}>
                 {loading == true ? (
                   <div

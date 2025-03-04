@@ -8,6 +8,7 @@ import PageTitleNav from "../../../part/PageTitleNav";
 import HeaderForm from "../../../part/HeaderText";
 import DetailData from "../../../part/DetailData";
 import Loading from "../../../part/Loading";
+import { decodeHtml } from "../../../util/DecodeHtml";
 
 export default function Detail({ onChangePage }) {
   const title = "Detail Data";
@@ -45,7 +46,7 @@ export default function Detail({ onChangePage }) {
       } else {
         const StandarArr = Object.values(result);
         setFormData({
-            namaSta: StandarArr[0].judulSta,
+            namaSta: decodeHtml(StandarArr[0].judulSta),
             jenisSta: StandarArr[0].jenisSta,
             tahunSta: StandarArr[0].tahunSta,
             urutanSta: StandarArr[0].urutanSta,

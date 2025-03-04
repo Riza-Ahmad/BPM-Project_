@@ -2,10 +2,10 @@ import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import ScrollToTop from "../../../part/ScrollToTop";
 import ProtectedRoute from "../../../util/ProtectedRoute";
 import Index from "./Index";
-import IndexPelaksanaan from "./IndexPelaksanaan";
 import Add from "../dokumen_spmi/Add";
-import Edit from "../dokumen_spmi/Edit";
+import EditKonten from "./editKonten";
 import EditFile from "../dokumen_spmi/EditFile";
+import Edit from "../dokumen_spmi/Edit";
 import RiwayatEdit from "../dokumen_spmi/RiwayatEdit";
 import RiwayatUnduh from "../dokumen_spmi/RiwayatUnduh";
 
@@ -25,6 +25,11 @@ export default function SPMI_Dinamis() {
         break;
       case "edit":
         navigate(`${currentPath}`, { state: { mode: "edit", ...withState } });
+        break;
+      case "editKonten":
+        navigate(`${currentPath}`, {
+          state: { mode: "editKonten", ...withState },
+        });
         break;
       case "editFile":
         navigate(`${currentPath}`, {
@@ -61,6 +66,8 @@ export default function SPMI_Dinamis() {
                 <Add onChangePage={handlePageChange} />
               ) : mode === "edit" ? (
                 <Edit onChangePage={handlePageChange} />
+              ) : mode === "editKonten" ? (
+                <EditKonten onChangePage={handlePageChange} />
               ) : mode === "updHistory" ? (
                 <RiwayatEdit onChangePage={handlePageChange} />
               ) : mode === "downHistory" ? (
@@ -68,19 +75,19 @@ export default function SPMI_Dinamis() {
               ) : mode === "editFile" ? (
                 <EditFile onChangePage={handlePageChange} />
               ) : (
-                <IndexPelaksanaan onChangePage={handlePageChange} />
+                <Index onChangePage={handlePageChange} />
               )}
             </ProtectedRoute>
           }
         />
-        <Route
+        {/* <Route
           path="/peningkatan"
           element={
             <ProtectedRoute>
               <IndexPelaksanaan onChangePage={handlePageChange}  />
             </ProtectedRoute>
           }
-        />
+        /> */}
       </Routes>
     </>
   );

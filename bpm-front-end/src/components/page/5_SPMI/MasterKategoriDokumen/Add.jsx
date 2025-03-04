@@ -1,18 +1,18 @@
 import React, { useState, useRef } from "react";
 import { useEffect } from "react";
-import PageTitleNav from "../../part/PageTitleNav";
-import InputField from "../../part/InputField";
-import HeaderForm from "../../part/HeaderText";
-import Button from "../../part/Button";
-import DropDown from "../../part/Dropdown";
-import SweetAlert from "../../util/SweetAlert";
-import { useIsMobile } from "../../util/useIsMobile";
-import { API_LINK } from "../../util/Constants";
-import { useFetch } from "../../util/useFetch";
-import TextArea from "../../part/TextArea";
-import UploadFoto from "../../part/UploadFoto";
-import { decodeHtml } from "../../util/DecodeHtml";
-import Loading from "../../part/Loading";
+import PageTitleNav from "../../../part/PageTitleNav";
+import InputField from "../../../part/InputField";
+import HeaderForm from "../../../part/HeaderText";
+import Button from "../../../part/Button";
+import DropDown from "../../../part/Dropdown";
+import SweetAlert from "../../../util/SweetAlert";
+import { useIsMobile } from "../../../util/useIsMobile";
+import { API_LINK } from "../../../util/Constants";
+import { useFetch } from "../../../util/useFetch";
+import TextArea from "../../../part/TextArea";
+import UploadFoto from "../../../part/UploadFoto";
+import { decodeHtml } from "../../../util/DecodeHtml";
+import Loading from "../../../part/Loading";
 
 export default function Add({ onChangePage, breadcrumbs }) {
   const isMobile = useIsMobile();
@@ -159,7 +159,6 @@ export default function Add({ onChangePage, breadcrumbs }) {
         ).then(() => onChangePage("read"));
       }
     } catch (error) {
-      console.error("Error:", error.message);
       SweetAlert("Gagal!", error.message, "error", "OK");
     }
   };
@@ -168,7 +167,6 @@ export default function Add({ onChangePage, breadcrumbs }) {
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="container d-flex flex-column">
-          {/* Breadcrumbs and Page Title */}
           <div className="p-3">
             <PageTitleNav
               title="Tambah Data"
@@ -177,8 +175,6 @@ export default function Add({ onChangePage, breadcrumbs }) {
             />
           </div>
           <div className={isMobile ? "m-0" : "m-3"}>
-            {/* Main Content Section */}
-
             {loading ? (
               <Loading />
             ) : (

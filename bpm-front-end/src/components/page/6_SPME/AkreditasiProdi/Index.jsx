@@ -9,16 +9,30 @@ import { API_LINK } from "../../../util/Constants";
 import { useFetch } from "../../../util/useFetch";
 import { useNavigate } from "react-router-dom";
 import SweetAlert from "../../../util/SweetAlert";
+import DropDown from "../../../part/Dropdown";
 import { useLocation } from "react-router-dom";
 import Loading from "../../../part/Loading";
 import moment from "moment";
 import Cookies from "js-cookie";
+import { formatDate } from "../../../util/Formatting";
 
 const title = "Akreditasi Program Studi";
 const breadcrumbs = [
   { label: "SPME" },
   { label: "Akreditasi" },
   { label: "Program Studi" },
+];
+const arrSort = [
+  { Value: "[namaAkr] ASC", Text: "Nama Prodi [↑]" },
+  { Value: "[namaAkr] DESC", Text: "Nama Prodi [↓]" },
+  { Value: "[peringkatAkr] ASC", Text: "Peringkat [↑]" },
+  { Value: "[peringkatAkr] DESC", Text: "Peringkat [↓]" },
+  { Value: "[jenjangAkr] ASC", Text: "Jenjang [↑]" },
+  { Value: "[jenjangAkr] DESC", Text: "Jenjang [↓]" },
+  { Value: "[tahunAkr] ASC", Text: "Tahun Akreditasi [↑]" },
+  { Value: "[tahunAkr] DESC", Text: "Tahun Akreditasi [↓]" },
+  { Value: "[expAkr] ASC", Text: "Tanggal Kadaluwarsa [↑]" },
+  { Value: "[expAkr] DESC", Text: "Tanggal Kadaluwarsa [↓]" },
 ];
 
 export default function Index({ onChangePage }) {
@@ -51,8 +65,6 @@ export default function Index({ onChangePage }) {
     param4: pageCurrent,
   });
 
-  console.log(currentFilter);
-
   const fetchAkreProdi = async () => {
     setLoading(true);
     try {
@@ -69,7 +81,6 @@ export default function Index({ onChangePage }) {
         const dokumenArray = Object.values(result);
         setFilteredData(dokumenArray);
         setTotalData(dokumenArray[0].TotalCount);
-        console.log(dokumenArray);
       }
     } catch (err) {
       setError("Gagal mengambil data: " + err);
@@ -179,7 +190,23 @@ export default function Index({ onChangePage }) {
                   <SearchField />
                 </div>
                 <div className="col-lg-2 col-md-6">
-                  <Filter></Filter>
+                  <Filter>
+                    <DropDown
+                      arrData={arrSort}
+                      label="Urut Berdasarkan"
+                      type="pilih"
+                      defaultValue="[namaAkr] ASC"
+                      forInput="sortFilter"
+                      onChange={(e) =>
+                        setCurrentFilter((prevFilter) => {
+                          return {
+                            ...prevFilter,
+                            param2: e.target.value,
+                          };
+                        })
+                      }
+                    />
+                  </Filter>
                 </div>
               </div>
             </div>
@@ -209,7 +236,7 @@ export default function Index({ onChangePage }) {
                       "Tahun SK": item.tahunAkr || "-",
                       Peringkat: item.peringkatAkr || "-",
                       "Tanggal Kadaluwarsa": item.expAkr
-                        ? moment(item.expAkr).format("YYYY-MM-DD")
+                        ? formatDate(item.expAkr, true)
                         : "-",
                     }))}
                     aksiIs={role === "ROL01" ? true : false}

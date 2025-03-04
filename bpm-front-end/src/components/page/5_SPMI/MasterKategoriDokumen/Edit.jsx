@@ -1,21 +1,25 @@
 import React, { useState, useRef } from "react";
 import { useEffect } from "react";
-import PageTitleNav from "../../part/PageTitleNav";
-import InputField from "../../part/InputField";
-import HeaderForm from "../../part/HeaderText";
-import Button from "../../part/Button";
-import DropDown from "../../part/Dropdown";
-import SweetAlert from "../../util/SweetAlert";
-import { useIsMobile } from "../../util/useIsMobile";
-import { API_LINK, DOKUMEN_LINK } from "../../util/Constants";
-import { useFetch } from "../../util/useFetch";
-import TextArea from "../../part/TextArea";
-import UploadFoto from "../../part/UploadFoto";
-import { decodeHtml } from "../../util/DecodeHtml";
-import Loading from "../../part/Loading";
+import { useLocation } from "react-router-dom";
+import PageTitleNav from "../../../part/PageTitleNav";
+import InputField from "../../../part/InputField";
+import HeaderForm from "../../../part/HeaderText";
+import Button from "../../../part/Button";
+import DropDown from "../../../part/Dropdown";
+import SweetAlert from "../../../util/SweetAlert";
+import { useIsMobile } from "../../../util/useIsMobile";
+import { API_LINK, DOKUMEN_LINK } from "../../../util/Constants";
+import { useFetch } from "../../../util/useFetch";
+import TextArea from "../../../part/TextArea";
+import UploadFoto from "../../../part/UploadFoto";
+import { decodeHtml } from "../../../util/DecodeHtml";
+import Loading from "../../../part/Loading";
 
-export default function Edit({ onChangePage, breadcrumbs, idData }) {
+export default function Edit({ onChangePage }) {
   const isMobile = useIsMobile();
+  const location = useLocation();
+  const idData = location.state?.idData;
+  const breadcrumbs = location.state?.breadcrumbs;
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     idMen: null,
@@ -26,7 +30,6 @@ export default function Edit({ onChangePage, breadcrumbs, idData }) {
     foto3Kdo: null,
     urutanKdo: null,
     statusKdo: null,
-    createdByKdo: null,
   });
   const [listMenu, setListMenu] = useState([]);
 
@@ -136,20 +139,14 @@ export default function Edit({ onChangePage, breadcrumbs, idData }) {
     try {
       const folderName = "Dokumen";
       const filePrefix = "FOTO";
-
-      // Filter new files from images
       const newFiles = images.filter((img) => img instanceof File);
-
-      // Determine update status for each image
       const updated = images.map((item) => (item !== "" ? "updated" : "still"));
 
       let uploadedPaths = [];
       if (newFiles.length > 0) {
-        // Prepare FormData for upload
         const photos = new FormData();
         newFiles.forEach((file) => photos.append("files", file));
 
-        // Upload new files
         const uploadResponse = await fetch(
           `${API_LINK}/Upload/UploadFiles?folderName=${encodeURIComponent(
             folderName
@@ -169,7 +166,6 @@ export default function Edit({ onChangePage, breadcrumbs, idData }) {
         uploadedPaths = await uploadResponse.json();
       }
 
-      // Map final image paths using previous and uploaded paths
       const prevPaths = [
         formData.foto1Kdo,
         formData.foto2Kdo,
@@ -179,7 +175,6 @@ export default function Edit({ onChangePage, breadcrumbs, idData }) {
         status === "updated" ? uploadedPaths.shift() : prevPaths[read]
       );
 
-      // Construct the payload for the update request
       const dokData = {
         idKdo: formData.idKdo,
         idMen: parseInt(idMenRef.current.value, 10),
@@ -189,10 +184,8 @@ export default function Edit({ onChangePage, breadcrumbs, idData }) {
         foto2: finalImagePaths[1],
         foto3: finalImagePaths[2],
         urutanKdo: parseInt(urutanKdoRef.current.value, 10),
-        modifBy: "User404",
       };
 
-      // Submit updated data
       const createResponse = await useFetch(
         `${API_LINK}/MasterKategoriDokumen/EditDataKategoriDokumenHeader`,
         dokData,
@@ -203,11 +196,9 @@ export default function Edit({ onChangePage, breadcrumbs, idData }) {
         throw new Error("Gagal memperbarui data");
       }
 
-      // Success notification
       await SweetAlert("Berhasil!", "Data berhasil diubah.", "success", "OK");
       onChangePage("read");
     } catch (error) {
-      console.error("Error:", error.message);
       SweetAlert("Gagal!", error.message, "error", "OK");
     }
   };
@@ -216,7 +207,6 @@ export default function Edit({ onChangePage, breadcrumbs, idData }) {
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="container d-flex flex-column">
-          {/* Breadcrumbs and Page Title */}
           <div className="p-3">
             <PageTitleNav
               title="Edit Data"
@@ -225,7 +215,6 @@ export default function Edit({ onChangePage, breadcrumbs, idData }) {
             />
           </div>
           <div className={isMobile ? "m-0" : "m-3"}>
-            {/* Main Content Section */}
             {loading ? (
               <Loading />
             ) : (

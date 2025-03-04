@@ -2,26 +2,16 @@ import React from "react";
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import PageTitleNav from "../../../part/PageTitleNav";
-import TextField from "../../../part/TextField";
 import HeaderForm from "../../../part/HeaderText";
 import InputField from "../../../part/InputField";
-import FileUpload from "../../../part/FileUpload";
 import Button from "../../../part/Button";
 import DropDown from "../../../part/Dropdown";
 import { useFetch } from "../../../util/useFetch";
-import { uploadFile } from "../../../util/UploadFile";
 import { API_LINK } from "../../../util/Constants";
-import TextArea from "../../../part/TextArea";
-import DocUpload from "../../../part/DocUpload";
 import { useIsMobile } from "../../../util/useIsMobile";
 import SweetAlert from "../../../util/SweetAlert";
 import { decodeHtml } from "../../../util/DecodeHtml";
 import InputArea from "../../../part/InputArea";
-
-const arrData = [
-  { Value: "Nasional", Text: "Nasional" },
-  { Value: "Pelampauan", Text: "Pelampauan" },
-];
 
 export default function Add({ onChangePage }) {
   const title = "Tambah Data";
@@ -132,13 +122,11 @@ export default function Add({ onChangePage }) {
       urutanIkaRef.current?.focus();
       return;
     }
-    // console.log('mai ini');
     if (!isTargetIkaValid) {
       targetIkaRef.current?.focus();
       return;
     }
 
-    console.log(formData);
     try {
       const createResponse = await useFetch(
         `${API_LINK}/MasterIndikatorKinerja/CreateDataIndikatorKinerja`,

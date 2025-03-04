@@ -1,18 +1,18 @@
 import React, { useState, useRef } from "react";
 import { useEffect } from "react";
-import PageTitleNav from "../../../../part/PageTitleNav";
-import InputField from "../../../../part/InputField";
-import HeaderForm from "../../../../part/HeaderText";
-import Button from "../../../../part/Button";
-import DropDown from "../../../../part/Dropdown";
-import SweetAlert from "../../../../util/SweetAlert";
-import { useIsMobile } from "../../../../util/useIsMobile";
-import { API_LINK, DOKUMEN_LINK } from "../../../../util/Constants";
-import { useFetch } from "../../../../util/useFetch";
-import TextArea from "../../../../part/TextArea";
-import UploadFoto from "../../../../part/UploadFoto";
-import { decodeHtml } from "../../../../util/DecodeHtml";
-import Loading from "../../../../part/Loading";
+import PageTitleNav from "../../../part/PageTitleNav";
+import InputField from "../../../part/InputField";
+import HeaderForm from "../../../part/HeaderText";
+import Button from "../../../part/Button";
+import DropDown from "../../../part/Dropdown";
+import SweetAlert from "../../../util/SweetAlert";
+import { useIsMobile } from "../../../util/useIsMobile";
+import { API_LINK, DOKUMEN_LINK } from "../../../util/Constants";
+import { useFetch } from "../../../util/useFetch";
+import TextArea from "../../../part/TextArea";
+import UploadFoto from "../../../part/UploadFoto";
+import { decodeHtml } from "../../../util/DecodeHtml";
+import Loading from "../../../part/Loading";
 import { useLocation } from "react-router-dom";
 
 export default function EditKonten({ onChangePage }) {
@@ -200,6 +200,7 @@ export default function EditKonten({ onChangePage }) {
       await SweetAlert("Berhasil!", "Data berhasil diubah.", "success", "OK");
       onChangePage("index", { idMenu: idMenu });
     } catch (error) {
+      console.error("Error:", error.message);
       SweetAlert("Gagal!", error.message, "error", "OK");
     }
   };
@@ -216,6 +217,7 @@ export default function EditKonten({ onChangePage }) {
             />
           </div>
           <div className={isMobile ? "m-0" : "m-3"}>
+            {/* Main Content Section */}
             {loading ? (
               <Loading />
             ) : (
@@ -232,7 +234,7 @@ export default function EditKonten({ onChangePage }) {
                   label="Nama Kategori"
                   value={formData.namaKdo}
                   onChange={handleChange}
-                  isRequired={false}
+                  isRequired={true}
                   isDisabled={true}
                   name="namaKdo"
                   type="text"

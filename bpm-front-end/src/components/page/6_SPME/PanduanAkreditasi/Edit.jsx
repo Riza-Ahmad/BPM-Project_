@@ -53,11 +53,6 @@ export default function Edit({ onChangePage }) {
     }));
   };
 
-  const handleFileChange = (updatedFiles) => {
-    setFile(updatedFiles);
-    console.log(file);
-  };
-
   useEffect(() => {
     const fetchDokumenById = async () => {
       const body = {
@@ -73,7 +68,6 @@ export default function Edit({ onChangePage }) {
       if (result === "ERROR" || result === null || result.length === 0) {
         setFormData(null);
       } else {
-        console.log(result);
         const dokumenArray = Object.values(result);
         setFormData({
           idKdo: 4,
@@ -99,8 +93,6 @@ export default function Edit({ onChangePage }) {
     const isTanggalDokValid = tanggalDokRef.current?.validate();
     const isKadaluarsaDokValid = kadaluarsaDokRef.current?.validate();
     const isJenisDokValid = jenisDokRef.current?.validate();
-
-    console.log("masuk sini");
 
     if (!isJudulDokValid) {
       judulDokRef.current?.focus();

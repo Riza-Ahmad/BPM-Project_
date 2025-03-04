@@ -17,11 +17,8 @@ import SweetAlert from "../../../util/SweetAlert";
 import PdfPreviewDownload from "../../../part/PdfPreviewDownload";
 // import pdf from "../MI_PRG4_M4_P2_XXX.pdf";
 import { useIsMobile } from "../../../util/useIsMobile";
+import { formatDate } from "../../../util/Formatting";
 import Cookies from "js-cookie";
-import { Document, Page } from "react-pdf";
-import "react-pdf/dist/esm/Page/AnnotationLayer.css";
-import Add from "./Add";
-import Edit from "./Edit";
 
 // import { Document, Page } from '@react-pdf-viewer/core';
 
@@ -477,9 +474,11 @@ export default function Index({ onChangePage }) {
                     {filteredData.length > 0 ? (
                       filteredData.map((item) => (
                         <PdfPreviewDownload
-                          key={item.id} 
+                          key={item.idDok}
                           judul={item.judulDok}
-                          handleClick={() => handleDownload(item)}
+                          handleClick={() =>
+                            handleDownload({ Key: item.idDok })
+                          }
                         />
                       ))
                     ) : (
@@ -599,10 +598,79 @@ export default function Index({ onChangePage }) {
           </div>
         </Modal>
       )}
+      {modalType === "detail" && (
+        <Modal
+          ref={ModalRef}
+          title="Detail Dokumen"
+          size={isMobile ? "small" : "medium"}
+          Button2={
+            <Button
+              classType="secondary"
+              label="Tutup"
+              onClick={() => ModalRef.current.close()}
+            />
+          }
+        >
+          <div className="p-3 mt-0 bg-white ">
+            <div className="row">
+              <div className="col-lg-12 col-md-12">
+                <DetailData label="Judul Dokumen" isi={detail.judulDok || ""} />
+              </div>
+              <div className="col-lg-6 col-md-6">
+                <DetailData label="Nomor Dokumen" isi={detail.noDok || ""} />
+              </div>
+              <div className="col-lg-6 col-md-6">
+                <DetailData
+                  label="Jenis Dokumen"
+                  isi={detail.controlDok || ""}
+                />
+              </div>
+              <div className="col-lg-6 col-md-6">
+                <DetailData
+                  label="Tanggal Berlaku"
+                  isi={detail.tglDok ? formatDate(detail.tglDok, true) : "-"}
+                />
+              </div>
+              <div className="col-lg-6 col-md-6">
+                <DetailData
+                  label="Tanggal Kadaluwarsa"
+                  isi={detail.expDok ? formatDate(detail.expDok, true) : "-"}
+                />
+              </div>
+              <div className="col-lg-6 col-md-6">
+                <DetailData label="Dibuat Oleh" isi={detail.createdBy || "-"} />
+              </div>
+              <div className="col-lg-6 col-md-6">
+                <DetailData
+                  label="Dibuat Tanggal"
+                  isi={
+                    detail.createdDate ? formatDate(detail.createdDate, true) : "-"
+                  }
+                />
+              </div>
+              <div className="col-lg-6 col-md-6">
+                <DetailData
+                  label="Dimodifikasi Oleh"
+                  isi={detail.modifiedBy || "-"}
+                />
+              </div>
+              <div className="col-lg-6 col-md-6">
+                <DetailData
+                  label="Dimodifikasi Tanggal"
+                  isi={
+                    detail.modifiedDate ? formatDate(detail.modifiedDate, true) : "-"
+                  }
+                />
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {modalType === "preview" && (
         <Modal
           ref={ModalRef}
-          title={detail.judulDok}
+          title="Preview Dokumen"
           size="full"
           Button2={
             <Button
@@ -612,7 +680,7 @@ export default function Index({ onChangePage }) {
             />
           }
         >
-          <div className="p-3 mt-0 bg-white rounded shadow">
+          <div className="mt-0 bg-white">
             <div style={{ width: "80vh", height: "70vh" }}>
               {loading == true ? (
                 <div
@@ -628,20 +696,15 @@ export default function Index({ onChangePage }) {
                   <SyncLoader color="#0d6efd" loading={true} />
                 </div>
               ) : (
-                <Document
-                  file={DOKUMEN_LINK + detail.fileDok}
-                  onLoadSuccess={onDocumentLoadSuccess}
-                  // className="pdf-document"
-                >
-                  {Array.from(new Array(numPages), (el, index) => (
-                    <Page
-                      key={`page_${index + 1}`}
-                      pageNumber={index + 1}
-                      renderAnnotationLayer={false} 
-                      renderTextLayer={false} 
-                    />
-                  ))}
-                </Document>
+                <embed
+                  src={DOKUMEN_LINK + detail.fileDok}
+                  type="application/pdf"
+                  width="100%"
+                  height="100%"
+                  style={{
+                    border: "none",
+                  }}
+                />
               )}
             </div>
           </div>

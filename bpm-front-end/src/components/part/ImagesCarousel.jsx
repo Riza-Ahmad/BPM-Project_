@@ -1,9 +1,11 @@
 import React from "react";
 import Mahasiswa from "../../assets/element/mahasiswa.png";
 import { DOKUMEN_LINK } from "../util/Constants";
+import { useIsMobile } from "../util/useIsMobile";
 
 const ImagesCarousel = ({ images = [], link = DOKUMEN_LINK }) => {
   const defaultImages = [Mahasiswa, Mahasiswa, Mahasiswa];
+  const isMobile = useIsMobile();
 
   const validImages = images.filter((item) => item !== "");
   const carouselImages = validImages.length > 0 ? validImages : defaultImages;
@@ -16,7 +18,7 @@ const ImagesCarousel = ({ images = [], link = DOKUMEN_LINK }) => {
       borderRadius: "20px",
     },
     carouselImg: {
-      height: "50vh",
+      height: "60vh",
       objectFit: "cover",
     },
     controlButton: {
@@ -79,7 +81,7 @@ const ImagesCarousel = ({ images = [], link = DOKUMEN_LINK }) => {
               }
               className="d-block w-100"
               alt={`Slide ${index + 1}`}
-              style={{ objectFit: "cover", height: "50vh" }}
+              style={{ objectFit: "cover", height: isMobile ? "20vh" : "55vh" }}
             />
           </div>
         ))}

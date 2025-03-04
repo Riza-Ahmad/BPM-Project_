@@ -16,6 +16,8 @@ import Loading from "../../../part/Loading";
 import SweetAlert from "../../../util/SweetAlert";
 import PdfPreviewDownload from "../../../part/PdfPreviewDownload";
 import Cookies from "js-cookie";
+import { decodeHtml } from "../../../util/DecodeHtml";
+import { useIsMobile } from "../../../util/useIsMobile";
 
 const arrSort = [
   { Value: "[judulSta] ASC", Text: "Judul Standar [↑]" },
@@ -44,6 +46,7 @@ export default function Index({ onChangePage }) {
     namaPengguna = JSON.parse(activeUser).Nama;
   }
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   const [pageSize] = useState(10);
   const [pageCurrent, setPageCurrent] = useState(1);
@@ -54,10 +57,10 @@ export default function Index({ onChangePage }) {
   const [currentFilter, setCurrentFilter] = useState({
     param1: "",
     param2: "Aktif",
-    param3: "[judulSta] ASC",
+    param3: "[jenisSta] ASC",
     param4: pageSize,
     param5: pageCurrent,
-    param6: "",
+    param6: new Date().getFullYear(),
   });
 
   const [modalType, setModalType] = useState(""); // "add", "edit", "detail", "preview"
@@ -145,17 +148,6 @@ export default function Index({ onChangePage }) {
     setBreadcrumbs(tempBradcrumps);
   }, [title]);
 
-  const handleOpenModal = (type, data = null) => {
-    setModalType(type);
-    setDetail(data);
-    ModalRef.current?.open();
-  };
-
-  const handlePreview = (item) => {
-    const selected = filteredData.find((obj) => obj.idDok == item.Key);
-    handleOpenModal("preview", selected);
-  };
-
   const handleDetail = (item) => {
     onChangePage("detail", {
       idData: item.Key,
@@ -172,37 +164,11 @@ export default function Index({ onChangePage }) {
     });
   };
 
-  const handleUpdateHistory = (item) => {
-    onChangePage("updHistory", {
-      idData: item.Key,
-      idMenu: idMenu,
-      breadcrumbs: breadcrumbs,
-    });
-  };
-
-  const handleDownloadHistory = (item) => {
-    onChangePage("downHistory", {
-      idData: item.Key,
-      idMenu: idMenu,
-      breadcrumbs: breadcrumbs,
-    });
-  };
-
-  const handleUpload = (item) => {
-    onChangePage("editFile", {
-      idData: item.Key,
-      idMenu: idMenu,
-      breadcrumbs: breadcrumbs,
-    });
-  };
-
   const handleToggle = (item) => {
     // Tampilkan konfirmasi menggunakan SweetAlert sebelum toggle status
     SweetAlert(
       "Konfirmasi",
-      `Apakah Anda yakin ingin ${
-        item.status === "Aktif" ? "menonaktifkan" : "mengaktifkan"
-      } data ini?`,
+      `Apakah Anda yakin ingin menghapus data ini?`,
       "question",
       "Ya",
       null,
@@ -245,70 +211,6 @@ export default function Index({ onChangePage }) {
     });
   };
 
-  const handleDownload = async (item) => {
-    const id = item.Key;
-    if (!id) {
-      SweetAlert("Peringatan", "ID file tidak tersedia.", "warning");
-      return;
-    }
-
-    try {
-      const foundItem = filteredData.find((obj) => obj.idDok === id);
-      const namaInformasi =
-        foundItem && foundItem["fileDok"] ? foundItem["fileDok"] : `file_${id}`;
-
-      const judulDok = foundItem.judulDok;
-      const controlDok = foundItem.controlDok;
-      const referensi = foundItem.refDok;
-      const tanggal = new Date().toLocaleString();
-
-      const response = await fetch(`${API_LINK}/MasterDokumen/DownloadFile`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fileName: namaInformasi,
-          metadata: {
-            JudulDokumen: judulDok,
-            JenisDokumen: controlDok,
-            DiunduhOleh: namaPengguna,
-            Jabatan: roleNama,
-            TanggalUnduh: tanggal,
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Gagal mengunduh file.");
-      } else {
-        const data = await useFetch(
-          `${API_LINK}/MasterDokumen/CreateUnduhDokumen`,
-          {
-            idDok: id,
-            referensi: referensi,
-            role: role,
-            roleNama: roleNama,
-          },
-          "POST"
-        );
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = namaInformasi;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      SweetAlert("Error", error.message, "error");
-    }
-  };
-
   if (error)
     return (
       <div>
@@ -318,15 +220,17 @@ export default function Index({ onChangePage }) {
 
   return (
     <div className="d-flex flex-column min-vh-100">
-      <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
-        <div className="container">
-          <h1 style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}>
-            {title}
-          </h1>
-          <Breadcrumbs breadcrumbs={breadcrumbs} />
+      <main className="flex-grow-1 p-3" style={{ marginTop: "60px" }}>
+        <div className="d-flex flex-column">
+          <div className={isMobile ? "mt-3 p-2" : "p-3 m-5 mt-0 mb-0"}>
+            <h1 style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}>
+              {title}
+            </h1>
+            <Breadcrumbs breadcrumbs={breadcrumbs} />
+          </div>
 
-          <div className="mt-4">
-            {role === "ROL01" ? (
+          {role === "ROL01" ? (
+            <div className={isMobile ? "p-3" : "p-3 ms-5 "}>
               <Button
                 iconName="add"
                 classType="primary"
@@ -338,75 +242,68 @@ export default function Index({ onChangePage }) {
                   })
                 }
               />
-            ) : (
-              ""
-            )}
-            <div className="row mt-3">
-              <div className="col-lg-10">
-                <SearchField
-                  onChange={(e) =>
-                    setCurrentFilter((prevFilter) => {
-                      return {
-                        ...prevFilter,
-                        param3: e,
-                      };
-                    })
-                  }
-                />
-              </div>
-              <div className="col-lg-2">
-                <Filter>
-                  <DropDown
-                    arrData={arrSort}
-                    label="Urut Berdasarkan"
-                    type="pilih"
-                    defaultValue="[judulSta] ASC"
-                    forInput="sortFilter"
-                    onChange={(e) =>
-                      setCurrentFilter((prevFilter) => {
-                        return {
-                          ...prevFilter,
-                          param3: e.target.value,
-                        };
-                      })
-                    }
-                  />
-                  <DropDown
-                    arrData={arrTahun}
-                    label="Tahun Standar"
-                    type="pilih"
-                    forInput="yearFilter"
-                    defaultValue={new Date().getFullYear()}
-                    onChange={(e) =>
-                      setCurrentFilter((prevFilter) => {
-                        return {
-                          ...prevFilter,
-                          param6: e.target.value,
-                        };
-                      })
-                    }
-                  />
-                  <DropDown
-                    arrData={arrStatus}
-                    label="Status"
-                    type="pilih"
-                    defaultValue="Aktif"
-                    forInput="statusFilter"
-                    onChange={(e) =>
-                      setCurrentFilter((prevFilter) => {
-                        return {
-                          ...prevFilter,
-                          param2: e.target.value,
-                        };
-                      })
-                    }
-                  />
-                </Filter>
-              </div>
             </div>
-          </div>
+          ) : (
+            ""
+          )}
 
-          <div className="table-container bg-white rounded">
+          <div
+            className={
+              isMobile
+                ? "table-container bg-white p-1 m-1 mt-0 rounded"
+                : "table-container bg-white p-3 m-5 mt-0 rounded"
+            }
+          >
+            <div className="row">
+              <div className="col-12 d-flex flex-wrap align-items-center">
+                <div className="me-auto flex-grow-1 me-3">
+                  <SearchField
+                    onChange={(e) =>
+                      setCurrentFilter((prevFilter) => {
+                        return {
+                          ...prevFilter,
+                          param1: e,
+                        };
+                      })
+                    }
+                  />
+                </div>
+                <div className="mb-3">
+                  <Filter>
+                    <DropDown
+                      arrData={arrSort}
+                      label="Urut Berdasarkan"
+                      type="pilih"
+                      defaultValue="[judulSta] ASC"
+                      forInput="sortFilter"
+                      onChange={(e) =>
+                        setCurrentFilter((prevFilter) => {
+                          return {
+                            ...prevFilter,
+                            param3: e.target.value,
+                          };
+                        })
+                      }
+                    />
+                    <DropDown
+                      arrData={arrTahun}
+                      label="Tahun Standar"
+                      type="pilih"
+                      forInput="yearFilter"
+                      defaultValue={new Date().getFullYear()}
+                      onChange={(e) =>
+                        setCurrentFilter((prevFilter) => {
+                          return {
+                            ...prevFilter,
+                            param6: e.target.value,
+                          };
+                        })
+                      }
+                    />
+                  </Filter>
+                </div>
+              </div>
+            </div>{" "}
             {loading ? (
               <Loading />
             ) : (
@@ -416,7 +313,7 @@ export default function Index({ onChangePage }) {
                   data={filteredData.map((item, index) => ({
                     Key: item.idSta,
                     No: (pageCurrent - 1) * pageSize + index + 1,
-                    "Nama Standar": item.judulSta,
+                    "Nama Standar": decodeHtml(item.judulSta),
                     status: item.status,
                   }))}
                   actions={(row) => {
@@ -425,11 +322,12 @@ export default function Index({ onChangePage }) {
                       return ["Toggle"];
                     }
                     // Jika status selain "Tidak Aktif", tampilkan semua actions
-                    return ["Detail", "Edit", "Toggle"];
+                    return ["Detail", "Edit", "Delete"];
                   }}
+                  aksiIs={role === "ROL01" ? true : false}
                   onEdit={handleEdit}
                   onDetail={handleDetail}
-                  onToggle={handleToggle}
+                  onDelete={handleToggle}
                 />
 
                 <Paging
