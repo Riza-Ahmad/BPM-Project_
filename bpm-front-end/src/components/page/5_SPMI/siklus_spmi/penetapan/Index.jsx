@@ -54,7 +54,7 @@ export default function Index({ onChangePage }) {
   const location = useLocation();
   const idMenu = location.state?.idMenu;
   const activeUser = Cookies.get("activeUser");
-  let role = ""; 
+  let role = "";
   let roleNama = "";
   let namaPengguna = "";
   if (activeUser) {
@@ -73,12 +73,12 @@ export default function Index({ onChangePage }) {
   const [activeTab, setActiveTab] = useState(null);
   const [activeSide, setActiveSide] = useState(null);
   const [error, setError] = useState("");
-  
+
   const [pageSize] = useState(10);
   const [pageCurrent, setPageCurrent] = useState(1);
   const [totalData, setTotalData] = useState(0);
   const [filteredData, setFilteredData] = useState([]);
-  
+
   const [standarFilter, setStandarFilter] = useState(new Date().getFullYear());
   const [currentFilter, setCurrentFilter] = useState({
     param1: activeSide?.idSta || "",
@@ -88,7 +88,6 @@ export default function Index({ onChangePage }) {
     param5: pageCurrent,
     param6: "IKU",
   });
-
 
   useEffect(() => {
     setCurrentFilter((prevFilter) => ({
@@ -112,21 +111,25 @@ export default function Index({ onChangePage }) {
         "POST"
       ).finally(() => setLoading(false));
 
-      if (result === "ERROR") {
+      if (result === "ERROR" || !result || Object.keys(result).length === 0) {
         setMenuData([]);
       } else {
         const menuArr = Object.values(result);
+
+        if (!menuArr[0]) {
+          setMenuData([]);
+          return;
+        }
+
         setMenuData(menuArr[0]);
-        setMenuData((prevFilter) => {
-          return {
-            ...prevFilter,
-            images: [
-              menuArr[0].foto1Kdo,
-              menuArr[0].foto2Kdo,
-              menuArr[0].foto3Kdo,
-            ],
-          };
-        });
+        setMenuData((prevFilter) => ({
+          ...prevFilter,
+          images: [
+            menuArr[0].foto1Kdo,
+            menuArr[0].foto2Kdo,
+            menuArr[0].foto3Kdo,
+          ],
+        }));
       }
     };
 
@@ -495,7 +498,7 @@ export default function Index({ onChangePage }) {
                           color: activeTab === index ? "white" : "#AAA7A7",
                           fontSize: isMobile ? "12px" : "16px",
                           padding: "10px 15px",
-                          fontWeight: isMobile ? "200":"650",
+                          fontWeight: isMobile ? "200" : "650",
                           width: "auto",
                           whiteSpace: "nowrap",
                         }}

@@ -97,7 +97,7 @@ export default function Read({ onChangePage }) {
 
       setFilteredData(formattedEvents);
     } catch (error) {
-      setError("Gagal mengambil data kegiatan");
+      setError("Gagal mengambil data dokumen");
     } finally {
       setLoading(false);
     }
@@ -182,7 +182,7 @@ export default function Read({ onChangePage }) {
             }
             SweetAlert(
               "Berhasil!",
-              "Dokumentasi kegiatan berhasil diEdit.",
+              "Data Dokumentasi berhasil di perbarui.",
               "success",
               "OK"
             ).then(() => {

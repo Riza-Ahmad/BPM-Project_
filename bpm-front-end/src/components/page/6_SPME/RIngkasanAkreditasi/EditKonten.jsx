@@ -232,7 +232,7 @@ export default function EditKonten({ onChangePage }) {
                 <InputField
                   ref={namaKdoRef}
                   label="Nama Kategori"
-                  value={formData.namaKdo}
+                  value={formData.namaKdo || ""}
                   onChange={handleChange}
                   isRequired={true}
                   isDisabled={true}
@@ -267,7 +267,7 @@ export default function EditKonten({ onChangePage }) {
                     <InputField
                       ref={urutanKdoRef}
                       label="Urutan Kategori"
-                      value={formData.urutanKdo}
+                      value={formData.urutanKdo || ""}
                       onChange={handleChange}
                       isRequired={true}
                       isDisabled={true}

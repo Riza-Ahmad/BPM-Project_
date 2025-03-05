@@ -174,35 +174,37 @@ export default function Index({ onChangePage }) {
         });
         const listMenu = CreateMenu(arrResult);
         const depth = calculateDepth(listMenu);
-        const sideMenuTransformed = listMenu[0]?.children;
+        if (listMenu[0]?.children) {
+          const sideMenuTransformed = listMenu[0]?.children;
 
-        switch (depth) {
-          case 2:
-            setTabMenu([]);
-            setActiveTab(null);
-            setSideMenu(sideMenuTransformed);
-            setActiveSide(sideMenuTransformed[0]);
-            setCurrentFilter((prevFilter) => ({
-              ...prevFilter,
-              param1: sideMenuTransformed[0].idKdo,
-            }));
-            break;
-          default:
-            setTabMenu(sideMenuTransformed);
-            const firstTab = sideMenuTransformed[0];
-            setActiveTab(firstTab);
-            const side = firstTab.children || [];
-            setSideMenu(side);
-
-            if (side.length > 0) {
-              const firstSide = side[0];
-              setActiveSide(firstSide);
+          switch (depth) {
+            case 2:
+              setTabMenu([]);
+              setActiveTab(null);
+              setSideMenu(sideMenuTransformed);
+              setActiveSide(sideMenuTransformed[0]);
               setCurrentFilter((prevFilter) => ({
                 ...prevFilter,
-                param1: firstSide.idKdo,
+                param1: sideMenuTransformed[0].idKdo,
               }));
-            }
-            break;
+              break;
+            default:
+              setTabMenu(sideMenuTransformed);
+              const firstTab = sideMenuTransformed[0];
+              setActiveTab(firstTab);
+              const side = firstTab.children || [];
+              setSideMenu(side);
+
+              if (side.length > 0) {
+                const firstSide = side[0];
+                setActiveSide(firstSide);
+                setCurrentFilter((prevFilter) => ({
+                  ...prevFilter,
+                  param1: firstSide.idKdo,
+                }));
+              }
+              break;
+          }
         }
       } catch (err) {
         setError("Gagal mengambil data: " + err.message);
@@ -278,7 +280,7 @@ export default function Index({ onChangePage }) {
 
   const calculateDepth = (data) => {
     const getDepth = (items) => {
-      if (!items || items.length === 0) return 0; 
+      if (!items || items.length === 0) return 0;
       return (
         1 + Math.max(...items.map((item) => getDepth(item.children || [])))
       );
@@ -345,7 +347,7 @@ export default function Index({ onChangePage }) {
       "Ya",
       null,
       "",
-      true 
+      true
     ).then((result) => {
       if (result) {
         const updatedData = filteredData
@@ -470,7 +472,7 @@ export default function Index({ onChangePage }) {
     setActiveSide(item?.children[0] || null);
     setCurrentFilter((prevFilter) => ({
       ...prevFilter,
-      param1: idKdo, 
+      param1: idKdo,
     }));
   };
 
@@ -571,9 +573,8 @@ export default function Index({ onChangePage }) {
                   <h1
                     style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}
                   >
-                    {menuData?.namaKdo
-                      ? decodeHtml(menuData.namaKdo)
-                      : "Page Title"}
+                    {menuData?.namaKdo ||
+                      decodeHtml(menuData.namaKdo || "Page Title")}
                   </h1>
                   {role === "ROL01" ? (
                     <Button
@@ -620,7 +621,9 @@ export default function Index({ onChangePage }) {
                 </div>
                 <div className="p-3 mb-5 bg-white rounded shadow">
                   <div className="row">
-                    <div className="col-lg-2 col-sm-2 mb-3">{renderSide(sideMenu)}</div>
+                    <div className="col-lg-2 col-sm-2 mb-3">
+                      {renderSide(sideMenu)}
+                    </div>
                     <div className="col mb-3">
                       <div className="text-center mb-3">
                         <h3
@@ -630,8 +633,8 @@ export default function Index({ onChangePage }) {
                             fontWeight: "700",
                           }}
                         >
-                          {decodeHtml(activeSide?.namaKdo) ||
-                            decodeHtml(activeTab?.namaKdo) ||
+                          {decodeHtml(activeSide?.namaKdo || "Sub Title") ||
+                            decodeHtml(activeTab?.namaKdo || "Sub Title") ||
                             "Title"}
                         </h3>
                       </div>

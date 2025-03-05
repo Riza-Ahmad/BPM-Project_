@@ -124,21 +124,25 @@ export default function Index({ onChangePage }) {
         "POST"
       ).finally(() => setLoading(false));
 
-      if (result === "ERROR") {
+      if (result === "ERROR" || !result || Object.keys(result).length === 0) {
         setMenuData([]);
       } else {
         const menuArr = Object.values(result);
+
+        if (!menuArr[0]) {
+          setMenuData([]);
+          return;
+        }
+
         setMenuData(menuArr[0]);
-        setMenuData((prevFilter) => {
-          return {
-            ...prevFilter,
-            images: [
-              menuArr[0].foto1Kdo,
-              menuArr[0].foto2Kdo,
-              menuArr[0].foto3Kdo,
-            ],
-          };
-        });
+        setMenuData((prevFilter) => ({
+          ...prevFilter,
+          images: [
+            menuArr[0].foto1Kdo,
+            menuArr[0].foto2Kdo,
+            menuArr[0].foto3Kdo,
+          ],
+        }));
       }
     };
 
@@ -212,7 +216,7 @@ export default function Index({ onChangePage }) {
   }, [menuData]);
 
   const truncateText = (text, maxLength) => {
-    if (!text) return ""; 
+    if (!text) return "";
     return text.length > maxLength
       ? text.substring(0, maxLength) + "..."
       : text;
@@ -300,7 +304,7 @@ export default function Index({ onChangePage }) {
                         />
                       </div>
 
-                      <div className="flex-grow-1">
+                      <div className="">
                         <Filter>
                           <DropDown
                             arrData={arrSort}

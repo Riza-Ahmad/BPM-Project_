@@ -26,7 +26,7 @@ export default function Akreditasi({ onChangePage }) {
     roleNama = JSON.parse(activeUser).Role;
     namaPengguna = JSON.parse(activeUser).Nama;
   }
-  const [menuData, setMenuData] = useState(null);
+  const [menuData, setMenuData] = useState([]);
   const [prodiData, setProdiData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -45,7 +45,7 @@ export default function Akreditasi({ onChangePage }) {
         "POST"
       ).finally(() => setLoading(false));
 
-      if (result === "ERROR") {
+      if (result === "ERROR" || !result || Object.keys(result).length === 0) {
         setMenuData([]);
       } else {
         const menuArr = Object.values(result);
@@ -241,7 +241,7 @@ export default function Akreditasi({ onChangePage }) {
               <div className="p-4 mx-2">
                 <Text
                   warna="white"
-                  isi={menuData.deskripsiKdo}
+                  isi={menuData.deskripsiKdo || "Lorem Ipsum"}
                   ukuran="1.2rem"
                 />
               </div>

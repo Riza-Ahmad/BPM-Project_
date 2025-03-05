@@ -71,7 +71,7 @@ export default function Edit({ onChangePage }) {
   const [error, setError] = useState(null);
 
   const [currentFilter, setCurrentFilter] = useState({
-    param1: 50,
+    param1: 30,
     param2: "Aktif",
     param3: "",
     param4: "",
@@ -125,6 +125,7 @@ export default function Edit({ onChangePage }) {
   const activeModalFor = useRef();
 
   const handleChoose = (e) => {
+    console.log(e);
     setFormData((prevData) => ({
       ...prevData,
       [activeModalFor.current]: e.Key,
@@ -263,8 +264,8 @@ export default function Edit({ onChangePage }) {
           : "",
         peringkatAkr: formData.peringkatAkr ? formData.peringkatAkr : "",
         kadaluarsaAkr: formData.kadaluarsaAkr ? formData.kadaluarsaAkr : "",
-        SKAkr: displayLov.fileSkAkr ? displayLov.fileSkAkr : "",
-        SertifAkr: displayLov.fileSertifAkr ? displayLov.fileSertifAkr : "",
+        SKAkr: formData.fileSkAkr ? formData.fileSkAkr : "",
+        SertifAkr: formData.fileSertifAkr ? formData.fileSertifAkr : "",
         img: formData.img,
       };
 
@@ -426,7 +427,7 @@ export default function Edit({ onChangePage }) {
                       placeholder="PIlih Dokumen"
                       isRequired={false}
                       modalTarget="#dokModal"
-                      value={displayLov.fileSkAkr}
+                      value={formData.fileSkAkr}
                       onChange={handleChange}
                       onClick={() => (activeModalFor.current = "fileSkAkr")}
                     />
@@ -439,7 +440,7 @@ export default function Edit({ onChangePage }) {
                       placeholder="PIlih Dokumen"
                       isRequired={false}
                       modalTarget="#dokModal"
-                      value={displayLov.fileSertifAkr}
+                      value={formData.fileSertifAkr}
                       onChange={handleChange}
                       onClick={() => (activeModalFor.current = "fileSertifAkr")}
                     />

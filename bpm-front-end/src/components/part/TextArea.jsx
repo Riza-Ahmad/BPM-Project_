@@ -105,6 +105,7 @@ const TextArea = React.forwardRef(
               "link",
               "ul",
               "ol",
+              "fontsize",
             ],
             buttonsMD: [
               "bold",
@@ -114,6 +115,7 @@ const TextArea = React.forwardRef(
               "link",
               "ul",
               "ol",
+              "fontsize",
             ],
             buttonsSM: [
               "bold",
@@ -123,6 +125,7 @@ const TextArea = React.forwardRef(
               "link",
               "ul",
               "ol",
+              "fontsize",
             ],
             buttonsXS: [
               "bold",
@@ -132,6 +135,7 @@ const TextArea = React.forwardRef(
               "link",
               "ul",
               "ol",
+              "fontsize",
             ],
           }}
           onBlur={(newContent) => handleEditorChange(newContent)}

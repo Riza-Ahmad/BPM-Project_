@@ -4,7 +4,7 @@ import PageTitleNav from "../../../part/PageTitleNav";
 import InputField from "../../../part/InputField";
 import HeaderForm from "../../../part/HeaderText";
 import Button from "../../../part/Button";
-import DropDown from "../../../part/Dropdown";
+import AutoComplete from "../../../part/AutoComplete";
 import SweetAlert from "../../../util/SweetAlert";
 import { useIsMobile } from "../../../util/useIsMobile";
 import { API_LINK } from "../../../util/Constants";
@@ -105,6 +105,7 @@ export default function Add({ onChangePage, breadcrumbs }) {
       return;
     }
 
+    console.log(idMenRef.current.value);
     try {
       let uploadedDokNames = [];
       if (images.length > 0) {
@@ -139,7 +140,6 @@ export default function Add({ onChangePage, breadcrumbs }) {
         foto2: uploadedDokNames[1] ? uploadedDokNames[1] : "",
         foto3: uploadedDokNames[2] ? uploadedDokNames[2] : "",
         urutanKdo: urutanKdoRef.current.value,
-        createdBy: "User404",
       };
 
       const createResponse = await useFetch(
@@ -207,13 +207,15 @@ export default function Add({ onChangePage, breadcrumbs }) {
                 />
                 <div className="row">
                   <div className="col-lg-6 col-md-6">
-                    <DropDown
+                    <AutoComplete
                       arrData={listMenu}
                       type="pilih"
                       label="Menu"
                       forInput="idMen"
                       isRequired={true}
-                      onChange={handleChange}
+                      onChange={(e) =>
+                        setFormData({ ...formData, idMen: e.target.value })
+                      }
                       value={formData.idMen}
                       ref={idMenRef}
                     />

@@ -47,8 +47,6 @@ export default function Login() {
             nama: userData.Nama,
           };
 
-          console.log(sent);
-
           const jwtToken = await useFetch(
             `${API_LINK}/Utilities/CreateJWTToken`,
             sent,

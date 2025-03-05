@@ -107,7 +107,6 @@ export default function Index({ onChangePage }) {
     });
   };
   const handleDelete = (item) => {
-    // Tampilkan konfirmasi menggunakan SweetAlert sebelum toggle status
     SweetAlert(
       "Konfirmasi",
       `Apakah Anda yakin ingin menghapus data ini?`,
@@ -115,10 +114,9 @@ export default function Index({ onChangePage }) {
       "Ya",
       null,
       "",
-      true // Tampilkan tombol batal
+      true
     ).then((result) => {
       if (result) {
-        // Jika pengguna mengonfirmasi, hanya simpan idAkr dan status yang diperbarui
         const updatedData = filteredData
           .filter((data) => data.idAkr === item.Key)
           .map((data) => ({
@@ -140,7 +138,6 @@ export default function Index({ onChangePage }) {
               "success",
               "OK"
             ).then(() => {
-              // Panggil fetchEvents untuk memperbarui data tanpa reload halaman
               fetchAkreProdi();
             });
           })

@@ -92,7 +92,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
   const [detail, setDetail] = useState(null);
 
   const [currentFilter, setCurrentFilter] = useState({
-    param1: activeSide?.idKdo || idMenu,
+    param1: activeSide?.idKdo || "-",
     param2: "Aktif",
     param3: "",
     param4: "",
@@ -356,7 +356,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
       "Ya",
       null,
       "",
-      true 
+      true
     ).then((result) => {
       if (result) {
         const updatedData = filteredData
@@ -488,7 +488,7 @@ export default function Index({ onChangePage, isIkuIkt }) {
   };
 
   const handleTabClick = (idKdo, item) => {
-    setSideMenu(item?.children || []); 
+    setSideMenu(item?.children || []);
     setActiveTab(item);
     setActiveSide(item?.children[0] || null);
     setCurrentFilter((prevFilter) => ({

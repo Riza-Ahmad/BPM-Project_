@@ -34,7 +34,8 @@ const AutoComplete = forwardRef(function AutoComplete(
       setError(false);
     },
     validate() {
-      if (isRequired && !value) {
+      console.log(value);
+      if (isRequired && value === "") {
         setError(true);
         return false;
       }
@@ -91,6 +92,8 @@ const AutoComplete = forwardRef(function AutoComplete(
         <input
           ref={inputRef}
           type="text"
+          id={forInput}
+          name={forInput}
           className={`form-control ${error ? "is-invalid" : ""}`}
           placeholder={`Pilih ${label}...`}
           value={searchTerm}

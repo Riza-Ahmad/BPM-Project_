@@ -14,6 +14,7 @@ import DropDown from "../../../part/Dropdown";
 import Loading from "../../../part/Loading";
 import PageTitleNav from "../../../part/PageTitleNav";
 import Cookies from "js-cookie";
+import { decodeHtml } from "../../../util/DecodeHtml";
 
 const arrSort = [
   { Value: "[namaKdo] ASC", Text: "Nama Kategori [↑]" },
@@ -85,7 +86,7 @@ export default function Index({ onChangePage }) {
     } else {
       const kategoriArray = Object.values(result);
       setFilteredData(kategoriArray);
-      setTotalData(kategoriArray[0].TotalCount);
+      setTotalData(kategoriArray[0].length);
     }
   };
 
@@ -109,11 +110,6 @@ export default function Index({ onChangePage }) {
       breadcrumbs: breadcrumbs,
       idData: item.Key,
     });
-    // onChangePage("edit", {
-    //   idData: item.Key,
-    //   idMenu: idMenu,
-    //   breadcrumbs: breadcrumbs,
-    // });
   };
 
   const handleToggle = (item) => {
@@ -136,7 +132,6 @@ export default function Index({ onChangePage }) {
             status: data.statusKdo === "Aktif" ? "Tidak Aktif" : "Aktif",
           }));
 
-        console.log(updatedData);
         useFetch(
           `${API_LINK}/MasterKategoriDokumen/EditStatusKategoriDokumen`,
           updatedData[0]
@@ -281,7 +276,7 @@ export default function Index({ onChangePage }) {
                   data={filteredData.map((item, index) => ({
                     Key: item.idKdo,
                     No: (pageCurrent - 1) * pageSize + index + 1,
-                    Nama: item.namaKdo,
+                    Nama: decodeHtml(item.namaKdo || "-"),
                     Path: item.pathKdo,
                     Type: item.idMen == null ? "Child" : "Header",
                     status: item.statusKdo,
@@ -322,7 +317,7 @@ export default function Index({ onChangePage }) {
             />
           }
         >
-          <div className="p-5 mt-0 bg-white rounded shadow">
+          <div className="p-5 mt-0 bg-white rounded ">
             <div className="row">
               <div className="col-lg-12 col-md-12">
                 <DetailData

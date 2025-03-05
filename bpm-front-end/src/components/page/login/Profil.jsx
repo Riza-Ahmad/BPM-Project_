@@ -13,10 +13,12 @@ export default function Profil() {
   let activeUser = "";
   let username = "";
   let lastLogin = "";
+  let role = "";
   const cookie = Cookies.get("activeUser");
   if (cookie) activeUser = JSON.parse(cookie).Nama;
   if (cookie) username = JSON.parse(cookie).username;
   if (cookie) lastLogin = JSON.parse(cookie).lastLogin;
+  if (cookie) role = JSON.parse(cookie).Role;
   const lastLoginDate = new Date(lastLogin);
 
   const formattedLastLogin =
@@ -119,7 +121,7 @@ export default function Profil() {
             ></i>
             <div className="d-flex flex-column align-items-start me-4 gap-2">
               <HeaderText
-                label={activeUser}
+                label={activeUser + " (" + role + ")"}
                 ukuran="1.2rem"
                 warna="#2654a1"
                 alignText="left"

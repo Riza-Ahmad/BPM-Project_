@@ -104,7 +104,7 @@ export default function Add({ onChangePage }) {
     if (kadaluarsaDate <= dokumenDate) {
       SweetAlert(
         "Validasi Gagal",
-        "Tahun Kadaluarsa harus lebih besar dari Tahun Dokumen.",
+        "Tanggal Kadaluarsa harus lebih besar dari Tanggal Dokumen.",
         "error",
         "OK"
       );
@@ -137,11 +137,9 @@ export default function Add({ onChangePage }) {
       );
 
       if (data === "ERROR") {
-        throw new Error(
-          "Terjadi kesalahan: Gagal menyimpan data pengajuan proposal."
-        );
+        throw new Error("Terjadi kesalahan: Gagal menyimpan data peraturan.");
       }
-      SweetAlert("Sukses", "Pengajuan proposal berhasil disimpan", "success");
+      SweetAlert("Sukses", "Data Peraturan berhasil disimpan", "success");
       onChangePage("index", { idMenu: idMenu });
     } catch (error) {
       SweetAlert("Gagal!", error.message, "error", "OK");
@@ -202,7 +200,7 @@ export default function Add({ onChangePage }) {
                   <InputField
                     ref={tahunDokumenRef}
                     type="date"
-                    label="Tahun Dokumen"
+                    label="Tanggal Dokumen"
                     value={formData.tahunDokumen}
                     onChange={(e) =>
                       setFormData({ ...formData, tahunDokumen: e.target.value })
@@ -231,7 +229,7 @@ export default function Add({ onChangePage }) {
                   <InputField
                     ref={tahunKadaluarsaRef}
                     type="date"
-                    label="Tahun Kadaluarsa"
+                    label="Tanggal Kadaluarsa"
                     value={formData.tahunKadaluarsa}
                     onChange={(e) =>
                       setFormData({

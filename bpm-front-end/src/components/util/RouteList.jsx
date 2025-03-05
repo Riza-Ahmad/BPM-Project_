@@ -26,10 +26,6 @@ const Penetapan = lazy(() =>
 const Peningkatan = lazy(() =>
   import("../page/5_SPMI/siklus_spmi/peningkatan/Root")
 );
-const Pengendalian = lazy(() =>
-  import("../page/5_SPMI/siklus_spmi/pengendalian/Root")
-);
-const Evaluasi = lazy(() => import("../page/5_SPMI/siklus_spmi/evaluasi/Root"));
 
 const SPMI_Dinamis = lazy(() => import("../page/5_SPMI/SPMI_Dinamis/Root"));
 
@@ -41,19 +37,13 @@ const AkreditasiProdi = lazy(() =>
 const AkreditasiInstitusi = lazy(() =>
   import("../page/6_SPME/AkreditasiInstitusi/Root")
 );
-const AkreditasiProdi = lazy(() =>
-  import("../page/6_SPME/AkreditasiProdi/Root")
-);
-const AkreditasiInstitusi = lazy(() =>
-  import("../page/6_SPME/AkreditasiInstitusi/Root")
-);
+
 const Ringkasan = lazy(() => import("../page/6_SPME/RIngkasanAkreditasi/Root"));
+
 const PanduanAkreditasi = lazy(() =>
   import("../page/6_SPME/PanduanAkreditasi/Root")
 );
-const PanduanAkreditasi = lazy(() =>
-  import("../page/6_SPME/PanduanAkreditasi/Root")
-);
+
 const Standar = lazy(() => import("../page/7_IKU&IKT/Standar/Root"));
 const Capaian = lazy(() => import("../page/7_IKU&IKT/Capaian/Root"));
 const IndikatorKinerja = lazy(() =>
@@ -80,7 +70,7 @@ const PelaksanaanAMI = lazy(() =>
   import("../page/8_Audit/tr_pelaksanaanAMI/Root")
 );
 const KategoriDokumen = lazy(() =>
-  import("../page/MasterKategoriDokumen/Root")
+  import("../page/5_SPMI/MasterKategoriDokumen/Root")
 );
 const Peraturan = lazy(() =>
   import("../page/10_Peraturan/ms_kebijakanPeraturan/Root")
@@ -217,6 +207,11 @@ const routeList = [
     path: "/iku/ikuikt/*",
     element: <IndikatorKinerja />,
     protected: true,
+  },
+  {
+    path: "/iku/standar/*",
+    element: <Standar />,
+    // protected: true,
   },
   {
     path: "/peraturan/dokumen/*",

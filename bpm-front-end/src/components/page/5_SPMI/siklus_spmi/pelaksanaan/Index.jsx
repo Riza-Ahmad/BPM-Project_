@@ -111,21 +111,25 @@ export default function Index({ onChangePage }) {
         "POST"
       ).finally(() => setLoading(false));
 
-      if (result === "ERROR") {
+      if (result === "ERROR" || !result || Object.keys(result).length === 0) {
         setMenuData([]);
       } else {
         const menuArr = Object.values(result);
+
+        if (!menuArr[0]) {
+          setMenuData([]);
+          return;
+        }
+
         setMenuData(menuArr[0]);
-        setMenuData((prevFilter) => {
-          return {
-            ...prevFilter,
-            images: [
-              menuArr[0].foto1Kdo,
-              menuArr[0].foto2Kdo,
-              menuArr[0].foto3Kdo,
-            ],
-          };
-        });
+        setMenuData((prevFilter) => ({
+          ...prevFilter,
+          images: [
+            menuArr[0].foto1Kdo,
+            menuArr[0].foto2Kdo,
+            menuArr[0].foto3Kdo,
+          ],
+        }));
       }
     };
 
@@ -335,7 +339,6 @@ export default function Index({ onChangePage }) {
       breadcrumbs: breadcrumbs,
     });
   };
-
 
   if (error) return <p className="text-center">{error}</p>;
 

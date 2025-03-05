@@ -54,8 +54,9 @@ const SliderProgramStudi = ({ akreditasiData }) => {
                 key={item.id}
                 style={{
                   padding: isMobile ? "1rem" : "2rem",
-                  minWidth: isMobile ? "19rem" : "23.5rem",
-                  minHeight: "30rem",
+                  width: isMobile ? "19rem" : "23.5rem",
+                  height: "30rem",
+
                   overflow: "hidden",
                   display: "flex",
                   flexDirection: "column",
