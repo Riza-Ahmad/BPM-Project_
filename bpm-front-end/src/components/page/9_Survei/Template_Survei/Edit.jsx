@@ -675,7 +675,7 @@ export default function EditTemplateSurvei({ onChangePage }) {
                             "Skala",
                           ]}
                           data={filteredData.map((item, index) => ({
-                            Key: item.pty_id, 
+                            Key: item.pty_id,
                             No: (pageCurrent - 1) * pageSize + index + 1,
                             Kriteria: item.ksr_nama,
                             Pertanyaan: (

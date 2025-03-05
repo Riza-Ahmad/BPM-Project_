@@ -196,7 +196,7 @@ export default function Add({ onChangePage }) {
     if (pic1 === pic2 || pic1 === kadep || pic2 === kadep) {
       SweetAlert(
         "Perhatian!",
-        "PIC 1 tidak boleh sama dengan PIC 2.",
+        "Kepala Departemen, PIC 1 dan PIC 2 tidak boleh sama",
         "warning",
         "OK"
       );

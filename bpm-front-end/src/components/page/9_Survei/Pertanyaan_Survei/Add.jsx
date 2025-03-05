@@ -61,9 +61,10 @@ export default function Add({ onChangePage }) {
       try {
         const skpResponse = await useFetch(
           `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`,
-          {},
+          { status: "Aktif" },
           "POST"
         );
+        console.log(skpResponse);
 
         if (skpResponse && Array.isArray(skpResponse)) {
           const filteredSkp = skpResponse.filter(

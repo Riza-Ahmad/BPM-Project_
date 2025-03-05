@@ -48,17 +48,15 @@ export default function Daftar_Survei() {
         <Route
           path="/"
           element={
-            <ProtectedRoute isRole={false}>
-              {mode === "edit" ? (
-                <Edit onChangePage={handlePageChange} />
-              ) : mode === "preview" ? (
-                <Preview onChangePage={handlePageChange} />
-              ) : mode === "detail" ? (
-                <Detail onChangePage={handlePageChange} />
-              ) : (
-                <Index onChangePage={handlePageChange} />
-              )}
-            </ProtectedRoute>
+            mode === "edit" ? (
+              <Edit onChangePage={handlePageChange} />
+            ) : mode === "preview" ? (
+              <Preview onChangePage={handlePageChange} />
+            ) : mode === "detail" ? (
+              <Detail onChangePage={handlePageChange} />
+            ) : (
+              <Index onChangePage={handlePageChange} />
+            )
           }
         />
       </Routes>

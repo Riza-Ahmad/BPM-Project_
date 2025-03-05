@@ -9,6 +9,7 @@ import Loading from "../../../part/Loading";
 import SearchField from "../../../part/SearchField";
 import Filter from "../../../part/Filter";
 import { useIsMobile } from "../../../util/useIsMobile";
+import { useFetch } from "../../../util/useFetch";
 import { API_LINK } from "../../../util/Constants";
 import Swal from "sweetalert2";
 
@@ -34,7 +35,7 @@ export default function Index() {
   const [loading, setLoading] = useState(false);
   const [skalaData, setSkalaData] = useState([]);
   const [filterType, setFilterType] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
+  const [p1, setp1] = useState("");
 
   const applyFilters = (item) => {
     const searchRegex = new RegExp(searchQuery, "i");
@@ -46,9 +47,7 @@ export default function Index() {
 
     const matchesType = filterType ? item.skp_tipe === filterType : true;
     const matchesStatus =
-      filterStatus !== ""
-        ? item.skp_status === filterStatus
-        : item.skp_status === "Aktif";
+      p1 !== "" ? item.skp_status === p1 : item.skp_status === "Aktif";
 
     return matchesSearch && matchesType && matchesStatus;
   };
@@ -64,18 +63,19 @@ export default function Index() {
   };
 
   const fetchSkala = async () => {
+    console.log("hallo");
     setLoading(true);
     try {
-      const response = await fetch(endpoints.get, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: null }),
-      });
+      const response = await useFetch(
+        `${API_LINK}/SkalaPenilaian/GetSkalaPenilaian`
+      );
 
-      if (!response.ok) throw new Error("Gagal mengambil data");
-
-      const result = await response.json();
-      setSkalaData(result);
+      if (response === "ERROR" || response === null || response.length === 0) {
+        setSkalaData([]);
+      } else {
+        console.log("Merekaaa kalah:", response);
+        setSkalaData(response);
+      }
     } catch (error) {
       console.error("Kesalahan Fetch:", error);
       Swal.fire("Kesalahan", "Gagal mengambil data", "error");
@@ -123,7 +123,7 @@ export default function Index() {
   };
 
   const handleResetFilter = () => {
-    setFilterStatus("");
+    setp1("");
     setFilterType("");
     fetchSkala();
   };
@@ -136,7 +136,7 @@ export default function Index() {
 
   const { currentPageData, totalFilteredItems } = getPageData();
   const activeData =
-    filterStatus === ""
+    p1 === ""
       ? skalaData.filter((item) => item.skp_status === "Aktif")
       : skalaData;
   const uniqueTypes = [...new Set(activeData.map((item) => item.skp_tipe))];
@@ -196,8 +196,8 @@ export default function Index() {
                       type="pilih"
                       label="Filter Status"
                       forInput="filter-status"
-                      value={filterStatus}
-                      onChange={(e) => setFilterStatus(e.target.value)}
+                      value={p1}
+                      onChange={(e) => setp1(e.target.value)}
                     />
                   </div>
 

@@ -766,17 +766,21 @@ export default function Pertanyaan_Survei({ onChangePage }) {
                 <Table
                   arrHeader={[
                     "No",
-                    "Pertanyaan",
                     "Kriteria Survei",
+                    "Pertanyaan",
+                    "Tipe Skala",
                     "Skala Penilaian",
+                    "Deskripsi Penilaian",
                   ]}
                   data={currentDataPage.map((item, index) => ({
                     ...item,
                     Key: item.pty_id ?? "Tidak Ada",
                     No: indexOfFirstData + index + 1,
-                    Pertanyaan: item.pty_pertanyaan ?? "Tidak Ada",
                     "Kriteria Survei": item.ksr_nama ?? "Tidak Ada",
+                    Pertanyaan: item.pty_pertanyaan ?? "Tidak Ada",
+                    "Tipe Skala": item.skp_tipe ?? "Tidak Ada",
                     "Skala Penilaian": item.skp_skala ?? "Tidak Ada",
+                    "Deskripsi Penilaian": item.skp_deskripsi ?? "Tidak Ada",
                     Status: item.pty_status === "Aktif",
                   }))}
                   actions={(row) =>

@@ -29,13 +29,11 @@ export default function Dashboard_Survei() {
         <Route
           path="/"
           element={
-            <ProtectedRoute>
-              {mode === "index" ? (
-                <Index onChangePage={handlePageChange} />
-              ) : (
-                <Index onChangePage={handlePageChange} />
-              )}
-            </ProtectedRoute>
+            mode === "index" ? (
+              <Index onChangePage={handlePageChange} />
+            ) : (
+              <Index onChangePage={handlePageChange} />
+            )
           }
         />
       </Routes>

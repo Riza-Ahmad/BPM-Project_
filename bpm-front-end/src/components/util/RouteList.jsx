@@ -265,12 +265,10 @@ const routeList = [
   {
     path: "/survei/daftar/*",
     element: <Daftar_Survei />,
-    protected: true,
   },
   {
     path: "/survei/dashboard/*",
     element: <Dashboard_Survei />,
-    protected: true,
   },
   {
     path: "*",
