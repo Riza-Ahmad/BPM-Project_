@@ -1,28 +1,82 @@
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import Index from './Index';
-import ScrollToTop from '../../../part/ScrollToTop';
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import ScrollToTop from "../../../part/ScrollToTop";
+import ProtectedRoute from "../../../util/ProtectedRoute";
+import Index from "./Index";
+import Add from "./Add";
+import AddPertanyaan from "./AddPertanyaan";
+import Edit from "./Edit";
+import Detail from "./Detail";
+import Preview from "./Preview";
+import Swal from "sweetalert2";
 
-export default function Template_Survei(){
-    const navigate = useNavigate();
+export default function Template_Survei() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.pathname;
 
-    const handlePageChange = (page, withState = {}) => {
-        switch (page) {
-            case "index":
-                navigate("/survei/template");
-                break;
-            default:
-                console.warn(`Halaman "${page}" tidak dikenali.`);
-                break;
-        }
-    };
+  const handlePageChange = (page, withState = {}) => {
+    switch (page) {
+      case "index":
+        navigate(`${currentPath}`, { state: { mode: "index", ...withState } });
+        break;
+      case "add":
+        navigate(`${currentPath}`, {
+          state: { mode: "add", ...withState },
+        });
+        break;
+      case "addpertanyaan":
+        navigate(`${currentPath}`, {
+          state: { mode: "addpertanyaan", ...withState },
+        });
+        break;
+      case "edit":
+        navigate(`${currentPath}`, {
+          state: { mode: "edit", ...withState },
+        });
+        break;
+      case "detail":
+        navigate(`${currentPath}`, {
+          state: { mode: "detail", ...withState },
+        });
+        break;
+      case "preview":
+        navigate(`${currentPath}`, {
+          state: { mode: "preview", ...withState },
+        });
+        break;
+      default:
+        console.warn(`Halaman "${page}" tidak dikenali.`);
+        break;
+    }
+  };
 
-    return(
-        <>
-            <ScrollToTop/>
-            <Routes>
-                <Route path="/survei/template" element={<Index onChangePage={handlePageChange}/>}/>
-                           
-            </Routes>
-        </>
-    )
+  const { mode } = location.state || { mode: "index" };
+
+  return (
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute isRole={true}>
+              {mode === "add" ? (
+                <Add onChangePage={handlePageChange} />
+              ) : mode === "addpertanyaan" ? (
+                <AddPertanyaan onChangePage={handlePageChange} />
+              ) : mode === "edit" ? (
+                <Edit onChangePage={handlePageChange} />
+              ) : mode === "detail" ? (
+                <Detail onChangePage={handlePageChange} />
+              ) : mode === "preview" ? (
+                <Preview onChangePage={handlePageChange} />
+              ) : (
+                <Index onChangePage={handlePageChange} />
+              )}
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </>
+  );
 }

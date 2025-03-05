@@ -5,17 +5,19 @@ import Logo from "../../../assets/bpm-logo-biru.png";
 import InputField from "../../part/InputField";
 import { useRef, useState } from "react";
 import Button from "../../part/Button";
-import Cookies from "js-cookie";
+import Modal from "../../part/Modal";
+import Cookies from "js-cookie"; // Import js-cookie for cookie handling
 import { API_LINK } from "../../util/Constants";
 import { useFetch } from "../../util/useFetch";
 import SweetAlert from "../../util/SweetAlert";
 
 export default function Login() {
+  const [listRole, setListRole] = useState([]);
   const [formData, setFormData] = useState({
     username: "",
     password: "",
   });
-
+  const modalRef = useRef();
   const navigate = useNavigate();
 
   const handleLogin = async () => {
@@ -39,53 +41,9 @@ export default function Login() {
           SweetAlert("Gagal!", "Username atau Password salah", "error", "OK");
           return;
         } else {
-          const userData = data[0];
-
-          const sent = {
-            username: formData.username,
-            role: userData.RoleID.slice(0, 5),
-            nama: userData.Nama,
-          };
-
-          const jwtToken = await useFetch(
-            `${API_LINK}/Utilities/CreateJWTToken`,
-            sent,
-            "POST"
-          );
-
-          const loginRecord = {
-            username: formData.username,
-            role: userData.RoleID.slice(0, 5),
-            ip: ipAddress.ip,
-            agent: navigator.userAgent,
-            app: "APP14",
-          };
-
-          const logRec = await useFetch(
-            `${API_LINK}/Utilities/CreateLogLogin`,
-            loginRecord,
-            "POST"
-          );
-
-          if (logRec === "ERROR") {
-            throw new Error("Terjadi kesalahan: Gagal LOGIN.");
-          }
-
-          Cookies.set(
-            "activeUser",
-            JSON.stringify({
-              ...userData,
-              username: formData.username,
-              lastLogin: logRec[1]
-                ? logRec[1].lastLogin
-                : new Date().toISOString().split("T")[0] +
-                  " " +
-                  new Date().toISOString().split("T")[1],
-            }),
-            { expires: 1 }
-          );
-
-          navigate("/");
+          console.log("Data :", data);
+          setListRole(data);
+          modalRef.current.open();
         }
       }
     } catch (error) {
@@ -93,11 +51,106 @@ export default function Login() {
     }
   };
 
+  async function handleLoginWithRole(role, nama, peran) {
+    try {
+      const ipAddress = await useFetch(
+        "https://api.ipify.org/?format=json",
+        {},
+        "GET"
+      );
+
+      if (ipAddress === "ERROR") {
+        console.log("Jalan ga si0");
+        throw new Error("Terjadi kesalahan: Gagal mendapatkan alamat IP.");
+      } else {
+        console.log("Jalan ga si1");
+        //const userData = data[0];
+
+        const dataCookie = {
+          RoleID: role,
+          Role: peran,
+          Nama: nama,
+        };
+        const sent = {
+          username: formData.username,
+          role: peran,
+          nama: nama,
+        };
+
+        const jwtToken = await useFetch(
+          `${API_LINK}/Utilities/CreateJWTToken`,
+          sent,
+          "POST"
+        );
+
+        console.log(jwtToken);
+
+        const loginRecord = {
+          username: formData.username,
+          role: role.slice(0, 5),
+          ip: ipAddress.ip,
+          agent: navigator.userAgent,
+          app: "APP14",
+        };
+
+        console.log(loginRecord);
+
+        const logRec = await useFetch(
+          `${API_LINK}/Utilities/CreateLogLogin`,
+          loginRecord,
+          "POST"
+        );
+
+        if (logRec === "ERROR") {
+          throw new Error("Terjadi kesalahan: Gagal LOGIN.");
+        }
+
+        Cookies.set(
+          "activeUser",
+          JSON.stringify({
+            ...dataCookie,
+            username: formData.username,
+            lastLogin: logRec[1]
+              ? logRec[1].lastLogin
+              : new Date().toISOString().split("T")[0] +
+                " " +
+                new Date().toISOString().split("T")[1], // Mendapatkan waktu saat ini dalam format ISO
+          }),
+          { expires: 1 } // 1 hari masa berlaku cookie
+        );
+
+        navigate("/");
+      }
+    } catch (error) {
+      window.scrollTo(0, 0);
+      modalRef.current.close();
+    }
+  }
+
   return (
     <div
       className="latarGradasi"
       style={{ position: "relative", height: "100vh" }}
     >
+      <Modal title="Pilih Peran" ref={modalRef} size="small">
+        <div className="list-group">
+          {listRole.map((value, index) => {
+            return (
+              <button
+                key={index}
+                type="button"
+                className="list-group-item list-group-item-action"
+                aria-current="true"
+                onClick={() =>
+                  handleLoginWithRole(value.RoleID, value.Nama, value.Role)
+                }
+              >
+                Login sebagai {value.Role}
+              </button>
+            );
+          })}
+        </div>
+      </Modal>
       {/* Icon di atas sebelah kiri */}
       <div
         className="row"

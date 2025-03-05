@@ -34,7 +34,6 @@ export default function Index({ onChangePage }) {
   const isMobile = useIsMobile();
   const activeUser = Cookies.get("activeUser");
   const location = useLocation();
-
   const [pageSize] = useState(10);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [pageCurrent, setPageCurrent] = useState(1);
