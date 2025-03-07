@@ -41,7 +41,6 @@ export default function Login() {
           SweetAlert("Gagal!", "Username atau Password salah", "error", "OK");
           return;
         } else {
-          console.log("Data :", data);
           setListRole(data);
           modalRef.current.open();
         }
@@ -60,12 +59,8 @@ export default function Login() {
       );
 
       if (ipAddress === "ERROR") {
-        console.log("Jalan ga si0");
         throw new Error("Terjadi kesalahan: Gagal mendapatkan alamat IP.");
       } else {
-        console.log("Jalan ga si1");
-        //const userData = data[0];
-
         const dataCookie = {
           RoleID: role,
           Role: peran,
@@ -92,8 +87,6 @@ export default function Login() {
           agent: navigator.userAgent,
           app: "APP14",
         };
-
-        console.log(loginRecord);
 
         const logRec = await useFetch(
           `${API_LINK}/Utilities/CreateLogLogin`,

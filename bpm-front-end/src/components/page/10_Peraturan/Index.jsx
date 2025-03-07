@@ -14,6 +14,7 @@ import SweetAlert from "../../util/SweetAlert";
 import { useIsMobile } from "../../util/useIsMobile";
 import Cookies from "js-cookie";
 import PdfPreviewDownload from "../../part/PdfPreviewDownload";
+import Breadcrumbs from "../../part/Breadcrumbs";
 
 // Dynamically set title and breadcrumbs based on idMenu
 let title = "Hallo";
@@ -269,12 +270,11 @@ export default function Read({ onChangePage }) {
     <div className="d-flex flex-column min-vh-100">
       <main className="flex-grow-1 p-3" style={{ marginTop: "80px" }}>
         <div className="d-flex flex-column">
-          <div className={isMobile ? "m-0" : "m-3"}>
-            <PageTitleNav
-              title={title}
-              breadcrumbs={breadcrumbs}
-              onClick={() => onChangePage("index", { idMenu: idMenu })}
-            />
+          <div className={isMobile ? "m-0 p-2" : "m-3 ms-5 mb-0 ps-3"}>
+            <h1 style={{ color: "#2654A1", margin: "0", fontWeight: "700" }}>
+              {title}
+            </h1>
+            <Breadcrumbs breadcrumbs={breadcrumbs} />
           </div>
           {role === "ROL01" ? (
             <div className={isMobile ? "p-2 m-2  mb-0" : "p-3 m-5 mt-0 mb-0"}>

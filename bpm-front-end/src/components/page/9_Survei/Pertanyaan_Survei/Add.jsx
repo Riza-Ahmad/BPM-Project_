@@ -64,7 +64,6 @@ export default function Add({ onChangePage }) {
           { status: "Aktif" },
           "POST"
         );
-        console.log(skpResponse);
 
         if (skpResponse && Array.isArray(skpResponse)) {
           const filteredSkp = skpResponse.filter(

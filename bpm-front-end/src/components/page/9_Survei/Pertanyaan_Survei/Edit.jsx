@@ -46,7 +46,6 @@ export default function Edit({ onChangePage }) {
       setLoading(true);
       try {
         const body = { id: idData };
-
         const result = await useFetch(
           `${API_LINK}/MasterPertanyaan/GetDataPertanyaanByIdDetail`,
           body,
@@ -59,14 +58,9 @@ export default function Edit({ onChangePage }) {
           "POST"
         );
 
-        const valuesArray = result1.map((item) => item.Value);
+        const valuesArray = result1.map((item) => item.Value) || [];
 
         if (!result || result === "ERROR" || result.length === 0) {
-          Swal.fire("Error", "Data tidak ditemukan", "error");
-          return;
-        }
-
-        if (!result1 || result1 === "ERROR" || result1.length === 0) {
           Swal.fire("Error", "Data tidak ditemukan", "error");
           return;
         }
@@ -74,20 +68,6 @@ export default function Edit({ onChangePage }) {
         const { pertanyaan, ksr_id, skp_id } = result[0];
 
         let parsedResponden = [];
-
-        // Pastikan dtl_responden tidak null atau kosong
-        // if (dtl_responden) {
-        //   try {
-        //     const jsonArray = JSON.parse(dtl_responden);
-        //     parsedResponden = jsonArray.map((item) =>
-        //       parseInt(item.dtl_responden, 10)
-        //     );
-        //   } catch (error) {
-        //     console.error("Error parsing JSON dtl_responden:", error);
-        //   }
-        // }
-
-        // console.log("dtl_responden (parsed):", parsedResponden); // Debug setelah parsing
 
         setFormData({
           ptyId: idData,
@@ -179,6 +159,15 @@ export default function Edit({ onChangePage }) {
 
   const handleSubmit = async () => {
     try {
+      if (formData.responden.length === 0) {
+        SweetAlert(
+          "Gagal Menyimpan Data",
+          "Responden Wajib di isi",
+          "error",
+          "OK"
+        );
+        return;
+      }
       const payload = {
         pertanyaan: formData.pertanyaan,
         ksrId: parseInt(formData.ksrId, 10),

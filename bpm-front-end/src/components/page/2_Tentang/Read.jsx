@@ -19,10 +19,13 @@ export default function Read({ onChangePage }) {
   const fetchData = async () => {
     try {
       const result = await useFetch(
-        `${API_LINK}/MasterTentang/GetDataTentangAll`,
+        `${API_LINK}/MasterTentang/GetDataTentang`,
         JSON.stringify({}),
         "POST"
       );
+      console.log("jalan");
+      console.log(result);
+
       setData(result);
       setLoading(false);
     } catch (err) {

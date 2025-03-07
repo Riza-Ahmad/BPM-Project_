@@ -214,6 +214,15 @@ export default function EditTemplateSurvei({ onChangePage }) {
         },
         "POST"
       );
+      console.log({
+        param1: searchKeyword,
+        param2: selectedSort,
+        param3: pageSize,
+        param4: pageCurrent,
+        param5: idBankArray,
+        param6: selectedKriteria,
+        param7: selectedSkala,
+      });
       if (result === "ERROR" || !result || result.length === 0) {
         setFilteredData([]);
         setTotalData(0);

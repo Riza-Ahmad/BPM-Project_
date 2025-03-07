@@ -69,6 +69,7 @@ export default function Read({ onChangePage }) {
           "POST"
         );
 
+        console.log(data);
         if (data.length > 0 && data[0].TotalCount !== undefined) {
           setTotalData(data[0].TotalCount);
         }
@@ -92,7 +93,7 @@ export default function Read({ onChangePage }) {
             judulDok: item.judulDok,
             fileDok: item.fileDok,
             jenisDok: item.jenisDok,
-            namaKry: item.namaKry,
+            namaPengguna: item.namaPengguna,
             jabatan: item.jabatan,
             status: item.status,
           };
@@ -181,7 +182,7 @@ export default function Read({ onChangePage }) {
                 "Judul Dokumen": item.judulDok,
                 "Nama Berkas (File)": item.fileDok,
                 "Jenis Penyalinan": item.jenisDok,
-                "Nama Pengunduh": item.namaKry,
+                "Nama Pengunduh": item.namaPengguna,
                 Jabatan: item.jabatan,
                 Status: item.status,
               }))}

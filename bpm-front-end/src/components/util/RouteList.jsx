@@ -97,6 +97,7 @@ const Dashboard_Survei = lazy(() =>
   import("../page/9_Survei/Dashboard_Survei/Root")
 );
 const NotFound = lazy(() => import("../page/not-found/Index"));
+const UnderConstr = lazy(() => import("../page/under-constr/Index"));
 
 const routeList = [
   {
@@ -186,6 +187,18 @@ const routeList = [
   {
     path: "/evaluasi/ami/daftar/*",
     element: <PelaksanaanAMI />,
+  },
+  {
+    path: "/evaluasi/tinjauan",
+    element: (
+      <UnderConstr isi="Halaman ini akan dipakai sebagai dashboard Penyimpanan Dokumen Pendukung Tinjauan Manjemen, Hasil Tinjauan Manajemen dan Grafik Perkembangan Corrective Action berdasarkan hasil Tinjauan Manajemen." />
+    ),
+  },
+  {
+    path: "/evaluasi/ame",
+    element: (
+      <UnderConstr isi="Halaman ini akan dipakai sebagai dashboard Jadwal Audit Mutu Eksternal (AME), Grafik Perkembangan Corrective Action Temuan AME per Prodi dan per Kriteria Instrumen Akreditasi." />
+    ),
   },
   {
     path: "/spmi/kategori-dokumen/*",

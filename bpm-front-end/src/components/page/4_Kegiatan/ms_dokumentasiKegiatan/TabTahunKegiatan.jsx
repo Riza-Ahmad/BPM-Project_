@@ -104,7 +104,7 @@ const TabTahunKegiatan = ({ year, kegiatanList, selectedId }) => {
             </div>
 
             {/* Kolom kedua */}
-            <div className="col-md-6">
+            <div className="col-lg-6 col-md-12 col-sm-12 ">
               {kegiatanList
                 .slice(Math.ceil(kegiatanList.length / 2))
                 .map((kegiatan) => (

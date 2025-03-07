@@ -107,7 +107,7 @@ export default function RiwayatUnduh({ onChangePage }) {
                       "Judul Dokumen": item.judulDok,
                       "Nama Berkas (File)": item.fileDok,
                       "Jenis Penyalinan": item.jenisDok,
-                      "Nama Pengunduh": item.namaKry,
+                      "Nama Pengunduh": item.namaPengguna,
                       Jabatan: item.jabatan,
                       Status: item.status,
                     }))}
